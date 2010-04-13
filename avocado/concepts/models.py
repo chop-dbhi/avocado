@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import Group
 
+from avocado.fields.models import FieldConcept
+
 __all__ = ('ConceptCategory', 'ConceptAbstract', 'ConceptFieldAbstract')
 
 class ConceptCategory(models.Model):
@@ -34,10 +36,7 @@ class ConceptAbstract(models.Model):
         return u'%s' % self.name
 
 
-class ConceptFieldAbstract(models.Model):    
-    # prevent circular imports since FieldConcept depends on ConceptAbstract
-    from avocado.fields.models import FieldConcept
-
+class ConceptFieldAbstract(models.Model):
     order = models.SmallIntegerField(default=0)
     field = models.ForeignKey(FieldConcept)
 

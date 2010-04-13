@@ -7,7 +7,9 @@ class ConceptManager(models.Manager):
         return self.get_query_set().filter(*args, is_public=True, **kwargs)
 
     def restrict_by_group(self, groups):
-        "Returns public concepts that are viewable by a specific user."
+        """Returns public concepts that are apart of the specified groups or
+        none at all.
+        """
         return self.public(Q(groups__isnull=True) |
             Q(groups__in=groups)).distinct()
 

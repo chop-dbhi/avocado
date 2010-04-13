@@ -1,7 +1,7 @@
 from django.utils import simplejson
 from django.http import HttpResponse
 from narwhal.utils.decorators import ajax_required
-from .models import ColumnConcept
+from avocado.columns.models import ColumnConcept
 
 @ajax_required('get')
 def search(request):

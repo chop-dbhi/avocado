@@ -17,10 +17,11 @@ A "raw" formatter must always return an ordred array of elements, which
 contains the formatted values of the fields passed in.
 """
 import datetime
-
 from functools import wraps
+
 from django.utils.importlib import import_module
 from django.template import defaultfilters as filters
+
 from avocado.utils import conversions
 
 LOADING = False
@@ -49,6 +50,41 @@ def autodiscover():
         import_module('%s.formatters' % app)
 
     LOADING = False
+
+def get_formatters(columns, column_orders):
+    """Helper function that formats a set of rows given the formatting
+    type.
+    """
+    from avocado.columns.utils import get_column_fields
+
+    pretty_columns = []
+    pretty_formatters = []
+    raw_columns = []
+    raw_formatters = []
+
+    for column in columns:
+        fields = get_column_fields(column)
+        display = {
+            '_concept': column,
+            'id': column.id,
+            'name': column.name,
+            'direction': '',
+            'order': None,
+        }
+        if column_orders.has_key(column):
+            display.update(column_orders[column])
+
+        pretty_columns.append(display)
+        pretty_formatters.append((len(fields), column.pretty_formatter))
+
+        if len(fields) > 1:
+            raw_columns.extend([x.display_name for x in fields])
+        else:
+            raw_columns.append(column.name)
+
+        raw_formatters.append((len(fields), column.raw_formatter))
+
+    return (pretty_columns, pretty_formatters, raw_columns, raw_formatters) 
 
 
 class RegisterError(Exception):

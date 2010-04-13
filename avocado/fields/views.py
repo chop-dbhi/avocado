@@ -14,7 +14,7 @@ from avocado.criteria.datatypes import BadOperator
 from avocado.exceptions import ValidationError
 from .models import Field
 from .cache import field_cache
-from .utils import normalize_raw_data_for_mako
+from .utils import normalize_raw_data_for_avocado
 
 def _format_criteria(sorted_dict):
     cached_criteria = []
@@ -24,7 +24,7 @@ def _format_criteria(sorted_dict):
             'id': key,
             'op': val['op'],
             'values': val['val'],
-            'url': reverse('mako-render-field', kwargs={'field_id': key}),
+            'url': reverse('avocado-render-field', kwargs={'field_id': key}),
         }
         cached_criteria.append(d)
     return cached_criteria
@@ -32,7 +32,7 @@ def _format_criteria(sorted_dict):
 @never_cache
 @ajax_required('post')
 def save_cached_fields(request):
-    parsed_criteria = normalize_raw_data_for_mako(request.POST)
+    parsed_criteria = normalize_raw_data_for_avocado(request.POST)
 
     # set default dict with empty values
     if not request.session.has_key('cached_query'):
@@ -124,7 +124,7 @@ def search(request):
 
     fields = fields.select_related('category').order_by('category__name')
 
-    t = get_template('mako/fields/search.html')
+    t = get_template('avocado/fields/search.html')
     c = RequestContext(request, {
         'fields': fields
     })

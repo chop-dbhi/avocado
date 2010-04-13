@@ -1,5 +1,5 @@
 from django.contrib import admin
-from avocado.columns.models import ColumnConceptField, ColumnConcept
+from avocado.columns.models import ColumnConceptField
 
 def make_public(modeladmin, request, queryset):
     queryset.update(is_public=True)
@@ -33,5 +33,3 @@ class EditorsColumnConceptAdmin(admin.ModelAdmin):
     fieldsets = (
         (None, {'fields': ('name', 'description', 'keywords', 'category')}),
     )
-
-admin.site.register(ColumnConcept, ColumnConceptAdmin)

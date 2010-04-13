@@ -8,7 +8,7 @@ setup(
     description = 'A data-driven querying engine',
     license = 'BSD',
     keywords = 'snippets tools utilities',
-    packages = find_packages(),
+    packages = find_packages(exclude=('tests',)),
     classifiers = [
         'Development Status :: 4 - Beta',
         'Framework :: Django',

@@ -1,8 +1,9 @@
 from django.db import models
+
 from avocado.concepts.models import ConceptAbstract, ConceptFieldAbstract
 from avocado.concepts.managers import ConceptManager
 from avocado.fields.models import FieldConcept
-from .formatters import library
+from avocado.columns.formatters import library
 
 __all__ = ('ColumnConcept', 'ColumnConceptField')
 
