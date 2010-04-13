@@ -2,8 +2,8 @@ import unittest
 
 from avocado.tests import models
 from avocado.modeltree import ModelTree
-from .models import ColumnConcept
-from . import ColumnSet
+from avocado.columns.models import ColumnConcept
+from avocado.utils import ColumnSet
 
 __all__ = ('ColumnSetTestCase',)
 

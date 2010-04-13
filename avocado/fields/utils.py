@@ -1,6 +1,6 @@
 from django.utils.datastructures import SortedDict
 
-def normalize_raw_data_for_mako(raw_data):
+def normalize_raw_data_for_avocado(raw_data):
     "Takes the `raw_data' (a QueryDict object) and normalizes it."
     sorted_dict = SortedDict({})
 

@@ -123,7 +123,7 @@ class FieldConcept(ConceptAbstract):
 #     modified = models.DateTimeField(editable=False)
 #
 #     class Meta:
-#         app_label = 'mako'
+#         app_label = 'avocado'
 #         ordering = ('display_name',)
 #         verbose_name = 'category'
 #         verbose_name_plural = 'categories'
@@ -203,7 +203,7 @@ class FieldConcept(ConceptAbstract):
 #     _model_cls = None
 #
 #     class Meta:
-#         app_label = 'mako'
+#         app_label = 'avocado'
 #         ordering = ('display_name',)
 #
 #     def __unicode__(self):
@@ -312,7 +312,7 @@ class FieldConcept(ConceptAbstract):
 #
 #     @models.permalink
 #     def get_absolute_url(self):
-#         return 'mako-render-field', (), {'field_id': self.pk}
+#         return 'avocado-render-field', (), {'field_id': self.pk}
 #
 #     @property
 #     def allowed_values(self):
@@ -397,12 +397,12 @@ class FieldConcept(ConceptAbstract):
 #         # set html form
 #         from .forms import FieldForm
 #         form = FieldForm(self, prefix=u'%s' % self.pk)
-#         t1 = get_template('mako/fields/form.html')
+#         t1 = get_template('avocado/fields/form.html')
 #         c1 = Context({'forms': [(self.pk, form)]})
 #         json['form'] = t1.render(c1)
 #
 #         # set html description
-#         t2 = get_template('mako/fields/description.html')
+#         t2 = get_template('avocado/fields/description.html')
 #         c2 = Context({'object': self})
 #         json['description'] = t2.render(c2)
 #
