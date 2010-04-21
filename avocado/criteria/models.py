@@ -1,4 +1,5 @@
 from django.db import models
+
 from avocado.concepts.models import ConceptAbstract, ConceptFieldAbstract
 from avocado.concepts.managers import ConceptManager
 from avocado.fields.models import FieldConcept

@@ -1,5 +1,6 @@
 from django.db import models
 from django import forms
+
 from avocado.concepts.models import ConceptAbstract
 from avocado.concepts.managers import ConceptManager
 

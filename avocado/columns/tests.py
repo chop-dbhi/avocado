@@ -1,16 +1,20 @@
-import unittest
+from django.test import TestCase
 
-from avocado.tests import models
 from avocado.modeltree import ModelTree
+from avocado.columns import cache
 from avocado.columns.models import ColumnConcept
-from avocado.utils import ColumnSet
+from avocado.columns.utils import ColumnSet
 
-__all__ = ('ColumnSetTestCase',)
+__all__ = ('ColumnCachingTestCase',)
 
-class ColumnSetTestCase(unittest.TestCase):
-    def setUp(self):
-        pass
+class ColumnCachingTestCase(TestCase):
+    fixtures = ('test_data.yaml',)
 
-    def test_column_ordering(self):
-        mt = ModelTree(models.Root)
-        concepts = ColumnConcept.objects.all()
+    def test_get_concept(self):
+        from django.core import cache as djcache
+        
+        concept_id = 1
+        self.assertEqual(djcache.get(cache.COLUMN_CACHE_KEY % 1), None)
+        
+        concept = cache.get_concept(concept_id)
+        self.assertEqual(djcache.get(cache.COLUMN_CACHE_KEY % 1), concept)

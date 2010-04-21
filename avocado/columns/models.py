@@ -10,9 +10,9 @@ __all__ = ('ColumnConcept', 'ColumnConceptField')
 class ColumnConcept(ConceptAbstract):
     "An interface to specify the necessary fields for a column."
     raw_formatter = models.CharField(max_length=100, blank=True,
-        choices=library.choices('raw'))
+        null=True, choices=library.choices('raw'))
     pretty_formatter = models.CharField(max_length=100, blank=True,
-        choices=library.choices('pretty'))
+        null=True, choices=library.choices('pretty'))
     fields = models.ManyToManyField(FieldConcept, through='ColumnConceptField')
 
     objects = ConceptManager()
