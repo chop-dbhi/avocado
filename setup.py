@@ -4,7 +4,7 @@ setup(
     name = 'django-avocado',
     version = '1.0',
     author = 'Byron Ruth',
-    author_email = 'bruth@codeomics.com',
+    author_email = 'ruthb@email.chop.edu',
     description = 'A data-driven querying engine',
     license = 'BSD',
     keywords = 'snippets tools utilities',
