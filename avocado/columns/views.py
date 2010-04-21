@@ -3,7 +3,6 @@ from django.http import HttpResponse
 from narwhal.utils.decorators import ajax_required
 from avocado.columns.models import ColumnConcept
 
-@ajax_required('get')
 def search(request):
     # limit columns to what the user can see
     groups = request.user.groups.all()

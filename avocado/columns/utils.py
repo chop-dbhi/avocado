@@ -1,49 +1,36 @@
-from django.core.exceptions import ObjectDoesNotExist
 from django.utils.datastructures import SortedDict
 
-from avocado.columns.cache import get_column_fields
+from avocado.concepts.utils import ConceptSet
+from avocado.columns.models import ColumnConcept
+from avocado.columns.cache import get_concept, get_concepts, get_concept_fields
 
-def get_columns(queryset, concept_ids):
+def get_columns(concept_ids, queryset=None):
     """Simple helper to retrieve an ordered list of columns. Columns that are
     not found are simply ignored.
     """
     concepts = []
-    ignored = 0
-    for id_ in concept_ids:
-        try:
-            concept = queryset.get(id=id_)
-        except ObjectDoesNotExist:
-            ignored += 1
-            continue
-        concepts.append(concept)
-    return concepts, ignored
+    for concept in get_concepts(concept_ids, queryset):
+        if concept is not None:
+            concepts.append(concept)
+    return concepts
 
-def get_column_orders(queryset, column_orders):
+def get_column_orders(column_orders, queryset=None):
     columns = SortedDict({})
-    ignored = 0
     for i, (id_, direction) in enumerate(column_orders):
-        try:
-            column = queryset.get(id=id_)
-        except ObjectDoesNotExist:
-            ignored += 1
+        column = get_concept(id_, queryset)
+        if column is None:
             continue
         dict_ = {column: {'direction': direction, 'order': i}}
         columns.update(dict_)
-    return columns, ignored
+    return columns
 
-class ColumnSet(object):
+class ColumnSet(ConceptSet):
     """A ColumnSet provides a simple interface to alter querysets in terms
     of adding additional columns and adding column ordering.
-
-        `queryset' - a ColumnConcept queryset that acts as a starting point
-        for retrieving objects from
-        
-        `modeltree' - a ModelTree instance that should have a root model that
-        is the same as the queryset(s) being processed via the public methods
     """
-    def __init__(self, queryset, model_tree):
-        self.queryset = queryset
-        self.model_tree = model_tree
+    def __setstate__(self, dict_):
+        queryset = ColumnConcept.objects.all()
+        super(ColumnConcept, self).__setstate__(dict_, queryset)
 
     def add_columns(self, queryset, concepts):
         """Takes a `queryset' and ensures the proper table join have been
@@ -53,7 +40,7 @@ class ColumnSet(object):
             queryset.model._meta.pk.column)]
 
         for concept in concepts:
-            fields = get_column_fields(concept)
+            fields = get_concept_fields(concept, self.queryset)
 
             for field in fields:
                 model = field.model_cls
@@ -78,7 +65,7 @@ class ColumnSet(object):
         orders = []
 
         for concept, meta in concept_orders.items():
-            fields = get_column_fields(concept)
+            fields = get_concept_fields(concept, self.queryset)
 
             for field in fields:
                 path = []

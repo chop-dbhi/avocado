@@ -1,4 +1,5 @@
-# source: google.com calculator
+# source: http://www.google.com/search?q=days+in+year
+# source: http://www.google.com/search?q=days+in+month
 DAYS_IN_YEAR = 365.242199
 DAYS_IN_MONTH = 30.4368499
 

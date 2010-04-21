@@ -51,12 +51,13 @@ def autodiscover():
 
     LOADING = False
 
+
 def get_formatters(columns, column_orders):
     """Helper function that formats a set of rows given the formatting
     type.
     """
-    from avocado.columns.utils import get_column_fields
-
+    from mako.columns.utils import get_column_fields
+    
     pretty_columns = []
     pretty_formatters = []
     raw_columns = []
@@ -66,24 +67,24 @@ def get_formatters(columns, column_orders):
         fields = get_column_fields(column)
         display = {
             '_concept': column,
-            'id': column.id,
+            'pk': column.id,
             'name': column.name,
             'direction': '',
             'order': None,
         }
         if column_orders.has_key(column):
             display.update(column_orders[column])
-
+        
         pretty_columns.append(display)
         pretty_formatters.append((len(fields), column.pretty_formatter))
-
+        
         if len(fields) > 1:
             raw_columns.extend([x.display_name for x in fields])
         else:
             raw_columns.append(column.name)
-
+        
         raw_formatters.append((len(fields), column.raw_formatter))
-
+    
     return (pretty_columns, pretty_formatters, raw_columns, raw_formatters) 
 
 
@@ -113,12 +114,12 @@ class FormatterLibrary(object):
             else:
                 _name = name
 
-            d = {formatter_func.__name__: (_name, formatter_func)}
+            dict_ = {formatter_func.__name__: (_name, formatter_func)}
 
             if lib is None or lib == 'raw':
-                self._raw_formatters.update(d)
+                self._raw_formatters.update(dict_)
             if lib is None or lib == 'pretty':
-                self._pretty_formatters.update(d)
+                self._pretty_formatters.update(dict_)
 
             def _formatter_func(*args):
                 return formatter_func(*args)
@@ -134,6 +135,16 @@ class FormatterLibrary(object):
         except AttributeError:
             raise AttributeError, 'the choice is either "pretty" or "raw"'
 
+    def _get_formatters(self, lib, formatter_dict, formatters):
+        _formatters = []
+        for cnt, func_name in formatters:
+            if formatter_dict.has_key(func_name):
+                func = formatter_dict.get(func_name)[1]
+            else:
+                func = formatter_dict.get('_default_%s' % lib)[1]
+            _formatters.append((cnt, func))
+        return _formatters
+
     def choices(self, lib):
         "Returns a tuple of pairs that can be used as choices in a form."
         formatter_dict = self._get_formatter_dict(lib)
@@ -142,14 +153,7 @@ class FormatterLibrary(object):
 
     def raw_formatted(self, rows, formatters):
         formatter_dict = self._raw_formatters
-        _formatters = []
-        # pre-cache the functions
-        for cnt, func_name in formatters:
-            if formatter_dict.has_key(func_name):
-                func = formatter_dict.get(func_name)[1]
-            else:
-                func = formatter_dict.get('_default_raw')[1]
-            _formatters.append((cnt, func))
+        _formatters = self._get_formatters('raw', formatter_dict, formatters)
 
         for row in rows:
             # assuming the first object is the primary key
@@ -175,18 +179,12 @@ class FormatterLibrary(object):
     def pretty_formatted(self, rows, formatters):
         "A generator that formats a row at a time."
         formatter_dict = self._pretty_formatters
-        _formatters = []
-        # pre-cache the functions
-        for cnt, func_name in formatters:
-            if formatter_dict.has_key(func_name):
-                func = formatter_dict.get(func_name)[1]
-            else:
-                func = formatter_dict.get('_default_pretty')[1]
-            _formatters.append((cnt, func))
-
+        _formatters = self._get_formatters('pretty', formatter_dict,
+            formatters)
+        formatted_rows = []
         for row in rows:
             # assuming the first object is the primary key
-            formatted_row = [row[0]]
+            row_dict = {'pk': row[0], 'data': []}
             start = 1
             for cnt, func in _formatters:
                 stop = start + cnt
@@ -198,9 +196,10 @@ class FormatterLibrary(object):
                         val = func('pretty', *vals)
                     except StandardError:
                         val = '<span class="format-error">(data format error)</span>'
-                formatted_row.append(val)
+                row_dict['data'].append(val)
                 start = stop
-            yield formatted_row
+            formatted_rows.append(row_dict)
+        return formatted_rows
 
 library = FormatterLibrary()
 

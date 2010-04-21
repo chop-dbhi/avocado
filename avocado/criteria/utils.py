@@ -1,22 +1,20 @@
 from django.db.models import Q
-from django.core.exceptions import ObjectDoesNotExist
 
-def get_criteria(queryset, concept_ids):
+from avocado.concepts.utils import ConceptSet
+from avocado.criteria.models import CriterionConcept
+from avocado.criteria.cache import get_concept, get_concepts
+
+def get_criteria(concept_ids, queryset=None):
     """Simple helper to retrieve an ordered list of criteria. Criteria that are
     not found are simply ignored.
     """
     concepts = []
-    ignored = 0
-    for id_ in concept_ids:
-        try:
-            concept = queryset.get(id=id_)
-        except ObjectDoesNotExist:
-            ignored += 1
-            continue
-        concepts.append(concept)
-    return concepts, ignored
+    for concept in get_concepts(concept_ids, queryset):
+        if concept is not None:
+            concepts.append(concept)
+    return concepts
 
-class CriterionSet(object):
+class CriterionSet(ConceptSet):
     """Provides the mechanism to validate and normalize user-defined criteria.
     This interface provides the mechanisms to filter down a queryset.
 
@@ -29,33 +27,28 @@ class CriterionSet(object):
     The `queryset' must be provided as a starting point when fetching data
     about each criterion.
     """
-
-    def __init__(self, queryset, model_tree):
-        self.queryset = queryset
-        self.model_tree = model_tree
+    def __setstate__(self, dict_):
+        queryset = CriterionConcept.objects.all()
+        super(CriterionSet, self).__setstate__(dict_, queryset)
 
     def _get_criteria(self, pre_criteria):
         """Iterates over the `pre_criteria' and fetches the criterion objects
-        from the database.
+        and validates the `operator' and `value'.
         """
         criteria = []
-        for pk, dct in pre_criteria.items():
-            try:
-                c = self.queryset.get(id=pk)
-            except self.queryset.model.DoesNotExist:
-                # block further processing, since this could be a breach
-                raise PermissionDenied
-            # TODO add error catching..
-            c.validate(dct['op'], dct['val'])
-            criteria.append(c)
+        for id_, dict_ in pre_criteria.items():
+            concept = get_concept(id_, self.queryset)
+            concept.validate(dict_['op'], dict_['val'])
+            criteria.append(concept)
         return criteria
 
     def _get_filters(self, criteria):
+        """TODO: update with new CriterionConcept API."""
         filters = []
         for c in criteria:
             model = c.model_cls
             field_name = c.field_name
-            operator = c.op_obj.operator
+            operator = c.op_obj.op
             value = c.val_obj
             is_negated = c.op_obj.is_negated
             path = []
@@ -66,6 +59,7 @@ class CriterionSet(object):
 
             path.extend([field_name, operator])
             kwarg = {str('__'.join(path)): value}
+
             if is_negated:
                 filters.append(~Q(**kwarg))
             else:

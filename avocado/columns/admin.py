@@ -1,4 +1,5 @@
 from django.contrib import admin
+
 from avocado.columns.models import ColumnConceptField
 
 def make_public(modeladmin, request, queryset):
@@ -24,8 +25,11 @@ class ColumnConceptAdmin(admin.ModelAdmin):
     actions = (make_public, make_not_public)
     save_as = True
 
+
 class EditorsColumnConceptAdmin(admin.ModelAdmin):
-    "Limited set of fields that won't break anything."
+    """A suggested set of fields for editors that will not affect the integrity
+    and implementation of the data.
+    """
     list_display = ('name', 'category')
     list_filter = ('category',)
     search_fields = ('name', 'description', 'keywords')
