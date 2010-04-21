@@ -1,14 +1,15 @@
-import unittest
+from django.test import TestCase
 
 from avocado.columns.tests import *
 from avocado.concepts.tests import *
 from avocado.criteria.tests import *
 from avocado.fields.tests import *
 from avocado.utils.tests import *
+from avocado.tests.models import *
 
-from .models import *
+from avocado.modeltree import ModelTree
 
-class ModelTreeTestCase(unittest.TestCase):
+class ModelTreeTestCase(TestCase):
     def setUp(self):
         self.root = ModelTree(Root)
         self.parent1 = ModelTree(Parent1)

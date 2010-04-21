@@ -1,5 +1,7 @@
 begin;
 
+create language plpgsql;
+
 drop trigger if exists avocado_fieldconcept_search_tsv_update on avocado_fieldconcept;
 drop trigger if exists avocado_fieldconcept_search_doc_update on avocado_fieldconcept;
 drop function if exists avocado_fieldconcept_search_tsv_func();

@@ -70,7 +70,7 @@ class ModelTreeNode(object):
         if self.rel_is_reversed:
             f = getattr(self.parent_model, self.related_name).field
         else:
-            f = getattr(self.parent_model, self.accessor_name).related.field
+            f = getattr(self.parent_model, self.accessor_name).field
         return f.m2m_reverse_name()
     m2m_reverse_field = property(_get_m2m_reverse_field)
 

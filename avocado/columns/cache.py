@@ -21,12 +21,11 @@ def get_concept(concept_id, queryset=None, ret_val=None):
             if queryset is not None:
                 concept = queryset.get(id=concept_id)
             else:
-                concept = ColumnConcept.objects.get(id=concept_id)
+                concept = ColumnConcept.objects.public().get(id=concept_id)
         except ColumnConcept.DoesNotExist:
             return ret_val
         cache.set(key, concept)
     return concept
-
 
 def get_concept_fields(concept, queryset=None, ret_val=None):
     """Simple interface for getting (and setting) a concept's fields

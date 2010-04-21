@@ -2,14 +2,14 @@ from django.utils.datastructures import SortedDict
 
 from avocado.concepts.utils import ConceptSet
 from avocado.columns.models import ColumnConcept
-from avocado.columns.cache import get_concept, get_concepts, get_concept_fields
+from avocado.columns import cache
 
 def get_columns(concept_ids, queryset=None):
     """Simple helper to retrieve an ordered list of columns. Columns that are
     not found are simply ignored.
     """
     concepts = []
-    for concept in get_concepts(concept_ids, queryset):
+    for concept in cache.get_concepts(concept_ids, queryset):
         if concept is not None:
             concepts.append(concept)
     return concepts
@@ -17,7 +17,7 @@ def get_columns(concept_ids, queryset=None):
 def get_column_orders(column_orders, queryset=None):
     columns = SortedDict({})
     for i, (id_, direction) in enumerate(column_orders):
-        column = get_concept(id_, queryset)
+        column = cache.get_concept(id_, queryset)
         if column is None:
             continue
         dict_ = {column: {'direction': direction, 'order': i}}
@@ -30,7 +30,7 @@ class ColumnSet(ConceptSet):
     """
     def __setstate__(self, dict_):
         queryset = ColumnConcept.objects.all()
-        super(ColumnConcept, self).__setstate__(dict_, queryset)
+        super(ColumnSet, self).__setstate__(dict_, queryset)
 
     def add_columns(self, queryset, concepts):
         """Takes a `queryset' and ensures the proper table join have been
@@ -40,10 +40,10 @@ class ColumnSet(ConceptSet):
             queryset.model._meta.pk.column)]
 
         for concept in concepts:
-            fields = get_concept_fields(concept, self.queryset)
+            fields = cache.get_concept_fields(concept, self.queryset)
 
             for field in fields:
-                model = field.model_cls
+                model = field.model
                 aliases.append((model._meta.db_table, field.field_name))
 
                 # only apply join if the table does not already exist in the query
@@ -64,12 +64,12 @@ class ColumnSet(ConceptSet):
         queryset.query.clear_ordering()
         orders = []
 
-        for concept, meta in concept_orders.items():
-            fields = get_concept_fields(concept, self.queryset)
+        for concept, direction in concept_orders:
+            fields = cache.get_concept_fields(concept, self.queryset)
 
             for field in fields:
                 path = []
-                model = field.model_cls
+                model = field.model
 
                 if self.model_tree.root_model != model:
                     nodes = self.model_tree.path_to(model)
@@ -77,7 +77,7 @@ class ColumnSet(ConceptSet):
 
                 order = '__'.join(path + [field.field_name])
 
-                if meta['direction'].lower() == 'desc':
+                if direction.lower() == 'desc':
                     order = '-' + order
                 orders.append(order)
 
