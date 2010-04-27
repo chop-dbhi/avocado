@@ -10,7 +10,8 @@ def search(request):
     
     search_str = request.GET.get('q', None)
     if search_str:
-        columns = ColumnConcept.objects.fulltext(search_str, columns)
+        columns = ColumnConcept.objects.fulltext_search(search_str, columns,
+            use_icontains=True)
 
     json = {'column_ids': [c.id for c in columns]}
     

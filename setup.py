@@ -5,7 +5,7 @@ setup(
     version = '1.0',
     author = 'Byron Ruth',
     author_email = 'ruthb@email.chop.edu',
-    description = 'A data-driven querying engine',
+    description = 'A data-driven query engine',
     license = 'BSD',
     keywords = 'snippets tools utilities',
     packages = find_packages(exclude=('tests',)),

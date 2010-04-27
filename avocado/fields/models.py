@@ -28,7 +28,6 @@ class FieldConcept(ConceptAbstract):
     """
     model_label = models.CharField(max_length=100, editable=False)
     field_name = models.CharField(max_length=100, editable=False)
-    formfield_class = models.CharField(max_length=100, editable=False)
 
     objects = ConceptManager()
 
@@ -52,6 +51,10 @@ class FieldConcept(ConceptAbstract):
         return self._field
     field = property(_get_field)
 
+    def _get_datatype(self):
+        if not hasattr(self, '_datatype'):
+            self._datatype = 
+
     def formfield(self, **kwargs):
         return self.field.formfield(**kwargs)
 
@@ -59,7 +62,6 @@ class FieldConcept(ConceptAbstract):
         if formfield is None:
             formfield = self.field.formfield(**kwargs)
         
-        print formfield.__class__
         try:
             cleaned_value = formfield.clean(value)
         except forms.ValidationError, e:

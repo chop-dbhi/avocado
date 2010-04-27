@@ -6,7 +6,6 @@ from avocado.columns.models import ColumnConcept
 COLUMN_CACHE_KEY = 'avocado:columnconcept:%s'
 COLUMN_FIELD_CACHE_KEY = 'avocado:columnconcept:fields:%s'
 
-
 def get_concept(concept_id, queryset=None, ret_val=None):
     """Simple interface for getting (and setting) a concept from global cache.
     
@@ -21,7 +20,7 @@ def get_concept(concept_id, queryset=None, ret_val=None):
             if queryset is not None:
                 concept = queryset.get(id=concept_id)
             else:
-                concept = ColumnConcept.objects.public().get(id=concept_id)
+                concept = ColumnConcept.objects.get(id=concept_id)
         except ColumnConcept.DoesNotExist:
             return ret_val
         cache.set(key, concept)

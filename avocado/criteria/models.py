@@ -7,9 +7,9 @@ from avocado.fields.models import FieldConcept
 __all__ = ('CriterionConcept', 'CriterionConceptField')
 
 class CriterionConcept(ConceptAbstract):
-    filter_name = models.CharField(max_length=100)
-    view_name = models.CharField(max_length=100, blank=True)
-    template_name = models.CharField(max_length=100, blank=True)
+    filter_name = models.CharField(max_length=100, null=True, blank=True)
+    view_name = models.CharField(max_length=100, null=True, blank=True)
+    template_name = models.CharField(max_length=100, null=True, blank=True)
     fields = models.ManyToManyField(FieldConcept, through='CriterionConceptField')
     
     objects = ConceptManager()
