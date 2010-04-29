@@ -27,11 +27,6 @@ class FieldType(object):
             raise NotImplementedError, 'subclasses must have at least one ' \
                 'operator associated with it'
 
-    def __call__(self, use_cache=True, **kwargs):
-        if not hasattr(self, '_formfield') or not use_cache:
-            self._formfield = self._get_formfield(**kwargs)
-        return self._formfield
-
     def _get_operator(self, operator):
         for x in self.operators:
             if x.operator == operator:
@@ -39,16 +34,9 @@ class FieldType(object):
         raise OperatorNotPermitted, '%s is not permitted for field type %s' % \
             (operator, self.__class__.__name__)
 
-    def _get_formfield(self, **kwargs):
-        # allows for the default widget to be overridden
-        if kwargs.has_key('widget'):
-            widget = kwargs.pop('widget')
-        else:
-            widget = self.widget
-        self._field = self.field(widget=widget, **kwargs)
-        return self._field
-
-    def clean(self, value, operator):
+    def clean(self, formfield, value, operator):
+        try:
+            cleaned_value = self._field.clean(value)
         op_obj = self._get_operator(operator)
         
         try:

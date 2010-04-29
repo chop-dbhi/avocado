@@ -18,8 +18,8 @@ class CriterionConcept(ConceptAbstract):
         verbose_name = 'criterion concept'
         verbose_name_plural = 'criterion concepts'
 
-    def _get_form(self):
-        if not hasattr(self, '_form'):
+    def _get_form_class(self):
+        if not hasattr(self, '_form_class'):
             from django import forms
             
             form_fields = {}
@@ -33,9 +33,9 @@ class CriterionConcept(ConceptAbstract):
                     super(CriterionConceptForm, self).__init__(*args, **kwargs)
                     self.fields.update(form_fields)
             
-            self._form = CriterionConceptForm
-        return self._form
-    form = property(_get_form)
+            self._form_class = CriterionConceptForm
+        return self._form_class
+    form_class = property(_get_form_class)
 
     def _get_view(self):
         if not hasattr(self, '_view'):
@@ -43,6 +43,14 @@ class CriterionConcept(ConceptAbstract):
             self._view = library.get(self.view_name)
         return self._view
     view = property(_get_view)
+
+    def is_valid(self, data, form_class=None):
+        if form_class is None:
+            form_class = self.form_class
+        form = form_class(data)
+        if form.is_valid():
+            return True, form.cleaned_data
+        return False, ()
 
 
 class CriterionConceptField(ConceptFieldAbstract):

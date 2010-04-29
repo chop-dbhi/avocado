@@ -1,5 +1,5 @@
 from django.db import models
-from django import forms
+#from django import forms
 
 from avocado.concepts.models import ConceptAbstract
 from avocado.concepts.managers import ConceptManager
@@ -28,6 +28,7 @@ class FieldConcept(ConceptAbstract):
     """
     model_label = models.CharField(max_length=100, editable=False)
     field_name = models.CharField(max_length=100, editable=False)
+    field_type = models.CharField(max_length=100)
 
     objects = ConceptManager()
 
@@ -51,19 +52,18 @@ class FieldConcept(ConceptAbstract):
         return self._field
     field = property(_get_field)
 
-    def _get_datatype(self):
-        if not hasattr(self, '_datatype'):
-            self._datatype = 
+    # def _get_datatype(self):
+    #     if not hasattr(self, '_datatype'):
+    #         self._datatype = 
 
-    def formfield(self, **kwargs):
-        return self.field.formfield(**kwargs)
-
-    def value_is_valid(self, value, formfield=None, **kwargs):
-        if formfield is None:
-            formfield = self.field.formfield(**kwargs)
-        
-        try:
-            cleaned_value = formfield.clean(value)
-        except forms.ValidationError, e:
-            return (False, None, e.messages)
-        return (True, cleaned_value, ())
+    # def formfield(self, **kwargs):
+    #     return self.field.formfield(**kwargs)
+    # 
+    # def value_is_valid(self, value, formfield=None, **kwargs):
+    #     if formfield is None:
+    #         formfield = self.field.formfield(**kwargs)   
+    #     try:
+    #         cleaned_value = formfield.clean(value)
+    #     except forms.ValidationError, e:
+    #         return (False, None, e.messages)
+    #     return (True, cleaned_value, ())

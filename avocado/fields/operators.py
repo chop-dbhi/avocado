@@ -27,7 +27,6 @@ class Operator(object):
             return ''
         return value
 
-
 class Exact(Operator):
     operator = 'exact'
     display = '='
