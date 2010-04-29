@@ -1,8 +1,9 @@
 from django.db import models
-#from django import forms
+from django import forms
 
 from avocado.concepts.models import ConceptAbstract
 from avocado.concepts.managers import ConceptManager
+from avocado.fields.operators import ValidationError
 
 __all__ = ('FieldConcept',)
 
@@ -28,7 +29,7 @@ class FieldConcept(ConceptAbstract):
     """
     model_label = models.CharField(max_length=100, editable=False)
     field_name = models.CharField(max_length=100, editable=False)
-    field_type = models.CharField(max_length=100)
+    field_type_name = models.CharField(max_length=100, null=True, blank=True)
 
     objects = ConceptManager()
 
@@ -52,18 +53,59 @@ class FieldConcept(ConceptAbstract):
         return self._field
     field = property(_get_field)
 
-    # def _get_datatype(self):
-    #     if not hasattr(self, '_datatype'):
-    #         self._datatype = 
+    def _get_field_type(self):
+        if not hasattr(self, '_field_type'):
+            from avocado.fields import fieldtypes
+            if self.field_type_name:
+                self._field_type = getattr(fieldtypes, self.field_type_name)
+            else:
+                model_field_type = self.field.get_internal_type()
+                self._field_type = fieldtypes.MODEL_FIELD_MAP[model_field_type]
+        return self._field_type
+    field_type = property(_get_field_type)
 
-    # def formfield(self, **kwargs):
-    #     return self.field.formfield(**kwargs)
-    # 
-    # def value_is_valid(self, value, formfield=None, **kwargs):
-    #     if formfield is None:
-    #         formfield = self.field.formfield(**kwargs)   
-    #     try:
-    #         cleaned_value = formfield.clean(value)
-    #     except forms.ValidationError, e:
-    #         return (False, None, e.messages)
-    #     return (True, cleaned_value, ())
+    def formfield(self, formfield=None, widget=None, **kwargs):
+        "Returns the default `formfield' instance for the `field' type."
+        if formfield is None:
+            if self.field_type_name:
+                formfield = self.field_type.field
+            else:
+                formfield = self.field.formfield
+
+        if widget is None:
+            widget = self.field_type.widget
+
+        if 'label' in kwargs:
+            label = kwargs.pop('label')
+        else:
+            label = self.field_name.title()
+        
+        return formfield(label=label, widget=widget, **kwargs)
+
+    def clean(self, operator, value):
+        """Cleans and validates the `operator' and `value' pair. It first tries
+        to clean the `value' into the correct python object. This is done by
+        fetching the default `formfield' class provided by the `field'
+        instance.
+        
+        The second step is to validate the `operator' can be used for this
+        instance's `field_type'. The `operator' also performs a minor
+        cleaning that verifies the value is in the correct format for the
+        operator.
+        """
+        formfield = self.formfield()
+
+        if type(value) not in (list, tuple):
+            value = [value]
+            
+        try:
+            cleaned_value = map(formfield.clean, value)
+        except forms.ValidationError, e:
+            return (False, None, e.messages)
+        
+        try:
+            cleaned_value = self.field_type.clean(cleaned_value)
+        except ValidationError, e:
+            return (False, None, e.message)
+
+        return (True, cleaned_value, ())

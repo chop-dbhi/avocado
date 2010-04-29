@@ -21,12 +21,11 @@ class CriterionConcept(ConceptAbstract):
     def _get_form_class(self):
         if not hasattr(self, '_form_class'):
             from django import forms
-            
             form_fields = {}
             
             for f in self.fields.all():
                 key = '%s_%s' % (f.id, f.field_name)
-                form_fields[key] = f.formfield(label=f.field_name)
+                form_fields[key] = f.formfield()
             
             class CriterionConceptForm(forms.Form):
                 def __init__(self, *args, **kwargs):
