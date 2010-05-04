@@ -1,4 +1,5 @@
 import cPickle as pickle
+from copy import deepcopy
 
 from django.test import TestCase
 from django.core.cache import cache as djcache
@@ -7,8 +8,11 @@ from avocado.modeltree import ModelTree
 from avocado.columns import cache
 from avocado.columns.models import ColumnConcept
 from avocado.columns.utils import ColumnSet
+from avocado.columns.formatters import (JSONFormatterLibrary, FormatterLibrary,
+    RegisterError)
 
-__all__ = ('ColumnConceptSearchTestCase', 'ColumnCachingTestCase', 'ColumnSetTestCase')
+__all__ = ('ColumnConceptSearchTestCase', 'ColumnCachingTestCase',
+    'ColumnSetTestCase', 'FormatterLibraryTestCase', 'JSONFormatterLibraryTestCase')
 
 class ColumnConceptSearchTestCase(TestCase):
     fixtures = ['test_data.yaml']
@@ -122,12 +126,12 @@ class ColumnSetTestCase(TestCase):
         concept_orders = [(1, 'desc')]
         queryset2 = self.set.add_ordering(queryset1, concept_orders)
 
-        self.assertEqual(str(queryset2.query), 'SELECT "avocado_columnconcept"."id", "avocado_columnconcept"."name", "avocado_columnconcept"."description", "avocado_columnconcept"."keywords", "avocado_columnconcept"."category_id", "avocado_columnconcept"."is_public", "avocado_columnconcept"."order", "avocado_columnconcept"."search_doc", "avocado_columnconcept"."raw_formatter", "avocado_columnconcept"."pretty_formatter" FROM "avocado_columnconcept" ORDER BY "avocado_columnconcept"."name" DESC, "avocado_columnconcept"."keywords" DESC')
+        self.assertEqual(str(queryset2.query), 'SELECT "avocado_columnconcept"."id", "avocado_columnconcept"."name", "avocado_columnconcept"."description", "avocado_columnconcept"."keywords", "avocado_columnconcept"."category_id", "avocado_columnconcept"."is_public", "avocado_columnconcept"."order", "avocado_columnconcept"."search_doc" FROM "avocado_columnconcept" ORDER BY "avocado_columnconcept"."name" DESC, "avocado_columnconcept"."keywords" DESC')
 
         concept_orders = [(2, 'desc'), (1, 'asc')]
         queryset3 = self.set.add_ordering(queryset1, concept_orders)
 
-        self.assertEqual(str(queryset3.query), 'SELECT "avocado_columnconcept"."id", "avocado_columnconcept"."name", "avocado_columnconcept"."description", "avocado_columnconcept"."keywords", "avocado_columnconcept"."category_id", "avocado_columnconcept"."is_public", "avocado_columnconcept"."order", "avocado_columnconcept"."search_doc", "avocado_columnconcept"."raw_formatter", "avocado_columnconcept"."pretty_formatter" FROM "avocado_columnconcept" LEFT OUTER JOIN "avocado_columnconceptfield" ON ("avocado_columnconcept"."id" = "avocado_columnconceptfield"."concept_id") LEFT OUTER JOIN "avocado_fieldconcept" ON ("avocado_columnconceptfield"."field_id" = "avocado_fieldconcept"."id") ORDER BY "avocado_fieldconcept"."name" DESC, "avocado_fieldconcept"."field_name" DESC, "avocado_columnconcept"."name" ASC, "avocado_columnconcept"."keywords" ASC')
+        self.assertEqual(str(queryset3.query), 'SELECT "avocado_columnconcept"."id", "avocado_columnconcept"."name", "avocado_columnconcept"."description", "avocado_columnconcept"."keywords", "avocado_columnconcept"."category_id", "avocado_columnconcept"."is_public", "avocado_columnconcept"."order", "avocado_columnconcept"."search_doc" FROM "avocado_columnconcept" LEFT OUTER JOIN "avocado_columnconceptfield" ON ("avocado_columnconcept"."id" = "avocado_columnconceptfield"."concept_id") LEFT OUTER JOIN "avocado_fieldconcept" ON ("avocado_columnconceptfield"."field_id" = "avocado_fieldconcept"."id") ORDER BY "avocado_fieldconcept"."name" DESC, "avocado_fieldconcept"."field_name" DESC, "avocado_columnconcept"."name" ASC, "avocado_columnconcept"."keywords" ASC')
 
     def test_add_both(self):
         queryset1 = ColumnConcept.objects.all()
@@ -159,3 +163,187 @@ class ColumnSetTestCase(TestCase):
         self.assertEqual(str(queryset5.query), 'SELECT "avocado_columnconcept"."id", "avocado_fieldconcept"."name", "avocado_fieldconcept"."field_name", "avocado_columnconcept"."name", "avocado_columnconcept"."keywords" FROM "avocado_columnconcept" LEFT OUTER JOIN "avocado_columnconceptfield" ON ("avocado_columnconcept"."id" = "avocado_columnconceptfield"."concept_id") LEFT OUTER JOIN "avocado_fieldconcept" ON ("avocado_columnconceptfield"."field_id" = "avocado_fieldconcept"."id") ORDER BY "avocado_fieldconcept"."name" DESC, "avocado_fieldconcept"."field_name" DESC, "avocado_columnconcept"."name" ASC, "avocado_columnconcept"."keywords" ASC')
 
         self.assertEqual(str(queryset4.query), str(queryset5.query))
+
+
+class FormatterLibraryTestCase(TestCase):
+    def setUp(self):
+        super(FormatterLibraryTestCase, self).setUp()
+        self.library = FormatterLibrary()
+
+    def test_no_formatters(self):
+        rows = [
+            (4, None, 'foo', set([3,4,5]), 129),
+            (10, 29, 'foo', [3,4,5], False),
+            (None, 'bar', 'foo', None, True),
+        ]
+        
+        rows1 = list(self.library.format(rows, [(None, 2), ('', 2)],
+            idx=(None, 4)))
+        
+        self.assertEqual(rows1, [
+            ('4 None', 'foo set([3, 4, 5])', 129),
+            ('10 29', 'foo [3, 4, 5]', False),
+            ('None bar', 'foo None', True),
+        ])
+        
+        rows2 = list(self.library.format(rows, [(0, 1), ('afunc', 3)],
+            idx=(1, None)))
+        
+        self.assertEqual(rows2, [
+            (4, 'None', 'foo set([3, 4, 5]) 129'),
+            (10, '29', 'foo [3, 4, 5] False'),
+            (None,  'bar', 'foo None True'),
+        ])
+
+        # if an 'empty' rule is provided, it is skipped
+        rows3 = list(self.library.format(rows, [(None, 0), ('afunc', 2)],
+            idx=(1, None)))
+        
+        self.assertEqual(rows3, [
+            (4, 'None foo'),
+            (10, '29 foo'),
+            (None, 'bar foo'),
+        ])
+
+    def test_register(self):
+        @self.library.register
+        def func1(arg1, arg2):
+            return arg1 + arg2
+        
+        self.assertEqual(func1(5, 5), self.library.get('func1')(5, 5))
+        
+        @self.library.register('foo bar')
+        def func2(arg1):
+            return '%s is a cool arg' % arg1
+        
+        self.assertEqual(func2(5), self.library.get('func2')(5))
+
+        @self.library.register('boolean')
+        def func3(arg1):
+            return arg1 and 'Yes' or 'No'
+
+        self.assertEqual(func3(None), self.library.get('func3')(None))
+        
+        def func3(arg1):
+            return
+        
+        self.assertRaises(RegisterError, self.library.register('another'), func3)
+
+    def test_formatters(self):
+        self.test_register()
+        
+        rows = [
+            (4, None, 'foo', set([3,4,5]), 129),
+            (10, 29, 'foo', [3,4,5], False),
+            (None, 'bar', 'foo', None, True),
+        ]
+        
+        rows1 = list(self.library.format(rows, [('func1', 2), ('', 2)],
+            idx=(None, 4)))
+        
+        self.assertEqual(rows1, [
+            ('(data format error)', 'foo set([3, 4, 5])', 129),
+            (39, 'foo [3, 4, 5]', False),
+            ('(data format error)', 'foo None', True),
+        ])
+        
+        rows2 = list(self.library.format(rows, [('func2', 1), ('', 2), ('func3', 1)],
+            idx=(1, None)))
+        
+        self.assertEqual(rows2, [
+            (4, 'None is a cool arg', 'foo set([3, 4, 5])', 'Yes'),
+            (10, '29 is a cool arg', 'foo [3, 4, 5]',  'No'),
+            (None,  'bar is a cool arg', 'foo None', 'Yes'),
+        ])
+
+
+class JSONFormatterLibraryTestCase(TestCase):
+    def setUp(self):
+        super(JSONFormatterLibraryTestCase, self).setUp()
+        self.library = JSONFormatterLibrary()
+
+    def test_no_formatters(self):
+        data = [
+            {'id': 1, 'data': (4, None, 'foo', set([3,4,5]), 129)},
+            {'id': 2, 'data': (10, 29, 'foo', [3,4,5], False)},
+            {'id': 3, 'data': (None, 'bar', 'foo', None, True)},
+        ]
+        
+        data1 = list(self.library.format(deepcopy(data), [(None, 2), ('', 2)],
+            idx=(None, 4)))
+        
+        self.assertEqual(data1, [
+            {'id': 1, 'data': ('4 None', 'foo set([3, 4, 5])', 129)},
+            {'id': 2, 'data': ('10 29', 'foo [3, 4, 5]', False)},
+            {'id': 3, 'data': ('None bar', 'foo None', True)},
+        ])
+        
+        data2 = list(self.library.format(deepcopy(data), [(0, 1), ('afunc', 3)],
+            idx=(1, None)))
+        
+        self.assertEqual(data2, [
+            {'id': 1, 'data': (4, 'None', 'foo set([3, 4, 5]) 129')},
+            {'id': 2, 'data': (10, '29', 'foo [3, 4, 5] False')},
+            {'id': 3, 'data': (None,  'bar', 'foo None True')},
+        ])
+
+        # if an 'empty' rule is provided, it is skipped
+        data3 = list(self.library.format(deepcopy(data), [(None, 0), ('afunc', 2)],
+            idx=(1, None)))
+        
+        self.assertEqual(data3, [
+            {'id': 1, 'data': (4, 'None foo')},
+            {'id': 2, 'data': (10, '29 foo')},
+            {'id': 3, 'data': (None, 'bar foo')},
+        ])
+
+    def test_register(self):
+        @self.library.register
+        def func1(arg1, arg2):
+            return arg1 + arg2
+        
+        self.assertEqual(func1(5, 5), self.library.get('func1')(5, 5))
+        
+        @self.library.register('foo bar')
+        def func2(arg1):
+            return '%s is a cool arg' % arg1
+        
+        self.assertEqual(func2(5), self.library.get('func2')(5))
+
+        @self.library.register('boolean')
+        def func3(arg1):
+            return arg1 and 'Yes' or 'No'
+
+        self.assertEqual(func3(None), self.library.get('func3')(None))
+        
+        def func3(arg1):
+            return
+        
+        self.assertRaises(RegisterError, self.library.register('another'), func3)
+
+    def test_formatters(self):
+        self.test_register()
+        
+        data = [
+            {'id': 1, 'data': (4, None, 'foo', set([3,4,5]), 129)},
+            {'id': 2, 'data': (10, 29, 'foo', [3,4,5], False)},
+            {'id': 3, 'data': (None, 'bar', 'foo', None, True)},
+        ]
+        
+        data1 = list(self.library.format(deepcopy(data), [('func1', 2), ('', 2)],
+            idx=(None, 4)))
+        
+        self.assertEqual(data1, [
+            {'id': 1, 'data': ('<span class="data-format-error">(data format error)</span>', 'foo set([3, 4, 5])', 129)},
+            {'id': 2, 'data': (39, 'foo [3, 4, 5]', False)},
+            {'id': 3, 'data': ('<span class="data-format-error">(data format error)</span>', 'foo None', True)},
+        ])
+        
+        data2 = list(self.library.format(deepcopy(data), [('func2', 1), ('', 2), ('func3', 1)],
+            idx=(1, None), key='data'))
+        
+        self.assertEqual(data2, [
+            {'id': 1, 'data': (4, 'None is a cool arg', 'foo set([3, 4, 5])', 'Yes')},
+            {'id': 2, 'data': (10, '29 is a cool arg', 'foo [3, 4, 5]',  'No')},
+            {'id': 3, 'data': (None,  'bar is a cool arg', 'foo None', 'Yes')},
+        ])

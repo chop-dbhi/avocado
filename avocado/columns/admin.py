@@ -16,10 +16,8 @@ class ColumnConceptFieldInline(admin.TabularInline):
 
 
 class ColumnConceptAdmin(admin.ModelAdmin):
-    list_display = ('name', 'is_public', 'pretty_formatter', 'raw_formatter',
-        'category')
-    list_filter = ('is_public', 'category', 'pretty_formatter',
-        'raw_formatter')
+    list_display = ('name', 'is_public', 'category')
+    list_filter = ('is_public', 'category')
     search_fields = ('name', 'description', 'keywords')
     inlines = (ColumnConceptFieldInline,)
     actions = (make_public, make_not_public)

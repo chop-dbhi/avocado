@@ -60,8 +60,8 @@
     category: 1
     is_public: true
     order: 0
-    raw_formatter: null
-    pretty_formatter: null
+    # raw_formatter: null
+    # pretty_formatter: null
 
 - model: avocado.columnconcept
   pk: 2
@@ -72,8 +72,8 @@
     category: 1
     is_public: true
     order: 1
-    raw_formatter: null
-    pretty_formatter: null
+    # raw_formatter: null
+    # pretty_formatter: null
 
 - model: avocado.columnconceptfield
   pk: 1

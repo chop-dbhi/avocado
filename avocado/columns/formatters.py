@@ -1,269 +1,205 @@
 """
-The FormatterLibrary class manages two distinct types of formatters used
-for "raw" data output and "pretty" formatted output. In most cases, a raw data
-formatter will not be needed for a typical concept. Exceptions include such
-concepts that returns a non-useful piece of data in its raw state or
-non-textual data.
+The role of the FormatterLibrary register and provide utility for formatters. A
+formatter is defined as a callable that has a unique function `func.__name__'
+relative to the library it is being registered to.
 
-A formatter is simply a python function which takes N positional arguemnts.
-The default formatter used if no custom formatter is specified is a simple
-concatenation function which takes N arguments.
-
-A "pretty" formatter must always return a single representation of those fields
-as text or HTML. It is convention to return None if the "pretty" output cannot
-be generated.
-
-A "raw" formatter must always return an ordred array of elements, which
-contains the formatted values of the fields passed in.
+The receiving end must be kept in mind, since this is effectively re-packaging
+the formatted data row by row. It may be useful to subclass FormatterLibrary
+and override the `format()' method in order to specify the package format.
 """
-import datetime
+
+# import datetime
 from functools import wraps
 
-from django.utils.importlib import import_module
-from django.template import defaultfilters as filters
+# from django.utils.importlib import import_module
+# from django.template import defaultfilters as filters
+# 
+# from avocado.utils import conversions
 
-from avocado.utils import conversions
+# LOADING = False
 
-LOADING = False
-
-def autodiscover():
-    global LOADING
-
-    if LOADING:
-        return
-    LOADING = True
-
-    import imp
-    from django.conf import settings
-
-    for app in settings.INSTALLED_APPS:
-        try:
-            app_path = import_module(app).__path__
-        except AttributeError:
-            continue
-
-        try:
-            imp.find_module('formatters', app_path)
-        except ImportError:
-            continue
-
-        import_module('%s.formatters' % app)
-
-    LOADING = False
-
-
-def get_formatters(columns, column_orders):
-    """Helper function that formats a set of rows given the formatting
-    type.
-    """
-    from mako.columns.utils import get_column_fields
-    
-    pretty_columns = []
-    pretty_formatters = []
-    raw_columns = []
-    raw_formatters = []
-
-    for column in columns:
-        fields = get_column_fields(column)
-        display = {
-            '_concept': column,
-            'pk': column.id,
-            'name': column.name,
-            'direction': '',
-            'order': None,
-        }
-        if column_orders.has_key(column):
-            display.update(column_orders[column])
-        
-        pretty_columns.append(display)
-        pretty_formatters.append((len(fields), column.pretty_formatter))
-        
-        if len(fields) > 1:
-            raw_columns.extend([x.display_name for x in fields])
-        else:
-            raw_columns.append(column.name)
-        
-        raw_formatters.append((len(fields), column.raw_formatter))
-    
-    return (pretty_columns, pretty_formatters, raw_columns, raw_formatters) 
-
-
+# def autodiscover():
+#     global LOADING
+# 
+#     if LOADING:
+#         return
+#     LOADING = True
+# 
+#     import imp
+#     from django.conf import settings
+# 
+#     for app in settings.INSTALLED_APPS:
+#         try:
+#             app_path = import_module(app).__path__
+#         except AttributeError:
+#             continue
+# 
+#         try:
+#             imp.find_module('formatters', app_path)
+#         except ImportError:
+#             continue
+# 
+#         import_module('%s.formatters' % app)
+# 
+#     LOADING = False
 class RegisterError(Exception):
     pass
 
 
 class FormatterLibrary(object):
-    """A simple datastructure that acts as a library for registering and
-    managing formatters.
-    """
+    "The base class for defining a formatter library."
+
+    DATA_FORMAT_ERROR = '(data format error)'
+    
     def __init__(self):
-        self._raw_formatters = {}
-        self._pretty_formatters = {}
+        self.formatters = {}
 
-    def register(self, name=None, lib=None):
-        """Registers a function as a formatter with an optional name. If `lib'
-        is None, then the formatter is registered in both dicts.
+    def _default(self, *args):
+        "The default formatter if none is supplied or is not registered."
+        return ' '.join([str(x) for x in args])
+
+    def register(self, name=None):
+        """Registers a callable with this library. The function name must be
+        unique.
         """
-        if lib not in (None, 'pretty', 'raw'):
-            raise RegisterError, 'you can register to "pretty" or "raw" ' \
-                'or None for both'
-
-        def decorator(formatter_func):
+        def decorator(func):
+            key = func.__name__
             if name and callable(name):
-                _name = formatter_func.__name__
+                _name = func.__name__
             else:
                 _name = name
+            
+            if self.formatters.has_key(key):
+                raise RegisterError, '%s already has a callable registered ' \
+                    'by the name %s' % (self.__class__.__name__, _name)
 
-            dict_ = {formatter_func.__name__: (_name, formatter_func)}
+            self.formatters.update({key: (_name, func)})
 
-            if lib is None or lib == 'raw':
-                self._raw_formatters.update(dict_)
-            if lib is None or lib == 'pretty':
-                self._pretty_formatters.update(dict_)
-
-            def _formatter_func(*args):
-                return formatter_func(*args)
-            return wraps(formatter_func)(_formatter_func)
+            def _func(*args, **kwargs):
+                return func(*args, **kwargs)
+            return wraps(func)(_func)
 
         if name and callable(name):
             return decorator(name)
         return decorator
 
-    def _get_formatter_dict(self, lib):
-        try:
-            return getattr(self, '_%s_formatters' % lib)
-        except AttributeError:
-            raise AttributeError, 'the choice is either "pretty" or "raw"'
+    @property
+    def choices(self):
+        "Convenience property for getting form choices."
+        if not hasattr(self, '_choices'):
+            self._choices = [(fn, n) for fn, (n, f) in self.formatter.items()]
+        return self._choices
 
-    def _get_formatters(self, lib, formatter_dict, formatters):
-        _formatters = []
-        for cnt, func_name in formatters:
-            if formatter_dict.has_key(func_name):
-                func = formatter_dict.get(func_name)[1]
+    def get(self, name):
+        return self.formatters.has_key(name) and self.formatters.get(name)[1] or None
+
+    def format_row(self, item, rules, idx):
+        toks = []
+        head = idx[0] and list(item[:idx[0]]) or []
+        tail = idx[1] and list(item[idx[1]:]) or []
+        data = item[idx[0]:idx[1]]
+        
+        i = 0
+        for fname, cnt in rules:
+            # skip if the rule does not apply to anything
+            if cnt == 0:
+                continue
+            func = self.get(fname) or self._default
+            try:
+                tok = func(*data[i:i+cnt])
+            except StandardError:
+                tok = self.DATA_FORMAT_ERROR
+            
+            # `extend' toks only if it is an iterable and not a string
+            if isinstance(tok, basestring):
+                toks.append(tok)
             else:
-                func = formatter_dict.get('_default_%s' % lib)[1]
-            _formatters.append((cnt, func))
-        return _formatters
+                try:
+                    iter(tok)
+                    toks.extend(tok)
+                except TypeError:
+                    toks.append(tok)
+            i += cnt
+        return tuple(head + toks + tail)
 
-    def choices(self, lib):
-        "Returns a tuple of pairs that can be used as choices in a form."
-        formatter_dict = self._get_formatter_dict(lib)
-        return tuple([(x, y[0]) for x, y in formatter_dict.items() if not \
-            x.startswith('_')])
+    def format(self, iterable, rules, idx=(1, None)):
+        """Take an iterable and formats the data given the rules.
+        
+        Definitions:
+        
+            `iterable' - an iterable of iterables
+        
+            `rules' - a list of pairs defining the formatter name and the
+            number of items to format, e.g. [('foo', 3), ('bar', 1)] 
+            
+            `idx' - the slice of data to format per row. the data ignored
+            will not be passed through the formatter, but will be retained and
+            passed back with the the formatted data, e.g:
 
-    def raw_formatted(self, rows, formatters):
-        formatter_dict = self._raw_formatters
-        _formatters = self._get_formatters('raw', formatter_dict, formatters)
+                def afunc(arg1, arg2):
+                    return arg1 + arg2
+            
+                iterable    = [(3, 102, 746, 'bar', 392)]
+                rules       = (2, 'afunc')
+                idx         = (1, 3)
+                            
+                The result will be:
+                
+                    [(3, 848, 'bar', 392)]
+        """        
+        for item in iter(iterable):
+            yield self.format_row(item, rules, idx)
 
-        for row in rows:
-            # assuming the first object is the primary key
-            formatted_row = [row[0]]
-            start = 1
-            for cnt, func in _formatters:
-                stop = start + cnt
-                vals = row[start:stop]
-                # this catches empty values to save a function
-                if len(vals) == 1 and vals[0] in (None, ''):
-                    new_row = ['']
-                else:
-                    try:
-                        new_row = func('raw', *vals)
-                    except StandardError:
-                        new_row = ['(data format error)' for i in range(len(cnt))]                 
-                    if type(new_row) not in (list, tuple):
-                        new_row = [new_row]
-                formatted_row.extend(new_row)
-                start = stop
-            yield formatted_row
 
-    def pretty_formatted(self, rows, formatters):
-        "A generator that formats a row at a time."
-        formatter_dict = self._pretty_formatters
-        _formatters = self._get_formatters('pretty', formatter_dict,
-            formatters)
-        formatted_rows = []
-        for row in rows:
-            # assuming the first object is the primary key
-            row_dict = {'pk': row[0], 'data': []}
-            start = 1
-            for cnt, func in _formatters:
-                stop = start + cnt
-                vals = row[start:stop]
-                if len(vals) == 1 and vals[0] in (None, ''):
-                    val = None
-                else:
-                    try:
-                        val = func('pretty', *vals)
-                    except StandardError:
-                        val = '<span class="format-error">(data format error)</span>'
-                row_dict['data'].append(val)
-                start = stop
-            formatted_rows.append(row_dict)
-        return formatted_rows
+class DictFormatterLibrary(FormatterLibrary):
+    def format_row(self, item, rules, idx, key):
+        """Simple override that assumes the items are dictionaries and the raw
+        data is accessed via a key.
+        """
+        item[key] = super(DictFormatterLibrary, self).format_row(item[key], rules, idx)
+        return item
+    
+    def format(self, iterable, rules, idx=(1, None), key='data'):
+        for item in iter(iterable):
+            yield self.format_row(item, rules, idx, key)
 
-library = FormatterLibrary()
 
-@library.register('', 'pretty')
-def _default_pretty(lib, *vals):
-    """The default formatter for a web page view. It should always return
-    None if all values are either None or the empty string, which allows for
-    a consistent value for displaying web page friendly wording.
-    """
-    test, fvals = [], []
-    for x in vals:
-        y = True
-        if x in (None, ''):
-            x = ''
-            y = False
-        fvals.append(str(x))
-        test.append(y)
+class JSONFormatterLibrary(DictFormatterLibrary):
+    DATA_FORMAT_ERROR = '<span class="data-format-error">(data format error)</span>'
 
-    if any(test):
-        return ' '.join(fvals)
-    return None
 
-@library.register('', 'raw')
-def _default_raw(lib, *vals):
-    """The default formatter for exporting in a raw format. If a value is
-    None, replace it with the empty string.
-    """
-    fvals = []
-    for x in vals:
-        if x in (None, ''):
-            x = ''
-        fvals.append(str(x))
-    return tuple(fvals)
-
-@library.register('Date to Age')
-def date_to_age(lib, value):
-    "Expects a date or datetime instance."
-    today = datetime.date.today()
-    if isinstance(value, datetime.datetime):
-        value = value.date()
-    return days_to_age((today-value).days)
-
-@library.register('Days to Age')
-def days_to_age(lib, value):
-    "Expects a number."
-    return conversions.days_to_age(value)
-
-@library.register('Years to Age')
-def years_to_age(lib, value):
-    "Expects a number." 
-    return conversions.years_to_age(value)
-
-@library.register('Bool to Yes/No')
-def yesno(lib, value):
-    "Expects a boolean."
-    if value is True:
-        return 'Yes'
-    elif value is False:
-        return 'No'
-    return
-
-@library.register('Date')
-def date_format(lib, value):
-    "Expects a date."
-    return filters.date(value)
-
-autodiscover()
+# TODO to implementation
+ 
+# @library.register('Date to Age')
+# def date_to_age(lib, value):
+#     "Expects a date or datetime instance."
+#     today = datetime.date.today()
+#     if isinstance(value, datetime.datetime):
+#         value = value.date()
+#     return days_to_age((today-value).days)
+# 
+# @library.register('Days to Age')
+# def days_to_age(lib, value):
+#     "Expects a number."
+#     return conversions.days_to_age(value)
+# 
+# @library.register('Years to Age')
+# def years_to_age(lib, value):
+#     "Expects a number." 
+#     return conversions.years_to_age(value)
+# 
+# @library.register('Bool to Yes/No')
+# def yesno(lib, value):
+#     "Expects a boolean."
+#     if value is True:
+#         return 'Yes'
+#     elif value is False:
+#         return 'No'
+#     return
+# 
+# @library.register('Date')
+# def date_format(lib, value):
+#     "Expects a date."
+#     return filters.date(value)
+# 
+# autodiscover()
