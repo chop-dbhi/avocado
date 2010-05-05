@@ -46,12 +46,10 @@ class ColumnSet(ConceptSet):
                 model = field.model
                 aliases.append((model._meta.db_table, field.field_name))
 
-                # only apply join if the table does not already exist in the query
-                if model._meta.db_table not in queryset.query.tables:
-                    nodes = self.model_tree.path_to(model)
-                    conns = self.model_tree.get_all_join_connections(nodes)
-                    for c in conns:
-                        queryset.query.join(c, promote=True)
+                nodes = self.model_tree.path_to(model)
+                conns = self.model_tree.get_all_join_connections(nodes)
+                for c in conns:
+                    queryset.query.join(c, promote=True)
 
         queryset.query.select = aliases
 
