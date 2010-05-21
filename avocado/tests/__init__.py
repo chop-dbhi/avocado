@@ -4,7 +4,6 @@ from avocado.columns.tests import *
 from avocado.concepts.tests import *
 from avocado.criteria.tests import *
 from avocado.fields.tests import *
-from avocado.utils.tests import *
 from avocado.tests.models import *
 
 from avocado.modeltree import ModelTree
