@@ -87,7 +87,7 @@ class FormatterLibrary(object):
     def choices(self):
         "Convenience property for getting form choices."
         if not hasattr(self, '_choices'):
-            self._choices = [(fn, n) for fn, (n, f) in self.formatter.items()]
+            self._choices = [(fn, n) for fn, (n, f) in self.formatters.items()]
         return self._choices
 
     def get(self, name):

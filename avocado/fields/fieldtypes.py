@@ -10,19 +10,6 @@ on what operators are allowed.
 from django import forms
 from avocado.fields.operators import *
 
-MODEL_FIELD_MAP = {
-    'CharField': CharField,
-    'IntegerField': IntegerField,
-    'FloatField': FloatField,
-    'DecimalField': DecimalField,
-    'DateField': DateField,
-    'DateTimeField': DateTimeField,
-    'TimeField': TimeField,
-    'BooleanField': BooleanField,
-    'NullBooleanField': NullBooleanField,
-    'ForeignKey': ModelChoiceField,
-}
-
 def _operator_dict(*args):
     return dict(map(lambda x: (x.operator, x), args))
 
@@ -113,3 +100,17 @@ class ModelMultipleChoiceField(MultipleChoiceField):
 class ListField(FieldType):
     widget = forms.Textarea
     operators = _operator_dict(inlist, notinlist)
+
+
+MODEL_FIELD_MAP = {
+    'CharField': CharField,
+    'IntegerField': IntegerField,
+    'FloatField': FloatField,
+    'DecimalField': DecimalField,
+    'DateField': DateField,
+    'DateTimeField': DateTimeField,
+    'TimeField': TimeField,
+    'BooleanField': BooleanField,
+    'NullBooleanField': NullBooleanField,
+    'ForeignKey': ModelChoiceField,
+}
