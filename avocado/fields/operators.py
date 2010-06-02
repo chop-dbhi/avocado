@@ -6,144 +6,194 @@ Each class must provide a `clean' method that validates a given `value' is of
 the right length and in some cases, type.
 """
 
+from django.core.exceptions import ValidationError
+
 __all__ = ('exact', 'iexact', 'contains', 'inlist', 'lt', 'gt', 'lte', 'gte',
     'between', 'null', 'notbetween', 'notexact', 'notiexact', 'doesnotcontain',
-    'notinlist', 'notnull', 'ValidationError')
+    'notinlist', 'notnull')
 
 
-class ValidationError(Exception):
-    pass
+def is_sequence_not_string(value):
+    """Simple test to distinguish sequences that are not strings.
+    
+    >>> is_sequence_not_string(None)
+    False
+    >>> is_sequence_not_string('')
+    False
+    >>> is_sequence_not_string(u'')
+    False
+    >>> is_sequence_not_string(r'')
+    False
+    >>> is_sequence_not_string(True)
+    False
 
+    >>> is_sequence_not_string([])
+    True
+    >>> is_sequence_not_string(())
+    True
+    >>> is_sequence_not_string({})
+    True
+    >>> is_sequence_not_string(set([]))
+    True
+    """
+    if not isinstance(value, basestring):
+        try:
+            iter(value)
+            return True
+        except TypeError:
+            pass
+    return False
+        
 
 class Operator(object):
-    negated = False
+    short_name = ''
+    verbose_name = ''
     operator = ''
-    display = ''
+    negated = False
 
     def __str__(self):
         if self.negated:
-            return '%s (~%s)' % (self.display, self.operator)
-        return '%s (%s)' % (self.display, self.operator)   
+            return '%s (~%s)' % (self.short_name, self.operator)
+        return '%s (%s)' % (self.short_name, self.operator)   
 
     def __unicode__(self):
         if self.negated:
-            return u'%s (~%s)' % (self.display, self.operator)
-        return u'%s (%s)' % (self.display, self.operator)
+            return u'%s (~%s)' % (self.short_name, self.operator)
+        return u'%s (%s)' % (self.short_name, self.operator)
 
     def __repr__(self):
         return str(self.__class__)
 
-    def clean(self, value):
+    def validate(self, value):
         "Cleans and verifies `value' can be used for this operator."
-        if type(value) in (list, tuple):
-            if len(value) > 0:
-                return value[0]
-            return ''
-        return value
-
-class Exact(Operator):
-    operator = 'exact'
-    display = '='
-exact = Exact()
+        raise NotImplementedError
 
 
-class iExact(Operator):
+class PrimitiveOperator(Operator):
+    def validate(self, value):
+        if is_sequence_not_string(value):
+            raise ValidationError, 'Expected a string or non-sequence type, instead got %r' % value
+
+
+class SequenceOperator(Operator):
+    def validate(self, value):
+        if not is_sequence_not_string(value):
+            raise ValidationError, 'Expected a non-string sequence type, instead got %r' % value
+
+
+class iExact(PrimitiveOperator):
+    short_name = '='
+    verbose_name = 'is equal to'
     operator = 'iexact'
-    display = '='
 iexact = iExact()
 
 
-class Contains(Operator):
+class Contains(PrimitiveOperator):
+    short_name = 'contains'
+    verbose_name = 'contains'
     operator = 'icontains'
-    display = 'contains'
 contains = Contains()
 
 
-class InList(Operator):
-    operator = 'in'
-    display = 'in list'
-
-    def clean(self, value):
-        if type(value) not in (list, tuple):
-            value = value.split('\n')
-        return value
-inlist = InList()
-
-
-class LessThan(Operator):
+class LessThan(PrimitiveOperator):
+    short_name = '<'
+    verbose_name = 'is less than'
     operator = 'lt'
-    display = '<'
 lt = LessThan()
 
 
-class GreaterThan(Operator):
+class GreaterThan(PrimitiveOperator):
+    short_name = '>'
+    verbose_name = 'is greater than'
     operator = 'gt'
-    display = '>'
 gt = GreaterThan()
 
 
-class LessThanOrEqual(Operator):
+class LessThanOrEqual(PrimitiveOperator):
+    short_name = '<='
+    verbose_name = 'is less than or equal to'
     operator = 'lte'
-    display = '<='
 lte = LessThanOrEqual()
 
 
-class GreaterThanOrEqual(Operator):
+class GreaterThanOrEqual(PrimitiveOperator):
+    short_name = '>='
+    verbose_name = 'is greater than or equal to'
     operator = 'gte'
-    display = '>='
 gte = GreaterThanOrEqual()
 
 
-class Between(Operator):
-    operator = 'range'
-    display = 'between'
-
-    def clean(self, value):
-        if not type(value) in (list, tuple):
-            raise ValidationError, 'the value must be a list'
-        if len(value) != 2:
-            raise ValidationError, '"between" requires a list of two values'
-        return value
-between = Between()
-
-
-class Null(Operator):
+class Null(PrimitiveOperator):
+    short_name = 'is null'
+    verbose_name = 'is null'
     operator = 'isnull'
-    display = 'is null'
 null = Null()
 
 
+class Exact(PrimitiveOperator):
+    "Only used with boolean fields. Use `iexact' otherwise."
+    short_name = '='
+    verbose_name = 'is equal to'
+    operator = 'exact'
+exact = Exact()
+
+
+class InList(SequenceOperator):
+    short_name = 'in list'
+    verbose_name = 'is in list'
+    operator = 'in'
+inlist = InList()
+
+
+class Between(SequenceOperator):
+    short_name = 'between'
+    verbose_name = 'is between'
+    operator = 'range'
+
+    def validate(self, value):
+        super(Between, self).validate(value)        
+        if len(value) != 2:
+            raise ValidationError, 'Two values expected'
+between = Between()
+
+
 class NotBetween(Between):
+    short_name = 'not between'
+    verbose_name = 'is not between'
     negated = True
-    display = 'not between'
 notbetween = NotBetween()
 
 
 class NotExact(Exact):
+    short_name = '!='
+    verbose_name = 'is not equal to'
     negated = True
-    display = 'not ='
 notexact = NotExact()
 
 
 class NotiExact(iExact):
+    short_name = '!='
+    verbose_name = 'is not equal to'
     negated = True
-    display = 'not ='
 notiexact = NotiExact()
 
 
 class DoesNotContain(Contains):
+    short_name = 'does not contain'
+    verbose_name = 'does not contain'
     negated = True
-    display = 'does not contain'
 doesnotcontain = DoesNotContain()
 
 
 class NotInList(InList):
+    short_name = 'not in list'
+    verbose_name = 'is not in list'
     negated = True
-    display = 'not in list'
 notinlist = NotInList()
 
 
 class NotNull(Null):
+    short_name = 'not null'
+    verbose_name = 'is not null'
     negated = True
-    display = 'not null'
 notnull = NotNull()

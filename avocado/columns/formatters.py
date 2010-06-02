@@ -62,12 +62,19 @@ class FormatterLibrary(object):
         """Registers a callable with this library. The function name must be
         unique.
         """
+        # if the decorator is not called, `name' will be the function
+        # to be wrapped
+        if callable(name):
+            has_name = False
+        else:
+            has_name = True
+
         def decorator(func):
             key = func.__name__
-            if name and callable(name):
-                _name = func.__name__
-            else:
+            if has_name:
                 _name = name
+            else:
+                _name = func.__name__
             
             if self.formatters.has_key(key):
                 raise RegisterError, '%s already has a callable registered ' \
@@ -79,19 +86,21 @@ class FormatterLibrary(object):
                 return func(*args, **kwargs)
             return wraps(func)(_func)
 
-        if name and callable(name):
-            return decorator(name)
-        return decorator
+        if has_name:
+            return decorator
+        return decorator(name)
 
     @property
     def choices(self):
-        "Convenience property for getting form choices."
+        "Convenience property for getting the available choices."
         if not hasattr(self, '_choices'):
             self._choices = [(fn, n) for fn, (n, f) in self.formatters.items()]
         return self._choices
 
     def get(self, name):
-        return self.formatters.has_key(name) and self.formatters.get(name)[1] or None
+        "Retrieves a registered function given a name."
+        if self.formatters.has_key(name):
+            return self.formatters.get(name)[1]
 
     def format_row(self, item, rules, idx):
         toks = []

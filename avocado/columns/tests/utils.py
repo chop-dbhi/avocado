@@ -6,7 +6,7 @@ from avocado.modeltree import ModelTree
 from avocado.columns.models import ColumnConcept
 from avocado.columns.utils import ColumnSet, get_columns, get_column_orders
 
-__all__ = ('ColumnSetTestCase',)
+__all__ = ('ColumnUtilsTestCase', 'ColumnSetTestCase')
 
 
 class ColumnUtilsTestCase(TestCase):

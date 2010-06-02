@@ -8,6 +8,8 @@ on what operators are allowed.
 """
 
 from django import forms
+from django.core.exceptions import ValidationError
+
 from avocado.fields.operators import *
 
 def _operator_dict(*args):
@@ -18,88 +20,112 @@ class OperatorNotPermitted(Exception):
 
 
 class FieldType(object):
-    field = forms.CharField
-    widget = None
-    operators = _operator_dict()
+    field_class = forms.CharField
+    widget_class = None
+    operators = ()
     
     def __init__(self):
         if not self.operators:
             raise NotImplementedError, 'subclasses must have at least one ' \
                 'operator associated with it'
+        self._operators = dict(map(lambda x: (x.operator, x), self.operators))
 
     def _get_operator(self, operator):
         try:
-            return self.operators[operator]
+            return self._operators[operator]
         except KeyError:
             raise OperatorNotPermitted, '%s is not permitted for field type %s' % \
                 (operator, self.__class__.__name__)
     
-    def clean(self, operator, value):
-        return self._get_operator(operator).clean(value)
+    def validate(self, operator, value, model_field_obj=None):
+        # 1. verify operator is allowed
+        try:
+            op_obj = _get_operator(operator)
+        except OperatorNotPermitted, e:
+            raise ValidationError, e.message
+        
+        # 2. check special case for `null' or `notnull'
+        fc = self.field_class
+        if op_obj in (null, notnull):
+            fc = forms.BooleanField
+
+        # 3. clean value according to model field formfield
+        if model_field_obj:
+            formfield = model_field_obj.formfield(form_class=fc)
+        else:
+            formfield = fc()
+        
+        clean_value = formfield.clean(value)
+        
+        # 4. validate cleaned value is appropriate for the operator
+        op_obj.validate(clean_value)
+        
+        return clean_value
+
+class NumberType(FieldType):
+    operators = (exact, notexact, lt, lte, gt, gte, between, notbetween, null,
+        notnull)
 
 
 class CharField(FieldType):
-    operators = _operator_dict(iexact, notiexact, contains, doesnotcontain,
-        null, notnull)
+    operators = (iexact, notiexact, contains, doesnotcontain, null, notnull)
 
 
-class IntegerField(FieldType):
-    field = forms.IntegerField
-    operators = _operator_dict(exact, notexact, lt, lte, gt, gte, between,
-        notbetween, null, notnull)
+class IntegerField(NumberType):
+    field_class = forms.IntegerField
 
 
-class DecimalField(IntegerField):
-    field = forms.DecimalField
+class DecimalField(NumberType):
+    field_class = forms.DecimalField
 
 
-class FloatField(IntegerField):
-    field = forms.FloatField
+class FloatField(NumberType):
+    field_class = forms.FloatField
 
 
-class DateField(IntegerField):
-    field = forms.DateField
+class DateField(NumberType):
+    field_class = forms.DateField
 
 
-class TimeField(IntegerField):
-    field = forms.TimeField
-    
+class TimeField(NumberType):
+    field_class = forms.TimeField
 
-class DateTimeField(IntegerField):
-    field = forms.DateTimeField
+
+class DateTimeField(NumberType):
+    field_class = forms.DateTimeField
 
 
 class BooleanField(FieldType):
-    field = forms.BooleanField
-    operators = _operator_dict(exact)
+    field_class = forms.BooleanField
+    operators = (exact,)
 
 
 class NullBooleanField(FieldType):
-    field = forms.NullBooleanField
-    operators = _operator_dict(exact, null, notnull)
+    field_class = forms.BooleanField
+    operators = (exact, null, notnull)
 
 
 class ChoiceField(FieldType):
-    field = forms.ChoiceField
-    operators = _operator_dict(exact, notexact, null, notnull)
+    field_class = forms.ChoiceField
+    operators = (exact, notexact, null, notnull)
 
 
 class ModelChoiceField(ChoiceField):
-    field = forms.ModelChoiceField
+    field_class = forms.ModelChoiceField
 
 
 class MultipleChoiceField(FieldType):
-    field = forms.MultipleChoiceField
-    operators = _operator_dict(inlist, notinlist)
+    field_class = forms.MultipleChoiceField
+    operators = (inlist, notinlist)
 
 
 class ModelMultipleChoiceField(MultipleChoiceField):
-    field = forms.ModelMultipleChoiceField
+    field_class = forms.ModelMultipleChoiceField
 
 
 class ListField(FieldType):
     widget = forms.Textarea
-    operators = _operator_dict(inlist, notinlist)
+    operators = (inlist, notinlist)
 
 
 MODEL_FIELD_MAP = {
