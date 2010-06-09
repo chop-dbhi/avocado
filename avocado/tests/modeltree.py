@@ -69,25 +69,25 @@ class ModelTreeTestCase(TestCase):
     def test_related_name_path(self):
         "Test to ensure the correct related names are used."
         self.failUnlessEqual(self.root.related_name_path(self.root_to_foo),
-            ['child3', 'foo'])
+            ['child3', 'fooey'])
         self.failUnlessEqual(self.root.related_name_path(self.root_to_baz),
-            ['bar', 'baz'])
+            ['barman', 'baz'])
         self.failUnlessEqual(self.root.related_name_path(self.root_to_child2),
-            ['parent2', 'child2'])
-
+            ['wacky_parent', 'child2'])
+    
         self.failUnlessEqual(self.parent1.related_name_path(self.parent1_to_child1),
             ['child1'])
         self.failUnlessEqual(self.parent1.related_name_path(self.parent1_to_root),
             ['parent'])
         self.failUnlessEqual(self.parent1.related_name_path(self.parent1_to_bar),
-            ['parent', 'bar'])
-
+            ['parent', 'barman'])
+    
         self.failUnlessEqual(self.parent2.related_name_path(self.parent2_to_child2),
             ['child2'])
         self.failUnlessEqual(self.parent2.related_name_path(self.parent2_to_baz),
-            ['parent', 'bar', 'baz'])
+            ['parent', 'barman', 'baz'])
         self.failUnlessEqual(self.parent2.related_name_path(self.parent2_to_bear),
-            ['parent', 'bar', 'baz', 'bear'])
+            ['parent', 'barman', 'baz', 'many_bears'])
 
     def test_accessor_name_path(self):
         "Test to ensure the accessor names are correct."

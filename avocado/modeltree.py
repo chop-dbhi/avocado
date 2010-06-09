@@ -33,7 +33,6 @@ class ModelTreeNode(object):
 
         self.parent = parent
         self.parent_model = parent and parent.model or None
-
         self.rel_type = rel_type
         self.rel_is_reversed = rel_is_reversed
         self.related_name = related_name
@@ -41,7 +40,7 @@ class ModelTreeNode(object):
         self.depth = depth
 
         self.children = []
-
+    
     def _get_parent_db_table(self):
         return self.parent_model._meta.db_table
     parent_db_table = property(_get_parent_db_table)
@@ -63,14 +62,14 @@ class ModelTreeNode(object):
             f = getattr(self.parent_model, self.related_name).field
         else:
             f = getattr(self.parent_model, self.accessor_name).related.field
-        return f.m2m_column_name()
+            return f.m2m_column_name()
     m2m_field = property(_get_m2m_field)
 
     def _get_m2m_reverse_field(self):
         if self.rel_is_reversed:
             f = getattr(self.parent_model, self.related_name).field
         else:
-            f = getattr(self.parent_model, self.accessor_name).field
+            f = getattr(self.parent_model, self.accessor_name).related.field
         return f.m2m_reverse_name()
     m2m_reverse_field = property(_get_m2m_reverse_field)
 
@@ -81,48 +80,46 @@ class ModelTreeNode(object):
             f = getattr(self.parent_model, self.accessor_name).related.field
         return f.column
     foreignkey_field = property(_get_foreignkey_field)
-
+    
     def _get_join_connections(self):
         """Returns a list of connections that need to be added to a
         queryset that properly joins this model and the parent.
         """
-        if not hasattr(self, '_join_connections'):
-            connections = []
-            # setup initial FROM clause
-            connections.append((None, self.parent_db_table, None, None))
+        connections = []
+        # setup initial FROM clause
+        connections.append((None, self.parent_db_table, None, None))
 
-            # setup two connections for m2m
-            if self.rel_type == 'manytomany':
-                c1 = (
-                    self.parent_db_table,
-                    self.m2m_db_table,
+        # setup two connections for m2m
+        if self.rel_type == 'manytomany':
+            c1 = (
+                self.parent_db_table,
+                self.m2m_db_table,
+                self.parent_pk_field,
+                self.rel_is_reversed and self.m2m_reverse_field or \
+                    self.m2m_field,
+            )
+
+            c2 = (
+                self.m2m_db_table,
+                self.db_table,
+                self.rel_is_reversed and self.m2m_field or \
+                    self.m2m_reverse_field,
+                self.pk_field,
+            )
+            connections.append(c1)
+            connections.append(c2)
+        else:
+            c1 = (
+                self.parent_db_table,
+                self.db_table,
+                self.rel_is_reversed and self.parent_pk_field or \
+                    self.foreignkey_field,
+                self.rel_is_reversed and self.foreignkey_field or \
                     self.parent_pk_field,
-                    self.rel_is_reversed and self.m2m_reverse_field or \
-                        self.m2m_field,
-                )
+            )
+            connections.append(c1)
 
-                c2 = (
-                    self.m2m_db_table,
-                    self.db_table,
-                    self.rel_is_reversed and self.m2m_field or \
-                        self.m2m_reverse_field,
-                    self.pk_field,
-                )
-                connections.append(c1)
-                connections.append(c2)
-            else:
-                c1 = (
-                    self.parent_db_table,
-                    self.db_table,
-                    self.rel_is_reversed and self.parent_pk_field or \
-                        self.foreignkey_field,
-                    self.rel_is_reversed and self.foreignkey_field or \
-                        self.parent_pk_field,
-                )
-                connections.append(c1)
-
-            self._join_connections = connections
-        return self._join_connections
+        return connections
     join_connections = property(_get_join_connections)
 
     def remove_child(self, model):
@@ -140,19 +137,16 @@ class ModelTree(object):
 
     `exclude' is propagates through to the `ModelTree`
     class where it prevents certain models from being added to the tree.
-
-    `_model_name_cache' contains names of the all the models that have already
-    been iterated over in the tree. this prevents circular dependencies as well
-    as unwanted or unecessary processing.
     """
     def __init__(self, root_model, exclude=()):
         self.root_model = root_model
         self._path_depth = {}
         self._exclude = frozenset(exclude)
+        self._root_node = None
         self._node_path = None
 
     def _get_root_node(self):
-        if not hasattr(self, '_root_node'):
+        if self._root_node is None:
             node = ModelTreeNode(self.root_model, depth=0)
             self._root_node = self._find_relations(node)
         return self._root_node
@@ -173,17 +167,13 @@ class ModelTree(object):
     def _filter_related_fk(self, rel):
         if isinstance(rel.field, models.ForeignKey):
             return rel
-
+    
     def _add_node(self, parent, model, rel_type, rel_is_reversed, related_name,
         accessor_name, depth):
-
-        # TODO add some kind of coercian technique to choose a path a node should
-        # traverse. this is necessary for certain kinds of joins either for
-        # performance reasons or general preference
-
+        
         if model in self._exclude:
             return
-
+        
         if model not in (self.root_model, parent.parent_model):
             # don't add node if a path with a shorter depth exists
             path_depth = self._path_depth.get(model, None)
@@ -193,9 +183,9 @@ class ModelTree(object):
 
                 node = ModelTreeNode(model, parent, rel_type, rel_is_reversed,
                     related_name, accessor_name, depth)
-
+                
                 self._path_depth[model] = (parent, depth)
-
+                
                 node = self._find_relations(node, depth)
                 parent.children.append(node)
                 del node
@@ -204,12 +194,12 @@ class ModelTree(object):
         """Finds all relations with the `node` model.
 
         NOTE: the many-to-many relations are evaluated first to prevent
-        'through' models being evaluated as a ForeignKey relationship.
+        'through' models being bound as a ForeignKey relationship.
         """
         depth += 1
-
+        
         model_fields = node.model._meta.fields
-        related_fields = node.model._meta.get_all_related_objects()
+        related_fields = node.model._meta.get_all_related_objects() 
 
         o2o_on_model = filter(self._filter_one2one, model_fields)
         related_o2o = filter(self._filter_related_one2one, related_fields)
@@ -222,40 +212,82 @@ class ModelTree(object):
 
         # iterate m2m relations
         for f in m2m_fields:
-            model = f.rel.to
-            self._add_node(node, model, 'manytomany', False, f.name, f.name,
-                depth)
+            kwargs = {
+                'parent': node,
+                'model': f.rel.to,
+                'rel_type': 'manytomany',
+                'rel_is_reversed': False,
+                'related_name': f.name,
+                'accessor_name': f.name,
+                'depth': depth, 
+            }
+            self._add_node(**kwargs)
 
         # iterate over related m2m fields
         for f in related_m2m:
-            model = f.model
-            self._add_node(node, model, 'manytomany', True, f.var_name,
-                f.get_accessor_name(), depth)
-
+            kwargs = {
+                'parent': node,
+                'model': f.model,
+                'rel_type': 'manytomany',
+                'rel_is_reversed': True,
+                'related_name': f.field.related_query_name(),
+                'accessor_name': f.get_accessor_name(),
+                'depth': depth, 
+            }
+            self._add_node(**kwargs)
+            
         # iterate over one2one fields
         for f in o2o_on_model:
-            model = f.rel.to
-            self._add_node(node, model, 'onetoone', False, f.name, f.name,
-                depth)
-
+            kwargs = {
+                'parent': node,
+                'model': f.rel.to,
+                'rel_type': 'onetoone',
+                'rel_is_reversed': False,
+                'related_name': f.name,
+                'accessor_name': f.name,
+                'depth': depth, 
+            }
+            self._add_node(**kwargs)
+            
         # iterate over related one2one fields
         for f in related_o2o:
-            model = f.model
-            self._add_node(node, model, 'onetoone', True, f.get_accessor_name(),
-                f.get_accessor_name(), depth)
-
+            kwargs = {
+                'parent': node,
+                'model': f.model,
+                'rel_type': 'onetoone',
+                'rel_is_reversed': True,
+                'related_name': f.field.related_query_name(),
+                'accessor_name': f.get_accessor_name(),
+                'depth': depth, 
+            }
+            self._add_node(**kwargs)
+            
         # iterate over fk fields
         for f in fk_on_model:
-            model = f.rel.to
-            self._add_node(node, model, 'foreignkey', False, f.name, f.name,
-                depth)
-
+            kwargs = {
+                'parent': node,
+                'model': f.rel.to,
+                'rel_type': 'foreignkey',
+                'rel_is_reversed': False,
+                'related_name': f.name,
+                'accessor_name': f.name,
+                'depth': depth, 
+            }
+            self._add_node(**kwargs)
+            
         # iterate over related foreign keys
         for f in related_fk:
-            model = f.model
-            self._add_node(node, model, 'foreignkey', True, f.var_name,
-                f.get_accessor_name(), depth)
-
+            kwargs = {
+                'parent': node,
+                'model': f.model,
+                'rel_type': 'foreignkey',
+                'rel_is_reversed': True,
+                'related_name': f.field.related_query_name(),
+                'accessor_name': f.get_accessor_name(),
+                'depth': depth, 
+            }
+            self._add_node(**kwargs)
+            
         return node
 
     def _find_path(self, node, model, node_path=[]):
@@ -266,6 +298,16 @@ class ModelTree(object):
             if mpath:
                 return mpath
 
+    def print_path(self, node=None, depth=0):
+        if node is None:
+            node = self.root_node
+        if node:
+            print '- ' * depth * 2, '"%s"' % node.name, 'at a depth of', node.depth
+        if node.children:
+            depth += 1
+            for x in node.children:
+                self.print_path(x, depth)
+    
     def path_to(self, end_model):
         return self._find_path(self.root_node, end_model)
 
@@ -277,7 +319,7 @@ class ModelTree(object):
 
     def accessor_name_path(self, node_path):
         return [n.accessor_name for n in node_path]
-
+    
     def get_accessor_pairs(self, node_path):
         accessor_names = self.accessor_name_path(node_path)
         node_path = node_path[:-1] # don't need the last item
@@ -295,14 +337,3 @@ class ModelTree(object):
             else:
                 connections.extend(n.join_connections[1:])
         return connections
-
-    def print_path(self, node=None, depth=0):
-        if node is None:
-            node = self.root_node
-        if node:
-            print '- ' * depth * 2, '"%s"' % node.name, 'at a depth of', node.depth
-        if node.children:
-            depth += 1
-            for x in node.children:
-                self.print_path(x, depth)
-
