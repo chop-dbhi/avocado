@@ -13,11 +13,10 @@ from django.conf import settings
 from avocado.concepts.models import ConceptAbstract, ConceptFieldAbstract
 from avocado.concepts.managers import ConceptManager
 from avocado.fields.models import FieldConcept
-#from avocado.columns.formatters import library
 
 __all__ = ('ColumnConcept', 'ColumnConceptField')
 
-ColumnConceptMixin = getattr(settings, 'COLUMN_CONCEPT_MIXIN', None) or models.Model
+ColumnConceptMixin = getattr(settings, 'COLUMN_CONCEPT_MIXIN', models.Model)
 
 class ColumnConcept(ConceptAbstract, ColumnConceptMixin):
     "An interface to specify the necessary fields for a column."
@@ -36,16 +35,3 @@ class ColumnConceptField(ConceptFieldAbstract):
     class Meta(ConceptFieldAbstract.Meta):
         verbose_name = 'column concept field'
         verbose_name_plural = 'column concept fields'
-
-
-
-
-# class ColumnConceptMixin(models.Model):
-#     raw_formatter = models.CharField(max_length=100, blank=True, null=True)
-#     web_formatter = models.CharField(max_length=100, blank=True, null=True)
-#     
-#     class Meta(object):
-#         abstract = True
-# 
-# 
-# COLUMN_CONCEPT_MIXIN = ColumnConceptMixin

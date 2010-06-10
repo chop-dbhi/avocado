@@ -1,47 +1,32 @@
+from django.conf import settings
+
+class AbstractFormatter(object):
+    def format(*args):
+        return args
+
+
 """
-The role of the FormatterLibrary register and provide utility for formatters. A
-formatter is defined as a callable that has a unique function `func.__name__'
-relative to the library it is being registered to.
-
-The receiving end must be kept in mind, since this is effectively re-packaging
-the formatted data row by row. It may be useful to subclass FormatterLibrary
-and override the `format()' method in order to specify the package format.
+    COLUMN_CONCEPT_LIBRARY_OUTPUTS = {
+        'html' : {
+            'error': '<span class="data-format-error">(data format error)</span>',
+            'nodata': None,
+        },
+        'csv': {
+            'error': '(data format error)',
+            'nodata': '',
+        }
+    }
 """
 
-# import datetime
-from functools import wraps
-
-# from django.utils.importlib import import_module
+from django.utils.importlib import import_module
 # from django.template import defaultfilters as filters
 # 
 # from avocado.utils import conversions
 
-# LOADING = False
 
-# def autodiscover():
-#     global LOADING
-# 
-#     if LOADING:
-#         return
-#     LOADING = True
-# 
-#     import imp
-#     from django.conf import settings
-# 
-#     for app in settings.INSTALLED_APPS:
-#         try:
-#             app_path = import_module(app).__path__
-#         except AttributeError:
-#             continue
-# 
-#         try:
-#             imp.find_module('formatters', app_path)
-#         except ImportError:
-#             continue
-# 
-#         import_module('%s.formatters' % app)
-# 
-#     LOADING = False
+class AlreadyRegisteredError(Exception):
+    pass
+
 class RegisterError(Exception):
     pass
 
@@ -49,58 +34,38 @@ class RegisterError(Exception):
 class FormatterLibrary(object):
     "The base class for defining a formatter library."
 
-    DATA_FORMAT_ERROR = '(data format error)'
-    
+    FORMATTER_TYPES = getattr(settings, 'COLUMN_CONCEPT_FORMATTER_TYPES', {})
+
     def __init__(self):
-        self.formatters = {}
+        self._ftypes = self.FORMATTER_TYPES.keys()
+        self._cache = dict(zip(self._ftypes, [{}] * len(self._ftypes)))
 
-    def _default(self, *args):
-        "The default formatter if none is supplied or is not registered."
-        return ' '.join([str(x) for x in args])
-
-    def register(self, name=None):
-        """Registers a callable with this library. The function name must be
+    def register(self, klass):
+        """Registers a Formatter subclass with this library. The function name must be
         unique.
         """
-        # if the decorator is not called, `name' will be the function
-        # to be wrapped
-        if callable(name):
-            has_name = False
-        else:
-            has_name = True
+        if not issubclass(klass, AbstractFormatter):
+            raise RegisterError, '%s must be a subclass of AbstractFormatter' % repr(klass)
 
-        def decorator(func):
-            key = func.__name__
-            if has_name:
-                _name = name
-            else:
-                _name = func.__name__
-            
-            if self.formatters.has_key(key):
-                raise RegisterError, '%s already has a callable registered ' \
-                    'by the name %s' % (self.__class__.__name__, _name)
+        obj = klass()
 
-            self.formatters.update({key: (_name, func)})
+        for ftype in self._ftypes:
+            if hasattr(obj, ftype): # strange requirement?
+                if self._cache[ftype].has_key(klass.name):
+                    raise AlreadyRegisteredError, 'A formatter with the name ' \
+                        '"%s" is already registered for the %s formatter type' \
+                        % (klass.name, ftype)
+                self._cache[ftype][klass.name] = obj
+        
+        return klass
 
-            def _func(*args, **kwargs):
-                return func(*args, **kwargs)
-            return wraps(func)(_func)
+    def choices(self, ftype):
+        return [(n, n) for n in self._cache[ftype].keys()]
 
-        if has_name:
-            return decorator
-        return decorator(name)
-
-    @property
-    def choices(self):
-        "Convenience property for getting the available choices."
-        if not hasattr(self, '_choices'):
-            self._choices = [(fn, n) for fn, (n, f) in self.formatters.items()]
-        return self._choices
-
-    def get(self, name):
-        "Retrieves a registered function given a name."
-        if self.formatters.has_key(name):
-            return self.formatters.get(name)[1]
+    # def get(self, name):
+    #     "Retrieves a registered function given a name."
+    #     if self.formatters.has_key(name):
+    #         return self.formatters.get(name)[1]
 
     def format_row(self, item, rules, idx):
         toks = []
@@ -131,7 +96,7 @@ class FormatterLibrary(object):
             i += cnt
         return tuple(head + toks + tail)
 
-    def format(self, iterable, rules, idx=(1, None)):
+    def format(self, iterable, rules, ftype=None, idx=(1, None)):
         """Take an iterable and formats the data given the rules.
         
         Definitions:
@@ -141,6 +106,8 @@ class FormatterLibrary(object):
             `rules' - a list of pairs defining the formatter name and the
             number of items to format, e.g. [('foo', 3), ('bar', 1)] 
             
+            `ftype' - the name
+
             `idx' - the slice of data to format per row. the data ignored
             will not be passed through the formatter, but will be retained and
             passed back with the the formatted data, e.g:
@@ -171,10 +138,6 @@ class DictFormatterLibrary(FormatterLibrary):
     def format(self, iterable, rules, idx=(1, None), key='data'):
         for item in iter(iterable):
             yield self.format_row(item, rules, idx, key)
-
-
-class JSONFormatterLibrary(DictFormatterLibrary):
-    DATA_FORMAT_ERROR = '<span class="data-format-error">(data format error)</span>'
 
 
 # TODO to implementation
@@ -211,4 +174,30 @@ class JSONFormatterLibrary(DictFormatterLibrary):
 #     "Expects a date."
 #     return filters.date(value)
 # 
-# autodiscover()
+
+LOADING = False
+
+def autodiscover():
+    global LOADING
+
+    if LOADING:
+        return
+    LOADING = True
+
+    import imp
+    from django.conf import settings
+
+    for app in settings.INSTALLED_APPS:
+        try:
+            app_path = import_module(app).__path__
+        except AttributeError:
+            continue
+
+        try:
+            imp.find_module('formatters', app_path)
+        except ImportError:
+            continue
+
+        import_module('%s.formatters' % app)
+
+    LOADING = False

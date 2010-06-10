@@ -1,5 +1,8 @@
 from django.db import models
 
+__all__ = ('Root', 'Parent1', 'Parent2', 'Child1', 'Child2', 'Child3', 'Foo',
+    'Bar', 'Baz', 'Bear')
+
 class Root(models.Model):
     name = models.CharField(max_length=100)
 
@@ -20,7 +23,7 @@ class Child1(models.Model):
 
 
 class Child2(models.Model):
-    parent = models.ForeignKey(Parent2)
+    parent = models.OneToOneField(Parent2)
     bar = models.ForeignKey('Bar', related_name='cool_child')
     name = models.CharField(max_length=100)
 

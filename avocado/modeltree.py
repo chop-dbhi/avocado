@@ -2,30 +2,40 @@ from django.db import models
 
 class ModelTreeNode(object):
     def __init__(self, model, parent=None, rel_type=None, rel_is_reversed=None,
-        related_name=None, accessor_name=None, depth=None):
+        related_name=None, accessor_name=None, depth=0):
 
-        """Defines helper attributes of a `model` and the relationship to the
-        parent model. The model `name` is captured for convenience and a
-        reference to the `parent` node is kept to allow traversal back up
-        the tree.
+        """Defines attributes of a `model' and the relationship to the parent
+        model.
+        
+            `name' - the `model's class name
 
-        `rel_type` denotes the _kind_ of relationship which the
-        following possibilities: 'manytomany', 'onetoone', or 'foreignkey'.
+            `db_table' - the model's database table name
 
-        `related_name` is the query string representation, i.e. the actual
-        field name as know by the parent model.
+            `pk_field' - the model's primary key field
+            
+            `parent' - a reference to the parent ModelTreeNode
+            
+            `parent_model' - a reference to the `parent' model
 
-        `accessor_name` can be used when accessing the model object's
-        attributes e.g. getattr(obj, accessor_name). this is relative to the
-        parent model.
+            `rel_type' - denotes the _kind_ of relationship with the
+            following possibilities: 'manytomany', 'onetoone', or 'foreignkey'.
+            
+            `rel_is_reversed' - denotes whether this node was derived from a
+            forward relationship (an attribute lives on the parent model) or
+            a reverse relationship (an attribute lives on this model).
 
-        `db_table` is a simple reference to the model's database table name.
+            `related_name' - is the query string representation which is used
+            when querying via the ORM.
 
-        `pk_field` is the model's primary key field.
+            `accessor_name' - can be used when accessing the model object's
+            attributes e.g. getattr(obj, accessor_name). this is relative to
+            the parent model.
+            
+            `depth' - the depth of this node relative to the root (zero-based
+            index)
 
-        `children` is a list containing the child nodes.
+            `children' - a list containing the child nodes
         """
-
         self.model = model
         self.name = model.__name__
         self.db_table = model._meta.db_table
@@ -42,115 +52,109 @@ class ModelTreeNode(object):
         self.children = []
     
     def _get_parent_db_table(self):
+        "Returns the `parent_model' database table name."
         return self.parent_model._meta.db_table
     parent_db_table = property(_get_parent_db_table)
 
     def _get_parent_pk_field(self):
+        "Returns the `parent_model' primary key column name."
         return self.parent_model._meta.pk.column
     parent_pk_field = property(_get_parent_pk_field)
 
     def _get_m2m_db_table(self):
-        if not self.rel_is_reversed:
-            f = getattr(self.parent_model, self.related_name).field
+        f = getattr(self.parent_model, self.accessor_name)
+        if self.rel_is_reversed:
+            return f.related.field.m2m_db_table()
         else:
-            f = getattr(self.parent_model, self.accessor_name).related.field
-        return f.m2m_db_table()
+            return f.field.m2m_db_table()
     m2m_db_table = property(_get_m2m_db_table)
 
     def _get_m2m_field(self):
-        if not self.rel_is_reversed:
-            f = getattr(self.parent_model, self.related_name).field
+        f = getattr(self.parent_model, self.accessor_name)
+        if self.rel_is_reversed:
+            return f.related.field.m2m_column_name()
         else:
-            f = getattr(self.parent_model, self.accessor_name).related.field
-            return f.m2m_column_name()
+            return f.field.m2m_column_name()
     m2m_field = property(_get_m2m_field)
 
     def _get_m2m_reverse_field(self):
+        f = getattr(self.parent_model, self.accessor_name)
         if self.rel_is_reversed:
-            f = getattr(self.parent_model, self.related_name).field
+            return f.related.field.m2m_reverse_name()
         else:
-            f = getattr(self.parent_model, self.accessor_name).related.field
-        return f.m2m_reverse_name()
+            return f.field.m2m_reverse_name()
     m2m_reverse_field = property(_get_m2m_reverse_field)
 
     def _get_foreignkey_field(self):
-        if not self.rel_is_reversed:
-            f = getattr(self.parent_model, self.related_name).field
+        f = getattr(self.parent_model, self.accessor_name)        
+        if self.rel_is_reversed:
+            return f.related.field.column
         else:
-            f = getattr(self.parent_model, self.accessor_name).related.field
-        return f.column
+            return f.field.column
     foreignkey_field = property(_get_foreignkey_field)
     
     def _get_join_connections(self):
         """Returns a list of connections that need to be added to a
-        queryset that properly joins this model and the parent.
+        QuerySet object that properly joins this model and the parent.
         """
-        connections = []
-        # setup initial FROM clause
-        connections.append((None, self.parent_db_table, None, None))
+        if not hasattr(self, '_join_connections'):
+            connections = []
+            # setup initial FROM clause
+            connections.append((None, self.parent_db_table, None, None))
 
-        # setup two connections for m2m
-        if self.rel_type == 'manytomany':
-            c1 = (
-                self.parent_db_table,
-                self.m2m_db_table,
-                self.parent_pk_field,
-                self.rel_is_reversed and self.m2m_reverse_field or \
-                    self.m2m_field,
-            )
-
-            c2 = (
-                self.m2m_db_table,
-                self.db_table,
-                self.rel_is_reversed and self.m2m_field or \
-                    self.m2m_reverse_field,
-                self.pk_field,
-            )
-            connections.append(c1)
-            connections.append(c2)
-        else:
-            c1 = (
-                self.parent_db_table,
-                self.db_table,
-                self.rel_is_reversed and self.parent_pk_field or \
-                    self.foreignkey_field,
-                self.rel_is_reversed and self.foreignkey_field or \
+            # setup two connections for m2m
+            if self.rel_type == 'manytomany':
+                c1 = (
+                    self.parent_db_table,
+                    self.m2m_db_table,
                     self.parent_pk_field,
-            )
-            connections.append(c1)
+                    self.rel_is_reversed and self.m2m_reverse_field or \
+                        self.m2m_field,
+                )
 
-        return connections
+                c2 = (
+                    self.m2m_db_table,
+                    self.db_table,
+                    self.rel_is_reversed and self.m2m_field or \
+                        self.m2m_reverse_field,
+                    self.pk_field,
+                )
+                connections.append(c1)
+                connections.append(c2)
+            else:
+                c1 = (
+                    self.parent_db_table,
+                    self.db_table,
+                    self.rel_is_reversed and self.parent_pk_field or \
+                        self.foreignkey_field,
+                    self.rel_is_reversed and self.foreignkey_field or \
+                        self.parent_pk_field,
+                )
+                connections.append(c1)
+            
+            self._join_connections = connections
+        return self._join_connections
     join_connections = property(_get_join_connections)
 
     def remove_child(self, model):
-        for i,x in enumerate(self.children):
-            if x.model is model:
+        for i,cnode in enumerate(self.children):
+            if cnode.model is model:
                 return self.children.pop(i)
 
 
 class ModelTree(object):
-    """A class to handle building and parsing a tree strucutre based on a
-    model.
+    """A class to handle building and parsing a tree structure given a model.
 
-    `root_model' defines the model of interest in which everything is
-    relatively defined.
+        `root_model' - the model of interest in which everything is relatively
+        defined
 
-    `exclude' is propagates through to the `ModelTree`
-    class where it prevents certain models from being added to the tree.
+        `exclude' - a list of models that are not to be added to the tree
     """
     def __init__(self, root_model, exclude=()):
         self.root_model = root_model
-        self._path_depth = {}
+        self._tree_hash = {}
         self._exclude = frozenset(exclude)
-        self._root_node = None
         self._node_path = None
-
-    def _get_root_node(self):
-        if self._root_node is None:
-            node = ModelTreeNode(self.root_model, depth=0)
-            self._root_node = self._find_relations(node)
-        return self._root_node
-    root_node = property(_get_root_node)
 
     def _filter_one2one(self, field):
         if isinstance(field, models.OneToOneField):
@@ -170,28 +174,33 @@ class ModelTree(object):
     
     def _add_node(self, parent, model, rel_type, rel_is_reversed, related_name,
         accessor_name, depth):
-        
+        """Adds a node to the tree only if a node of the same `model' does not
+        already exist in the tree with smaller depth. If the node is added, the
+        tree traversal continues finding the node's relations.
+        """
         if model in self._exclude:
             return
         
+        # check to make sure circular references don't exist
         if model not in (self.root_model, parent.parent_model):
             # don't add node if a path with a shorter depth exists
-            path_depth = self._path_depth.get(model, None)
-            if not path_depth or path_depth[1] > depth:
-                if path_depth:
-                    path_depth[0].remove_child(model)
+            node_hash = self._tree_hash.get(model, None)
+            if not node_hash or node_hash['depth'] > depth:
+                if node_hash:
+                    node_hash['parent'].remove_child(model)
 
                 node = ModelTreeNode(model, parent, rel_type, rel_is_reversed,
                     related_name, accessor_name, depth)
                 
-                self._path_depth[model] = (parent, depth)
+                self._tree_hash[model] = {'parent': parent, 'depth': depth,
+                    'node': node}
                 
                 node = self._find_relations(node, depth)
                 parent.children.append(node)
                 del node
 
     def _find_relations(self, node, depth=0):
-        """Finds all relations with the `node` model.
+        """Finds all relations given a node.
 
         NOTE: the many-to-many relations are evaluated first to prevent
         'through' models being bound as a ForeignKey relationship.
@@ -290,15 +299,75 @@ class ModelTree(object):
             
         return node
 
-    def _find_path(self, node, model, node_path=[]):
+    def _get_root_node(self):
+        "Sets the `root_node' and implicitly builds the entire tree."
+        if not hasattr(self, '_root_node'):
+            node = ModelTreeNode(self.root_model)
+            self._root_node = self._find_relations(node)
+            self._tree_hash[self.root_model] = {'parent': None, 'depth': 0,
+                'node': self._root_node}
+        return self._root_node
+    root_node = property(_get_root_node)
+
+    def _find_path(self, model, node, node_path=[]):
         if node.model == model:
             return node_path
-        for c in node.children:
-            mpath = self._find_path(c, model, node_path + [c])
+        for cnode in node.children:
+            mpath = self._find_path(model, cnode, node_path + [cnode])
             if mpath:
                 return mpath
 
+    def path_to(self, end_model):
+        "Returns a list of nodes thats defines the path of traversal."
+        return self._find_path(end_model, self.root_node)
+
+    def path_to_with_root(self, end_model):
+        """Returns a list of nodes thats defines the path of traversal
+        including the root node.
+        """
+        return self._find_path(end_model, self.root_node, [self.root_node])
+
+    def get_node_by_model(self, model):
+        "Finds the node with the specified model."
+        return self._tree_hash[model]['node']
+
+    def related_name_path(self, node_path):
+        """Returns a list of the related names given a list of nodes. This is
+        most useful for building query strings using the ORM.
+        """
+        return [n.related_name for n in node_path]
+
+    def accessor_name_path(self, node_path):
+        """Returns a list of the accessor names given a list of nodes. This is
+        most useful when needing to dynamically access attributes starting from
+        an instance of the `root_node' object.
+        """
+        return [n.accessor_name for n in node_path]
+    
+    def get_all_join_connections(self, node_path):
+        """Returns a list of JOIN connections that can be manually applied to a
+        QuerySet object, e.g.:
+
+            queryset = SomeModel.objects.all()
+            model_tree = ModelTree(SomeModel)
+            nodes = model_tree.path_to(SomeOtherModel)
+            conns = model_tree.get_all_join_connections(nodes)
+            for c in conns:
+                queryset.query.join(c, promote=True)
+        
+        This allows for the ORM to handle setting up the JOINs which may be
+        different depending the QuerySet being altered.        
+        """
+        connections = []
+        for i,node in enumerate(node_path):
+            if i == 0:
+                connections.extend(node.join_connections)
+            else:
+                connections.extend(node.join_connections[1:])
+        return connections
+
     def print_path(self, node=None, depth=0):
+        "Traverses the entire tree and prints a hierarchical view to stdout."
         if node is None:
             node = self.root_node
         if node:
@@ -307,20 +376,9 @@ class ModelTree(object):
             depth += 1
             for x in node.children:
                 self.print_path(x, depth)
-    
-    def path_to(self, end_model):
-        return self._find_path(self.root_node, end_model)
 
-    def path_to_with_root(self, end_model):
-        return self._find_path(self.root_node, end_model, [self.root_node])
-
-    def related_name_path(self, node_path):
-        return [n.related_name for n in node_path]
-
-    def accessor_name_path(self, node_path):
-        return [n.accessor_name for n in node_path]
-    
     def get_accessor_pairs(self, node_path):
+        "Used testing purposes."
         accessor_names = self.accessor_name_path(node_path)
         node_path = node_path[:-1] # don't need the last item
         if len(node_path) == 0 or node_path[0] is not self.root_node:
@@ -328,12 +386,3 @@ class ModelTree(object):
         else:
             accessor_names = accessor_names[1:]
         return zip(node_path, accessor_names)
-
-    def get_all_join_connections(self, node_path):
-        connections = []
-        for i,n in enumerate(node_path):
-            if i == 0:
-                connections.extend(n.join_connections)
-            else:
-                connections.extend(n.join_connections[1:])
-        return connections
