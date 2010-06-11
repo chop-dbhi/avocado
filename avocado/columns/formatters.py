@@ -1,3 +1,4 @@
+import imp
 from copy import deepcopy
 
 from django.conf import settings
@@ -69,34 +70,42 @@ class FormatterLibrary(object):
         for key in self._cache:
             self._cache[key]['formatters'] = {}
 
+    def _parse_name(self, name):
+        if name.endswith('Formatter'):
+            name = name[:-9]
+        toks = [name[0]]
+        for x in name[1:]:
+            if x.isupper():
+                toks.append(' ')
+            toks.append(x)
+        return ''.join(toks)
+
     def register(self, klass):
-        """Registers a Formatter subclass with this library. The function name must be
-        unique.
-        """
+        "Registers a Formatter subclass. The class name must be unique."
         if not issubclass(klass, AbstractFormatter):
             raise RegisterError, '%s must be a subclass of AbstractFormatter' % repr(klass)
 
         obj = klass()
 
+        if hasattr(klass, 'name'):
+            klass_name = klass.name
+        else:
+            klass_name = self._parse_name(klass.__name__)
+
         for ftype in self._ftypes:
             if hasattr(obj, ftype): # strange requirement?
-                if self._cache[ftype]['formatters'].has_key(klass.name):
-                    raise AlreadyRegisteredError, 'A formatter with the name ' \
-                        '"%s" is already registered for the %s formatter type' \
-                        % (klass.name, ftype)
-                self._cache[ftype][klass.name] = obj
-
+                if self._cache[ftype]['formatters'].has_key(klass_name):
+                    raise AlreadyRegisteredError, 'A formatter with the ' \
+                        'name "%s" is already registered for the %s ' \
+                        'formatter type' % (klass.name, ftype)
+                self._cache[ftype][klass_name] = obj
         return klass
 
     def choices(self, ftype):
+        "Returns a list of tuples that can be used as choices in a form."
         return [(n, n) for n in self._cache[ftype].keys()]
 
-    # def get(self, name):
-    #     "Retrieves a registered function given a name."
-    #     if self.formatters.has_key(name):
-    #         return self.formatters.get(name)[1]
-
-    def format_row(self, seq, rules, idx, fhash):
+    def format_seq(self, seq, rules, idx, fhash):
         toks = []
         head = list(seq[:idx[0]])
         tail = list(seq[idx[1]:])
@@ -136,77 +145,32 @@ class FormatterLibrary(object):
             `iterable' - an iterable of iterables
 
             `rules' - a list of pairs defining the formatter name and the
-            number of items to format, e.g. [('foo', 3), ('bar', 1)] 
+            number of items to format, e.g. [('MyFormatter', 3),
+            ('AnotherFormatter', 1)]
 
-            `ftype' - the name
+            `ftype' - a string specifying the formatter type
 
             `idx' - the slice of data to format per row. the data ignored
             will not be passed through the formatter, but will be retained and
             passed back with the the formatted data, e.g:
 
-                def afunc(arg1, arg2):
-                    return arg1 + arg2
+                class MyFormatter(AbstractFormatter):
+                    def json(*args):
+                        return ' '.join(map(lambda x: str(x).upper(), args))
 
-                iterable    = [(3, 102, 746, 'bar', 392)]
+                iterable    = [(3, 'foo', 746, 'bar', 392)]
                 rules       = (2, 'afunc')
+                ftype       = 'json'
                 idx         = (1, 3)
 
                 The result will be:
 
-                    [(3, 848, 'bar', 392)]
+                    [('FOO', '848', 'BAR')]
         """
         fhash = self._cache[ftype]
-        for item in iter(iterable):
-            yield self.format_row(item, rules, idx, fhash)
+        for seq in iter(iterable):
+            yield self.format_row(seq, rules, idx, fhash)
 
-
-class DictFormatterLibrary(FormatterLibrary):
-    def format_row(self, item, rules, idx, key):
-        """Simple override that assumes the items are dictionaries and the raw
-        data is accessed via a key.
-        """
-        item[key] = super(DictFormatterLibrary, self).format_row(item[key], rules, idx)
-        return item
-
-    def format(self, iterable, rules, idx=(1, None), key='data'):
-        for item in iter(iterable):
-            yield self.format_row(item, rules, idx, key)
-
-
-# TODO to implementation
-
-# @library.register('Date to Age')
-# def date_to_age(lib, value):
-#     "Expects a date or datetime instance."
-#     today = datetime.date.today()
-#     if isinstance(value, datetime.datetime):
-#         value = value.date()
-#     return days_to_age((today-value).days)
-# 
-# @library.register('Days to Age')
-# def days_to_age(lib, value):
-#     "Expects a number."
-#     return conversions.days_to_age(value)
-# 
-# @library.register('Years to Age')
-# def years_to_age(lib, value):
-#     "Expects a number." 
-#     return conversions.years_to_age(value)
-# 
-# @library.register('Bool to Yes/No')
-# def yesno(lib, value):
-#     "Expects a boolean."
-#     if value is True:
-#         return 'Yes'
-#     elif value is False:
-#         return 'No'
-#     return
-# 
-# @library.register('Date')
-# def date_format(lib, value):
-#     "Expects a date."
-#     return filters.date(value)
-# 
 
 LOADING = False
 
@@ -216,9 +180,6 @@ def autodiscover():
     if LOADING:
         return
     LOADING = True
-
-    import imp
-    from django.conf import settings
 
     for app in settings.INSTALLED_APPS:
         try:
