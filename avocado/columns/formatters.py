@@ -1,44 +1,73 @@
+from copy import deepcopy
+
 from django.conf import settings
-
-class AbstractFormatter(object):
-    def format(*args):
-        return args
-
-
-"""
-    COLUMN_CONCEPT_LIBRARY_OUTPUTS = {
-        'html' : {
-            'error': '<span class="data-format-error">(data format error)</span>',
-            'nodata': None,
-        },
-        'csv': {
-            'error': '(data format error)',
-            'nodata': '',
-        }
-    }
-"""
-
 from django.utils.importlib import import_module
-# from django.template import defaultfilters as filters
-# 
-# from avocado.utils import conversions
-
 
 class AlreadyRegisteredError(Exception):
     pass
+
 
 class RegisterError(Exception):
     pass
 
 
+class AbstractFormatter(object):
+    """The AbstractFormatter defines the base behavior for formatting a set of
+    arguments.
+    """
+    def __call__(*args, ftype=None):
+        return getattr(self, ftype)(*args)
+
+
 class FormatterLibrary(object):
-    "The base class for defining a formatter library."
+    """The base class for defining a formatter library.
+
+    This library dynamically determines the available formatter types via a
+    user-defined setting `COLUMN_CONCEPT_FORMATTER_TYPES'. This provides the
+    available to define any number of formatter types without needing to
+    subclass or override any part of the library. An example as follows:
+
+        COLUMN_CONCEPT_FORMATTER_TYPES = {
+            'json': {
+                'error': '[data format error]',
+            },
+            'html' : {
+                'error': '<span class="data-format-error">[data format error]</span>',
+                'null': '<span class="lg ht">(no data)</span>',
+            },
+            'csv': {
+                'error': '[data format error]',
+                'null': '',
+            }
+        }
+
+    Every formatter registered must be a sublcass of the AbstractFormatter
+    class. Each formatter can support any number of formatter types by simply
+    defining a method of the same name, e.g:
+
+        class MyFormatter(AbstractFormatter):
+            def json(*args):
+                return ' '.join(map(lambda x: str(x).upper(), args))
+
+    The above formatter class supports the "json" formatter type but not
+    either of the "html" or "csv" types. For formatters that need to support
+    more than one type, but handles the input the same, the following
+    convention should be used:
+
+        class MyFormatter(AbstractFormatter):
+            def json(*args):
+                return ' '.join(map(lambda x: str(x).upper(), args))
+            html = json
+
+    The "html" formatter merely points to the "json" method.
+    """
 
     FORMATTER_TYPES = getattr(settings, 'COLUMN_CONCEPT_FORMATTER_TYPES', {})
 
     def __init__(self):
-        self._ftypes = self.FORMATTER_TYPES.keys()
-        self._cache = dict(zip(self._ftypes, [{}] * len(self._ftypes)))
+        self._cache = deepcopy(self.FORMATTER_TYPES)
+        for key in self._cache:
+            self._cache[key]['formatters'] = {}
 
     def register(self, klass):
         """Registers a Formatter subclass with this library. The function name must be
@@ -51,12 +80,12 @@ class FormatterLibrary(object):
 
         for ftype in self._ftypes:
             if hasattr(obj, ftype): # strange requirement?
-                if self._cache[ftype].has_key(klass.name):
+                if self._cache[ftype]['formatters'].has_key(klass.name):
                     raise AlreadyRegisteredError, 'A formatter with the name ' \
                         '"%s" is already registered for the %s formatter type' \
                         % (klass.name, ftype)
                 self._cache[ftype][klass.name] = obj
-        
+
         return klass
 
     def choices(self, ftype):
@@ -67,45 +96,48 @@ class FormatterLibrary(object):
     #     if self.formatters.has_key(name):
     #         return self.formatters.get(name)[1]
 
-    def format_row(self, item, rules, idx):
+    def format_row(self, seq, rules, idx, fhash):
         toks = []
-        head = idx[0] and list(item[:idx[0]]) or []
-        tail = idx[1] and list(item[idx[1]:]) or []
-        data = item[idx[0]:idx[1]]
-        
+        head = list(seq[:idx[0]])
+        tail = list(seq[idx[1]:])
+
+        data = seq[idx[0]:idx[1]]
+
         i = 0
-        for fname, cnt in rules:
+        for fname, nargs in rules:
             # skip if the rule does not apply to anything
-            if cnt == 0:
+            if nargs == 0:
                 continue
-            func = self.get(fname) or self._default
+
+            obj = fhash['formatters'][fname]
             try:
-                tok = func(*data[i:i+cnt])
-            except StandardError:
-                tok = self.DATA_FORMAT_ERROR
-            
-            # `extend' toks only if it is an iterable and not a string
-            if isinstance(tok, basestring):
+                tok = obj(ftype, *data[i:i+nargs])
+            except Exception:
+                tok = fhash['error']
+
+            if tok is None:
+                tok = fhash.get('null', None)
+
+            try:
+                iter(tok)
+                toks.extend(tok)
+            except TypeError:
                 toks.append(tok)
-            else:
-                try:
-                    iter(tok)
-                    toks.extend(tok)
-                except TypeError:
-                    toks.append(tok)
-            i += cnt
+
+            i += nargs
+
         return tuple(head + toks + tail)
 
-    def format(self, iterable, rules, ftype=None, idx=(1, None)):
+    def format(self, iterable, rules, ftype, idx=(1, None)):
         """Take an iterable and formats the data given the rules.
-        
+
         Definitions:
-        
+
             `iterable' - an iterable of iterables
-        
+
             `rules' - a list of pairs defining the formatter name and the
             number of items to format, e.g. [('foo', 3), ('bar', 1)] 
-            
+
             `ftype' - the name
 
             `idx' - the slice of data to format per row. the data ignored
@@ -114,17 +146,18 @@ class FormatterLibrary(object):
 
                 def afunc(arg1, arg2):
                     return arg1 + arg2
-            
+
                 iterable    = [(3, 102, 746, 'bar', 392)]
                 rules       = (2, 'afunc')
                 idx         = (1, 3)
-                            
+
                 The result will be:
-                
+
                     [(3, 848, 'bar', 392)]
-        """        
+        """
+        fhash = self._cache[ftype]
         for item in iter(iterable):
-            yield self.format_row(item, rules, idx)
+            yield self.format_row(item, rules, idx, fhash)
 
 
 class DictFormatterLibrary(FormatterLibrary):
@@ -134,14 +167,14 @@ class DictFormatterLibrary(FormatterLibrary):
         """
         item[key] = super(DictFormatterLibrary, self).format_row(item[key], rules, idx)
         return item
-    
+
     def format(self, iterable, rules, idx=(1, None), key='data'):
         for item in iter(iterable):
             yield self.format_row(item, rules, idx, key)
 
 
 # TODO to implementation
- 
+
 # @library.register('Date to Age')
 # def date_to_age(lib, value):
 #     "Expects a date or datetime instance."
