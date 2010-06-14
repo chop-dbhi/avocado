@@ -1,10 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import Group
-from django.conf import settings
+
+from avocado.settings import settings
 
 __all__ = ('ConceptCategory', 'ConceptAbstract', 'ConceptFieldAbstract')
-
-ENABLE_GROUP_PERMISSIONS = getattr(settings, 'AVOCADO_ENABLE_GROUP_PERMISSIONS', True)
 
 class ConceptCategory(models.Model):
     name = models.CharField(max_length=100)
@@ -26,7 +25,7 @@ class ConceptAbstract(models.Model):
     order = models.PositiveSmallIntegerField(default=0, help_text='This ' \
         'ordering is relative to the category this concept belongs to.')
 
-    if ENABLE_GROUP_PERMISSIONS:
+    if settings.ENABLE_GROUP_PERMISSIONS:
         groups = models.ManyToManyField(Group, null=True, blank=True)
 
     # search optimizations

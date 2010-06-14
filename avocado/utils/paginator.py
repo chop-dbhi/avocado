@@ -1,3 +1,5 @@
+import math
+
 from django.core.paginator import Paginator, Page
 
 class BufferedPaginator(Paginator):
@@ -14,40 +16,15 @@ class BufferedPaginator(Paginator):
     The use of the class is primarily for large data sets in which it is
     impractical to store into a Paginator. Overriding `_count' allows for the
     methods to still be used with the assumed value.
-    
-    >>> params = [
-    ... # count, offset, limit, items, paginate_by
-    ... [100, 0, 10, [0, 1, 2, 3, 4, 5, 6, 7, 9, 10], 2],
-    ... [100, 40, 10, [0, 1, 2, 3, 4, 5, 6, 7, 9, 10], 2],
-    ... [20, 0, 10, [0, 1, 2, 3, 4, 5, 6, 7, 9, 10], 2],
-    ... ]
-    ...
-    >>> for p in params:
-    ...     bp = BufferedPaginator(*p)
-    ...     bp.num_pages()
-    ...     bp.page(1).in_cache()
-    ...     bp.page(2).in_cache()
-    ...     bp.page(5).in_cache()
-    ...     bp.page(10).in_cache()
-    ...
-    50
-    True
-    True
-    False
-    False
-    10
-    True
-    False
-    False
-    False
-    
     """
-    def __init__(self, count, offset, limit, *args, **kwargs):
+    def __init__(self, count, offset, limit=None, *args, **kwargs):
         "Overrides `_count' to prevent a database hit."
         super(BufferedPaginator, self).__init__(*args, **kwargs)
-        self.offset = offset
-        self.limit = limit
         self._count = int(count)
+        if offset < 0:
+            offset = self._count + offset
+        self.offset = offset
+        self.limit = limit or len(self.object_list)
 
     def page(self, number):
         number = self.validate_number(number)
@@ -62,21 +39,48 @@ class BufferedPaginator(Paginator):
             top = self.count
 
         return BufferedPage(self.object_list[bottom:top], number, self)
+    
+    def cached_page_indices(self):
+        "Returns the indices of the first and last pages that are cached."
+        
+        # implies a partial page cache
+        if self.limit < self.per_page:
+            # the beginning items are missing.. no good
+            if self.offset > 0:
+                return (0, 0)
+
+        pages_of_offset = math.ceil(self.offset / float(self.per_page))
+        first = int(pages_of_offset) + 1
+        last = first + math.ceil(self.limit / float(self.per_page))
+        return (first, last)
+    
+    def cached_pages(self):
+        first, last = self.cached_page_indices()
+        return last - first
 
 class BufferedPage(Page):
     """A subclass of the django Page class which adds an additional method to
     determine if this page is in cache. The determination is with respect to
     the `paginator' `offset' and `limit' attributes.
-    
-    (doctests in BufferedPaginator class)
     """
+    def __init__(self, object_list, number, paginator):
+        self.number = number
+        self.paginator = paginator
+        if self.in_cache():
+            self.object_list = object_list
+        else:
+            self.object_list = []
+
     def in_cache(self):
-        offset = self.paginator.offset
-        limit = self.paginator.limit
+        first, last = self.paginator.cached_page_indices()
+        return first <= self.number < last
+    
+    def start_index(self):
+        if not self.in_cache():
+            return None
+        return super(BufferedPage, self).start_index()
 
-        if (self.start_index() - 1) < offset:
-            return False
-
-        if (self.end_index() - 1) > (offset + limit):
-            return False
-        return True
+    def end_index(self):
+        if not self.in_cache():
+            return None
+        return super(BufferedPage, self).end_index()

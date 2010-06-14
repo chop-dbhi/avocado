@@ -1,8 +1,11 @@
 import imp
 from copy import deepcopy
 
-from django.conf import settings
+
 from django.utils.importlib import import_module
+
+from avocado.settings import settings
+from avocado.utils.iter import is_seq_not_string
 
 class AlreadyRegisteredError(Exception):
     pass
@@ -16,7 +19,7 @@ class AbstractFormatter(object):
     """The AbstractFormatter defines the base behavior for formatting a set of
     arguments.
     """
-    def __call__(*args, ftype=None):
+    def __call__(self, ftype, *args):
         return getattr(self, ftype)(*args)
 
 
@@ -63,12 +66,13 @@ class FormatterLibrary(object):
     The "html" formatter merely points to the "json" method.
     """
 
-    FORMATTER_TYPES = getattr(settings, 'COLUMN_CONCEPT_FORMATTER_TYPES', {})
+    FORMATTER_TYPES = settings.FORMATTER_TYPES
 
-    def __init__(self):
-        self._cache = deepcopy(self.FORMATTER_TYPES)
+    def __init__(self, formatter_types={}):
+        self._cache = deepcopy(formatter_types or self.FORMATTER_TYPES)
         for key in self._cache:
             self._cache[key]['formatters'] = {}
+        self._ftypes = self._cache.keys()
 
     def _parse_name(self, name):
         if name.endswith('Formatter'):
@@ -98,40 +102,39 @@ class FormatterLibrary(object):
                     raise AlreadyRegisteredError, 'A formatter with the ' \
                         'name "%s" is already registered for the %s ' \
                         'formatter type' % (klass.name, ftype)
-                self._cache[ftype][klass_name] = obj
+                self._cache[ftype]['formatters'][klass_name] = obj
         return klass
 
     def choices(self, ftype):
         "Returns a list of tuples that can be used as choices in a form."
-        return [(n, n) for n in self._cache[ftype].keys()]
+        return [(n, n) for n in self._cache[ftype]['formatters'].keys()]
 
-    def format_seq(self, seq, rules, idx, fhash):
+    def format_seq(self, seq, rules, ftype, idx, formatters, error, null):
         toks = []
-        head = list(seq[:idx[0]])
-        tail = list(seq[idx[1]:])
+        head, tail = list(seq[:idx[0] or 0]), list(seq[idx[1] or 0:])
 
         data = seq[idx[0]:idx[1]]
-
+        
         i = 0
         for fname, nargs in rules:
             # skip if the rule does not apply to anything
             if nargs == 0:
                 continue
 
-            obj = fhash['formatters'][fname]
+            obj = formatters[fname]
+            args = data[i:i+nargs]
             try:
-                tok = obj(ftype, *data[i:i+nargs])
+                tok = obj(ftype, *args)
             except Exception:
-                tok = fhash['error']
+                tok = error
 
             if tok is None:
-                tok = fhash.get('null', None)
+                tok = null
 
-            try:
-                iter(tok)
-                toks.extend(tok)
-            except TypeError:
-                toks.append(tok)
+            # tests to see if `tok' is a string or other iter
+            if not is_seq_not_string(tok):
+                tok = [tok]
+            toks.extend(tok)
 
             i += nargs
 
@@ -167,9 +170,15 @@ class FormatterLibrary(object):
 
                     [('FOO', '848', 'BAR')]
         """
-        fhash = self._cache[ftype]
+        formatters = self._cache[ftype]['formatters']
+        error = self._cache[ftype].get('error', '')
+        null = self._cache[ftype].get('null', None)
+        
         for seq in iter(iterable):
-            yield self.format_row(seq, rules, idx, fhash)
+            yield self.format_seq(seq, rules, ftype, idx, formatters, error, null)
+
+
+library = FormatterLibrary()
 
 
 LOADING = False
@@ -181,6 +190,7 @@ def autodiscover():
         return
     LOADING = True
 
+    from django.conf import settings
     for app in settings.INSTALLED_APPS:
         try:
             app_path = import_module(app).__path__

@@ -8,42 +8,12 @@ the right length and in some cases, type.
 
 from django.core.exceptions import ValidationError
 
+from avocado.utils.iter import is_seq_not_string
+
 __all__ = ('exact', 'iexact', 'contains', 'inlist', 'lt', 'gt', 'lte', 'gte',
     'between', 'null', 'notbetween', 'notexact', 'notiexact', 'doesnotcontain',
     'notinlist', 'notnull')
 
-
-def is_sequence_not_string(value):
-    """Simple test to distinguish sequences that are not strings.
-    
-    >>> is_sequence_not_string(None)
-    False
-    >>> is_sequence_not_string('')
-    False
-    >>> is_sequence_not_string(u'')
-    False
-    >>> is_sequence_not_string(r'')
-    False
-    >>> is_sequence_not_string(True)
-    False
-
-    >>> is_sequence_not_string([])
-    True
-    >>> is_sequence_not_string(())
-    True
-    >>> is_sequence_not_string({})
-    True
-    >>> is_sequence_not_string(set([]))
-    True
-    """
-    if not isinstance(value, basestring):
-        try:
-            iter(value)
-            return True
-        except TypeError:
-            pass
-    return False
-        
 
 class Operator(object):
     short_name = ''
@@ -71,13 +41,13 @@ class Operator(object):
 
 class PrimitiveOperator(Operator):
     def validate(self, value):
-        if is_sequence_not_string(value):
+        if is_seq_not_string(value):
             raise ValidationError, 'Expected a string or non-sequence type, instead got %r' % value
 
 
 class SequenceOperator(Operator):
     def validate(self, value):
-        if not is_sequence_not_string(value):
+        if not is_seq_not_string(value):
             raise ValidationError, 'Expected a non-string sequence type, instead got %r' % value
 
 
