@@ -1,7 +1,7 @@
 from django.test import TestCase
 
 from avocado.columns.formatters import (AbstractFormatter, FormatterLibrary,
-    RegisterError)
+    RegisterError, AlreadyRegisteredError)
 
 __all__ = ('FormatterLibraryTestCase',)
 
@@ -37,25 +37,46 @@ class FormatterLibraryTestCase(TestCase):
             }
         })
         
-        class ConcatFormatter(AbstractFormatter):
+        @library.register
+        class ConcatStrFormatter(AbstractFormatter):
             def csv(self, *args):
                 return ' '.join(map(lambda x: str(x), args))
         
-        library.register(ConcatFormatter)
+        @library.register
+        class AddFloats(AbstractFormatter):
+            name = 'Add Floats'
+            def csv(self, *args):
+                if not all(map(lambda x: type(x) is float, args)):
+                    return None
+                return sum(args)
+        
+        self.assertRaises(AlreadyRegisteredError, library.register, AddFloats)
+        self.assertEqual(library.choices('csv'), [('Add Floats', 'Add Floats'),
+            ('Concat Str', 'Concat Str')]) 
+        
+        @library.register
+        class AppendItemsFormatter(AbstractFormatter):
+            def csv(self, arg):
+                arg.append(1)
+                return arg
         
         rows = [
-            (4, None, 'foo', set([3,4,5]), 129),
-            (10, 29, 'foo', [3,4,5], False),
-            (None, 'bar', 'foo', None, True),
+            (4, None, 'foo', set([3,4,5]), 10.5, 11.0, 2.0, {}),
+            (10, 29, 'foo', [3,4,5], False, 372.19, None, []),
+            (None, 'bar', 'foo', None, True, 199.0, 1.0, 192),
         ]
 
-        rows1 = list(library.format(rows, [('Concat', 2), ('Concat', 2)], 'csv',
-            idx=(None, 4)))
+        rows1 = list(library.format(rows, [
+            ('Concat Str', 2),
+            ('Concat Str', 2),
+            ('Add Floats', 3),
+            ('Append Items', 1),
+        ], 'csv', idx=(0, 8)))
         
         self.assertEqual(rows1, [
-            ('4 None', 'foo set([3, 4, 5])', 129),
-            ('10 29', 'foo [3, 4, 5]', False),
-            ('None bar', 'foo None', True),
+            ('4 None', 'foo set([3, 4, 5])', 23.5, 'error'),
+            ('10 29', 'foo [3, 4, 5]', None, [1]),
+            ('None bar', 'foo None', None, 'error'),
         ])
 
     # def test_no_formatters(self):

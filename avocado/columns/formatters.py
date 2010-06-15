@@ -1,11 +1,9 @@
 import imp
 from copy import deepcopy
 
-
 from django.utils.importlib import import_module
 
 from avocado.settings import settings
-from avocado.utils.iter import is_seq_not_string
 
 class AlreadyRegisteredError(Exception):
     pass
@@ -111,7 +109,7 @@ class FormatterLibrary(object):
 
     def format_seq(self, seq, rules, ftype, idx, formatters, error, null):
         toks = []
-        head, tail = list(seq[:idx[0] or 0]), list(seq[idx[1] or 0:])
+        head, tail = list(seq[:idx[0]]), list(seq[idx[1]:])
 
         data = seq[idx[0]:idx[1]]
         
@@ -131,16 +129,12 @@ class FormatterLibrary(object):
             if tok is None:
                 tok = null
 
-            # tests to see if `tok' is a string or other iter
-            if not is_seq_not_string(tok):
-                tok = [tok]
-            toks.extend(tok)
-
+            toks.append(tok)
             i += nargs
 
         return tuple(head + toks + tail)
 
-    def format(self, iterable, rules, ftype, idx=(1, None)):
+    def format(self, iterable, rules, ftype, idx):
         """Take an iterable and formats the data given the rules.
 
         Definitions:
@@ -205,3 +199,5 @@ def autodiscover():
         import_module('%s.formatters' % app)
 
     LOADING = False
+
+autodiscover()

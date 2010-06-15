@@ -31,39 +31,10 @@ class CriterionSet(ConceptSet):
         queryset = CriterionConcept.objects.all()
         super(CriterionSet, self).__setstate__(dict_, queryset)
 
-    def _get_criteria(self, pre_criteria):
-        """Iterates over the `pre_criteria' and fetches the criterion objects
-        and validates the `operator' and `value'.
-        """
-        criteria = []
-        for id_, dict_ in pre_criteria.items():
-            concept = get_concept(id_, self.queryset)
-            concept.validate(dict_['op'], dict_['val'])
-            criteria.append(concept)
-        return criteria
-
-    def _get_filters(self, criteria):
-        """TODO: update with new CriterionConcept API."""
+    def _get_filters(self, concepts):
         filters = []
-        for c in criteria:
-            model = c.model_cls
-            field_name = c.field_name
-            operator = c.op_obj.op
-            value = c.val_obj
-            is_negated = c.op_obj.is_negated
-            path = []
-
-            if self.model_tree.root_model != model:
-                nodes = self.model_tree.path_to(model)
-                path = self.model_tree.related_name_path(nodes)
-
-            path.extend([field_name, operator])
-            kwarg = {str('__'.join(path)): value}
-
-            if is_negated:
-                filters.append(~Q(**kwarg))
-            else:
-                filters.append(Q(**kwarg ))
+        for concept in concepts:
+            pass
         return filters
 
     def add_filters(self, queryset, pre_criteria):
