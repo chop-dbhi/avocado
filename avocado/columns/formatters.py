@@ -4,6 +4,7 @@ from copy import deepcopy
 from django.utils.importlib import import_module
 
 from avocado.settings import settings
+from avocado.utils.iter import is_iter_not_string
 
 class AlreadyRegisteredError(Exception):
     pass
@@ -13,12 +14,37 @@ class RegisterError(Exception):
     pass
 
 
+class FormatError(Exception):
+    pass
+
+
 class AbstractFormatter(object):
     """The AbstractFormatter defines the base behavior for formatting a set of
     arguments.
     """
+    apply_to_all = False
+    is_choice = True
+
     def __call__(self, ftype, *args):
         return getattr(self, ftype)(*args)
+
+
+class RemoveFormatter(AbstractFormatter):
+    "Overrides default behavior. Returns an empty list; removing the output."
+    apply_to_all = True
+    is_choice = False
+
+    def __call__(self, ftype, *args):
+        return []
+
+
+class IgnoreFormatter(AbstractFormatter):
+    "Overrides default behavior. Simple retruns the args as-is."
+    apply_to_all = True
+    is_choice = False
+
+    def __call__(self, ftype, *args):
+        return args
 
 
 class FormatterLibrary(object):
@@ -29,7 +55,7 @@ class FormatterLibrary(object):
     available to define any number of formatter types without needing to
     subclass or override any part of the library. An example as follows:
 
-        COLUMN_CONCEPT_FORMATTER_TYPES = {
+        FORMATTER_TYPES = {
             'json': {
                 'error': '[data format error]',
             },
@@ -82,6 +108,13 @@ class FormatterLibrary(object):
             toks.append(x)
         return ''.join(toks)
 
+    def _add_formatter(self, ftype, klass_name, obj):
+        if self._cache[ftype]['formatters'].has_key(klass_name):
+            raise AlreadyRegisteredError, 'A formatter with the ' \
+                'name "%s" is already registered for the %s ' \
+                'formatter type' % (klass_name, ftype)
+        self._cache[ftype]['formatters'][klass_name] = obj
+
     def register(self, klass):
         "Registers a Formatter subclass. The class name must be unique."
         if not issubclass(klass, AbstractFormatter):
@@ -95,24 +128,21 @@ class FormatterLibrary(object):
             klass_name = self._parse_name(klass.__name__)
 
         for ftype in self._ftypes:
-            if hasattr(obj, ftype): # strange requirement?
-                if self._cache[ftype]['formatters'].has_key(klass_name):
-                    raise AlreadyRegisteredError, 'A formatter with the ' \
-                        'name "%s" is already registered for the %s ' \
-                        'formatter type' % (klass.name, ftype)
-                self._cache[ftype]['formatters'][klass_name] = obj
+            if hasattr(obj, ftype) or obj.apply_to_all: # strange requirement?
+                self._add_formatter(ftype, klass_name, obj)
         return klass
 
     def choices(self, ftype):
         "Returns a list of tuples that can be used as choices in a form."
-        return [(n, n) for n in self._cache[ftype]['formatters'].keys()]
+        choices = []
+        for name, obj in self._cache[ftype]['formatters'].items():
+            if obj.is_choice:
+                choices.append((name, name))
+        return choices
 
-    def format_seq(self, seq, rules, ftype, idx, formatters, error, null):
+    def format_seq(self, seq, rules, ftype, formatters, error, null):
         toks = []
-        head, tail = list(seq[:idx[0]]), list(seq[idx[1]:])
 
-        data = seq[idx[0]:idx[1]]
-        
         i = 0
         for fname, nargs in rules:
             # skip if the rule does not apply to anything
@@ -120,7 +150,8 @@ class FormatterLibrary(object):
                 continue
 
             obj = formatters[fname]
-            args = data[i:i+nargs]
+            args = seq[i:i+nargs]
+
             try:
                 tok = obj(ftype, *args)
             except Exception:
@@ -129,12 +160,22 @@ class FormatterLibrary(object):
             if tok is None:
                 tok = null
 
-            toks.append(tok)
+            if is_iter_not_string(tok):
+                toks.extend(tok)
+            else:
+                toks.append(tok)
+
             i += nargs
 
-        return tuple(head + toks + tail)
+        # all args have not been processed, therefore mixed formatting may have
+        # occurred.
+        if i+1 < len(seq):
+            raise FormatError, 'The rules "%s" is being applied to a ' \
+                'sequence of %d items' % (rules, len(seq))
 
-    def format(self, iterable, rules, ftype, idx):
+        return tuple(toks)
+
+    def format(self, iterable, rules, ftype):
         """Take an iterable and formats the data given the rules.
 
         Definitions:
@@ -147,32 +188,30 @@ class FormatterLibrary(object):
 
             `ftype' - a string specifying the formatter type
 
-            `idx' - the slice of data to format per row. the data ignored
-            will not be passed through the formatter, but will be retained and
-            passed back with the the formatted data, e.g:
-
                 class MyFormatter(AbstractFormatter):
                     def json(*args):
                         return ' '.join(map(lambda x: str(x).upper(), args))
 
                 iterable    = [(3, 'foo', 746, 'bar', 392)]
-                rules       = (2, 'afunc')
+                rules       = (2, 'My')
                 ftype       = 'json'
-                idx         = (1, 3)
 
                 The result will be:
 
-                    [('FOO', '848', 'BAR')]
+                    [(3, 'FOO', '848', 'BAR', 392)]
         """
         formatters = self._cache[ftype]['formatters']
         error = self._cache[ftype].get('error', '')
         null = self._cache[ftype].get('null', None)
-        
+
         for seq in iter(iterable):
-            yield self.format_seq(seq, rules, ftype, idx, formatters, error, null)
+            yield self.format_seq(seq, rules, ftype, formatters, error, null)
 
 
 library = FormatterLibrary()
+
+library.register(RemoveFormatter)
+library.register(IgnoreFormatter)
 
 
 LOADING = False

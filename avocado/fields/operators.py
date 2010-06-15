@@ -8,7 +8,7 @@ the right length and in some cases, type.
 
 from django.core.exceptions import ValidationError
 
-from avocado.utils.iter import is_seq_not_string
+from avocado.utils.iter import is_iter_not_string
 
 __all__ = ('exact', 'iexact', 'contains', 'inlist', 'lt', 'gt', 'lte', 'gte',
     'between', 'null', 'notbetween', 'notexact', 'notiexact', 'doesnotcontain',
@@ -41,13 +41,13 @@ class Operator(object):
 
 class PrimitiveOperator(Operator):
     def validate(self, value):
-        if is_seq_not_string(value):
+        if is_iter_not_string(value):
             raise ValidationError, 'Expected a string or non-sequence type, instead got %r' % value
 
 
 class SequenceOperator(Operator):
     def validate(self, value):
-        if not is_seq_not_string(value):
+        if not is_iter_not_string(value):
             raise ValidationError, 'Expected a non-string sequence type, instead got %r' % value
 
 

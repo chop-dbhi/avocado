@@ -18,7 +18,7 @@ class AbstractFilter(object):
         if negated:
             return ~self.filter(**kwargs)
         return self.filter(**kwargs)
-    
+
     def filter(self, **kwargs):
         "Returns a Q object."
         raise NotImplementedError
