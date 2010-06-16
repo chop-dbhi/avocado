@@ -72,8 +72,8 @@ class FieldConcept(ConceptAbstract):
             else:
                 formfield = self.field.formfield
 
-        if widget is None:
-            widget = self.field_type.widget
+        if widget is None and self.field_type.widget_class:
+            widget = self.field_type.widget_class()
 
         if 'label' in kwargs:
             label = kwargs.pop('label')
@@ -82,7 +82,7 @@ class FieldConcept(ConceptAbstract):
         
         return formfield(label=label, widget=widget, **kwargs)
 
-    def clean(self, operator, value):
+    def clean(self, value, operator=None):
         """Cleans and validates the `operator' and `value' pair. It first tries
         to clean the `value' into the correct python object. This is done by
         fetching the default `formfield' class provided by the `field'

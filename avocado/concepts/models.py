@@ -20,7 +20,7 @@ class ConceptAbstract(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(null=True, blank=True)
     keywords = models.CharField(max_length=100, null=True, blank=True)
-    category = models.ForeignKey(ConceptCategory)
+    category = models.ForeignKey(ConceptCategory, null=True, blank=True)
     is_public = models.BooleanField(default=False)
     order = models.PositiveSmallIntegerField(default=0, help_text='This ' \
         'ordering is relative to the category this concept belongs to.')

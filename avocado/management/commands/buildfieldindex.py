@@ -1,5 +1,6 @@
 from django.core.management.base import AppCommand
 from django.db.models import get_models, AutoField, ManyToManyField, ForeignKey
+
 from avocado.models import FieldConcept, ConceptCategory
 
 class Command(AppCommand):

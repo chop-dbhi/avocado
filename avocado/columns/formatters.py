@@ -141,18 +141,17 @@ class FormatterLibrary(object):
         return choices
 
     def format_seq(self, seq, rules, ftype, formatters, error, null):
-        toks = []
+        i, toks = 0, []
 
-        i = 0
         for fname, nargs in rules:
             # skip if the rule does not apply to anything
             if nargs == 0:
                 continue
 
-            obj = formatters[fname]
             args = seq[i:i+nargs]
 
             try:
+                obj = formatters[fname]
                 tok = obj(ftype, *args)
             except Exception:
                 tok = error
@@ -169,7 +168,7 @@ class FormatterLibrary(object):
 
         # all args have not been processed, therefore mixed formatting may have
         # occurred.
-        if i+1 < len(seq):
+        if i != len(seq):
             raise FormatError, 'The rules "%s" is being applied to a ' \
                 'sequence of %d items' % (rules, len(seq))
 
@@ -203,7 +202,7 @@ class FormatterLibrary(object):
         formatters = self._cache[ftype]['formatters']
         error = self._cache[ftype].get('error', '')
         null = self._cache[ftype].get('null', None)
-
+        
         for seq in iter(iterable):
             yield self.format_seq(seq, rules, ftype, formatters, error, null)
 

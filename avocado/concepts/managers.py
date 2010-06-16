@@ -4,6 +4,8 @@ from django.db import models
 from django.db.models import Q
 from django.utils import stopwords
 
+from avocado.settings import settings
+
 def tokenize_search_str(search_str):
     "Strips stopwords and tokenizes search string if not already a list."
     if isinstance(search_str, basestring):
@@ -21,12 +23,13 @@ class ConceptManager(models.Manager):
     def public(self, *args, **kwargs):
         return self.get_query_set().filter(*args, is_public=True, **kwargs)
 
-    def restrict_by_group(self, groups):
-        """Returns public concepts that are apart of the specified groups or
-        none at all.
-        """
-        return self.public(Q(groups__isnull=True) |
-            Q(groups__in=groups)).distinct()
+    if settings.ENABLE_GROUP_PERMISSIONS:
+        def restrict_by_group(self, groups):
+            """Returns public concepts that are apart of the specified groups or
+            none at all.
+            """
+            return self.public(Q(groups__isnull=True) |
+                Q(groups__in=groups)).distinct()
 
     def fulltext_search(self, search_str, base_queryset=None, use_icontains=False):
         """Performs a fulltext search provided the database backend supports
@@ -48,8 +51,7 @@ class ConceptManager(models.Manager):
         queryset = base_queryset.extra(where=('search_tsv @@ to_tsquery(%s)',),
             params=(tok_str,))
 
-        # TODO for django 1.2, update to use .exists()
-        if use_icontains and queryset.count() == 0:
+        if use_icontains and queryset.exists():
             queryset = self.icontains_search(toks, base_queryset.all())
 
         return queryset

@@ -9,7 +9,6 @@ Welcome to django-avocado's documentation!
 Contents:
 
 .. toctree::
-   :numbered:
 
    intro
    concepts
