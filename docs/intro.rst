@@ -20,7 +20,7 @@ To take it one step farther, not only do not need to specify relationships
 between models, you don't even need to know which objects you want to return
 ahead of time, i.e. ``User`` vs. ``Tag``.
 
-A Convoluted Example
+A Contrived Example
 --------------------
 ::
 
@@ -156,7 +156,7 @@ This is the dynamic equivalent to doing::
 
     >>> users = User.objects.filter(entries__tags__name='python')
 
-The power of this approach cannot be seen in this simple convoluted example,
+The power of this approach cannot be seen in this simple contrived example,
 but rather in data models that are large and in situtations in which you might
 not know what kind questions about the data are going to be asked.
 

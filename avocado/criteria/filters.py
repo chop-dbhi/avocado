@@ -11,22 +11,28 @@ class RegisterError(Exception):
 
 
 class AbstractFilter(object):
-    """The AbstractFilter defines the base behavior for altering a QuerySet
-    object.
+    """Provides the logic necessary to return a Q object for altering a
+    QuerySet object.
+
+    There are 3 components necessary for specifying conditions:
+        - the ModelTree object
+        - CriterionConcept fields
+        - the logic tree
     """
-    def __call__(self, negated=False, **kwargs):
-        if negated:
-            return ~self.filter(**kwargs)
-        return self.filter(**kwargs)
+    def __call__(self, modeltree, fields, params):
+        return self.filter(modeltree, filter, params)
 
     def filter(self, **kwargs):
-        "Returns a Q object."
         raise NotImplementedError
 
 
+class SimpleFilter(AbstractFilter):
+    def filter(self, modeltree, fields, params):
+        pass
+
 class FilterLibrary(object):
     "The base class for defining a filter library."
-    def __init__(self, formatter_types={}):
+    def __init__(self):
         self._cache = {}
 
     def _parse_name(self, name):

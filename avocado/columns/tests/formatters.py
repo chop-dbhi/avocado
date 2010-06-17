@@ -42,60 +42,60 @@ class FormatterLibraryTestCase(TestCase):
             name = 'Add Numbers'
             def csv(self, *args):
                 return sum(args)
-        
+
         self.assertRaises(AlreadyRegisteredError, library.register, Add)
         self.assertEqual(library.choices('csv'), [('Add Numbers', 'Add Numbers'),
             ('Concat Str', 'Concat Str')])
-        
+
         return library
 
     def test_simple(self):
         library = self._setup_library()
-        
+
         rows = [
             (1, 2, 3, 4, 5),
             (6, 7, 8, 9, 10),
             (3, 3, 3, 3, 3),
         ]
-        
+
         out = library.format(rows, [('Add Numbers', 5)], 'csv')
-        
+
         self.assertEqual(list(out), [(15,), (40,), (15,)])
-    
+
     def test_bultins(self):
         library = self._setup_library()
-        
+
         # builtin formatters
         library.register(RemoveFormatter)
         library.register(IgnoreFormatter)
-        
+
         rows = [
             (1, 2, 3, 4, 5),
             (6, 7, 8, 9, 10),
             (3, 3, 3, 3, 3),
         ]
-        
+
         out = library.format(rows, [('Add Numbers', 2), ('Ignore', 1),
             ('Remove', 2)], 'csv')
-        
+
         self.assertEqual(list(out), [(3, 3), (13, 8), (6, 3)])
 
     def test_format_error(self):
         library = self._setup_library()
-        
+
         rows = [
             (1, 2, 3, 4, 5),
             (6, 7, 8, 9, 10),
             (3, 3, 3, 3, 3),
         ]
-        
+
         out = library.format(rows, [('Add Numbers', 3)], 'csv')
-        
+
         self.assertRaises(FormatError, list, out)
-        
+
     def test_error_fallback(self):
         library = self._setup_library()
-        
+
         @library.register
         class AddOneFormatter(AbstractFormatter):
             def csv(self, arg):

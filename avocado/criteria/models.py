@@ -11,7 +11,7 @@ class CriterionConcept(ConceptAbstract):
     view_name = models.CharField(max_length=100, null=True, blank=True)
     template_name = models.CharField(max_length=100, null=True, blank=True)
     fields = models.ManyToManyField(FieldConcept, through='CriterionConceptField')
-    
+
     objects = ConceptManager()
 
     class Meta(ConceptAbstract.Meta):
@@ -22,26 +22,19 @@ class CriterionConcept(ConceptAbstract):
         if not hasattr(self, '_form_class'):
             from django import forms
             form_fields = {}
-            
+
             for f in self.fields.all():
                 key = '%s_%s' % (f.id, f.field_name)
                 form_fields[key] = f.formfield()
-            
+
             class CriterionConceptForm(forms.Form):
                 def __init__(self, *args, **kwargs):
                     super(CriterionConceptForm, self).__init__(*args, **kwargs)
                     self.fields.update(form_fields)
-            
+
             self._form_class = CriterionConceptForm
         return self._form_class
     form_class = property(_get_form_class)
-
-    def _get_view(self):
-        if not hasattr(self, '_view'):
-            from avocado.criteria.view import library
-            self._view = library.get(self.view_name)
-        return self._view
-    view = property(_get_view)
 
     def is_valid(self, data, form_class=None):
         if form_class is None:
