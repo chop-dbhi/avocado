@@ -34,18 +34,21 @@ class FieldType(object):
             raise OperatorNotPermitted, '%s is not permitted for field type %s' % \
                 (operator, self.__class__.__name__)
     
-    def validate(self, operator, value, model_field_obj=None):
+    def validate(self, operator, value, field_obj=None):
+        """
+        
+        """
         # 1. verify operator is allowed
         op_obj = _get_operator(operator)
         
         # 2. check special case for `null' or `notnull'
         fc = self.field_class
-        if op_obj in (null, notnull):
-            fc = forms.BooleanField
+        # if op_obj in (null, notnull):
+        #     fc = forms.BooleanField
 
         # 3. clean value according to model field formfield
-        if model_field_obj:
-            formfield = model_field_obj.formfield(form_class=fc)
+        if field_obj:
+            formfield = field_obj.formfield(form_class=fc)
         else:
             formfield = fc()
         
