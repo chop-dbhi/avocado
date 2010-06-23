@@ -12,6 +12,11 @@ from django.core.exceptions import ValidationError
 
 from avocado.fields.operators import *
 
+__all__ = ('IntegerField', 'DecimalField', 'FloatField', 'DateField',
+    'TimeField', 'DateTimeField', 'BooleanField', 'NullBooleanField',
+    'ChoiceField', 'ModelChoiceField', 'MultipleChoiceField',
+    'ModelMultipleChoiceField', 'ListField')
+
 class OperatorNotPermitted(Exception):
     pass
 
@@ -20,7 +25,7 @@ class FieldType(object):
     field_class = forms.CharField
     widget_class = None
     operators = ()
-    
+
     def __init__(self):
         if not self.operators:
             raise NotImplementedError, 'subclasses must have at least one ' \
@@ -33,31 +38,24 @@ class FieldType(object):
         except KeyError:
             raise OperatorNotPermitted, '%s is not permitted for field type %s' % \
                 (operator, self.__class__.__name__)
-    
-    def validate(self, operator, value, field_obj=None):
-        """
-        
-        """
-        # 1. verify operator is allowed
-        op_obj = _get_operator(operator)
-        
-        # 2. check special case for `null' or `notnull'
-        fc = self.field_class
-        # if op_obj in (null, notnull):
-        #     fc = forms.BooleanField
 
-        # 3. clean value according to model field formfield
-        if field_obj:
-            formfield = field_obj.formfield(form_class=fc)
-        else:
-            formfield = fc()
-        
-        clean_value = formfield.clean(value)
-        
-        # 4. validate cleaned value is appropriate for the operator
-        if op_obj.is_valid(clean_value):
+    def clean(self, operator, value):
+        """Validation is a multi-step process including:
+            - validating the operator is allowed for this field type
+            - cleaning the value based on the form field
+            - testing whether the value is appropriate for the operator
+        """
+        formfield = self.field_class()
+
+        try:
+            clean_value = formfield.clean(value)
+        except forms.ValidationError:
+            pass
+
+        if self._get_operator(operator).is_valid(clean_value):
             return clean_value
         raise ValidationError, ''
+
 
 class NumberType(FieldType):
     operators = (exact, notexact, lt, lte, gt, gte, between, notbetween, null,

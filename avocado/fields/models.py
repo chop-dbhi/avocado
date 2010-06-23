@@ -1,6 +1,7 @@
 from django.db import models
 from django import forms
 
+from avocado.utils.iter import is_iter_not_string
 from avocado.concepts.models import ConceptAbstract
 from avocado.concepts.managers import ConceptManager
 from avocado.fields.operators import ValidationError
@@ -27,9 +28,11 @@ class FieldConcept(ConceptAbstract):
         which allows for generating reports (results) in-browser or exporting to
         another format.
     """
-    model_label = models.CharField(max_length=100, editable=False)
-    field_name = models.CharField(max_length=100, editable=False)
-    field_type_name = models.CharField(max_length=100, null=True, blank=True)
+    model_label = models.CharField(max_length=100)
+    field_name = models.CharField(max_length=100)
+    enable_choices = models.BooleanField(default=False)
+    choices_callback = models.TextField(blank=True)
+    # field_type_name = models.CharField(max_length=100, null=True, blank=True)
 
     objects = ConceptManager()
 
@@ -53,27 +56,27 @@ class FieldConcept(ConceptAbstract):
         return self._field
     field = property(_get_field)
 
-    def _get_field_type(self):
-        if not hasattr(self, '_field_type'):
-            from avocado.fields import fieldtypes
-            if self.field_type_name:
-                self._field_type = getattr(fieldtypes, self.field_type_name)
-            else:
-                model_field_type = self.field.get_internal_type()
-                self._field_type = fieldtypes.MODEL_FIELD_MAP[model_field_type]
-        return self._field_type
-    field_type = property(_get_field_type)
+    # def _get_choices(self):
+    #     if not hasattr(self, '_choices'):
+    #         if not self.choices_callback:
+    #             pass
+        
+
+    # def _get_field_type(self):
+    #     if not hasattr(self, '_field_type'):
+    #         from avocado.fields import fieldtypes
+    #         if self.field_type_name:
+    #             self._field_type = getattr(fieldtypes, self.field_type_name)
+    #         else:
+    #             model_field_type = self.field.get_internal_type()
+    #             self._field_type = fieldtypes.MODEL_FIELD_MAP[model_field_type]
+    #     return self._field_type
+    # field_type = property(_get_field_type)
 
     def formfield(self, formfield=None, widget=None, **kwargs):
         "Returns the default `formfield' instance for the `field' type."
         if formfield is None:
-            if self.field_type_name:
-                formfield = self.field_type.field
-            else:
-                formfield = self.field.formfield
-
-        if widget is None and self.field_type.widget_class:
-            widget = self.field_type.widget_class()
+            formfield = self.field.formfield
 
         if 'label' in kwargs:
             label = kwargs.pop('label')
@@ -95,7 +98,7 @@ class FieldConcept(ConceptAbstract):
         """
         formfield = self.formfield()
 
-        if type(value) not in (list, tuple):
+        if not is_iter_not_string(value):
             value = [value]
             
         try:
@@ -103,9 +106,4 @@ class FieldConcept(ConceptAbstract):
         except forms.ValidationError, e:
             return (False, None, e.messages)
         
-        try:
-            cleaned_value = self.field_type.clean(cleaned_value)
-        except ValidationError, e:
-            return (False, None, e.message)
-
         return (True, cleaned_value, ())
