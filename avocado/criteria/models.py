@@ -1,3 +1,4 @@
+from django import forms
 from django.db import models
 
 from avocado.concepts.models import ConceptAbstract, ConceptFieldAbstract
@@ -20,7 +21,6 @@ class CriterionConcept(ConceptAbstract):
 
     def _get_form_class(self):
         if not hasattr(self, '_form_class'):
-            from django import forms
             form_fields = {}
 
             for f in self.fields.all():

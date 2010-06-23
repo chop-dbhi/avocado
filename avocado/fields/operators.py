@@ -2,7 +2,7 @@
 Simple set of classes that roughly map one-to-one to the operations that can
 performed in the django ORM.
 
-Each class must provide a `clean' method that validates a given `value' is of
+Each class must provide a `clean' method that is_valids a given `value' is of
 the right length and in some cases, type.
 """
 
@@ -34,21 +34,23 @@ class Operator(object):
     def __repr__(self):
         return str(self.__class__)
 
-    def validate(self, value):
+    def is_valid(self, value):
         "Cleans and verifies `value' can be used for this operator."
         raise NotImplementedError
 
 
 class PrimitiveOperator(Operator):
-    def validate(self, value):
-        if is_iter_not_string(value):
-            raise ValidationError, 'Expected a string or non-sequence type, instead got %r' % value
+    def is_valid(self, value):
+        if not is_iter_not_string(value):
+            return True
+        return False#, 'Expected a string or non-sequence type, instead got %r' % value        
 
 
 class SequenceOperator(Operator):
-    def validate(self, value):
-        if not is_iter_not_string(value):
-            raise ValidationError, 'Expected a non-string sequence type, instead got %r' % value
+    def is_valid(self, value):
+        if is_iter_not_string(value):
+            return True
+        return False#, 'Expected a non-string sequence type, instead got %r' % value
 
 
 class iExact(PrimitiveOperator):
@@ -120,10 +122,10 @@ class Between(SequenceOperator):
     verbose_name = 'is between'
     operator = 'range'
 
-    def validate(self, value):
-        super(Between, self).validate(value)        
-        if len(value) != 2:
-            raise ValidationError, 'Two values expected'
+    def is_valid(self, value):
+        if is_iter_not_string(value) and len(value) == 2:
+            return True
+        return False#, 'Two values expected'
 between = Between()
 
 

@@ -12,9 +12,6 @@ from django.core.exceptions import ValidationError
 
 from avocado.fields.operators import *
 
-def _operator_dict(*args):
-    return dict(map(lambda x: (x.operator, x), args))
-
 class OperatorNotPermitted(Exception):
     pass
 
@@ -39,10 +36,7 @@ class FieldType(object):
     
     def validate(self, operator, value, model_field_obj=None):
         # 1. verify operator is allowed
-        try:
-            op_obj = _get_operator(operator)
-        except OperatorNotPermitted, e:
-            raise ValidationError, e.message
+        op_obj = _get_operator(operator)
         
         # 2. check special case for `null' or `notnull'
         fc = self.field_class
@@ -58,9 +52,9 @@ class FieldType(object):
         clean_value = formfield.clean(value)
         
         # 4. validate cleaned value is appropriate for the operator
-        op_obj.validate(clean_value)
-        
-        return clean_value
+        if op_obj.is_valid(clean_value):
+            return clean_value
+        raise ValidationError, ''
 
 class NumberType(FieldType):
     operators = (exact, notexact, lt, lte, gt, gte, between, notbetween, null,

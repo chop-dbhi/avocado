@@ -75,8 +75,11 @@ class FormatterLibraryTestCase(TestCase):
             (3, 3, 3, 3, 3),
         ]
 
-        out = library.format(rows, [('Add Numbers', 2), ('Ignore', 1),
-            ('Remove', 2)], 'csv')
+        out = library.format(rows, [
+            ('Add Numbers', 2),
+            ('Ignore', 1),
+            ('Remove', 2)
+        ], 'csv')
 
         self.assertEqual(list(out), [(3, 3), (13, 8), (6, 3)])
 
@@ -96,6 +99,10 @@ class FormatterLibraryTestCase(TestCase):
     def test_error_fallback(self):
         library = self._setup_library()
 
+        # builtin formatters
+        library.register(RemoveFormatter)
+        library.register(IgnoreFormatter)        
+
         @library.register
         class AddOneFormatter(AbstractFormatter):
             def csv(self, arg):
@@ -109,13 +116,14 @@ class FormatterLibraryTestCase(TestCase):
 
         out = library.format(rows, [
             ('Concat Str', 2),
-            ('Concat Str', 2),
+            ('Concat Str', 1),
+            ('Ignore', 1),
             ('Add Numbers', 3),
             ('Add One', 1),
         ], 'csv')
 
         self.assertEqual(list(out), [
-            ('4 None', 'foo set([3, 4, 5])', 23.5, 'error'),
-            ('10 29', 'foo [3, 4, 5]', 'error', 'error'),
-            ('None bar', 'foo None', 201.0, 193),
+            ('4 None', 'foo', set([3,4,5]), 23.5, 'error'),
+            ('10 29', 'foo', [3,4,5], 'error', 'error'),
+            ('None bar', 'foo', None, 201.0, 193)
         ])
