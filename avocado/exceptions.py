@@ -4,3 +4,11 @@ class ValidationError(Exception):
 
 class ConfigurationError(Exception):
     pass
+
+
+class AlreadyRegisteredError(Exception):
+    pass
+
+
+class RegisterError(Exception):
+    pass

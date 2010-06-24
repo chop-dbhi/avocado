@@ -1,14 +1,7 @@
 import imp
 
+from avocado.exceptions import AlreadyRegisteredError, RegisterError
 from django.utils.importlib import import_module
-
-class AlreadyRegisteredError(Exception):
-    pass
-
-
-class RegisterError(Exception):
-    pass
-
 
 class AbstractFilter(object):
     """Provides the logic necessary to return a Q object for altering a

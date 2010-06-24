@@ -8,21 +8,18 @@ fields for the ColumnConcept class to use.
 """
 
 from django.db import models
-from django.conf import settings
 
+from avocado.settings import settings
 from avocado.concepts.models import ConceptAbstract, ConceptFieldAbstract
-from avocado.concepts.managers import ConceptManager
 from avocado.fields.models import FieldConcept
 
 __all__ = ('ColumnConcept', 'ColumnConceptField')
 
-ColumnConceptMixin = getattr(settings, 'COLUMN_CONCEPT_MIXIN', models.Model)
+ColumnConceptMixin = settings.COLUMN_CONCEPT_MIXIN
 
 class ColumnConcept(ConceptAbstract, ColumnConceptMixin):
     "An interface to specify the necessary fields for a column."
     fields = models.ManyToManyField(FieldConcept, through='ColumnConceptField')
-
-    objects = ConceptManager()
 
     class Meta(ConceptAbstract.Meta):
         verbose_name = 'column concept'

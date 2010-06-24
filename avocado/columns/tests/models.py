@@ -6,7 +6,7 @@ __all__ = ('ColumnConceptSearchTestCase',)
 
 class ColumnConceptSearchTestCase(TestCase):
     fixtures = ['test_data.yaml']
-
+    
     def test_fulltext(self):
         queryset1 = ColumnConcept.objects.fulltext_search('[)roc#ks')
         self.assertEqual(str(queryset1.values('id').query), 'SELECT "avocado_columnconcept"."id" FROM "avocado_columnconcept" WHERE search_tsv @@ to_tsquery(rocks) ORDER BY "avocado_columnconcept"."name" ASC')

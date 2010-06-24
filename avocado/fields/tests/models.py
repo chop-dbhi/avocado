@@ -22,9 +22,21 @@ class FieldConceptTestCase(TestCase):
         self.assertTrue(isinstance(fc.formfield(), forms.CharField))
         self.assertTrue(isinstance(fc.formfield(formfield=forms.ChoiceField),
             forms.ChoiceField))
+        
+        fc.enable_choices = True
+        
+        ff = fc.formfield()
+        self.assertTrue(isinstance(ff, forms.CharField))
+        self.assertTrue(isinstance(ff.widget, forms.SelectMultiple))
     
     def test_choices(self):
         fc = FieldConcept.objects.get(pk=3)
+        
+        # choices not enabled
+        self.assertEqual(fc.choices, None)
+        
+        fc.enable_choices = True
+        del fc._choices
         
         # no callback specified
         self.assertEqual(fc.choices, ((u'f1', u'F1'), (u'f2', u'F2'),

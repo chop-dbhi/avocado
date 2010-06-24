@@ -1,8 +1,9 @@
 from django.test import TestCase
 
 from avocado.utils.paginator import BufferedPaginator
+from avocado.utils.camel import camelcaser
 
-__all__ = ('BufferedPaginatorTestCase',)
+__all__ = ('BufferedPaginatorTestCase', 'CamelCaserTestCase')
 
 class BufferedPaginatorTestCase(TestCase):
     def test_base(self):
@@ -79,3 +80,33 @@ class BufferedPaginatorTestCase(TestCase):
         self.assertFalse(p1.in_cache())
         self.assertEqual((p1.start_index(), p1.end_index()), (None, None))
         self.assertEqual(p1.object_list, [])
+
+
+class CamelCaserTestCase(TestCase):
+    def test_base(self):
+        d1 = {
+            'foo_bar': 1,
+            '_hello_world': 2,
+            'hello_world_': 3,
+            '__start_dub': 4,
+            'end_dub__': 5,
+        }
+        
+        d2 = {
+            'secondLevel': d1,
+            'foo__bar__': 1,
+        }
+
+
+        d3 = {
+            'top_Level__': d2
+        }
+        
+        self.assertEqual(camelcaser.camel_keys(d1), {'helloWorld_': 3,
+            'fooBar': 1, 'endDub__': 5, '__startDub': 4, '_helloWorld': 2})
+        self.assertEqual(camelcaser.camel_keys(d2), {'fooBar__': 1,
+            'secondLevel': {'helloWorld_': 3, 'fooBar': 1, 'endDub__': 5,
+            '__startDub': 4, '_helloWorld': 2}})
+        self.assertEqual(camelcaser.camel_keys(d3), {'topLevel__': {'fooBar__': 1,
+            'secondLevel': {'helloWorld_': 3, 'fooBar': 1, 'endDub__': 5,
+            '__startDub': 4, '_helloWorld': 2}}})

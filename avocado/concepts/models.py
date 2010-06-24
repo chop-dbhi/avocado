@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import Group
 
 from avocado.settings import settings
+from avocado.concepts.managers import ConceptManager
 
 __all__ = ('ConceptCategory', 'ConceptAbstract', 'ConceptFieldAbstract')
 
@@ -30,6 +31,8 @@ class ConceptAbstract(models.Model):
 
     # search optimizations
     search_doc = models.TextField(editable=False, null=True)
+    
+    objects = ConceptManager()
 
     class Meta(object):
         abstract = True

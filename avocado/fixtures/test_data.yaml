@@ -105,8 +105,6 @@
     is_public: true
     order: 0
     filter_name: null
-    template_name: null
-    view_name: null
 
 - model: avocado.criterionconcept
   pk: 2
@@ -118,8 +116,6 @@
     is_public: true
     order: 1
     filter_name: null
-    template_name: null
-    view_name: null
 
 - model: avocado.criterionconceptfield
   pk: 1

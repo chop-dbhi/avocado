@@ -20,6 +20,8 @@ def tokenize_search_str(search_str):
 
 
 class ConceptManager(models.Manager):
+    use_for_related_fields = True
+    
     def public(self, *args, **kwargs):
         return self.get_query_set().filter(*args, is_public=True, **kwargs)
 

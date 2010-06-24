@@ -3,16 +3,9 @@ from copy import deepcopy
 
 from django.utils.importlib import import_module
 
+from avocado.exceptions import AlreadyRegisteredError, RegisterError
 from avocado.settings import settings
 from avocado.utils.iter import is_iter_not_string
-
-class AlreadyRegisteredError(Exception):
-    pass
-
-
-class RegisterError(Exception):
-    pass
-
 
 class FormatError(Exception):
     pass
