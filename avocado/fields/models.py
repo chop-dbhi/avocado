@@ -1,6 +1,8 @@
 from django.db import models
+from django.db.models import Count
 from django import forms
 
+from avocado.exceptions import ConfigurationError
 from avocado.utils.iter import is_iter_not_string
 from avocado.concepts.models import ConceptAbstract
 from avocado.concepts.managers import ConceptManager
@@ -19,7 +21,7 @@ class FieldConcept(ConceptAbstract):
         the ability specify a `description' and `keywords' (or aliases) associated
         with the field.
 
-        search criteria - the field can be associated with one or more
+        queryability - the field can be associated with one or more
         `CriterionConcepts'. at minimum, this provides the ability to query by
         this field. in a more complex scenario, the field can act as a dependent
         or dependency on other fields.
@@ -56,11 +58,54 @@ class FieldConcept(ConceptAbstract):
         return self._field
     field = property(_get_field)
 
-    # def _get_choices(self):
-    #     if not hasattr(self, '_choices'):
-    #         if not self.choices_callback:
-    #             pass
-        
+    def _get_choices(self):
+        if not hasattr(self, '_choices'):
+            choices = None
+            if not self.choices_callback:
+                name = self.field_name
+                choices = list(self.model.objects.values_list(name,
+                    flat=True).order_by(name).distinct())
+                choices = zip(choices, map(lambda x: x.title(), choices))
+            else:
+                # try evaling a straight sequence in the format:
+                #   [(1,'foo'), (2,'bar'), ...]
+                try:
+                    choices = eval(self.choices_callback)
+                except NameError:
+                    pass
+
+                # attempts to check the _model for an attribute `value`:
+                #   when: value = SHAPE_CHOICES
+                #   test: model.SHAPE_CHOICES
+                if choices is None:
+                    try:
+                        choices = getattr(self.model, self.choices_callback)
+                        if callable(choices):
+                            choices = choices()
+                    except AttributeError:
+                        pass
+
+                # attempts to check the _model' module for an attribute `value`:
+                #   when: value = SHAPE_CHOICES
+                #   test: model.__module__.SHAPE_CHOICES
+                if choices is None:
+                    try:
+                        module = __import__(self.model.__module__)
+                        choices = getattr(module, self.choices_callback)
+                        if callable(choices):
+                            choices = choices()
+                    except AttributeError:
+                        raise ConfigurationError, '%s cannot be evaluated' % \
+                            self.choices_callback
+
+            self._choices = tuple(choices)
+        return self._choices
+    choices = property(_get_choices)
+    
+    def distribution(self, base_model=None):
+        name = self.field_name
+        groups = self.model.objects.annotate(cnt=Count(name)).values_list(name, 'cnt')
+        return tuple(groups)
 
     # def _get_field_type(self):
     #     if not hasattr(self, '_field_type'):
