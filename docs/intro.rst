@@ -115,7 +115,7 @@ is the node associated with the ``User`` model. All nodes have a list of
 So where are these dynamic queries? ::
 
     >>> path = mt.path_to(Tag)
-    >>> query_rel = '__'.join(mt.query_string_path(path))
+    >>> query_rel = '__'.join(mt.query_string(path))
     >>> query_rel
     'entries__tags'
 

@@ -13,7 +13,7 @@ class AbstractFilter(object):
         - the logic tree
     """
     def __call__(self, modeltree, fields, params):
-        return self.filter(modeltree, filter, params)
+        return self.filter(modeltree, params)
 
     def filter(self, **kwargs):
         raise NotImplementedError

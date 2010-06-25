@@ -71,7 +71,7 @@ class ColumnSet(ConceptSet):
 
                 if self.model_tree.root_model != model:
                     nodes = self.model_tree.path_to(model)
-                    path = self.model_tree.related_name_path(nodes)
+                    path = self.model_tree.query_string(nodes)
 
                 order = '__'.join(path + [field.field_name])
 

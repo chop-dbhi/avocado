@@ -331,11 +331,9 @@ class ModelTree(object):
         "Finds the node with the specified model."
         return self._tree_hash[model]['node']
 
-    def related_name_path(self, node_path):
-        """Returns a list of the related names given a list of nodes. This is
-        most useful for building query strings using the ORM.
-        """
-        return [n.related_name for n in node_path]
+    def query_string(self, node_path):
+        "Returns a query string given a path"
+        return '__'.join([n.related_name for n in node_path])
 
     def accessor_name_path(self, node_path):
         """Returns a list of the accessor names given a list of nodes. This is

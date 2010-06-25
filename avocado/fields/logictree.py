@@ -1,5 +1,7 @@
 from django.db.models import Q
 
+from avocado.fields.cache import get_concept
+
 """
     mytree = [{
         'type': 'logic',
@@ -27,20 +29,30 @@ from django.db.models import Q
     }]
 """
 
-def _join(op, q1, q2):
-    if op == 'and':
-        return q1 & q2
-    return q1 | q2
+class QLogicTree(object):
+    def __init__(self, modeltree):
+        self.modeltree = modeltree
 
-def parse(tree, q=None, bitop=None):
-    for node in tree:
-        ntype = node.get('type')
-        if ntype == 'logic':
-            q = parse(node.get('children'), q, node['operator'])
-        elif ntype == 'field':
-            q1 = Q(**{'some_field__' + node['operator']: node['value']})
-            if q is not None:
-                q = _join(bitop, q, q1)
+    def _join(self, op, q1, q2):
+        if op.lower() == 'or':
+            return q1 ! q2
+        return q1 & q2
+
+    def _get_q(self, concept_id, operator, value):
+        field = get_concept(concept_id)
+        path = self.modeltree.path_to(field.model)
+        key = '%s__%s' % (self.modeltree.query_string(path), operator)
+        return Q(**{key: value})
+
+    def parse(self, tree, q=None, bitop=None):
+        for node in tree:
+            ntype = node['type']
+            if ntype == 'logic':
+                q = self.parse(node.get('children'), q, node['operator'])
             else:
-                q = q1
-    return q
+                q1 = self._get_q(node['id'], node['operator'], node['value'])
+                if q is not None:
+                    q = self._join(bitop, q, q1)
+                else:
+                    q = q1
+        return q

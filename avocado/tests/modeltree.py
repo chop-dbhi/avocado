@@ -83,35 +83,35 @@ class ModelTreeTestCase(TestCase):
         self.assertEqual([n.name for n in self.bear_to_root],
             ['Baz', 'Bar', 'Root'])
 
-    def test_related_name_path(self):
+    def test_query_string(self):
         "Test to ensure the correct related names are used."
-        self.assertEqual(self.root.related_name_path(self.root_to_foo),
-            ['child3', 'fooey'])
-        self.assertEqual(self.root.related_name_path(self.root_to_baz),
-            ['barman', 'baz'])
-        self.assertEqual(self.root.related_name_path(self.root_to_child2),
-            ['wacky_parent', 'child2'])
+        self.assertEqual(self.root.query_string(self.root_to_foo),
+            'child3__fooey')
+        self.assertEqual(self.root.query_string(self.root_to_baz),
+            'barman__baz')
+        self.assertEqual(self.root.query_string(self.root_to_child2),
+            'wacky_parent__child2')
     
-        self.assertEqual(self.parent1.related_name_path(self.parent1_to_child1),
-            ['child1'])
-        self.assertEqual(self.parent1.related_name_path(self.parent1_to_root),
-            ['parent'])
-        self.assertEqual(self.parent1.related_name_path(self.parent1_to_bar),
-            ['parent', 'barman'])
+        self.assertEqual(self.parent1.query_string(self.parent1_to_child1),
+            'child1')
+        self.assertEqual(self.parent1.query_string(self.parent1_to_root),
+            'parent')
+        self.assertEqual(self.parent1.query_string(self.parent1_to_bar),
+            'parent__barman')
     
-        self.assertEqual(self.parent2.related_name_path(self.parent2_to_child2),
-            ['child2'])
-        self.assertEqual(self.parent2.related_name_path(self.parent2_to_baz),
-            ['child2', 'bar', 'baz'])
-        self.assertEqual(self.parent2.related_name_path(self.parent2_to_bear),
-            ['child2', 'bar', 'baz', 'many_bears'])
+        self.assertEqual(self.parent2.query_string(self.parent2_to_child2),
+            'child2')
+        self.assertEqual(self.parent2.query_string(self.parent2_to_baz),
+            'child2__bar__baz')
+        self.assertEqual(self.parent2.query_string(self.parent2_to_bear),
+            'child2__bar__baz__many_bears')
 
-        self.assertEqual(self.bear.related_name_path(self.bear_to_bar),
-            ['bazes', 'parent'])
-        self.assertEqual(self.bear.related_name_path(self.bear_to_parent1),
-            ['bazes', 'parent', 'root', 'crazy_parent'])
-        self.assertEqual(self.bear.related_name_path(self.bear_to_root),
-            ['bazes', 'parent', 'root'])
+        self.assertEqual(self.bear.query_string(self.bear_to_bar),
+            'bazes__parent')
+        self.assertEqual(self.bear.query_string(self.bear_to_parent1),
+            'bazes__parent__root__crazy_parent')
+        self.assertEqual(self.bear.query_string(self.bear_to_root),
+            'bazes__parent__root')
 
     def test_accessor_name_path(self):
         "Test to ensure the accessor names are correct."
