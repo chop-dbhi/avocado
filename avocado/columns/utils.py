@@ -34,7 +34,7 @@ class ColumnSet(ConceptSet):
 
     def add_columns(self, queryset, concepts):
         """Takes a `queryset' and ensures the proper table join have been
-        setup to display the table columns.        
+        setup to display the table columns.
         """
         aliases = [(queryset.model._meta.db_table,
             queryset.model._meta.pk.column)]
@@ -66,14 +66,8 @@ class ColumnSet(ConceptSet):
             fields = cache.get_concept_fields(concept, self.queryset)
 
             for field in fields:
-                path = []
-                model = field.model
-
-                if self.model_tree.root_model != model:
-                    nodes = self.model_tree.path_to(model)
-                    path = self.model_tree.query_string(nodes)
-
-                order = '__'.join(path + [field.field_name])
+                nodes = self.model_tree.path_to(field.model)
+                order = self.model_tree.query_string(nodes, field.field_name)
 
                 if direction.lower() == 'desc':
                     order = '-' + order

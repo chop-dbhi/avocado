@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 
 class ModelTreeNode(object):
     def __init__(self, model, parent=None, rel_type=None, rel_is_reversed=None,
@@ -6,20 +7,20 @@ class ModelTreeNode(object):
 
         """Defines attributes of a `model' and the relationship to the parent
         model.
-        
+
             `name' - the `model's class name
 
             `db_table' - the model's database table name
 
             `pk_field' - the model's primary key field
-            
+
             `parent' - a reference to the parent ModelTreeNode
-            
+
             `parent_model' - a reference to the `parent' model
 
             `rel_type' - denotes the _kind_ of relationship with the
             following possibilities: 'manytomany', 'onetoone', or 'foreignkey'.
-            
+
             `rel_is_reversed' - denotes whether this node was derived from a
             forward relationship (an attribute lives on the parent model) or
             a reverse relationship (an attribute lives on this model).
@@ -30,7 +31,7 @@ class ModelTreeNode(object):
             `accessor_name' - can be used when accessing the model object's
             attributes e.g. getattr(obj, accessor_name). this is relative to
             the parent model.
-            
+
             `depth' - the depth of this node relative to the root (zero-based
             index)
 
@@ -50,7 +51,7 @@ class ModelTreeNode(object):
         self.depth = depth
 
         self.children = []
-    
+
     def _get_parent_db_table(self):
         "Returns the `parent_model' database table name."
         return self.parent_model._meta.db_table
@@ -86,13 +87,13 @@ class ModelTreeNode(object):
     m2m_reverse_field = property(_get_m2m_reverse_field)
 
     def _get_foreignkey_field(self):
-        f = getattr(self.parent_model, self.accessor_name)        
+        f = getattr(self.parent_model, self.accessor_name)
         if self.rel_is_reversed:
             return f.related.field.column
         else:
             return f.field.column
     foreignkey_field = property(_get_foreignkey_field)
-    
+
     def _get_join_connections(self):
         """Returns a list of connections that need to be added to a
         QuerySet object that properly joins this model and the parent.
@@ -131,7 +132,7 @@ class ModelTreeNode(object):
                         self.parent_pk_field,
                 )
                 connections.append(c1)
-            
+
             self._join_connections = connections
         return self._join_connections
     join_connections = property(_get_join_connections)
@@ -171,7 +172,7 @@ class ModelTree(object):
     def _filter_related_fk(self, rel):
         if isinstance(rel.field, models.ForeignKey):
             return rel
-    
+
     def _add_node(self, parent, model, rel_type, rel_is_reversed, related_name,
         accessor_name, depth):
         """Adds a node to the tree only if a node of the same `model' does not
@@ -180,7 +181,7 @@ class ModelTree(object):
         """
         if model in self._exclude:
             return
-        
+
         # check to make sure circular references don't exist
         if model not in (self.root_model, parent.parent_model):
             # don't add node if a path with a shorter depth exists
@@ -191,10 +192,10 @@ class ModelTree(object):
 
                 node = ModelTreeNode(model, parent, rel_type, rel_is_reversed,
                     related_name, accessor_name, depth)
-                
+
                 self._tree_hash[model] = {'parent': parent, 'depth': depth,
                     'node': node}
-                
+
                 node = self._find_relations(node, depth)
                 parent.children.append(node)
                 del node
@@ -206,9 +207,9 @@ class ModelTree(object):
         'through' models being bound as a ForeignKey relationship.
         """
         depth += 1
-        
+
         model_fields = node.model._meta.fields
-        related_fields = node.model._meta.get_all_related_objects() 
+        related_fields = node.model._meta.get_all_related_objects()
 
         o2o_on_model = filter(self._filter_one2one, model_fields)
         related_o2o = filter(self._filter_related_one2one, related_fields)
@@ -228,7 +229,7 @@ class ModelTree(object):
                 'rel_is_reversed': False,
                 'related_name': f.name,
                 'accessor_name': f.name,
-                'depth': depth, 
+                'depth': depth,
             }
             self._add_node(**kwargs)
 
@@ -241,10 +242,10 @@ class ModelTree(object):
                 'rel_is_reversed': True,
                 'related_name': f.field.related_query_name(),
                 'accessor_name': f.get_accessor_name(),
-                'depth': depth, 
+                'depth': depth,
             }
             self._add_node(**kwargs)
-            
+
         # iterate over one2one fields
         for f in o2o_on_model:
             kwargs = {
@@ -254,10 +255,10 @@ class ModelTree(object):
                 'rel_is_reversed': False,
                 'related_name': f.name,
                 'accessor_name': f.name,
-                'depth': depth, 
+                'depth': depth,
             }
             self._add_node(**kwargs)
-            
+
         # iterate over related one2one fields
         for f in related_o2o:
             kwargs = {
@@ -267,10 +268,10 @@ class ModelTree(object):
                 'rel_is_reversed': True,
                 'related_name': f.field.related_query_name(),
                 'accessor_name': f.get_accessor_name(),
-                'depth': depth, 
+                'depth': depth,
             }
             self._add_node(**kwargs)
-            
+
         # iterate over fk fields
         for f in fk_on_model:
             kwargs = {
@@ -280,10 +281,10 @@ class ModelTree(object):
                 'rel_is_reversed': False,
                 'related_name': f.name,
                 'accessor_name': f.name,
-                'depth': depth, 
+                'depth': depth,
             }
             self._add_node(**kwargs)
-            
+
         # iterate over related foreign keys
         for f in related_fk:
             kwargs = {
@@ -293,10 +294,10 @@ class ModelTree(object):
                 'rel_is_reversed': True,
                 'related_name': f.field.related_query_name(),
                 'accessor_name': f.get_accessor_name(),
-                'depth': depth, 
+                'depth': depth,
             }
             self._add_node(**kwargs)
-            
+
         return node
 
     def _get_root_node(self):
@@ -331,9 +332,17 @@ class ModelTree(object):
         "Finds the node with the specified model."
         return self._tree_hash[model]['node']
 
-    def query_string(self, node_path):
+    def query_string(self, node_path, field_name, operator=None):
         "Returns a query string given a path"
-        return '__'.join([n.related_name for n in node_path])
+        toks = [n.related_name for n in node_path] + [field_name]
+        if operator is not None:
+            toks.append(operator)
+        return str('__'.join(toks))
+
+    def q(self, node_path, field_name, value, operator=None):
+        "Returns a Q object."
+        key = self.query_string(node_path, field_name, operator)
+        return Q(**{key: value})
 
     def accessor_name_path(self, node_path):
         """Returns a list of the accessor names given a list of nodes. This is
@@ -341,7 +350,7 @@ class ModelTree(object):
         an instance of the `root_node' object.
         """
         return [n.accessor_name for n in node_path]
-    
+
     def get_all_join_connections(self, node_path):
         """Returns a list of JOIN connections that can be manually applied to a
         QuerySet object, e.g.:
@@ -352,9 +361,9 @@ class ModelTree(object):
             conns = model_tree.get_all_join_connections(nodes)
             for c in conns:
                 queryset.query.join(c, promote=True)
-        
+
         This allows for the ORM to handle setting up the JOINs which may be
-        different depending the QuerySet being altered.        
+        different depending the QuerySet being altered.
         """
         connections = []
         for i,node in enumerate(node_path):

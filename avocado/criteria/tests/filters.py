@@ -16,5 +16,4 @@ class FilterLibraryTestCase(TestCase):
         @library.register
         class SimpleFilter(AbstractFilter):
             def filter(self, modeltree, fields, params):
-                
-                
+                pass

@@ -18,17 +18,17 @@ class ColumnUtilsTestCase(TestCase):
 
         columns = get_columns([1])
         self.assertEqual(columns, [cc1])
-        
+
         columns = get_columns([2, 1])
         self.assertEqual(columns, [cc2, cc1])
-        
+
         columns = get_columns([2, 3, 1])
         self.assertEqual(columns, [cc2, cc1])
 
     def test_get_column_orders(self):
         cc1 = ColumnConcept.objects.get(id=1)
         cc2 = ColumnConcept.objects.get(id=2)
-        
+
         column_orders = get_column_orders([(1, 'desc')])
         self.assertEqual(column_orders, {cc1:
             {'direction': 'desc', 'order': 0}

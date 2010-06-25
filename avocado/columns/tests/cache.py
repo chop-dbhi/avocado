@@ -46,12 +46,12 @@ class ColumnCachingTestCase(TestCase):
 
         self.assertTrue(djcache.has_key(key))
         self.assertEqual(djcache.get(fkey), fields)
-        
+
         concept = ColumnConcept.objects.get(id=1)
 
         fields = cache.get_concept_fields(concept)
 
         self.assertTrue(djcache.has_key(key))
         self.assertEqual(djcache.get(fkey), fields)
-        
+
         self.assertEqual(cache.get_concept_fields(3, ret_val=False), False)

@@ -2,57 +2,35 @@ from django.db.models import Q
 
 from avocado.fields.cache import get_concept
 
-"""
-    mytree = [{
-        'type': 'logic',
-        'operator': 'and',
-        'children': [{
-            'type': 'logic',
-            'operator': 'or',
-            'children': [{
-                'type': 'field',
-                'id': 28,
-                'operator': 'equal',
-                'value': 'wt'
-            }, {
-                'type': 'field',
-                'id': 29,
-                'operator': 'equal',
-                'value': 'wt'
-            }]
-        }, {
-            'type': 'field',
-            'id': 40,
-            'operator': 'equal',
-            'value': True
-        }]
-    }]
-"""
-
-class QLogicTree(object):
+class LogicTree(object):
     def __init__(self, modeltree):
         self.modeltree = modeltree
 
     def _join(self, op, q1, q2):
-        if op.lower() == 'or':
-            return q1 ! q2
+        if op == 'or':
+            return q1 | q2
         return q1 & q2
 
-    def _get_q(self, concept_id, operator, value):
+    def _q(self, concept_id, operator, value):
         field = get_concept(concept_id)
         path = self.modeltree.path_to(field.model)
-        key = '%s__%s' % (self.modeltree.query_string(path), operator)
-        return Q(**{key: value})
+        return self.modeltree.q(path, field.field_name, value, operator)
 
-    def parse(self, tree, q=None, bitop=None):
-        for node in tree:
-            ntype = node['type']
+    def parse(self, nodes, bitop=None):
+        cq = None
+
+        # iterate over siblings. siblings relate based on `bitop'
+        for node in nodes:
+            ntype, operator = node['type'], node['operator']
+
             if ntype == 'logic':
-                q = self.parse(node.get('children'), q, node['operator'])
+                q = self.parse(node['children'], operator)
+            elif ntype == 'field':
+                q = self._q(node['id'], operator, node['value'])
+
+            if cq is None:
+                cq = q
             else:
-                q1 = self._get_q(node['id'], node['operator'], node['value'])
-                if q is not None:
-                    q = self._join(bitop, q, q1)
-                else:
-                    q = q1
-        return q
+                cq = self._join(bitop, cq, q)
+
+        return cq

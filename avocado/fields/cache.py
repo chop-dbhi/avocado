@@ -7,7 +7,7 @@ FIELD_CACHE_KEY = 'avocado:fieldconcept:%s'
 
 def get_concept(concept_id, queryset=None, ret_val=None):
     """Simple interface for getting (and setting) a concept from global cache.
-    
+
     If provided, the optional `queryset' is used to fetch the concept from.
     This is useful primarily for restricting access to certain concepts.
     """
