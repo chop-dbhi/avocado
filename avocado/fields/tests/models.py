@@ -40,7 +40,7 @@ class FieldConceptTestCase(TestCase):
         
         # no callback specified
         self.assertEqual(fc.choices, ((u'f1', u'F1'), (u'f2', u'F2'),
-            (u'f3', u'F3'), (u'f4', u'F4')))
+            (u'f3', u'F3'), (u'f4', u'F4'), (u'f5', u'F5')))
         
         # evaluation
         del fc._choices
@@ -65,8 +65,8 @@ class FieldConceptTestCase(TestCase):
         module.SPECIAL_CHOICES = SPECIAL_CHOICES
         self.assertEqual(fc.choices, (('foo', 'Foo'), ('bar', 'Bar')))
     
-    def test_distribution(self):
+    def test_coords(self):
         fc = FieldConcept.objects.get(pk=1)
         
-        self.assertEqual(fc.distribution(), ((u'cc1', 1), (u'cc2', 1)))
+        self.assertEqual(fc.coords, ((u'cc1', 1), (u'cc2', 1)))
         

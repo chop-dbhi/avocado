@@ -1,16 +1,13 @@
 from django import forms
 from django.db import models
 
-from avocado.settings import settings
 from avocado.concepts.models import ConceptAbstract, ConceptFieldAbstract
 from avocado.fields.models import FieldConcept
+from avocado.criteria.mixins import CriterionConceptMixin
 
 __all__ = ('CriterionConcept', 'CriterionConceptField')
 
-CriterionConceptMixin = settings.CRITERION_CONCEPT_MIXIN
-
 class CriterionConcept(ConceptAbstract, CriterionConceptMixin):
-    filter_name = models.CharField(max_length=100, null=True, blank=True)
     fields = models.ManyToManyField(FieldConcept, through='CriterionConceptField')
 
     class Meta(ConceptAbstract.Meta):

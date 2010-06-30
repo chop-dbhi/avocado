@@ -14,6 +14,7 @@
       order: 0
       model_label: avocado.columnconcept
       field_name: name
+      filter_name: Simple
 
 - model: avocado.fieldconcept
   pk: 2
@@ -26,6 +27,7 @@
       order: 0
       model_label: avocado.columnconcept
       field_name: keywords
+      filter_name: Simple
 
 - model: avocado.fieldconcept
   pk: 3
@@ -38,6 +40,7 @@
       order: 0
       model_label: avocado.fieldconcept
       field_name: name
+      filter_name: Simple
 
 - model: avocado.fieldconcept
   pk: 4
@@ -50,6 +53,20 @@
       order: 0
       model_label: avocado.fieldconcept
       field_name: field_name
+      filter_name: Simple
+
+- model: avocado.fieldconcept
+  pk: 5
+  fields:
+      name: f5
+      description: null
+      keywords: null
+      category: 1
+      is_public: true
+      order: 0
+      model_label: avocado.fieldconcept
+      field_name: filter_name
+      filter_name: Simple
 
 - model: avocado.columnconcept
   pk: 1
@@ -104,7 +121,6 @@
     category: 1
     is_public: true
     order: 0
-    filter_name: null
 
 - model: avocado.criterionconcept
   pk: 2
@@ -115,7 +131,6 @@
     category: 1
     is_public: true
     order: 1
-    filter_name: null
 
 - model: avocado.criterionconceptfield
   pk: 1

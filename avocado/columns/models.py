@@ -9,13 +9,11 @@ fields for the ColumnConcept class to use.
 
 from django.db import models
 
-from avocado.settings import settings
 from avocado.concepts.models import ConceptAbstract, ConceptFieldAbstract
 from avocado.fields.models import FieldConcept
+from avocado.columns.mixins import ColumnConceptMixin
 
 __all__ = ('ColumnConcept', 'ColumnConceptField')
-
-ColumnConceptMixin = settings.COLUMN_CONCEPT_MIXIN
 
 class ColumnConcept(ConceptAbstract, ColumnConceptMixin):
     "An interface to specify the necessary fields for a column."

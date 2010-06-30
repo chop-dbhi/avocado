@@ -1,10 +1,11 @@
+from django import forms
 from django.db import models
 from django.db.models import Count
-from django import forms
 
 from avocado.exceptions import ConfigurationError
 from avocado.utils.iter import is_iter_not_string
 from avocado.concepts.models import ConceptAbstract
+from avocado.fields.filters import library
 
 __all__ = ('FieldConcept',)
 
@@ -30,8 +31,10 @@ class FieldConcept(ConceptAbstract):
     """
     model_label = models.CharField(max_length=100)
     field_name = models.CharField(max_length=100)
+    filter_name = models.CharField(max_length=100, choices=library.choices())
     enable_choices = models.BooleanField(default=False)
-    choices_callback = models.TextField(blank=True)
+    choices_callback = models.TextField(null=True, blank=True)
+    coords_callback = models.TextField(null=True, blank=True)
 
     class Meta(ConceptAbstract.Meta):
         verbose_name = 'field concept'
@@ -99,15 +102,24 @@ class FieldConcept(ConceptAbstract):
                 self._choices = tuple(choices)
         return self._choices
     choices = property(_get_choices)
-    
+
     def _db_choices(self):
         if self.choices is not None:
             return map(lambda x: x[0], self.choices)
-    
-    def distribution(self, base_model=None):
-        name = self.field_name
-        groups = self.model.objects.annotate(cnt=Count(name)).values_list(name, 'cnt')
-        return tuple(groups)
+
+    def _get_coords(self):
+        if not hasattr(self, '_coords'):
+            if self.coords_callback:
+                from django.db import connections
+                cursor = connections['default'].cursor()
+                cursor.execute(self.coords_callback)
+                coords = cursor.fetchall()
+            else:
+                name = self.field_name
+                coords = self.model.objects.annotate(cnt=Count(name)).values_list(name, 'cnt')
+            self._coords = tuple(coords)
+        return self._coords
+    coords = property(_get_coords)
 
     def formfield(self, formfield=None, widget=None, **kwargs):
         "Returns the default `formfield' instance for the `field' type."
@@ -118,30 +130,30 @@ class FieldConcept(ConceptAbstract):
             label = kwargs.pop('label')
         else:
             label = self.field_name.title()
-        
+
         if not widget and self.enable_choices:
             widget = forms.SelectMultiple(choices=self.choices)
-        
+
         return formfield(label=label, widget=widget, **kwargs)
 
-    def clean(self, value, formfield=None):
+    def clean_value(self, value, *args, **kwargs):
         """Cleans the supplied value with respect to the formfield. If
         `enable_choices' is true, it tests to ensure each value supplied
         is a valid choice.
         """
-        field = self.formfield(formfield=formfield)
-
-        if not is_iter_not_string(value):
-            value = [value]
-            
+        field = self.formfield(*args, **kwargs)
+    
         try:
-            cleaned_value = map(field.clean, value)
+            if is_iter_not_string(value):
+                cleaned_value = map(field.clean, value)
+            else:
+                cleaned_value = field.clean(value)
         except forms.ValidationError, e:
             return (False, None, e.messages)
-        
-        
+    
+    
         if self.enable_choices:
             if not all(map(lambda x: x in self._db_choices, cleaned_value)):
                 return (False, None, ('Value(s) supplied is not a valid choice'))
-        
+    
         return (True, cleaned_value, ())

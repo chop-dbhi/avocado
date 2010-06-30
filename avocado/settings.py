@@ -1,12 +1,9 @@
-from django.db import models
-
 class Settings(object):
     DEFAULT_SETTINGS = {
         'ENABLE_GROUP_PERMISSIONS': False,
-        'COLUMN_CONCEPT_MIXIN': models.Model,
-        'CRITERION_CONCEPT_MIXIN': models.Model,
         'FORMATTER_TYPES': {},
         'VIEW_TYPES': {},
+        'MODEL_TREE_MODELS': None
     }
 
     def __init__(self, user_settings={}):
@@ -17,8 +14,8 @@ class Settings(object):
 
 
 try:
-    from django.conf.settings import AVOCADO_SETTINGS
-    settings = Settings(AVOCADO_SETTINGS)
+    from django.conf import settings as base_settings
+    settings = Settings(base_settings.AVOCADO_SETTINGS)
 except ImportError:
     settings = Settings()
     

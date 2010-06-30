@@ -1,5 +1,7 @@
 import imp
 
+from django.db.models import Q
+
 from avocado.exceptions import AlreadyRegisteredError, RegisterError
 from django.utils.importlib import import_module
 
@@ -12,16 +14,28 @@ class AbstractFilter(object):
         - CriterionConcept fields
         - the logic tree
     """
-    def __call__(self, modeltree, fields, params):
-        return self.filter(modeltree, params)
+    def __call__(self, *args, **kwargs):
+        return self.filter(*args, **kwargs)
 
-    def filter(self, **kwargs):
+    def _clean(self, field, value, *args, **kwargs):
+        "Cleans `value' according to `field'."
+        is_valid, cleaned_value, errors = field.clean_value(value, *args, **kwargs)
+        return cleaned_value
+
+    def _rel_path(self, modeltree, field, operator):
+        nodes = modeltree.path_to(field.model)
+        return modeltree.query_string(nodes, field.field_name, operator)
+
+    def filter(self, modeltree, field, operator, value):
         raise NotImplementedError
 
 
 class SimpleFilter(AbstractFilter):
-    def filter(self, modeltree, fields, params):
-        pass
+    def filter(self, modeltree, field, operator, value):
+        key = self._rel_path(modeltree, field, operator)
+        cleaned_value = self._clean(field, value)
+        return Q(**{key: cleaned_value})
+
 
 class FilterLibrary(object):
     "The base class for defining a filter library."
@@ -53,7 +67,7 @@ class FilterLibrary(object):
 
         if self._cache.has_key(klass_name):
             raise AlreadyRegisteredError, 'A filter with the ' \
-                'name "%s" is already registered' % klass.name
+                'name "%s" is already registered' % klass_name
 
         self._cache[klass_name] = obj
         return klass
@@ -62,7 +76,10 @@ class FilterLibrary(object):
         "Returns a list of tuples that can be used as choices in a form."
         return [(n, n) for n in self._cache.keys()]
 
+
 library = FilterLibrary()
+
+library.register(SimpleFilter)
 
 
 LOADING = False
