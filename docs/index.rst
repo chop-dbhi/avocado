@@ -13,8 +13,6 @@ Contents:
    intro
    concepts
 
-
-
 Indices and tables
 ==================
 

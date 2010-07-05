@@ -13,12 +13,12 @@ relationships"::
 The question is, "which users have blog entries containing the word
 ``django`` that also have the tag ``python``?" That is a perfectly valid
 question to ask. The issue comes, when you want to change the question. A
-question is defined with certains variables, but the context of the question
+question is defined with certain variables, but the context of the question
 will always remain the same.
 
-To take it one step farther, not only do not need to specify relationships
+To take it one step farther, not only do we not need to specify relationships
 between models, you don't even need to know which objects you want to return
-ahead of time, i.e. ``User`` vs. ``Tag``.
+ahead of time, i.e. ``User`` or ``Tag``.
 
 A Contrived Example
 --------------------
@@ -44,9 +44,9 @@ The first requirement of ``avocado`` is to build an index of your models --
 this is the metadata part. ::
 
     $ ./manage.py syncdb
-    $ ./manage.py buildfieldindex myapp
+    $ ./manage.py build_model_index myapp
 
-The command ``buildfieldindex`` introspects all the models within ``myapp``
+The command ``build_model_index`` introspects all the models within ``myapp``
 and stores off a small amount of metadata about each non-relational field on
 each model. Programmatically, one could do this::
 
@@ -56,11 +56,13 @@ each model. Programmatically, one could do this::
     ...
     >>> fc.save()
 
-As one can see, the minimum amount of metadata required is a name, a string
+The minimum amount of metadata required is a name, a string
 ``app.model``, representing the app and model, and the name of the field
-relative to the model. By building this index, you are virtually creating a
+on the model. By building this index, you are virtually creating a
 unique identifier that is associated with a single component of your data
-model. Let us explore a few helpful attributes. ::
+model. That is, rather than having to "know" where each field lives within
+your data model, you can merely query for it. Let us explore a few helpful
+attributes. ::
 
     >>> fc.model
     <class 'myapp.models.BlogEntry'>
@@ -101,29 +103,29 @@ Now for the cool part. ::
     "User" at a depth of 0
     - - "Group" at a depth of 1
     - - "Permission" at a depth of 1
-    - - - - "ContenType" at a depth of 2
+    - - - - "ContentType" at a depth of 2
     - - "Message" at a depth of 1
     - - "BlogEntry" at a depth of 1
     - - - - "Tag" at a depth of 2
 
 So what is this you ask? This displays the full hierarchy of relationships
-starting from a top level model ``User``. Each model relationship is recursively
+starting from the top level model ``User``. Each model relationship is recursively
 traversed and a tree is built up of ``ModelTreeNode`` objects. ``mt.root_node``
 is the node associated with the ``User`` model. All nodes have a list of
 ``children`` and a ``parent`` node.
 
-So where are these dynamic queries? ::
+That's neat, but where are these dynamic queries? ::
 
-    >>> path = mt.path_to(Tag)
-    >>> query_rel = '__'.join(mt.query_string(path))
+    >>> rel_path = mt.path_to(Tag)
+    >>> query_rel = mt.query_string(path, field_name='name'))
     >>> query_rel
-    'entries__tags'
+    'entries__tags__name'
 
 Having built this "relationship tree" we can now traverse any path and determine
 the query string (or sequence of accessor names) necessary to get to a model.
-This leaves the last bit of tacking on the actual field of interest::
+This leaves the last bit of tacking on the actual lookup condition::
 
-    >>> kwargs = {'__'.join([query_rel, 'name')]: 'python'}
+    >>> kwargs = {query_rel: 'python'}
     >>> User.objects.filter(**kwargs)
 
 
@@ -142,13 +144,13 @@ need:
 
 This turns out to be like::
 
-    >>> fc = FieldConcept.objects.get(id=4) # hypothetically
+    >>> fc = FieldConcept.objects.get(field_name='name')
     >>> fc.name
     'Tag Name'
 
     >>> mt = ModelTree(User)
     >>> path = mt.path_to(fc.model)
-    >>> kwarg = {'__'.join(path + fc.field_name): 'python'}
+    >>> kwarg = {mt.query_string(path, 'name'): 'python'}
 
     >>> users = User.objects.filter(**kwargs)
 
@@ -157,6 +159,6 @@ This is the dynamic equivalent to doing::
     >>> users = User.objects.filter(entries__tags__name='python')
 
 The power of this approach cannot be seen in this simple contrived example,
-but rather in data models that are large and in situtations in which you might
+but rather in data models that are large and in situations in which you might
 not know what kind questions about the data are going to be asked.
 
