@@ -1,11 +1,19 @@
+-- Custom SQL that defines the necessary triggers for full-text searching for
+-- the 'avocado' tables.
+
+-- NOTE: The database must support the 'plpgsql' language. Simply execute the
+-- command from the shell:
+--
+--      $ createlang -d mydb plpgsql
+--
+-- or from the `psql' command-line:
+--
+--      mydb=# CREATE LANGUAGE plpgsql;
+--
+
 begin;
 
-create language plpgsql;
-
-drop trigger if exists avocado_fieldconcept_search_tsv_update on avocado_fieldconcept;
-drop trigger if exists avocado_fieldconcept_search_doc_update on avocado_fieldconcept;
-drop function if exists avocado_fieldconcept_search_tsv_func();
-drop function if exists avocado_fieldconcept_search_doc_func();
+-- Field Concept
 
 -- create the search_tsv column for fast keyword searching
 
@@ -17,7 +25,7 @@ update avocado_fieldconcept U0 set search_tsv = to_tsvector(
 
 create index avocado_fieldconcept_search_tsv on avocado_fieldconcept using gin(search_tsv);
 
-create function avocado_fieldconcept_search_tsv_func() returns trigger as $$
+create or replace function avocado_fieldconcept_search_tsv_func() returns trigger as $$
     begin
         new.search_tsv :=
             to_tsvector(
@@ -35,7 +43,7 @@ create trigger avocado_fieldconcept_search_tsv_update before insert or update
 update avocado_fieldconcept U0 set search_doc = (coalesce((select U1.name from avocado_conceptcategory U1
     where U0.category_id = U1.id), '') || ' ' || U0.name || ' ' || U0.description || ' ' || U0.keywords);
 
-create function avocado_fieldconcept_search_doc_func() returns trigger as $$
+create or replace function avocado_fieldconcept_search_doc_func() returns trigger as $$
     begin
         new.search_doc :=
         (coalesce((select U1.name from avocado_conceptcategory U1 where new.category_id = U1.id), '') || ' '
@@ -47,11 +55,7 @@ $$ LANGUAGE plpgsql;
 create trigger avocado_fieldconcept_search_doc_update before insert or update
     on avocado_fieldconcept for each row execute procedure avocado_fieldconcept_search_doc_func();
 
-
-drop trigger if exists avocado_columnconcept_search_tsv_update on avocado_columnconcept;
-drop trigger if exists avocado_columnconcept_search_doc_update on avocado_columnconcept;
-drop function if exists avocado_columnconcept_search_tsv_func();
-drop function if exists avocado_columnconcept_search_doc_func();
+-- Column Concept
 
 -- create the search_tsv column for fast keyword searching
 
@@ -63,7 +67,7 @@ update avocado_columnconcept U0 set search_tsv = to_tsvector(
 
 create index avocado_columnconcept_search_tsv on avocado_columnconcept using gin(search_tsv);
 
-create function avocado_columnconcept_search_tsv_func() returns trigger as $$
+create or replace function avocado_columnconcept_search_tsv_func() returns trigger as $$
     begin
         new.search_tsv :=
             to_tsvector(
@@ -81,7 +85,7 @@ create trigger avocado_columnconcept_search_tsv_update before insert or update
 update avocado_columnconcept U0 set search_doc = (coalesce((select U1.name from avocado_conceptcategory U1
     where U0.category_id = U1.id), '') || ' ' || U0.name || ' ' || U0.description || ' ' || U0.keywords);
 
-create function avocado_columnconcept_search_doc_func() returns trigger as $$
+create or replace function avocado_columnconcept_search_doc_func() returns trigger as $$
     begin
         new.search_doc :=
         (coalesce((select U1.name from avocado_conceptcategory U1 where new.category_id = U1.id), '') || ' '
@@ -93,11 +97,7 @@ $$ LANGUAGE plpgsql;
 create trigger avocado_columnconcept_search_doc_update before insert or update
     on avocado_columnconcept for each row execute procedure avocado_columnconcept_search_doc_func();
 
-
-drop trigger if exists avocado_criterionconcept_search_tsv_update on avocado_criterionconcept;
-drop trigger if exists avocado_criterionconcept_search_doc_update on avocado_criterionconcept;
-drop function if exists avocado_criterionconcept_search_tsv_func();
-drop function if exists avocado_criterionconcept_search_doc_func();
+-- Criterion Concept
 
 -- create the search_tsv column for fast keyword searching
 
@@ -109,7 +109,7 @@ update avocado_criterionconcept U0 set search_tsv = to_tsvector(
 
 create index avocado_criterionconcept_search_tsv on avocado_criterionconcept using gin(search_tsv);
 
-create function avocado_criterionconcept_search_tsv_func() returns trigger as $$
+create or replace function avocado_criterionconcept_search_tsv_func() returns trigger as $$
     begin
         new.search_tsv :=
             to_tsvector(
@@ -127,7 +127,7 @@ create trigger avocado_criterionconcept_search_tsv_update before insert or updat
 update avocado_criterionconcept U0 set search_doc = (coalesce((select U1.name from avocado_conceptcategory U1
     where U0.category_id = U1.id), '') || ' ' || U0.name || ' ' || U0.description || ' ' || U0.keywords);
 
-create function avocado_criterionconcept_search_doc_func() returns trigger as $$
+create or replace function avocado_criterionconcept_search_doc_func() returns trigger as $$
     begin
         new.search_doc :=
         (coalesce((select U1.name from avocado_conceptcategory U1 where new.category_id = U1.id), '') || ' '

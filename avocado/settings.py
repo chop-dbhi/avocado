@@ -3,7 +3,9 @@ class Settings(object):
         'ENABLE_GROUP_PERMISSIONS': False,
         'FORMATTER_TYPES': {},
         'VIEW_TYPES': {},
-        'MODEL_TREE_MODELS': None
+        'MODEL_TREE_MODELS': None,
+        'DEFAULT_COLUMN_ORDERING': None,
+        'DEFAULT_COLUMNS': None,
     }
 
     def __init__(self, user_settings={}):
@@ -15,7 +17,7 @@ class Settings(object):
 
 try:
     from django.conf import settings as base_settings
-    settings = Settings(base_settings.AVOCADO_SETTINGS)
+    settings = Settings(getattr(base_settings, 'AVOCADO_SETTINGS', {}))
 except ImportError:
     settings = Settings()
     

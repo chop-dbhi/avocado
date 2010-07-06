@@ -1,8 +1,10 @@
 import re
 
 class CamelCaser(object):
-
     UNDERSCORE = re.compile(r'([^\A_])_+([^_])')
+    
+    def __call__(self, s):
+        return self.camel(s)
 
     def _upper(self, m):
         f, l = m.groups()
@@ -21,4 +23,19 @@ class CamelCaser(object):
                 cdict[ck] = v
         return cdict
 
+
+class UnCamelCaser(object):
+    def __call__(self, s):
+        return self.uncamel(s)
+
+    def uncamel(self, s):
+        toks = [s[0]]
+        for x in s[1:]:
+            if x.isupper():
+                toks.append(' ')
+            toks.append(x)
+        return ''.join(toks)
+
+
 camelcaser = CamelCaser()
+uncamelcaser = UnCamelCaser()

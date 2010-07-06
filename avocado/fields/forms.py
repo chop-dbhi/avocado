@@ -1,35 +1,42 @@
 from django import forms
-from django.db import models
-from django.db.models.fields import FieldDoesNotExist
 
 from avocado.fields.models import FieldConcept
 
 class FieldConceptAdminForm(forms.ModelForm):
     def clean_model_label(self):
-        app_label, model_label = self.cleaned_data['model_label'].split('.')
-        model = models.get_model(app_label, model_label)
+        model_label = self.cleaned_data['model_label']
+        if self.instance._get_model(model_label) is None:
+            raise forms.ValidationError, 'The model_label "%s" does not exist' % model_label
+        return model_label
     
-        if model is None:
-            raise forms.ValidationError, 'The model "%s" in the app "%s" does not ' \
-                'exist' % (model_label, app_label)
-        return self.cleaned_data['model_label']
-
+    def clean_coords_callback(self):
+        coords_callback = self.cleaned_data['coords_callback']
+        if self.instance._get_coords(coords_callback) is None:
+            raise forms.ValidationError, 'Invalid SQL'
+        return coords_callback
+    
     def clean(self):
         cleaned_data = super(FieldConceptAdminForm, self).clean()
         
-        if cleaned_data.has_key('model_label') and cleaned_data.has_key('field_name'):
-            app_label, model_label = cleaned_data['model_label'].split('.')
-            model = models.get_model(app_label, model_label)
-    
-            field_name = cleaned_data['field_name']
+        model_label = cleaned_data['model_label']
+        self.instance._get_model(model_label)
 
-            try:
-                model._meta.get_field_by_name(field_name)
-            except FieldDoesNotExist:
-                raise forms.ValidationError, 'The model "%s" does not have a field ' \
-                    'named "%s"' % (model_label, field_name)
+        # test `field_name'
+        field_name = cleaned_data['field_name']
+        if self.instance._get_field(field_name) is None:
+            del cleaned_data['field_name']
+            msg = 'The model "%s" does not have a field named "%s"' % \
+                (self.model.__name__, field_name)
+            self._errors['field_name'] = self.error_class([msg])
+        
+        # test `choices_callback'
+        choices_callback = cleaned_data['choices_callback']
+        if choices_callback and not self.instance._get_choices(choices_callback):
+            del cleaned_data['choices_callback']
+            msg = 'The choices could not be evaluated'
+            self._errors['choices_callback'] = self.error_class([msg])
         
         return cleaned_data
 
-    class Meta(object):
+    class Meta:
         model = FieldConcept

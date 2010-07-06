@@ -6,6 +6,7 @@ from django.utils.importlib import import_module
 from avocado.exceptions import AlreadyRegisteredError, RegisterError
 from avocado.settings import settings
 from avocado.utils.iter import is_iter_not_string
+from avocado.utils.camel import uncamelcaser
 
 class FormatError(Exception):
     pass
@@ -94,12 +95,7 @@ class FormatterLibrary(object):
     def _parse_name(self, name):
         if name.endswith('Formatter'):
             name = name[:-9]
-        toks = [name[0]]
-        for x in name[1:]:
-            if x.isupper():
-                toks.append(' ')
-            toks.append(x)
-        return ''.join(toks)
+        return uncamelcaser(name)
 
     def _add_formatter(self, ftype, klass_name, obj):
         if self._cache[ftype]['formatters'].has_key(klass_name):

@@ -1,16 +1,16 @@
 from django import forms
 from django.db import models
 
-from avocado.concepts.models import ConceptAbstract, ConceptFieldAbstract
+from avocado.concepts.models import Concept, ConceptField
 from avocado.fields.models import FieldConcept
 from avocado.criteria.mixins import CriterionConceptMixin
 
 __all__ = ('CriterionConcept', 'CriterionConceptField')
 
-class CriterionConcept(ConceptAbstract, CriterionConceptMixin):
+class CriterionConcept(Concept, CriterionConceptMixin):
     fields = models.ManyToManyField(FieldConcept, through='CriterionConceptField')
 
-    class Meta(ConceptAbstract.Meta):
+    class Meta(Concept.Meta):
         verbose_name = 'criterion concept'
         verbose_name_plural = 'criterion concepts'
 
@@ -32,9 +32,9 @@ class CriterionConcept(ConceptAbstract, CriterionConceptMixin):
     form = property(_get_form)
 
 
-class CriterionConceptField(ConceptFieldAbstract):
+class CriterionConceptField(ConceptField):
     concept = models.ForeignKey(CriterionConcept)
 
-    class Meta(ConceptFieldAbstract.Meta):
+    class Meta(ConceptField.Meta):
         verbose_name = 'criterion concept field'
         verbose_name_plural = 'criterion concept fields'

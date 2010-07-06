@@ -1,15 +1,16 @@
 from django import forms
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Count
+from django.db.models.fields import FieldDoesNotExist
+from django.db.utils import DatabaseError
 
-from avocado.exceptions import ConfigurationError
 from avocado.utils.iter import is_iter_not_string
-from avocado.concepts.models import ConceptAbstract
+from avocado.concepts.models import Concept
 from avocado.fields.filters import library
 
 __all__ = ('FieldConcept',)
 
-class FieldConcept(ConceptAbstract):
+class FieldConcept(Concept):
     """The `FieldConcept' class stores off meta data about a "field of
     interest" located on another model. This, in a sense, provides a way to
     specify the fields that can be utilized by the query engine.
@@ -36,70 +37,67 @@ class FieldConcept(ConceptAbstract):
     choices_callback = models.TextField(null=True, blank=True)
     coords_callback = models.TextField(null=True, blank=True)
 
-    class Meta(ConceptAbstract.Meta):
+    class Meta(Concept.Meta):
         verbose_name = 'field concept'
         verbose_name_plural = 'field concepts'
+        unique_together = ('model_label', 'field_name')
 
     def __unicode__(self):
         return u'%s' % self.name or '.'.join([self.model_label, self.field_name])
+    
+    def _get_module(self):
+        if not hasattr(self, '_module'):
+            self._module = __import__(self.model.__module__)
+        return self._module
+    module = property(_get_module)
 
-    def _get_model(self):
-        if not hasattr(self, '_model'):
-            app_label, model_label = self.model_label.split('.')
-            self._model = models.get_model(app_label, model_label)
+    def _get_model(self, model_label=None):
+        "Returns None if no model is found."
+        if not hasattr(self, '_model') or model_label:
+            model_label = model_label or self.model_label
+            al, ml = model_label.split('.')
+            self._model = models.get_model(al, ml)
         return self._model
     model = property(_get_model)
 
-    def _get_field(self):
-        if not hasattr(self, '_field'):
-            self._field = self.model._meta.get_field_by_name(self.field_name)[0]
+    def _get_field(self, field_name=None):
+        if not hasattr(self, '_field') or field_name:
+            field_name = field_name or self.field_name
+            try:
+                self._field = self.model._meta.get_field_by_name(field_name)[0]
+            except FieldDoesNotExist:
+                self._field = None
         return self._field
     field = property(_get_field)
 
-    def _get_choices(self):
-        if not hasattr(self, '_choices'):
-            choices = None
-            if not self.enable_choices:
-                self._choices = choices
-            else:
-                if not self.choices_callback:
+    def _get_choices(self, choices_callback=None):
+        if not hasattr(self, '_choices') or choices_callback:
+            self._choices = ()
+            if self.enable_choices or choices_callback:
+                choices_callback = choices_callback or self.choices_callback
+                
+                if not choices_callback:
                     name = self.field_name
                     choices = list(self.model.objects.values_list(name,
                         flat=True).order_by(name).distinct())
                     choices = zip(choices, map(lambda x: x.title(), choices))
                 else:
-                    # try evaling a straight sequence in the format:
-                    #   [(1,'foo'), (2,'bar'), ...]
-                    try:
-                        choices = eval(self.choices_callback)
-                    except NameError:
-                        pass
-
-                    # attempts to check the _model for an attribute `value`:
-                    #   when: value = SHAPE_CHOICES
-                    #   test: model.SHAPE_CHOICES
-                    if choices is None:
+                    from avocado.fields import parsers
+                    funcs = (
+                        (parsers.model_attr, (self.model, choices_callback)),
+                        (parsers.module_attr, (self.module, choices_callback)),
+                        (parsers.eval_choices, (choices_callback,)),
+                    )
+                    
+                    for func, attrs in funcs:
                         try:
-                            choices = getattr(self.model, self.choices_callback)
-                            if callable(choices):
-                                choices = choices()
-                        except AttributeError:
+                            choices = tuple(func(*attrs))
+                            break
+                        except TypeError:
                             pass
-
-                    # attempts to check the _model' module for an attribute `value`:
-                    #   when: value = SHAPE_CHOICES
-                    #   test: model.__module__.SHAPE_CHOICES
-                    if choices is None:
-                        try:
-                            module = __import__(self.model.__module__)
-                            choices = getattr(module, self.choices_callback)
-                            if callable(choices):
-                                choices = choices()
-                        except AttributeError:
-                            raise ConfigurationError, '%s cannot be evaluated' % \
-                                self.choices_callback
-
-                self._choices = tuple(choices)
+                    else:
+                        choices = None
+                self._choices = choices
         return self._choices
     choices = property(_get_choices)
 
@@ -107,17 +105,22 @@ class FieldConcept(ConceptAbstract):
         if self.choices is not None:
             return map(lambda x: x[0], self.choices)
 
-    def _get_coords(self):
-        if not hasattr(self, '_coords'):
-            if self.coords_callback:
+    def _get_coords(self, coords_callback=None):
+        if not hasattr(self, '_coords') or coords_callback:
+            coords_callback = coords_callback or self.coords_callback
+            if coords_callback:
                 from django.db import connections
                 cursor = connections['default'].cursor()
-                cursor.execute(self.coords_callback)
-                coords = cursor.fetchall()
+                try:
+                    cursor.execute(coords_callback)
+                    coords = cursor.fetchall()
+                except DatabaseError:
+                    transaction.rollback()
+                    coords = None
             else:
                 name = self.field_name
                 coords = self.model.objects.annotate(cnt=Count(name)).values_list(name, 'cnt')
-            self._coords = tuple(coords)
+            self._coords = coords
         return self._coords
     coords = property(_get_coords)
 
@@ -129,7 +132,7 @@ class FieldConcept(ConceptAbstract):
         if 'label' in kwargs:
             label = kwargs.pop('label')
         else:
-            label = self.field_name.title()
+            label = self.name.title()
 
         if not widget and self.enable_choices:
             widget = forms.SelectMultiple(choices=self.choices)

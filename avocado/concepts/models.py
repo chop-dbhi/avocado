@@ -4,12 +4,13 @@ from django.contrib.auth.models import Group
 from avocado.settings import settings
 from avocado.concepts.managers import ConceptManager
 
-__all__ = ('ConceptCategory', 'ConceptAbstract', 'ConceptFieldAbstract')
+__all__ = ('ConceptCategory', 'Concept', 'ConceptField')
 
 class ConceptCategory(models.Model):
     name = models.CharField(max_length=100)
 
     class Meta(object):
+        verbose_name_plural = 'concept categories'
         app_label = 'avocado'
         ordering = ('name',)
 
@@ -17,7 +18,7 @@ class ConceptCategory(models.Model):
         return u'%s' % self.name
 
 
-class ConceptAbstract(models.Model):
+class Concept(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(null=True, blank=True)
     keywords = models.CharField(max_length=100, null=True, blank=True)
@@ -43,7 +44,7 @@ class ConceptAbstract(models.Model):
         return u'%s' % self.name
 
 
-class ConceptFieldAbstract(models.Model):
+class ConceptField(models.Model):
     from avocado.fields.models import FieldConcept
 
     order = models.SmallIntegerField(default=0)
