@@ -1,4 +1,3 @@
-
 from django.db import models
 from django.db.models.signals import post_syncdb
 from django.db import connections, transaction
@@ -13,8 +12,8 @@ class ObjectSet(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(null=True, blank=True)
     keywords = models.CharField(max_length=100, null=True, blank=True)
-    count = models.IntegerField(null=True, blank=True)
-    sql = models.TextField(null=True, blank=True)
+    cnt = models.PositiveIntegerField('count', null=True, blank=True)
+    sql = models.TextField('initial SQL', null=True, blank=True)
     criteria = models.TextField(null=True, blank=True)
     added_ids = models.TextField(null=True, blank=True)    
     removed_ids = models.TextField(null=True, blank=True)

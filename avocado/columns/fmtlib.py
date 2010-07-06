@@ -1,12 +1,8 @@
-import imp
 from copy import deepcopy
 
-from django.utils.importlib import import_module
-
-from avocado.exceptions import AlreadyRegisteredError, RegisterError
-from avocado.settings import settings
+from avocado.settings import settings as avs
+from avocado.concepts.library import BaseLibrary
 from avocado.utils.iter import is_iter_not_string
-from avocado.utils.camel import uncamelcaser
 
 class FormatError(Exception):
     pass
@@ -41,7 +37,7 @@ class IgnoreFormatter(AbstractFormatter):
         return args
 
 
-class FormatterLibrary(object):
+class FormatterLibrary(BaseLibrary):
     """The base class for defining a formatter library.
 
     This library dynamically determines the available formatter types via a
@@ -83,48 +79,32 @@ class FormatterLibrary(object):
 
     The "html" formatter merely points to the "json" method.
     """
-
-    FORMATTER_TYPES = settings.FORMATTER_TYPES
+    STORE_KEY = 'formatters'
+    FORMATTER_TYPES = avs.FORMATTER_TYPES
 
     def __init__(self, formatter_types={}):
         self._cache = deepcopy(formatter_types or self.FORMATTER_TYPES)
-        for key in self._cache:
-            self._cache[key]['formatters'] = {}
-        self._ftypes = self._cache.keys()
+        self.format_types = self._cache.keys()
 
-    def _parse_name(self, name):
-        if name.endswith('Formatter'):
-            name = name[:-9]
-        return uncamelcaser(name)
+        self._add_store()
+    
+    def _fmt_name(self, name):
+        return super(FormatterLibrary, self)._fmt_name(name, 'Formatter')
 
-    def _add_formatter(self, ftype, klass_name, obj):
-        if self._cache[ftype]['formatters'].has_key(klass_name):
-            raise AlreadyRegisteredError, 'A formatter with the ' \
-                'name "%s" is already registered for the %s ' \
-                'formatter type' % (klass_name, ftype)
-        self._cache[ftype]['formatters'][klass_name] = obj
-
+    def _register(self, klass_name, obj):
+        for ftype in self.format_types:
+            if hasattr(obj, ftype) or obj.apply_to_all:
+                self._add_item(ftype, klass_name, obj)
+    
     def register(self, klass):
-        "Registers a Formatter subclass. The class name must be unique."
-        if not issubclass(klass, AbstractFormatter):
-            raise RegisterError, '%s must be a subclass of AbstractFormatter' % repr(klass)
-
-        obj = klass()
-
-        if hasattr(klass, 'name'):
-            klass_name = klass.name
-        else:
-            klass_name = self._parse_name(klass.__name__)
-
-        for ftype in self._ftypes:
-            if hasattr(obj, ftype) or obj.apply_to_all: # strange requirement?
-                self._add_formatter(ftype, klass_name, obj)
-        return klass
+        super(FormatterLibrary, self).register(klass, AbstractFormatter)
 
     def choices(self, ftype):
         "Returns a list of tuples that can be used as choices in a form."
+        store = self._get_store(ftype)
         choices = []
-        for name, obj in self._cache[ftype]['formatters'].items():
+        
+        for name, obj in store.items():
             if obj.is_choice:
                 choices.append((name, name))
         return choices
@@ -200,7 +180,6 @@ library = FormatterLibrary()
 library.register(RemoveFormatter)
 library.register(IgnoreFormatter)
 
-
 LOADING = False
 
 def autodiscover():
@@ -210,19 +189,24 @@ def autodiscover():
         return
     LOADING = True
 
+    import imp
+    
+    from django.utils.importlib import import_module
     from django.conf import settings
+    
+    mod_name = avs.FORMATTER_MODULE_NAME
+    
     for app in settings.INSTALLED_APPS:
         try:
             app_path = import_module(app).__path__
         except AttributeError:
             continue
-
         try:
-            imp.find_module('formatters', app_path)
+            imp.find_module(mod_name, app_path)
         except ImportError:
             continue
 
-        import_module('%s.formatters' % app)
+        import_module('%s.%s' % (app, mod_name))
 
     LOADING = False
 

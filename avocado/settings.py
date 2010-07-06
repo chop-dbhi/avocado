@@ -2,7 +2,11 @@ class Settings(object):
     DEFAULT_SETTINGS = {
         'ENABLE_GROUP_PERMISSIONS': False,
         'FORMATTER_TYPES': {},
-        'VIEW_TYPES': {},
+        'FORMATTER_FIELD_SUFFIX': '%s_fmt',
+        'FORMATTER_MODULE_NAME': 'fmtlib',
+        'VIEW_TYPES': (),
+        'VIEW_FIELD_SUFFIX': '%s_view',
+        'VIEW_MODULE_NAME': 'viewlib',
         'MODEL_TREE_MODELS': None,
         'DEFAULT_COLUMN_ORDERING': None,
         'DEFAULT_COLUMNS': None,

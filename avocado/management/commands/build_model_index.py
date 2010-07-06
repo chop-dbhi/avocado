@@ -2,7 +2,7 @@ from django.core.management.base import AppCommand
 from django.db.models import get_models, AutoField, ManyToManyField, ForeignKey
 
 from avocado.models import FieldConcept, ConceptCategory
-from avocado.utils.camel import uncamelcaser
+from avocado.utils.camel import uncamel
 
 class Command(AppCommand):
     help = """Finds all models in the provided app(s) and attempts to populate
@@ -18,11 +18,12 @@ class Command(AppCommand):
         for model in models:
             cnt = 0
 
-            model_name = uncamelcaser(model.__name__)
+            model_name = model.__name__
+            
             if categories.has_key(model_name):
                 category = categories[model_name]
             else:
-                category, is_new = ConceptCategory.objects.get_or_create(name=model_name)
+                category, is_new = ConceptCategory.objects.get_or_create(name=uncamel(model_name))
 
             for field in model._meta.fields:
                 # in most cases the primary key fields and non-editable will not
@@ -38,7 +39,7 @@ class Command(AppCommand):
 
                 # do initial lookup to see if it already exists, skip if it does
                 if FieldConcept.objects.filter(**kwargs).count() > 0:
-                    print '%s.%s already exists. Skipping...' % (model.__name__, field.name)
+                    print '%s.%s already exists. Skipping...' % (model_name, field.name)
                     continue
 
                 field_concept = FieldConcept(**kwargs)

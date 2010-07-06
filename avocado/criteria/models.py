@@ -19,8 +19,7 @@ class CriterionConcept(Concept, CriterionConceptMixin):
             form_fields = {}
 
             for f in self.fields.all():
-                key = '%s_%s' % (f.id, f.field_name)
-                form_fields[key] = f.formfield()
+                form_fields[f.field_name] = f.formfield()
 
             class CriterionConceptForm(forms.Form):
                 def __init__(self, *args, **kwargs):

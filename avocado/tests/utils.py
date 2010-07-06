@@ -1,7 +1,7 @@
 from django.test import TestCase
 
 from avocado.utils.paginator import BufferedPaginator
-from avocado.utils.camel import camelcaser
+from avocado.utils.camel import camel
 
 __all__ = ('BufferedPaginatorTestCase', 'CamelCaserTestCase')
 
@@ -102,11 +102,11 @@ class CamelCaserTestCase(TestCase):
             'top_Level__': d2
         }
         
-        self.assertEqual(camelcaser.camel_keys(d1), {'helloWorld_': 3,
+        self.assertEqual(camel.camel_keys(d1), {'helloWorld_': 3,
             'fooBar': 1, 'endDub__': 5, '__startDub': 4, '_helloWorld': 2})
-        self.assertEqual(camelcaser.camel_keys(d2), {'fooBar__': 1,
+        self.assertEqual(camel.camel_keys(d2), {'fooBar__': 1,
             'secondLevel': {'helloWorld_': 3, 'fooBar': 1, 'endDub__': 5,
             '__startDub': 4, '_helloWorld': 2}})
-        self.assertEqual(camelcaser.camel_keys(d3), {'topLevel__': {'fooBar__': 1,
+        self.assertEqual(camel.camel_keys(d3), {'topLevel__': {'fooBar__': 1,
             'secondLevel': {'helloWorld_': 3, 'fooBar': 1, 'endDub__': 5,
             '__startDub': 4, '_helloWorld': 2}}})

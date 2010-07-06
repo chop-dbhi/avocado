@@ -37,5 +37,5 @@ class UnCamelCaser(object):
         return ''.join(toks)
 
 
-camelcaser = CamelCaser()
-uncamelcaser = UnCamelCaser()
+camel= CamelCaser()
+uncamel = UnCamelCaser()
