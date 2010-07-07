@@ -9,6 +9,11 @@ class AbstractView(object):
         return getattr(self, vtype)(concept)
 
 
+class GenericFormView(AbstractView):
+    def form(self, concept):
+        return {'form': concept.form()}
+
+
 class ViewLibrary(BaseLibrary):
     """This library dynamically determines the available view types via a
     user-defined setting `VIEW_TYPES' part of the 'AVOCADO_SETTINGS'. This
@@ -69,6 +74,7 @@ class ViewLibrary(BaseLibrary):
 
 
 library = ViewLibrary()
+library.register(GenericFormView)
 
 # find all other views
 library.autodiscover(avs.VIEW_MODULE_NAME)

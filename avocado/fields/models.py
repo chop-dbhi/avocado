@@ -72,8 +72,9 @@ class FieldConcept(Concept):
 
     def _get_choices(self, choices_callback=None):
         if not hasattr(self, '_choices') or choices_callback:
-            self._choices = ()
+            self._choices = None
             if self.enable_choices or choices_callback:
+                self._choices = ()
                 choices_callback = choices_callback or self.choices_callback
                 
                 if not choices_callback:

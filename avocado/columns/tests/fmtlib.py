@@ -1,8 +1,8 @@
 from django.test import TestCase
 
+from avocado.exceptions import RegisterError, AlreadyRegisteredError
 from avocado.columns.fmtlib import (AbstractFormatter, FormatterLibrary,
-    RegisterError, AlreadyRegisteredError, RemoveFormatter, IgnoreFormatter,
-    FormatError)
+    RemoveFormatter, IgnoreFormatter, FormatError)
 
 __all__ = ('FormatterLibraryTestCase',)
 
@@ -43,7 +43,16 @@ class FormatterLibraryTestCase(TestCase):
             def csv(self, *args):
                 return sum(args)
 
-        self.assertRaises(AlreadyRegisteredError, library.register, Add)
+        # should not raise AlreadyRegisteredError, it will merely replace it
+        library.register(Add)
+        
+        class Add2(AbstractFormatter):
+            name = 'Add Numbers'
+            def csv(self, *args):
+                return sum(args)        
+        
+        self.assertRaises(AlreadyRegisteredError, library.register, Add2)
+
         self.assertEqual(library.choices('csv'), [('Add Numbers', 'Add Numbers'),
             ('Concat Str', 'Concat Str')])
 

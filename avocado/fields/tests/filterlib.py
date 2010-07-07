@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.db.models import Q
 
 from avocado.modeltree import ModelTree
-from avocado.exceptions import AlreadyRegisteredError, RegisterError
+from avocado.exceptions import RegisterError
 from avocado.columns.models import ColumnConcept
 from avocado.fields.filterlib import FilterLibrary, SimpleFilter
 from avocado.fields.cache import get_concept
@@ -20,8 +20,6 @@ class FilterLibraryTestCase(TestCase):
         library = FilterLibrary()
 
         library.register(SimpleFilter)
-
-        self.assertRaises(AlreadyRegisteredError, library.register, SimpleFilter)
 
         class FooFilter(object):
             pass

@@ -13,6 +13,8 @@
 
 begin;
 
+create language plpgsql;
+
 -- Field Concept
 
 -- create the search_tsv column for fast keyword searching

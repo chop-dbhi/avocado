@@ -38,12 +38,15 @@ class SimpleFilter(AbstractFilter):
 class FilterLibrary(BaseLibrary):
     "The base class for defining a filter library."
     STORE_KEY = 'filters'
+    
+    def _get_store(self, key=None):
+        return self._cache
 
     def _fmt_name(self, name):
-        return super(FilterLibrary, self)._fmt_name(self, 'Filter')
+        return super(FilterLibrary, self)._fmt_name(name, 'Filter')
     
     def _register(self, klass_name, obj):
-        self._add_item(klass_name, obj)
+        self._add_item(None, klass_name, obj)
 
     def register(self, klass):
         return super(FilterLibrary, self).register(klass, AbstractFilter)
