@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from avocado.columns.formatters import (AbstractFormatter, FormatterLibrary,
+from avocado.columns.fmtlib import (AbstractFormatter, FormatterLibrary,
     RegisterError, AlreadyRegisteredError, RemoveFormatter, IgnoreFormatter,
     FormatError)
 

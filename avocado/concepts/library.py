@@ -1,8 +1,17 @@
+import imp
+
+from django.conf import settings
+from django.utils.importlib import import_module
+
 from avocado.exceptions import RegisterError, AlreadyRegisteredError
 from avocado.utils.camel import uncamel
 
 class BaseLibrary(object):
     STORE_KEY = ''
+    DISCOVER_MODE = False
+    
+    def __init__(self):
+        self._cache = {}
 
     def _add_store(self):
         for key in self._cache:
@@ -61,3 +70,23 @@ class BaseLibrary(object):
     def get(self, key, name):
         "Retrieve the cached instance given the name it is registered under."
         return self._get_store(key).get(name, None)
+
+    def autodiscover(self, mod_name):
+        if self.DISCOVER_MODE:
+            return
+
+        self.DISCOVER_MODE = True
+    
+        for app in settings.INSTALLED_APPS:
+            try:
+                app_path = import_module(app).__path__
+            except AttributeError:
+                continue
+            try:
+                imp.find_module(mod_name, app_path)
+            except ImportError:
+                continue
+
+            import_module('%s.%s' % (app, mod_name))
+
+        self.DISCOVER_MODE = False

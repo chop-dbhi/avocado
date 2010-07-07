@@ -61,7 +61,7 @@ class ViewLibrary(BaseLibrary):
                 self._add_item(vtype, klass_name, obj)
 
     def register(self, klass):
-        super(ViewLibrary, self).register(klass, AbstractView)
+        return super(ViewLibrary, self).register(klass, AbstractView)
 
     def get_response(self, vtype, name, concept):
         view = self.get(vtype, name)
@@ -70,34 +70,5 @@ class ViewLibrary(BaseLibrary):
 
 library = ViewLibrary()
 
-LOADING = False
-
-def autodiscover():
-    global LOADING
-
-    if LOADING:
-        return
-    LOADING = True
-
-    import imp
-    
-    from django.utils.importlib import import_module
-    from django.conf import settings
-    
-    mod_name = avs.VIEW_MODULE_NAME
-    
-    for app in settings.INSTALLED_APPS:
-        try:
-            app_path = import_module(app).__path__
-        except AttributeError:
-            continue
-        try:
-            imp.find_module(mod_name, app_path)
-        except ImportError:
-            continue
-
-        import_module('%s.%s' % (app, mod_name))
-
-    LOADING = False
-
-autodiscover()
+# find all other views
+library.autodiscover(avs.VIEW_MODULE_NAME)

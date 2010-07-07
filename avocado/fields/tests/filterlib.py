@@ -4,7 +4,7 @@ from django.db.models import Q
 from avocado.modeltree import ModelTree
 from avocado.exceptions import AlreadyRegisteredError, RegisterError
 from avocado.columns.models import ColumnConcept
-from avocado.fields.filters import FilterLibrary, SimpleFilter
+from avocado.fields.filterlib import FilterLibrary, SimpleFilter
 from avocado.fields.cache import get_concept
 
 __all__ = ('FilterLibraryTestCase',)

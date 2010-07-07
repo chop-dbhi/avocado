@@ -97,7 +97,7 @@ class FormatterLibrary(BaseLibrary):
                 self._add_item(ftype, klass_name, obj)
     
     def register(self, klass):
-        super(FormatterLibrary, self).register(klass, AbstractFormatter)
+        return super(FormatterLibrary, self).register(klass, AbstractFormatter)
 
     def choices(self, ftype):
         "Returns a list of tuples that can be used as choices in a form."
@@ -180,34 +180,5 @@ library = FormatterLibrary()
 library.register(RemoveFormatter)
 library.register(IgnoreFormatter)
 
-LOADING = False
-
-def autodiscover():
-    global LOADING
-
-    if LOADING:
-        return
-    LOADING = True
-
-    import imp
-    
-    from django.utils.importlib import import_module
-    from django.conf import settings
-    
-    mod_name = avs.FORMATTER_MODULE_NAME
-    
-    for app in settings.INSTALLED_APPS:
-        try:
-            app_path = import_module(app).__path__
-        except AttributeError:
-            continue
-        try:
-            imp.find_module(mod_name, app_path)
-        except ImportError:
-            continue
-
-        import_module('%s.%s' % (app, mod_name))
-
-    LOADING = False
-
-autodiscover()
+# find all other formatters
+library.autodiscover(avs.FORMATTER_MODULE_NAME)
