@@ -22,39 +22,26 @@ class OperatorNotPermitted(Exception):
 
 
 class FieldType(object):
-    field_class = forms.CharField
+    formfield = forms.CharField
     widget_class = None
-    operators = ()
+    operators = None
 
     def __init__(self):
         if not self.operators:
             raise NotImplementedError, 'subclasses must have at least one ' \
                 'operator associated with it'
-        self._operators = dict(map(lambda x: (x.operator, x), self.operators))
+        self._operators = dict([(x.operator, x) for x in self.operators])
 
-    def _get_operator(self, operator):
+    def get_operator(self, operator):
         try:
             return self._operators[operator]
         except KeyError:
             raise OperatorNotPermitted, '%s is not permitted for field type %s' % \
                 (operator, self.__class__.__name__)
 
-    def clean(self, operator, value):
-        """Validation is a multi-step process including:
-            - validating the operator is allowed for this field type
-            - cleaning the value based on the form field
-            - testing whether the value is appropriate for the operator
-        """
-        formfield = self.field_class()
-
-        try:
-            clean_value = formfield.clean(value)
-        except forms.ValidationError:
-            pass
-
-        if self._get_operator(operator).is_valid(clean_value):
-            return clean_value
-        raise ValidationError, ''
+    def clean(self, value):
+        field = self.formfield()
+        return field.clean(value)
 
 
 class NumberType(FieldType):
@@ -67,55 +54,55 @@ class CharField(FieldType):
 
 
 class IntegerField(NumberType):
-    field_class = forms.IntegerField
+    formfield = forms.IntegerField
 
 
 class DecimalField(NumberType):
-    field_class = forms.DecimalField
+    formfield = forms.DecimalField
 
 
 class FloatField(NumberType):
-    field_class = forms.FloatField
+    formfield = forms.FloatField
 
 
 class DateField(NumberType):
-    field_class = forms.DateField
+    formfield = forms.DateField
 
 
 class TimeField(NumberType):
-    field_class = forms.TimeField
+    formfield = forms.TimeField
 
 
 class DateTimeField(NumberType):
-    field_class = forms.DateTimeField
+    formfield = forms.DateTimeField
 
 
 class BooleanField(FieldType):
-    field_class = forms.BooleanField
+    formfield = forms.BooleanField
     operators = (exact,)
 
 
 class NullBooleanField(FieldType):
-    field_class = forms.BooleanField
+    formfield = forms.BooleanField
     operators = (exact, null, notnull)
 
 
 class ChoiceField(FieldType):
-    field_class = forms.ChoiceField
+    formfield = forms.ChoiceField
     operators = (exact, notexact, null, notnull)
 
 
 class ModelChoiceField(ChoiceField):
-    field_class = forms.ModelChoiceField
+    formfield = forms.ModelChoiceField
 
 
 class MultipleChoiceField(FieldType):
-    field_class = forms.MultipleChoiceField
+    formfield = forms.MultipleChoiceField
     operators = (inlist, notinlist)
 
 
 class ModelMultipleChoiceField(MultipleChoiceField):
-    field_class = forms.ModelMultipleChoiceField
+    formfield = forms.ModelMultipleChoiceField
 
 
 class ListField(FieldType):

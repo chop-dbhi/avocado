@@ -3,12 +3,19 @@ from django.db import models
 
 from avocado.concepts.models import Concept, ConceptField
 from avocado.fields.models import FieldConcept
-from avocado.criteria.mixins import CriterionConceptMixin
 
 __all__ = ('CriterionConcept', 'CriterionConceptField')
 
-class CriterionConcept(Concept, CriterionConceptMixin):
+class CriterionConceptView(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __unicode__(self):
+        return u'%s' % self.name
+
+
+class CriterionConcept(Concept):
     fields = models.ManyToManyField(FieldConcept, through='CriterionConceptField')
+    views = models.ManyToManyField(CriterionConceptView, through='CriterionConceptViewOrder')
 
     class Meta(Concept.Meta):
         verbose_name = 'criterion concept'
@@ -37,3 +44,9 @@ class CriterionConceptField(ConceptField):
     class Meta(ConceptField.Meta):
         verbose_name = 'criterion concept field'
         verbose_name_plural = 'criterion concept fields'
+
+
+class CriterionConceptViewOrder(models.Model):
+    concept = models.ForeignKey(CriterionConcept)
+    view = models.ForeignKey(CriterionConceptView)
+    order = models.SmallPositiveIntegerField(default=0)

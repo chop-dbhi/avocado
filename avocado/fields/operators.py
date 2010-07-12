@@ -6,14 +6,11 @@ Each class must provide a `clean' method that is_valids a given `value' is of
 the right length and in some cases, type.
 """
 
-from django.core.exceptions import ValidationError
-
 from avocado.utils.iter import is_iter_not_string
 
 __all__ = ('exact', 'iexact', 'contains', 'inlist', 'lt', 'gt', 'lte', 'gte',
     'between', 'null', 'notbetween', 'notexact', 'notiexact', 'doesnotcontain',
     'notinlist', 'notnull')
-
 
 class Operator(object):
     short_name = ''
@@ -24,12 +21,10 @@ class Operator(object):
     def __str__(self):
         if self.negated:
             return '%s (~%s)' % (self.short_name, self.operator)
-        return '%s (%s)' % (self.short_name, self.operator)   
+        return '%s (%s)' % (self.short_name, self.operator)
 
     def __unicode__(self):
-        if self.negated:
-            return u'%s (~%s)' % (self.short_name, self.operator)
-        return u'%s (%s)' % (self.short_name, self.operator)
+        return u'%s' % str(self)
 
     def __repr__(self):
         return str(self.__class__)
@@ -169,3 +164,4 @@ class NotNull(Null):
     verbose_name = 'is not null'
     negated = True
 notnull = NotNull()
+

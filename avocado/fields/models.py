@@ -34,8 +34,12 @@ class FieldConcept(Concept):
     field_name = models.CharField(max_length=100)
     filter_name = models.CharField(max_length=100, choices=library.choices())
     enable_choices = models.BooleanField(default=False)
-    choices_callback = models.TextField(null=True, blank=True)
-    coords_callback = models.TextField(null=True, blank=True)
+    choices_callback = models.TextField(null=True, blank=True, help_text="""
+        Allowed callbacks include specifying:
+            1. a constant name on the model
+            2. a constant name on the model's module
+            3. a string that can be evaluated
+    """)
 
     class Meta(Concept.Meta):
         verbose_name = 'field concept'
@@ -44,7 +48,7 @@ class FieldConcept(Concept):
 
     def __unicode__(self):
         return u'%s' % self.name or '.'.join([self.model_label, self.field_name])
-    
+
     def _get_module(self):
         if not hasattr(self, '_module'):
             self._module = __import__(self.model.__module__)
@@ -70,13 +74,18 @@ class FieldConcept(Concept):
         return self._field
     field = property(_get_field)
 
+    # TODO fix
+    def _get_query_string(self, operator):
+        nodes = modeltree.path_to(field.model)
+        return modeltree.query_string(nodes, field.field_name, operator)
+
     def _get_choices(self, choices_callback=None):
         if not hasattr(self, '_choices') or choices_callback:
             self._choices = None
             if self.enable_choices or choices_callback:
                 self._choices = ()
                 choices_callback = choices_callback or self.choices_callback
-                
+
                 if not choices_callback:
                     name = self.field_name
                     choices = list(self.model.objects.values_list(name,
@@ -89,7 +98,7 @@ class FieldConcept(Concept):
                         (parsers.module_attr, (self.module, choices_callback)),
                         (parsers.eval_choices, (choices_callback,)),
                     )
-                    
+
                     for func, attrs in funcs:
                         try:
                             choices = tuple(func(*attrs))
@@ -146,7 +155,7 @@ class FieldConcept(Concept):
         is a valid choice.
         """
         field = self.formfield(*args, **kwargs)
-    
+
         try:
             if is_iter_not_string(value):
                 cleaned_value = map(field.clean, value)
@@ -154,10 +163,10 @@ class FieldConcept(Concept):
                 cleaned_value = field.clean(value)
         except forms.ValidationError, e:
             return (False, None, e.messages)
-    
-    
+
+
         if self.enable_choices:
             if not all(map(lambda x: x in self._db_choices, cleaned_value)):
                 return (False, None, ('Value(s) supplied is not a valid choice'))
-    
+
         return (True, cleaned_value, ())
