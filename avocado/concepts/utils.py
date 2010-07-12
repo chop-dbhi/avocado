@@ -1,3 +1,5 @@
+from avocado.modeltree import DEFAULT_MODEL_TREE
+
 class ConceptSet(object):
     """A ConceptSet provides a simple interface that implements Concept-like
     model objects.
@@ -8,9 +10,9 @@ class ConceptSet(object):
         `modeltree' - a ModelTree instance that should have a root model that
         is the same as the queryset(s) being processed via the public methods
     """
-    def __init__(self, queryset, model_tree):
+    def __init__(self, queryset, modeltree=DEFAULT_MODEL_TREE):
         self.queryset = queryset
-        self.model_tree = model_tree
+        self.modeltree = modeltree
 
     def __getstate__(self):
         dict_ = self.__dict__.copy()

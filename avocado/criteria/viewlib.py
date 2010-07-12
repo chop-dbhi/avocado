@@ -3,70 +3,37 @@ from avocado.concepts.library import BaseLibrary
 
 class AbstractView(object):
     "The AbstractView implements a callable interface for a given view type."
-    apply_to_all = False
+    def __call__(self, *args, **kwargs):
+        return self.respond(*args, **kwargs)
     
-    def __call__(self, vtype, concept):
-        return getattr(self, vtype)(concept)
+    def respond(self, *args, **kwargs):
+        raise NotImplementedError
 
 
 class GenericFormView(AbstractView):
-    def form(self, concept):
+    def respond(self, concept):
         return {'form': concept.form()}
 
 
 class ViewLibrary(BaseLibrary):
-    """This library dynamically determines the available view types via a
-    user-defined setting `VIEW_TYPES' part of the 'AVOCADO_SETTINGS'. This
-    provides the available to define any number of view types without
-    needing to subclass or override any part of the library. An example as
-    follows:
-
-        VIEW_TYPES = [{
-            'form': {
-                'name': 'Traditional',
-            },
-            'graphic' : {
-                'name': 'Graphical',
-            }
-        }]
-
-    Every view registered must be a sublcass of the AbstractView class. Each
-    view can support any number of view types by simply defining a method of
-    the same name, e.g:
-
-        class MyView(AbstractView):
-            def form(self, concept):
-                form = concept.form()
-                return {'form': form}
-
-    The above view class defines the `form' method which returns a dictionary
-    to be added to the Context of the response to the client.
-    """
-    
-    # TODO add `attrs' parameter to VIEW_TYPES to restrict response object
-    # and/or data types?
+    "The base class for defining the translator library."
     STORE_KEY = 'views'
-    VIEW_TYPES = avs.VIEW_TYPES
 
-    def __init__(self, view_types=()):
-        self._cache = {}
-        
-        for x in (view_types or self.VIEW_TYPES):
-            self._cache.update(x)
-        self.view_types = self._cache.keys()
+    def _get_store(self, key=None):
+        return self._cache
 
-        self._add_store()
-    
     def _fmt_name(self, name):
         return super(ViewLibrary, self)._fmt_name(name, 'View')
 
     def _register(self, klass_name, obj):
-        for vtype in self.view_types:
-            if hasattr(obj, vtype) or obj.apply_to_all:
-                self._add_item(vtype, klass_name, obj)
+        self._add_item(None, klass_name, obj)
 
     def register(self, klass):
         return super(ViewLibrary, self).register(klass, AbstractView)
+
+    def choices(self):
+        "Returns a list of tuples that can be used as choices in a form."
+        return [(n, n) for n in self._cache.keys()]
 
     def get_response(self, vtype, name, concept):
         view = self.get(vtype, name)

@@ -1,6 +1,10 @@
 from django.db import models
 from django.db.models import Q
 
+from avocado.settings import settings
+
+__all__ = ('ModelTreeNode', 'ModelTree', 'DEFAULT_MODEL_TREE')
+
 class ModelTreeNode(object):
     def __init__(self, model, parent=None, rel_type=None, rel_is_reversed=None,
         related_name=None, accessor_name=None, depth=0):
@@ -344,7 +348,7 @@ class ModelTree(object):
         key = self.query_string(node_path, field_name, operator)
         return Q(**{key: value})
 
-    def accessor_name_path(self, node_path):
+    def accessor_names(self, node_path):
         """Returns a list of the accessor names given a list of nodes. This is
         most useful when needing to dynamically access attributes starting from
         an instance of the `root_node' object.
@@ -356,9 +360,9 @@ class ModelTree(object):
         QuerySet object, e.g.:
 
             queryset = SomeModel.objects.all()
-            model_tree = ModelTree(SomeModel)
-            nodes = model_tree.path_to(SomeOtherModel)
-            conns = model_tree.get_all_join_connections(nodes)
+            modeltree = ModelTree(SomeModel)
+            nodes = modeltree.path_to(SomeOtherModel)
+            conns = modeltree.get_all_join_connections(nodes)
             for c in conns:
                 queryset.query.join(c, promote=True)
 
@@ -372,6 +376,14 @@ class ModelTree(object):
             else:
                 connections.extend(node.join_connections[1:])
         return connections
+    
+    def add_joins(self, model, queryset):
+        clone = queryset._clone()
+        nodes = self.path_to(model)
+        conns = self.get_all_join_connections(nodes)
+        for c in conns:
+            clone.query.join(c, promote=True)
+        return clone
 
     def print_path(self, node=None, depth=0):
         "Traverses the entire tree and prints a hierarchical view to stdout."
@@ -393,3 +405,14 @@ class ModelTree(object):
         else:
             accessor_names = accessor_names[1:]
         return zip(node_path, accessor_names)
+
+
+if not settings.MODEL_TREE_MODELS:
+    raise RuntimeError, 'The settings "MODEL_TREE_MODELS" must be set'
+
+mods = []
+for label in settings.MODEL_TREE_MODELS:
+    app_label, model_label = label.split('.')
+    mods.append(models.get_model(app_label, model_label))
+DEFAULT_MODEL_TREE = ModelTree(mods.pop(0), exclude=mods)
+del mods

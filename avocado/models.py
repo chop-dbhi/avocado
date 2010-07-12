@@ -3,9 +3,10 @@ from django.db.models.signals import post_syncdb
 from django.db import connections, transaction
 
 from avocado.concepts.models import *
+from avocado.fields.models import *
 from avocado.columns.models import *
 from avocado.criteria.models import *
-from avocado.fields.models import *
+
 from avocado import signals
 
 class ObjectSet(models.Model):

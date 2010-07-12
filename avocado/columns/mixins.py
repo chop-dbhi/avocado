@@ -2,7 +2,7 @@ from django.db import models
 
 from avocado.settings import settings
 from avocado.utils.mixins import create_mixin
-from avocado.columns.fmtlib import library
+from avocado.columns.format import library
 
 fields = {}
 for name in library.format_types:

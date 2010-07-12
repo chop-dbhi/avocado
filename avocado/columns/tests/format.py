@@ -1,7 +1,7 @@
 from django.test import TestCase
 
 from avocado.exceptions import RegisterError, AlreadyRegisteredError
-from avocado.columns.fmtlib import (AbstractFormatter, FormatterLibrary,
+from avocado.columns.format import (AbstractFormatter, FormatterLibrary,
     RemoveFormatter, IgnoreFormatter, FormatError)
 
 __all__ = ('FormatterLibraryTestCase',)

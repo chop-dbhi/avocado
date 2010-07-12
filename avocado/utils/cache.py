@@ -9,7 +9,7 @@ from avocado.settings import settings
 from avocado.models import CriterionConcept, ColumnConcept
 from avocado.criteria.utils import CriterionSet
 from avocado.columns.utils import ColumnSet, get_columns, get_column_orders
-from avocado.columns.formatters import get_formatters
+# from avocado.columns.format import get_formatters
 from avocado.utils.paginator import BufferedPaginator
 
 DEFAULT_COLUMNS = settings.DEFAULT_COLUMNS
@@ -127,21 +127,21 @@ class QuerySessionCache(object):
 
 
 class QuerySessionCacheManager(object):
-    def __init__(self, queryset, cache, model_tree, pre_criteria=None,
+    def __init__(self, queryset, cache, modeltree, pre_criteria=None,
         column_ids=None, column_ordering=None, page=None, paginate_by=None,
         removed_ids=None, logged_query=None):
 
         self.queryset = queryset
         self.cache = cache
-        self.model_tree = model_tree
+        self.modeltree = modeltree
         self.column_ids = column_ids
         self.column_ordering = column_ordering
         self.page = page and int(page) or None
         self.paginate_by = paginate_by and int(paginate_by) or None
         self.removed_ids = removed_ids
         self.logged_query = logged_query
-        self.column_set = ColumnSet(cache['column_concepts'], model_tree) 
-        self.criterion_set = CriterionSet(cache['criterion_concepts'], model_tree)
+        self.column_set = ColumnSet(cache['column_concepts'], modeltree) 
+        self.criterion_set = CriterionSet(cache['criterion_concepts'], modeltree)
         self._cache = self._copy_cache(cache)
         self._exec_count = False
         self._new_columns = False

@@ -1,6 +1,6 @@
 from django.db.models import Q
 
-from avocado.fields.cache import get_concept
+from avocado.fields.cache import cache
 
 class LogicTree(object):
     def __init__(self, modeltree):
@@ -12,7 +12,7 @@ class LogicTree(object):
         return q1 & q2
 
     def _q(self, concept_id, operator, value):
-        field = get_concept(concept_id)
+        field = cache.get(concept_id)
         path = self.modeltree.path_to(field.model)
         return self.modeltree.q(path, field.field_name, value, operator)
 

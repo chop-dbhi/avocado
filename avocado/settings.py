@@ -4,13 +4,11 @@ class Settings(object):
 
         'FORMATTER_TYPES': {},
         'FORMATTER_FIELD_SUFFIX': '%s_fmt',
-        'FORMATTER_MODULE_NAME': 'fmtlib',
+        'FORMATTER_MODULE_NAME': 'format',
 
-        'VIEW_TYPES': (),
-        'VIEW_FIELD_SUFFIX': '%s_view',
         'VIEW_MODULE_NAME': 'viewlib',
 
-        'FILTER_MODULE_NAME': 'filterlib',
+        'TRANSLATOR_MODULE_NAME': 'translate',
 
         'MODEL_TREE_MODELS': None,
 

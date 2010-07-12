@@ -8,6 +8,7 @@ from avocado.fields.fieldtypes import MODEL_FIELD_MAP
 class OperatorNotPermitted(Exception):
     pass
 
+
 class AbstractTranslator(object):
     "The base translator class that all translators must subclass."
     operators = None
@@ -46,6 +47,10 @@ class AbstractTranslator(object):
         query_string = concept.query_string(operator)
         kwarg = {query_string: clean_value}
         return Q(**kwarg)
+
+
+class SimpleTranslator(AbstractTranslator):
+    pass
 
 
 class TranslatorLibrary(BaseLibrary):

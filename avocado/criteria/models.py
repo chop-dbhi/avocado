@@ -4,10 +4,14 @@ from django.db import models
 from avocado.concepts.models import Concept, ConceptField
 from avocado.fields.models import FieldConcept
 
-__all__ = ('CriterionConcept', 'CriterionConceptField')
+__all__ = ('CriterionConcept', 'CriterionConceptField', 'CriterionConceptView',
+    'CriterionConceptViewOrder')
 
 class CriterionConceptView(models.Model):
     name = models.CharField(max_length=100)
+
+    class Meta:
+        app_label = u'avocado'
 
     def __unicode__(self):
         return u'%s' % self.name
@@ -32,7 +36,7 @@ class CriterionConcept(Concept):
                 def __init__(self, *args, **kwargs):
                     super(CriterionConceptForm, self).__init__(*args, **kwargs)
                     self.fields.update(form_fields)
-
+            
             self._form = CriterionConceptForm
         return self._form
     form = property(_get_form)
@@ -49,4 +53,7 @@ class CriterionConceptField(ConceptField):
 class CriterionConceptViewOrder(models.Model):
     concept = models.ForeignKey(CriterionConcept)
     view = models.ForeignKey(CriterionConceptView)
-    order = models.SmallPositiveIntegerField(default=0)
+    order = models.PositiveSmallIntegerField(default=0)
+    
+    class Meta:
+        app_label = u'avocado'

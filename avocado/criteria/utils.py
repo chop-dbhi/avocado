@@ -1,15 +1,13 @@
-from django.db.models import Q
-
 from avocado.concepts.utils import ConceptSet
 from avocado.criteria.models import CriterionConcept
-from avocado.criteria.cache import get_concept, get_concepts
+from avocado.criteria.cache import cache
 
 def get_criteria(concept_ids, queryset=None):
     """Simple helper to retrieve an ordered list of criteria. Criteria that are
     not found are simply ignored.
     """
     concepts = []
-    for concept in get_concepts(concept_ids, queryset):
+    for concept in cache.get_many(concept_ids, queryset):
         if concept is not None:
             concepts.append(concept)
     return concepts
