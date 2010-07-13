@@ -1,7 +1,10 @@
+import re
+
 from django.db.models.query_utils import Q
 
 from avocado.modeltree import ModelTree, DEFAULT_MODEL_TREE
 from avocado.fields.models import FieldConcept
+from avocado.fields.cache import cache
 
 class AmbiguousFieldName(Exception):
     pass
@@ -20,21 +23,35 @@ class M(Q):
             toks = key.split('__')
             toks_len = len(toks)
             
-            field_name = operator = app_label = model_label = None
+            concept = operator = None
             
-            if toks_len == 1:
-                field_name = toks[0]
-            elif toks_len == 2:
-                field_name, operator = toks
-            elif toks_len == 3:
-                app_label, model_label, field_name = toks
-            elif toks_len == 4:
-                app_label, model_label, field_name, operator = toks
+            # test for special pk syntax, e.g. _100 or _100__gt
+            if re.match(r'_\d+', toks[0]):
+                if toks_len > 2:
+                    raise TypeError, 'invalid pk syntax'
+                concept_id = int(toks[0][1:])
+                if toks_len == 2:
+                    operator = toks[1]
+                concept = cache.get(concept_id)
+            else:        
+                app_label = model_label = field_name = None
+                # myfield
+                if toks_len == 1:
+                    field_name = toks[0]
+                # myfield__gt
+                elif toks_len == 2:
+                    field_name, operator = toks
+                # myapp__mymodel__myfield
+                elif toks_len == 3:
+                    app_label, model_label, field_name = toks
+                # myapp__mymodel__myfield__gt
+                elif toks_len == 4:
+                    app_label, model_label, field_name, operator = toks
     
-            field = self._get_field(field_name, app_label, model_label)
-            query_str = self._expand_path(field, operator)
+                concept= self._get_field(field_name, app_label, model_label)
             
-            nkwargs[query_str] = value
+            skey = concept.query_string(operator)
+            nkwargs[skey] = value
 
         return super(M, self).__init__(**nkwargs)
     
@@ -46,7 +63,3 @@ class M(Q):
             return FieldConcept.objects.get(field_name=field_name)
         except FieldConcept.MultipleObjectsReturned:
             raise AmbiguousFieldName, 'Ambiguous field "%s"'
-
-    def _expand_path(self, field, operator=None):
-        node_path = self.modeltree.path_to(field.model)
-        return self.modeltree.query_string(node_path, field.field_name, operator)
