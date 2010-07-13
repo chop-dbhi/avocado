@@ -7,7 +7,6 @@ from django.db.utils import DatabaseError
 from avocado.utils.iter import is_iter_not_string
 from avocado.concepts.models import Concept
 from avocado.fields.filters import library
-from avocado.modeltree import DEFAULT_MODEL_TREE
 
 __all__ = ('FieldConcept',)
 
@@ -130,10 +129,12 @@ class FieldConcept(Concept):
         return self._coords
     coords = property(_get_coords)
 
-    def query_string(self, operator=None, modeltree=DEFAULT_MODEL_TREE):
+    def query_string(self, operator=None, modeltree=None):
+        if modeltree is None:
+            from avocado.modeltree import DEFAULT_MODEL_TREE
+            modeltree = DEFAULT_MODEL_TREE
         nodes = modeltree.path_to(self.model)
         return modeltree.query_string(nodes, self.field_name, operator)
-
 
     def formfield(self, formfield=None, widget=None, **kwargs):
         "Returns the default `formfield' instance for the `field' type."

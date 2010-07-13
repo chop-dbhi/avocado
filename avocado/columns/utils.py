@@ -16,12 +16,12 @@ def get_columns(concept_ids, queryset=None):
 
 def get_column_orders(column_orders, queryset=None):
     columns = SortedDict({})
-    for i, (id_, direction) in enumerate(column_orders):
-        column = cache.get(id_, queryset)
+    for order, (pk, direction) in enumerate(column_orders):
+        column = cache.get(pk, queryset)
         if column is None:
             continue
-        dict_ = {column: {'direction': direction, 'order': i}}
-        columns.update(dict_)
+        kwarg = {column: {'direction': direction, 'order': order}}
+        columns.update(kwarg)
     return columns
 
 class ColumnSet(ConceptSet):

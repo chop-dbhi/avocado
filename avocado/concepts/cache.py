@@ -2,12 +2,13 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.cache import cache
 
 class ConceptCache(object):
-    CACHE_KEY = 'avocado:%s:%s'
-    FIELD_CACHE_KEY = 'avocado:%s:fields:%s'
+    def __init__(self, model_name):
+        self.id_key = ':'.join(['avocado', model_name, '%s'])
+        self.field_id_key = ':'.join(['avocado', model_name, '%s', 'fields'])
     
-    def get(self, concept_id, queryset, ret_val=None):
+    def get(self, concept_id, queryset=None, ret_val=None):
         "Simple interface for getting (and setting) a concept from global cache."
-        key = self.CACHE_KEY % (queryset.model.__name__.lower(), concept_id)
+        key = self.id_key % concept_id
 
         concept = cache.get(key, None)
         if concept is None:
@@ -31,12 +32,12 @@ class ConceptCache(object):
         The optional `queryset' parameter simply passes it to `self.get'
         if called.
         """
-        key = self.FIELD_CACHE_KEY % (queryset.model.__name__.lower(), concept_id)
+        key = self.field_id_key % concept_id
 
         fields = cache.get(key, None)
         if fields is None:
-            concept = self.get(concept_id, queryset)
-            if concept is None:
+            concept = self.get(concept_id, queryset, ret_val)
+            if concept == ret_val:
                 return ret_val
             fields = list(concept.fields.order_by('criterionconceptfield__order'))
             cache.set(key, fields)

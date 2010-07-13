@@ -2,6 +2,7 @@ from django.test import TestCase
 
 from avocado.columns.models import ColumnConcept
 from avocado.fields.utils import M, AmbiguousFieldName
+from avocado.modeltree import ModelTree
 
 __all__ = ('MTestCase',)
 
@@ -29,7 +30,6 @@ class MTestCase(TestCase):
         
         concepts = ColumnConcept.objects.filter(M(avocado__fieldconcept__filter_name__icontains='Sim'))
         self.assertEqual(len(concepts), 4)
-        
         M.modeltree = None
         
         concepts = ColumnConcept.objects.filter(M(ORIG_MODEL_TREE,

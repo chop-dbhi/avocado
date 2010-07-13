@@ -27,9 +27,8 @@ class TranslatorLibraryTestCase(TestCase):
         self.assertRaises(RegisterError, library.register, FooTranslator)
 
     def test_simple_filter(self):
-        sfilter = SimpleTranslator()
-        mt = ModelTree(ColumnConcept)
-        fc1 = cache.get(1)
+        f = SimpleTranslator()
+        c = cache.get(1)
 
-        self.assertEqual(str(sfilter(mt, fc1, 'exact', 'foo')), str(Q(name__exact=u'foo')))
+        self.assertEqual(str(f('iexact', 'foo', c)), str(Q(name__iexact=u'foo')))
 

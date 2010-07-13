@@ -2,11 +2,11 @@ import cPickle as pickle
 
 from django.test import TestCase
 
+from avocado.modeltree import ModelTree
 from avocado.columns.models import ColumnConcept
 from avocado.columns.utils import ColumnSet, get_columns, get_column_orders
 
 __all__ = ('ColumnUtilsTestCase', 'ColumnSetTestCase')
-
 
 class ColumnUtilsTestCase(TestCase):
     fixtures = ['test_data.yaml']

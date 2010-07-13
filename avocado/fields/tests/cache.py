@@ -11,7 +11,7 @@ class FieldCacheTestCase(TestCase):
 
     def test_get(self):
         concept_id = 1
-        key = cache.CACHE_KEY % (FieldConcept.__name__.lower(), concept_id)
+        key = cache.id_key % concept_id
         self.assertFalse(djcache.has_key(key))
 
         concept = cache.get(concept_id)
@@ -31,6 +31,6 @@ class FieldCacheTestCase(TestCase):
 
         self.assertEqual([x.id for x in concepts], concept_ids)
         for i, x in enumerate(concept_ids):
-            key = cache.CACHE_KEY % (FieldConcept.__name__.lower(), x)
+            key = cache.id_key % x
             self.assertEqual(djcache.get(key), concepts[i])
 

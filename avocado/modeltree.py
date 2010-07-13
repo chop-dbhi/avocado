@@ -156,7 +156,10 @@ class ModelTree(object):
         `exclude' - a list of models that are not to be added to the tree
     """
     def __init__(self, root_model, exclude=()):
+        if not root_model or not issubclass(root_model, models.Model):
+            raise TypeError, 'root_model must be a Model subclass'
         self.root_model = root_model
+        self.exclude = exclude
         self._tree_hash = {}
         self._exclude = frozenset(exclude)
         self._node_path = None
@@ -398,7 +401,7 @@ class ModelTree(object):
 
     def get_accessor_pairs(self, node_path):
         "Used testing purposes."
-        accessor_names = self.accessor_name_path(node_path)
+        accessor_names = self.accessor_names(node_path)
         node_path = node_path[:-1] # don't need the last item
         if len(node_path) == 0 or node_path[0] is not self.root_node:
             node_path = [self.root_node] + node_path

@@ -65,7 +65,7 @@ class FieldConceptTestCase(TestCase):
         module.SPECIAL_CHOICES = SPECIAL_CHOICES
         self.assertEqual(fc.choices, (('foo', 'Foo'), ('bar', 'Bar')))
     
-    def test_coords(self):
-        fc = FieldConcept.objects.get(pk=1)
-        self.assertEqual(fc.coords, [(u'cc1', 1), (u'cc2', 1)])
+    # def test_coords(self):
+    #     fc = FieldConcept.objects.get(pk=1)
+    #     self.assertEqual(fc.coords, [(u'cc1', 1), (u'cc2', 1)])
         

@@ -11,11 +11,13 @@ class AmbiguousFieldName(Exception):
 
 
 class M(Q):
+    # a reference to a modeltree instance is set, so that it can be dynamically
+    # changed at runtime
     modeltree = DEFAULT_MODEL_TREE
     
     def __init__(self, modeltree=None, **kwargs):
-        self.modeltree = modeltree or self.modeltree
-        if not isinstance(self.modeltree, ModelTree):
+        modeltree = modeltree or self.modeltree
+        if not isinstance(modeltree, ModelTree):
             raise RuntimeError, 'A ModelTree instance required'
 
         nkwargs = {}
@@ -48,18 +50,20 @@ class M(Q):
                 elif toks_len == 4:
                     app_label, model_label, field_name, operator = toks
     
-                concept= self._get_field(field_name, app_label, model_label)
-            
-            skey = concept.query_string(operator)
+                concept = self._get_field(field_name, app_label, model_label)
+
+            skey = concept.query_string(operator, self.modeltree)
             nkwargs[skey] = value
 
         return super(M, self).__init__(**nkwargs)
     
     def _get_field(self, field_name, app_label=None, model_label=None):
+        if app_label and model_label:
+            return cache.get(model_label='.'.join([app_label, model_label]),
+                field_name=field_name)
+
+        # non-optimized lookup that can result in multiple objects returned
         try:
-            if app_label and model_label:
-                return FieldConcept.objects.get(field_name=field_name,
-                    model_label='.'.join([app_label, model_label]))
             return FieldConcept.objects.get(field_name=field_name)
         except FieldConcept.MultipleObjectsReturned:
             raise AmbiguousFieldName, 'Ambiguous field "%s"'

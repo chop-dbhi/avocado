@@ -113,7 +113,7 @@ class ModelTreeTestCase(TestCase):
         self.assertEqual(self.bear.query_string(self.bear_to_root, 'some_field'),
             'bazes__parent__root__some_field')
 
-    def test_accessor_name_path(self):
+    def test_accessor_names(self):
         "Test to ensure the accessor names are correct."
         pairs = self.root.get_accessor_pairs(self.root_to_foo)
         self.failUnless(all([hasattr(n.model, attr) for n, attr in pairs]))

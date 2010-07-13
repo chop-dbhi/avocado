@@ -14,13 +14,13 @@ class AbstractTranslator(object):
     operators = None
     formfield = None
 
-    def __call__(self, concept, *args, **kwargs):
+    def __call__(self, operator, value, concept):
         fieldtype = MODEL_FIELD_MAP[concept.field.__class__.__name__]
         if not self.operators:
             self.operators = fieldtype.operators
         if not self.formfield:
             self.formfield = fieldtype.formfield
-        return self.translate(*args, **kwargs)
+        return self.translate(operator, value, concept)
 
     def _get_operators(self):
         if not hasattr(self, '__operators'):
@@ -38,12 +38,12 @@ class AbstractTranslator(object):
         return field.clean(value)
 
     def validate(self, operator, value, concept=None):
-        clean_op = self._clean_operator(operator, field)
-        clean_val = self._clean_value(value, field)
+        clean_op = self._clean_operator(operator, concept)
+        clean_val = self._clean_value(value, concept)
         return clean_op, clean_val
 
     def translate(self, operator, value, concept):
-        clean_operator, clean_value = self.validate(operator, value, field)
+        clean_operator, clean_value = self.validate(operator, value, concept)
         query_string = concept.query_string(operator)
         kwarg = {query_string: clean_value}
         return Q(**kwarg)
