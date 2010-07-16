@@ -1,8 +1,7 @@
 from django import forms
-from django.db import models, transaction
+from django.db import models
 from django.db.models import Count
 from django.db.models.fields import FieldDoesNotExist
-from django.db.utils import DatabaseError
 
 from avocado.utils.iter import is_iter_not_string
 from avocado.concepts.models import Concept
@@ -34,7 +33,7 @@ class FieldConcept(Concept):
     field_name = models.CharField(max_length=100)
     filter_name = models.CharField(max_length=100, choices=library.choices())
     enable_choices = models.BooleanField(default=False)
-    choices_callback = models.TextField(null=True, blank=True, help_text="""
+    choices_handler = models.TextField(null=True, blank=True, help_text="""
         Allowed callbacks include specifying:
             1. a constant name on the model
             2. a constant name on the model's module
@@ -74,14 +73,14 @@ class FieldConcept(Concept):
         return self._field
     field = property(_get_field)
 
-    def _get_choices(self, choices_callback=None):
-        if not hasattr(self, '_choices') or choices_callback:
+    def _get_choices(self, choices_handler=None):
+        if not hasattr(self, '_choices') or choices_handler:
             self._choices = None
-            if self.enable_choices or choices_callback:
+            if self.enable_choices or choices_handler:
                 self._choices = ()
-                choices_callback = choices_callback or self.choices_callback
+                choices_handler = choices_handler or self.choices_handler
 
-                if not choices_callback:
+                if not choices_handler:
                     name = self.field_name
                     choices = list(self.model.objects.values_list(name,
                         flat=True).order_by(name).distinct())
@@ -89,9 +88,9 @@ class FieldConcept(Concept):
                 else:
                     from avocado.fields import parsers
                     funcs = (
-                        (parsers.model_attr, (self.model, choices_callback)),
-                        (parsers.module_attr, (self.module, choices_callback)),
-                        (parsers.eval_choices, (choices_callback,)),
+                        (parsers.model_attr, (self.model, choices_handler)),
+                        (parsers.module_attr, (self.module, choices_handler)),
+                        (parsers.eval_choices, (choices_handler,)),
                     )
 
                     for func, attrs in funcs:
@@ -110,24 +109,20 @@ class FieldConcept(Concept):
         if self.choices is not None:
             return map(lambda x: x[0], self.choices)
 
-    def _get_coords(self, coords_callback=None):
-        if not hasattr(self, '_coords') or coords_callback:
-            coords_callback = coords_callback or self.coords_callback
-            if coords_callback:
-                from django.db import connections
-                cursor = connections['default'].cursor()
-                try:
-                    cursor.execute(coords_callback)
-                    coords = cursor.fetchall()
-                except DatabaseError:
-                    transaction.rollback()
-                    coords = None
-            else:
-                name = self.field_name
-                coords = self.model.objects.annotate(cnt=Count(name)).values_list(name, 'cnt')
-            self._coords = coords
-        return self._coords
-    coords = property(_get_coords)
+    def distribution(self, exclude=[], **filters):
+        name = self.field_name
+        distribution = self.model.objects.all()
+        
+        # exclude certain values (e.g. None, or (empty string))
+        if exclude:
+            kwarg = {str('%s__in' % name): exclude}
+            distribution = distribution.exclude(**kwarg)
+
+        if filters:
+            distribution = distribution.filter(**filters)
+
+        distribution = distribution.annotate(count=Count(name)).values_list(name, 'count')
+        return distribution
 
     def query_string(self, operator=None, modeltree=None):
         if modeltree is None:

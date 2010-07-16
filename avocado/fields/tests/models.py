@@ -45,7 +45,7 @@ class FieldConceptTestCase(TestCase):
         # evaluation
         del fc._choices
         
-        fc.choices_callback = "(('foo', 'Foo'), ('bar', 'Bar'))"
+        fc.choices_handler = "(('foo', 'Foo'), ('bar', 'Bar'))"
         self.assertEqual(fc.choices, (('foo', 'Foo'), ('bar', 'Bar')))
         
         # test attr lookup on model
@@ -53,7 +53,7 @@ class FieldConceptTestCase(TestCase):
         
         SPECIAL_CHOICES = (('foo', 'Foo'), ('bar', 'Bar'))
         
-        fc.choices_callback = 'SPECIAL_CHOICES'
+        fc.choices_handler = 'SPECIAL_CHOICES'
         fc.model.SPECIAL_CHOICES = SPECIAL_CHOICES
         self.assertEqual(fc.choices, (('foo', 'Foo'), ('bar', 'Bar')))
         

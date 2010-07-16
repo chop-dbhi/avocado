@@ -6,7 +6,7 @@ class Settings(object):
         'FORMATTER_FIELD_SUFFIX': '%s_fmt',
         'FORMATTER_MODULE_NAME': 'format',
 
-        'VIEW_MODULE_NAME': 'viewlib',
+        'VIEW_MODULE_NAME': 'viewset',
 
         'TRANSLATOR_MODULE_NAME': 'translate',
 

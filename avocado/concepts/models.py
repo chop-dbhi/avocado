@@ -8,6 +8,7 @@ __all__ = ('ConceptCategory', 'Concept', 'ConceptField')
 
 class ConceptCategory(models.Model):
     name = models.CharField(max_length=100)
+    icon = models.FileField(upload_to='uploads/categories/')
 
     class Meta(object):
         verbose_name_plural = 'concept categories'

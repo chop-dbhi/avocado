@@ -2,7 +2,7 @@ from django.db import models
 
 from avocado.settings import settings
 from avocado.utils.mixins import create_mixin
-from avocado.criteria.viewlib import library
+from avocado.criteria.viewset import library
 
 fields = {}
 for name in library.view_types:

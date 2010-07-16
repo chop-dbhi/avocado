@@ -29,12 +29,12 @@ class FieldConceptAdminForm(forms.ModelForm):
                 (self.model.__name__, field_name)
             self._errors['field_name'] = self.error_class([msg])
         
-        # test `choices_callback'
-        choices_callback = cleaned_data['choices_callback']
-        if choices_callback and not self.instance._get_choices(choices_callback):
-            del cleaned_data['choices_callback']
+        # test `choices_handler'
+        choices_handler = cleaned_data['choices_handler']
+        if choices_handler and not self.instance._get_choices(choices_handler):
+            del cleaned_data['choices_handler']
             msg = 'The choices could not be evaluated'
-            self._errors['choices_callback'] = self.error_class([msg])
+            self._errors['choices_handler'] = self.error_class([msg])
         
         return cleaned_data
 

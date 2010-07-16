@@ -42,5 +42,9 @@ class ObjectSet(models.Model):
         transaction.set_dirty()
         transaction.commit_unless_managed()    
 
-
 post_syncdb.connect(signals.load_custom_sql)
+
+# bootstrap libraries
+import avocado.fields.translate
+import avocado.columns.format
+import avocado.criteria.viewset
