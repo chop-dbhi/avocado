@@ -20,13 +20,11 @@ class Column(Concept, ColumnMixin):
     fields = models.ManyToManyField(ModelField, through='ColumnField')
 
     class Meta(Concept.Meta):
-        verbose_name = 'column concept'
-        verbose_name_plural = 'column concepts'
+        pass
 
 
 class ColumnField(ConceptField):
     concept = models.ForeignKey(Column)
 
     class Meta(ConceptField.Meta):
-        verbose_name = 'column concept field'
-        verbose_name_plural = 'column concept fields'
+        pass

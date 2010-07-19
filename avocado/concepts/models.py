@@ -11,7 +11,7 @@ class Category(models.Model):
     icon = models.FileField(upload_to='uploads/categories/')
 
     class Meta(object):
-        verbose_name_plural = 'concept categories'
+        verbose_name_plural = 'categories'
         app_label = 'avocado'
         ordering = ('name',)
 

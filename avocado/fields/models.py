@@ -63,7 +63,7 @@ class ModelField(models.Model):
     class Meta:
         app_label = u'avocado'
         verbose_name = 'model field'
-        verbose_name_plural = 'mode field'
+        verbose_name_plural = 'model fields'
         unique_together = ('app_name', 'model_name', 'field_name')
 
     def __unicode__(self):
@@ -136,7 +136,7 @@ class ModelField(models.Model):
 
     def distribution(self, exclude=[], **filters):
         name = self.field_name
-        dist = self.model.objects.all()
+        dist = self.model.objects.values(name)
         
         # exclude certain values (e.g. None, or (empty string))
         if exclude:
@@ -147,7 +147,7 @@ class ModelField(models.Model):
             dist = dist.filter(**filters)
 
         dist = dist.annotate(count=Count(name)).values_list(name, 'count')
-        return dist
+        return list(dist)
 
     def query_string(self, operator=None, modeltree=None):
         if modeltree is None:

@@ -12,8 +12,7 @@ class Criterion(Concept):
     viewset = models.CharField(max_length=100, choices=library.choices())
 
     class Meta(Concept.Meta):
-        verbose_name = 'criterion concept'
-        verbose_name_plural = 'criterion concepts'
+        verbose_name_plural = 'criteria'
 
     def _get_form(self):
         if not hasattr(self, '_form'):
@@ -44,5 +43,4 @@ class CriterionField(ConceptField):
     concept = models.ForeignKey(Criterion)
 
     class Meta(ConceptField.Meta):
-        verbose_name = 'criterion concept field'
-        verbose_name_plural = 'criterion concept fields'
+        pass
