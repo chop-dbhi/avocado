@@ -6,11 +6,13 @@ from avocado.concepts.library import BaseLibrary
 class AbstractViewSet(object):
     "The AbstractViewSet class."
     order = ()
+    js = ''
+    css = ''
     
-    def __call__(self, *args, **kwargs):
-        return self._get_responses(*args, **kwargs)
+    def __call__(self, concept, *args, **kwargs):
+        return self._get_responses(concept, *args, **kwargs)
     
-    def _get_responses(self, *args, **kwargs):
+    def _get_responses(self, concept, *args, **kwargs):
         views = {}
         resps = []
 
@@ -20,7 +22,7 @@ class AbstractViewSet(object):
             
             method = getattr(self, name)
             if type(method) is MethodType:
-                resp = method(*args, **kwargs)
+                resp = method(concept, *args, **kwargs)
                 if not resp.has_key('tabname'):
                     resp['tabname'] = name.replace('_', ' ').title()
                 views[name] = resp
@@ -28,9 +30,18 @@ class AbstractViewSet(object):
         if self.order:
             for x in self.order:
                 resps.append(views.pop(x))
+
+        # add rest of un-ordered views
         resps.extend(views.values())
 
-        return resps
+        resp = {
+            'pk': concept.id,
+            'js': self.js or None,
+            'css': self.css or None,
+            'views': resps,
+        }
+
+        return resp
 
 
 class ViewSetLibrary(BaseLibrary):
