@@ -1,37 +1,57 @@
 from django import forms
 from django.db import models
 from django.db.models import Count
+from django.contrib.auth.models import Group
 from django.db.models.fields import FieldDoesNotExist
 
-from avocado.utils.iter import is_iter_not_string
-from avocado.concepts.models import Concept
-from avocado.fields.filters import library
+from avocado.settings import settings
+from avocado.concepts.models import Category
+from avocado.fields.translate import library
 
-__all__ = ('FieldConcept',)
+__all__ = ('ModelField',)
 
-class FieldConcept(Concept):
-    """The `FieldConcept' class stores off meta data about a "field of
+class ModelField(models.Model):
+    """The `ModelField' class stores off meta data about a "field of
     interest" located on another model. This, in a sense, provides a way to
     specify the fields that can be utilized by the query engine.
 
-    There three cases in which a "field of interest" should be stored:
+    There are three cases in which a "field of interest" should be stored:
 
         defintion/vocabulary - at the very least, storing off a field provides
         the ability specify a `description' and `keywords' (or aliases) associated
         with the field.
 
         queryability - the field can be associated with one or more
-        `CriterionConcepts'. at minimum, this provides the ability to query by
+        `Criterions'. at minimum, this provides the ability to query by
         this field. in a more complex scenario, the field can act as a dependent
         or dependency on other fields.
 
-        reporting - the field can be associated with one or more `ColumnConcepts'
+        reporting - the field can be associated with one or more `Columns'
         which allows for generating reports (results) in-browser or exporting to
         another format.
     """
-    model_label = models.CharField(max_length=100)
+    app_name = models.CharField(max_length=100)
+    model_name = models.CharField(max_length=100)
     field_name = models.CharField(max_length=100)
-    filter_name = models.CharField(max_length=100, choices=library.choices())
+    
+    name = models.CharField(max_length=100)
+    description = models.TextField(null=True, blank=True)
+    keywords = models.CharField(max_length=100, null=True, blank=True)
+    category = models.ForeignKey(Category, null=True, blank=True)
+    is_public = models.BooleanField(default=False)
+    order = models.PositiveSmallIntegerField(default=0, help_text='This ' \
+        'ordering is relative to the category this concept belongs to.')
+        
+    # search optimizations
+    search_doc = models.TextField(editable=False, null=True)
+
+    if settings.ENABLE_GROUP_PERMISSIONS:
+        groups = models.ManyToManyField(Group, blank=True)
+
+    translator = models.CharField(max_length=100, choices=library.choices())
+    
+    # specify a constrained list of choices for this field, applies for
+    # valiation and for display in the UI
     enable_choices = models.BooleanField(default=False)
     choices_handler = models.TextField(null=True, blank=True, help_text="""
         Allowed callbacks include specifying:
@@ -40,26 +60,31 @@ class FieldConcept(Concept):
             3. a string that can be evaluated
     """)
 
-    class Meta(Concept.Meta):
-        verbose_name = 'field concept'
-        verbose_name_plural = 'field concepts'
-        unique_together = ('model_label', 'field_name')
+    class Meta:
+        app_label = u'avocado'
+        verbose_name = 'model field'
+        verbose_name_plural = 'mode field'
+        unique_together = ('app_name', 'model_name', 'field_name')
 
     def __unicode__(self):
-        return u'%s' % self.name or '.'.join([self.model_label, self.field_name])
+        if self.name:
+            return u'%s' % self.name
+        name = '.'.join([self.app_name, self.model_name, self.field_name])
+        return u'%s' % name
 
     def _get_module(self):
+        "Used for referencing `choices', if enabled."
         if not hasattr(self, '_module'):
             self._module = __import__(self.model.__module__)
         return self._module
     module = property(_get_module)
 
-    def _get_model(self, model_label=None):
+    def _get_model(self, app_name=None, model_name=None):
         "Returns None if no model is found."
-        if not hasattr(self, '_model') or model_label:
-            model_label = model_label or self.model_label
-            al, ml = model_label.split('.')
-            self._model = models.get_model(al, ml)
+        if not hasattr(self, '_model') or (app_name and model_name):
+            app_name = app_name or self.app_name
+            model_name = model_name or self.model_name
+            self._model = models.get_model(app_name, model_name)
         return self._model
     model = property(_get_model)
 
@@ -111,18 +136,18 @@ class FieldConcept(Concept):
 
     def distribution(self, exclude=[], **filters):
         name = self.field_name
-        distribution = self.model.objects.all()
+        dist = self.model.objects.all()
         
         # exclude certain values (e.g. None, or (empty string))
         if exclude:
             kwarg = {str('%s__in' % name): exclude}
-            distribution = distribution.exclude(**kwarg)
+            dist = dist.exclude(**kwarg)
 
         if filters:
-            distribution = distribution.filter(**filters)
+            dist = dist.filter(**filters)
 
-        distribution = distribution.annotate(count=Count(name)).values_list(name, 'count')
-        return distribution
+        dist = dist.annotate(count=Count(name)).values_list(name, 'count')
+        return dist
 
     def query_string(self, operator=None, modeltree=None):
         if modeltree is None:
@@ -146,24 +171,24 @@ class FieldConcept(Concept):
 
         return formfield(label=label, widget=widget, **kwargs)
 
-    def clean_value(self, value, *args, **kwargs):
-        """Cleans the supplied value with respect to the formfield. If
-        `enable_choices' is true, it tests to ensure each value supplied
-        is a valid choice.
-        """
-        field = self.formfield(*args, **kwargs)
-
-        try:
-            if is_iter_not_string(value):
-                cleaned_value = map(field.clean, value)
-            else:
-                cleaned_value = field.clean(value)
-        except forms.ValidationError, e:
-            return (False, None, e.messages)
-
-
-        if self.enable_choices:
-            if not all(map(lambda x: x in self._db_choices, cleaned_value)):
-                return (False, None, ('Value(s) supplied is not a valid choice'))
-
-        return (True, cleaned_value, ())
+    # def clean_value(self, value, *args, **kwargs):
+    #     """Cleans the supplied value with respect to the formfield. If
+    #     `enable_choices' is true, it tests to ensure each value supplied
+    #     is a valid choice.
+    #     """
+    #     field = self.formfield(*args, **kwargs)
+    # 
+    #     try:
+    #         if is_iter_not_string(value):
+    #             cleaned_value = map(field.clean, value)
+    #         else:
+    #             cleaned_value = field.clean(value)
+    #     except forms.ValidationError, e:
+    #         return (False, None, e.messages)
+    # 
+    # 
+    #     if self.enable_choices:
+    #         if not all(map(lambda x: x in self._db_choices, cleaned_value)):
+    #             return (False, None, ('Value(s) supplied is not a valid choice'))
+    # 
+    #     return (True, cleaned_value, ())

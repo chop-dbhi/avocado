@@ -3,7 +3,7 @@ from django.db.models import Q
 
 from avocado.modeltree import ModelTree
 from avocado.exceptions import RegisterError
-from avocado.columns.models import ColumnConcept
+from avocado.columns.models import Column
 from avocado.fields.translate import TranslatorLibrary, SimpleTranslator
 from avocado.fields.cache import cache
 

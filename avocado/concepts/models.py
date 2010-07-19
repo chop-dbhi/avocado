@@ -4,9 +4,9 @@ from django.contrib.auth.models import Group
 from avocado.settings import settings
 from avocado.concepts.managers import ConceptManager
 
-__all__ = ('ConceptCategory', 'Concept', 'ConceptField')
+__all__ = ('Category', 'Concept', 'ConceptField')
 
-class ConceptCategory(models.Model):
+class Category(models.Model):
     name = models.CharField(max_length=100)
     icon = models.FileField(upload_to='uploads/categories/')
 
@@ -23,7 +23,7 @@ class Concept(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(null=True, blank=True)
     keywords = models.CharField(max_length=100, null=True, blank=True)
-    category = models.ForeignKey(ConceptCategory, null=True, blank=True)
+    category = models.ForeignKey(Category, null=True, blank=True)
     is_public = models.BooleanField(default=False)
     order = models.PositiveSmallIntegerField(default=0, help_text='This ' \
         'ordering is relative to the category this concept belongs to.')
@@ -46,10 +46,10 @@ class Concept(models.Model):
 
 
 class ConceptField(models.Model):
-    from avocado.fields.models import FieldConcept
+    from avocado.fields.models import ModelField
 
     order = models.SmallIntegerField(default=0)
-    field = models.ForeignKey(FieldConcept)
+    field = models.ForeignKey(ModelField)
 
     class Meta(object):
         abstract = True

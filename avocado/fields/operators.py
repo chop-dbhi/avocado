@@ -5,12 +5,16 @@ performed in the django ORM.
 Each class must provide a `clean' method that is_valids a given `value' is of
 the right length and in some cases, type.
 """
+import re
 
 from avocado.utils.iter import is_iter_not_string
 
 __all__ = ('exact', 'iexact', 'contains', 'inlist', 'lt', 'gt', 'lte', 'gte',
     'between', 'null', 'notbetween', 'notexact', 'notiexact', 'doesnotcontain',
     'notinlist', 'notnull')
+    
+FIELD_LOOKUPS = re.compile(r'(i?exact|i?contains|in|gte?|lte?|i?startswith'\
+    '|i?endswith|range|year|month|day|week_day|isnull|search|i?regex)')
 
 class Operator(object):
     short_name = ''

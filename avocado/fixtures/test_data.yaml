@@ -1,9 +1,9 @@
-- model: avocado.conceptcategory
+- model: avocado.category
   pk: 1
   fields:
     name: cat1
 
-- model: avocado.fieldconcept
+- model: avocado.modelfield
   pk: 1
   fields:
       name: f1
@@ -12,11 +12,12 @@
       category: 1
       is_public: true
       order: 0
-      model_label: avocado.columnconcept
+      app_name: avocado
+      model_name: column
       field_name: name
-      filter_name: Simple
+      translator: Simple
 
-- model: avocado.fieldconcept
+- model: avocado.modelfield
   pk: 2
   fields:
       name: f2
@@ -25,11 +26,12 @@
       category: 1
       is_public: true
       order: 0
-      model_label: avocado.columnconcept
+      app_name: avocado
+      model_name: column
       field_name: keywords
-      filter_name: Simple
+      translator: Simple
 
-- model: avocado.fieldconcept
+- model: avocado.modelfield
   pk: 3
   fields:
       name: f3
@@ -38,11 +40,12 @@
       category: 1
       is_public: true
       order: 0
-      model_label: avocado.fieldconcept
+      app_name: avocado
+      model_name: modelfield
       field_name: name
-      filter_name: Simple
+      translator: Simple
 
-- model: avocado.fieldconcept
+- model: avocado.modelfield
   pk: 4
   fields:
       name: f4
@@ -51,11 +54,12 @@
       category: 1
       is_public: true
       order: 0
-      model_label: avocado.fieldconcept
+      app_name: avocado
+      model_name: modelfield
       field_name: field_name
-      filter_name: Simple
+      translator: Simple
 
-- model: avocado.fieldconcept
+- model: avocado.modelfield
   pk: 5
   fields:
       name: f5
@@ -64,11 +68,12 @@
       category: 1
       is_public: true
       order: 0
-      model_label: avocado.fieldconcept
-      field_name: filter_name
-      filter_name: Simple
+      app_name: avocado
+      model_name: modelfield
+      field_name: translator
+      translator: Simple
 
-- model: avocado.columnconcept
+- model: avocado.column
   pk: 1
   fields:
     name: cc1
@@ -78,7 +83,7 @@
     is_public: true
     order: 0
 
-- model: avocado.columnconcept
+- model: avocado.column
   pk: 2
   fields:
     name: cc2
@@ -88,31 +93,31 @@
     is_public: true
     order: 1
 
-- model: avocado.columnconceptfield
+- model: avocado.columnfield
   pk: 1
   fields:
       concept: 1
       field: 1
 
-- model: avocado.columnconceptfield
+- model: avocado.columnfield
   pk: 2
   fields:
       concept: 1
       field: 2
 
-- model: avocado.columnconceptfield
+- model: avocado.columnfield
   pk: 3
   fields:
       concept: 2
       field: 3
 
-- model: avocado.columnconceptfield
+- model: avocado.columnfield
   pk: 4
   fields:
       concept: 2
       field: 4
 
-- model: avocado.criterionconcept
+- model: avocado.criterion
   pk: 1
   fields:
     name: cc1
@@ -122,7 +127,7 @@
     is_public: true
     order: 0
 
-- model: avocado.criterionconcept
+- model: avocado.criterion
   pk: 2
   fields:
     name: cc2
@@ -132,25 +137,25 @@
     is_public: true
     order: 1
 
-- model: avocado.criterionconceptfield
+- model: avocado.criterionfield
   pk: 1
   fields:
       concept: 1
       field: 1
 
-- model: avocado.criterionconceptfield
+- model: avocado.criterionfield
   pk: 2
   fields:
       concept: 1
       field: 2
 
-- model: avocado.criterionconceptfield
+- model: avocado.criterionfield
   pk: 3
   fields:
       concept: 1
       field: 3
 
-- model: avocado.criterionconceptfield
+- model: avocado.criterionfield
   pk: 4
   fields:
       concept: 2

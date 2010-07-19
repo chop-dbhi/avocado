@@ -6,7 +6,7 @@ from django.db import transaction, DEFAULT_DB_ALIAS
 from django.db.models.sql.query import RawQuery
 
 from avocado.settings import settings
-from avocado.models import CriterionConcept, ColumnConcept
+from avocado.models import Criterion, Column
 from avocado.criteria.utils import CriterionSet
 from avocado.columns.utils import ColumnSet, get_columns, get_column_orders
 # from avocado.columns.format import get_formatters
@@ -18,10 +18,10 @@ DEFAULT_COLUMN_ORDERING = settings.DEFAULT_COLUMN_ORDERING
 class QuerySessionCache(object):
     """Stores query results for a given session.
     
-        `criterion_concepts' - defines the CriterionConcept queryset which
+        `criterion_concepts' - defines the Criterion queryset which
         will be used to fetch and process user-defined conditions.
         
-        `column_concepts' - defines the ColumnConcept queryset which will
+        `column_concepts' - defines the Column queryset which will
         be used to fetch and process user-defined columns from for
         reporting purposes.
         
@@ -83,8 +83,8 @@ class QuerySessionCache(object):
         return dict_
 
     def __setstate__(self, dict_):
-        criterion_concepts = CriterionConcept.objects.all()
-        column_concepts = ColumnConcept.objects.all()
+        criterion_concepts = Criterion.objects.all()
+        column_concepts = Column.objects.all()
 
         criterion_concepts.query = dict_.pop('criterion_query')
         column_concepts.query = dict_.pop('column_query')

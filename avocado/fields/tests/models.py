@@ -1,23 +1,23 @@
 from django.test import TestCase
 from django import forms
 
-from avocado.columns.models import ColumnConcept
-from avocado.fields.models import FieldConcept
+from avocado.columns.models import Column
+from avocado.fields.models import ModelField
 
-__all__ = ('FieldConceptTestCase',)
+__all__ = ('ModelFieldTestCase',)
 
-class FieldConceptTestCase(TestCase):
+class ModelFieldTestCase(TestCase):
     fixtures = ['test_data.yaml']
     
     def test_base(self):
-        fc = FieldConcept.objects.get(pk=1)
+        fc = ModelField.objects.get(pk=1)
         
-        self.assertEqual(fc.model, ColumnConcept)
-        self.assertEqual(fc.field, ColumnConcept._meta.get_field_by_name('name')[0])
+        self.assertEqual(fc.model, Column)
+        self.assertEqual(fc.field, Column._meta.get_field_by_name('name')[0])
         self.assertTrue(isinstance(fc.formfield(), forms.CharField))
     
     def test_formfield(self):
-        fc = FieldConcept.objects.get(pk=3)
+        fc = ModelField.objects.get(pk=3)
         
         self.assertTrue(isinstance(fc.formfield(), forms.CharField))
         self.assertTrue(isinstance(fc.formfield(formfield=forms.ChoiceField),
@@ -30,7 +30,7 @@ class FieldConceptTestCase(TestCase):
         self.assertTrue(isinstance(ff.widget, forms.SelectMultiple))
     
     def test_choices(self):
-        fc = FieldConcept.objects.get(pk=3)
+        fc = ModelField.objects.get(pk=3)
         
         # choices not enabled
         self.assertEqual(fc.choices, None)
@@ -66,6 +66,6 @@ class FieldConceptTestCase(TestCase):
         self.assertEqual(fc.choices, (('foo', 'Foo'), ('bar', 'Bar')))
     
     # def test_coords(self):
-    #     fc = FieldConcept.objects.get(pk=1)
+    #     fc = ModelField.objects.get(pk=1)
     #     self.assertEqual(fc.coords, [(u'cc1', 1), (u'cc2', 1)])
         

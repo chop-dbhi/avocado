@@ -1,31 +1,31 @@
 """
-The ColumnConcept class takes an optional setting, 'COLUMN_CONCEPT_MIXIN' which
+The Column class takes an optional setting, 'COLUMN_CONCEPT_MIXIN' which
 defines an abstract Model class that can provide references to additional
 fields.
 
 The most typical scenario for using this setting is to specify 'formatter'
-fields for the ColumnConcept class to use.
+fields for the Column class to use.
 """
 
 from django.db import models
 
 from avocado.concepts.models import Concept, ConceptField
-from avocado.fields.models import FieldConcept
-from avocado.columns.mixins import ColumnConceptMixin
+from avocado.fields.models import ModelField
+from avocado.columns.mixins import ColumnMixin
 
-__all__ = ('ColumnConcept', 'ColumnConceptField')
+__all__ = ('Column', 'ColumnField')
 
-class ColumnConcept(Concept, ColumnConceptMixin):
+class Column(Concept, ColumnMixin):
     "An interface to specify the necessary fields for a column."
-    fields = models.ManyToManyField(FieldConcept, through='ColumnConceptField')
+    fields = models.ManyToManyField(ModelField, through='ColumnField')
 
     class Meta(Concept.Meta):
         verbose_name = 'column concept'
         verbose_name_plural = 'column concepts'
 
 
-class ColumnConceptField(ConceptField):
-    concept = models.ForeignKey(ColumnConcept)
+class ColumnField(ConceptField):
+    concept = models.ForeignKey(Column)
 
     class Meta(ConceptField.Meta):
         verbose_name = 'column concept field'

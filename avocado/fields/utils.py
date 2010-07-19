@@ -1,12 +1,11 @@
-import re
-
 from django.db.models.query_utils import Q
 
 from avocado.modeltree import ModelTree, DEFAULT_MODEL_TREE
-from avocado.fields.models import FieldConcept
+from avocado.fields.models import ModelField
 from avocado.fields.cache import cache
+from avocado.fields.operators import FIELD_LOOKUPS
 
-class AmbiguousFieldName(Exception):
+class AmbiguousField(Exception):
     pass
 
 
@@ -23,47 +22,43 @@ class M(Q):
         nkwargs = {}
         for key, value in kwargs.items():
             toks = key.split('__')
-            toks_len = len(toks)
             
-            concept = operator = None
+            field_id = app_name = model_name = field_name = operator = None
             
-            # test for special pk syntax, e.g. _100 or _100__gt
-            if re.match(r'_\d+', toks[0]):
-                if toks_len > 2:
-                    raise TypeError, 'invalid pk syntax'
-                concept_id = int(toks[0][1:])
-                if toks_len == 2:
-                    operator = toks[1]
-                concept = cache.get(concept_id)
-            else:        
-                app_label = model_label = field_name = None
-                # myfield
-                if toks_len == 1:
-                    field_name = toks[0]
-                # myfield__gt
-                elif toks_len == 2:
-                    field_name, operator = toks
-                # myapp__mymodel__myfield
-                elif toks_len == 3:
-                    app_label, model_label, field_name = toks
-                # myapp__mymodel__myfield__gt
-                elif toks_len == 4:
-                    app_label, model_label, field_name, operator = toks
+            # set operator if exists
+            if len(toks) > 1:
+                if FIELD_LOOKUPS.match(toks[-1]):
+                    operator = toks.pop(-1)
+            
+            # field_id or field_name
+            tok = toks.pop(-1)
+            if tok.startswith('_'):
+                field_id = int(tok[1:])
+            else:
+                field_name = tok
+            
+            # model_name
+            if len(toks) == 1:
+                model_name = toks[0]
+            # app_name and model_name
+            elif len(toks) == 2:
+                app_name, model_name = toks
+                
     
-                concept = self._get_field(field_name, app_label, model_label)
+            field = self._get_field(field_id, app_name, model_name, field_name)
 
-            skey = concept.query_string(operator, self.modeltree)
+            skey = field.query_string(operator, self.modeltree)
             nkwargs[skey] = value
 
         return super(M, self).__init__(**nkwargs)
     
-    def _get_field(self, field_name, app_label=None, model_label=None):
-        if app_label and model_label:
-            return cache.get(model_label='.'.join([app_label, model_label]),
+    def _get_field(self, field_id=None, app_name=None, model_name=None, field_name=None):
+        if field_id or (app_name and model_name):
+            return cache.get(field_id=field_id, app_name=app_name, model_name=model_name,
                 field_name=field_name)
 
         # non-optimized lookup that can result in multiple objects returned
         try:
-            return FieldConcept.objects.get(field_name=field_name)
-        except FieldConcept.MultipleObjectsReturned:
-            raise AmbiguousFieldName, 'Ambiguous field "%s"'
+            return ModelField.objects.get(field_name=field_name)
+        except ModelField.MultipleObjectsReturned:
+            raise AmbiguousField, 'Ambiguous field "%s"'

@@ -1,11 +1,11 @@
 from django.contrib import admin
 
 from avocado.concepts.admin import ConceptAdmin
-from avocado.fields.models import FieldConcept
-from avocado.fields.forms import FieldConceptAdminForm
+from avocado.fields.models import ModelField
+from avocado.fields.forms import ModelFieldAdminForm
 
-class FieldConceptAdmin(ConceptAdmin):
-    form = FieldConceptAdminForm
+class ModelFieldAdmin(ConceptAdmin):
+    form = ModelFieldAdminForm
 
 
-admin.site.register(FieldConcept, FieldConceptAdmin)
+admin.site.register(ModelField, ModelFieldAdmin)

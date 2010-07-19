@@ -39,6 +39,6 @@ class ConceptCache(object):
             concept = self.get(concept_id, queryset, ret_val)
             if concept == ret_val:
                 return ret_val
-            fields = list(concept.fields.order_by('criterionconceptfield__order'))
+            fields = list(concept.fields.order_by('criterionfield__order'))
             cache.set(key, fields)
         return fields

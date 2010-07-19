@@ -10,4 +10,4 @@ for name in library.format_types:
     fields[fn] = models.CharField('%s formatter' % name, max_length=100,
         choices=library.choices(name))
 
-ColumnConceptMixin = create_mixin('ColumnConceptMixin', __name__, fields)
+ColumnMixin = create_mixin('ColumnMixin', __name__, fields)

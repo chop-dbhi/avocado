@@ -1,7 +1,7 @@
 from django.utils.datastructures import SortedDict
 
 from avocado.concepts.utils import ConceptSet
-from avocado.columns.models import ColumnConcept
+from avocado.columns.models import Column
 from avocado.columns.cache import cache
 
 def get_columns(concept_ids, queryset=None):
@@ -29,7 +29,7 @@ class ColumnSet(ConceptSet):
     of adding additional columns and adding column ordering.
     """
     def __setstate__(self, dict_):
-        queryset = ColumnConcept.objects.all()
+        queryset = Column.objects.all()
         super(ColumnSet, self).__setstate__(dict_, queryset)
 
     def add_columns(self, queryset, concepts):
@@ -53,7 +53,7 @@ class ColumnSet(ConceptSet):
         return queryset
 
     def add_ordering(self, queryset, concept_orders):
-        """Applies column ordering to a queryset. Resolves a ColumnConcept's
+        """Applies column ordering to a queryset. Resolves a Column's
         fields and generates the `order_by' paths.
         """
         queryset.query.clear_ordering()

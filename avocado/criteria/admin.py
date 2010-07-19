@@ -1,15 +1,15 @@
 from django.contrib import admin
 
 from avocado.concepts.admin import ConceptAdmin
-from avocado.criteria.models import CriterionConceptField, CriterionConcept
+from avocado.criteria.models import CriterionField, Criterion
 
-class CriterionConceptFieldInline(admin.TabularInline):
-    model = CriterionConceptField
+class CriterionFieldInline(admin.TabularInline):
+    model = CriterionField
 
 
-class CriterionConceptAdmin(ConceptAdmin):
+class CriterionAdmin(ConceptAdmin):
     list_display = ('name', 'is_public', 'category')
-    inlines = (CriterionConceptFieldInline,)
+    inlines = (CriterionFieldInline,)
 
 
-admin.site.register(CriterionConcept, CriterionConceptAdmin)
+admin.site.register(Criterion, CriterionAdmin)

@@ -2,13 +2,13 @@ from django import forms
 from django.db import models
 
 from avocado.concepts.models import Concept, ConceptField
-from avocado.fields.models import FieldConcept
+from avocado.fields.models import ModelField
 from avocado.criteria.viewset import library
 
-__all__ = ('CriterionConcept', 'CriterionConceptField')
+__all__ = ('Criterion', 'CriterionField')
 
-class CriterionConcept(Concept):
-    fields = models.ManyToManyField(FieldConcept, through='CriterionConceptField')
+class Criterion(Concept):
+    fields = models.ManyToManyField(ModelField, through='CriterionField')
     viewset = models.CharField(max_length=100, choices=library.choices())
 
     class Meta(Concept.Meta):
@@ -24,12 +24,12 @@ class CriterionConcept(Concept):
             for f in fields:
                 form_fields[f.field_name] = f.formfield()
 
-            class CriterionConceptForm(forms.Form):
+            class CriterionForm(forms.Form):
                 def __init__(self, *args, **kwargs):
-                    super(CriterionConceptForm, self).__init__(*args, **kwargs)
+                    super(CriterionForm, self).__init__(*args, **kwargs)
                     self.fields.update(form_fields)
             
-            self._form = CriterionConceptForm
+            self._form = CriterionForm
         return self._form
     form = property(_get_form)
     
@@ -40,8 +40,8 @@ class CriterionConcept(Concept):
     view_responses = property(_get_view_responses)
 
 
-class CriterionConceptField(ConceptField):
-    concept = models.ForeignKey(CriterionConcept)
+class CriterionField(ConceptField):
+    concept = models.ForeignKey(Criterion)
 
     class Meta(ConceptField.Meta):
         verbose_name = 'criterion concept field'

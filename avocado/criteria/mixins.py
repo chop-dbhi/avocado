@@ -10,4 +10,4 @@ for name in library.view_types:
     fields[fn] = models.CharField(max_length=100,
         choices=library.choices(name), null=True, blank=True)
 
-CriterionConceptMixin = create_mixin('CriterionConceptMixin', __name__, fields)
+CriterionMixin = create_mixin('CriterionMixin', __name__, fields)

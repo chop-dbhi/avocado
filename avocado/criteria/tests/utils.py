@@ -3,7 +3,7 @@ import cPickle as pickle
 from django.test import TestCase
 
 from avocado.modeltree import ModelTree
-from avocado.criteria.models import CriterionConcept
+from avocado.criteria.models import Criterion
 from avocado.criteria.utils import CriterionSet, get_criteria
 
 __all__ = ('CriterionUtilsTestCase', 'CriterionSetTestCase')
@@ -12,8 +12,8 @@ class CriterionUtilsTestCase(TestCase):
     fixtures = ['test_data.yaml']
 
     def test_get_criteria(self):
-        cc1 = CriterionConcept.objects.get(id=1)
-        cc2 = CriterionConcept.objects.get(id=2)
+        cc1 = Criterion.objects.get(id=1)
+        cc2 = Criterion.objects.get(id=2)
 
         criteria = get_criteria([1])
         self.assertEqual(criteria, [cc1])
@@ -29,8 +29,8 @@ class CriterionSetTestCase(TestCase):
     fixtures = ['test_data.yaml']
 
     def setUp(self):
-        concepts = CriterionConcept.objects.public()
-        modeltree = ModelTree(CriterionConcept)
+        concepts = Criterion.objects.public()
+        modeltree = ModelTree(Criterion)
 
         self.set = CriterionSet(concepts, modeltree)
 

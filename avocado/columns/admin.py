@@ -1,14 +1,14 @@
 from django.contrib import admin
 
 from avocado.concepts.admin import ConceptAdmin
-from avocado.columns.models import ColumnConcept, ColumnConceptField
+from avocado.columns.models import Column, ColumnField
 
-class ColumnConceptFieldInline(admin.TabularInline):
-    model = ColumnConceptField
-
-
-class ColumnConceptAdmin(ConceptAdmin):
-    inlines = (ColumnConceptFieldInline,)
+class ColumnFieldInline(admin.TabularInline):
+    model = ColumnField
 
 
-admin.site.register(ColumnConcept, ColumnConceptAdmin)
+class ColumnAdmin(ConceptAdmin):
+    inlines = (ColumnFieldInline,)
+
+
+admin.site.register(Column, ColumnAdmin)

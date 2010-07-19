@@ -1,54 +1,56 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.cache import cache as _cache
 
-from avocado.fields.models import FieldConcept
+from avocado.fields.models import ModelField
 
-class FieldConceptCache(object):
-    def __init__(self, model_name):
-        self.id_key = ':'.join(['avocado', model_name, '%s'])
-        self.label_key = ':'.join(['avocado', model_name, '%s', '%s'])
-        self.field_id_key = ':'.join(['avocado', model_name, '%s', 'fields'])
-        self.field_label_key = ':'.join(['avocado', model_name, '%s', '%s', 'fields'])
+class ModelFieldCache(object):
+    def __init__(self, class_name):
+        self.id_key = ':'.join(['avocado', class_name, '%s'])
+        self.label_key = ':'.join(['avocado', class_name, '%s', '%s', '%s'])
+        self.field_id_key = ':'.join(['avocado', class_name, '%s', 'fields'])
+        self.field_label_key = ':'.join(['avocado', class_name, '%s', '%s', '%s', 'fields'])
     
-    def get(self, concept_id=None, model_label=None, field_name=None, queryset=None, ret_val=None):
-        "Simple interface for getting (and setting) a concept from global cache."
-        if not concept_id and not (model_label and field_name):
+    def get(self, field_id=None, app_name=None, model_name=None, field_name=None, queryset=None, ret_val=None):
+        "Simple interface for getting (and setting) a field from global cache."
+        if not field_id and not (app_name and model_name and field_name):
             raise RuntimeError, 'not enough lookup params defined'
 
         if queryset is None:
-            queryset = FieldConcept.objects.all()
+            queryset = ModelField.objects.all()
 
-        if concept_id:
-            key = self.id_key % concept_id
-            kwargs = {'id': concept_id}
+        if field_id:
+            key = self.id_key % field_id
+            kwargs = {'id': field_id}
         else:
-            key = self.label_key % (model_label, field_name)
-            kwargs = {'model_label': model_label, 'field_name': field_name}
+            key = self.label_key % (app_name, model_name, field_name)
+            kwargs = {'app_name': app_name, 'model_name': model_name,
+                'field_name': field_name}
 
-        concept = _cache.get(key, None)
-        if concept is None:
+        field = _cache.get(key, None)
+        if field is None:
             try:
-                concept = queryset.get(**kwargs)
+                field = queryset.get(**kwargs)
             except ObjectDoesNotExist:
                 return ret_val
             # create other key and set a reference to the object for both keys
-            if concept_id:
-                skey = self.label_key % (concept.model_label, concept.field_name)
+            if field_id:
+                skey = self.label_key % (field.app_name, field.model_name,
+                    field.field_name)
             else:
-                skey = self.id_key % concept.id
+                skey = self.id_key % field.id
 
-            _cache.set(key, concept)
-            _cache.set(skey, concept)
+            _cache.set(key, field)
+            _cache.set(skey, field)
 
-        return concept
+        return field
 
     def get_many(self, ids_or_labels, queryset=None):
-        "Returns a generator of concept objects."
-        for x in iter(ids_or_labels):
-            if type(x) is int or str(x).isdigit():
-                yield self.get(concept_id=x, queryset=queryset)
+        "Returns a generator of field objects."
+        for args in iter(ids_or_labels):
+            if type(args) is int or str(args).isdigit():
+                yield self.get(args, queryset=queryset)
             else:
-                yield self.get(model_label=x[0], field_name=x[1], queryset=queryset)
+                yield self.get(None, *args, queryset=queryset)
 
 
-cache = FieldConceptCache(FieldConcept.__name__.lower())
+cache = ModelFieldCache(ModelField.__name__.lower())

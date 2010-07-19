@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.core.cache import cache as djcache
 
 from avocado.criteria.cache import cache
-from avocado.models import CriterionConcept
+from avocado.models import Criterion
 
 __all__ = ('CriterionCacheTestCase',)
 
@@ -20,7 +20,7 @@ class CriterionCacheTestCase(TestCase):
 
         djcache.delete(key)
 
-        queryset = CriterionConcept.objects.none()
+        queryset = Criterion.objects.none()
         concept = cache.get(concept_id, queryset=queryset)
         self.assertEqual(concept, None)
         self.assertFalse(djcache.has_key(key))

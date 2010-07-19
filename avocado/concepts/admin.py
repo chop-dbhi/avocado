@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from avocado.concepts.models import ConceptCategory
+from avocado.concepts.models import Category
 
 def make_public(modeladmin, request, queryset):
     queryset.update(is_public=True)
@@ -40,4 +40,4 @@ class EditorsConceptAdmin(admin.ModelAdmin):
         }),
     )
 
-admin.site.register(ConceptCategory)
+admin.site.register(Category)

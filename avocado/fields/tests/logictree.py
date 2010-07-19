@@ -4,13 +4,13 @@ from django.core.cache import cache
 
 from avocado.modeltree import ModelTree
 from avocado.fields.logictree import LogicTree
-from avocado.models import ColumnConcept
+from avocado.models import Column
 
 class LogicTreeTestCase(TestCase):
     fixtures = ['test_data.yaml']
 
     def setUp(self):
-        self.logictree = LogicTree(ModelTree(ColumnConcept))
+        self.logictree = LogicTree(ModelTree(Column))
         cache.clear()
 
     def test_single_field(self):

@@ -1,5 +1,5 @@
 from avocado.concepts.utils import ConceptSet
-from avocado.criteria.models import CriterionConcept
+from avocado.criteria.models import Criterion
 from avocado.criteria.cache import cache
 
 def get_criteria(concept_ids, queryset=None):
@@ -26,7 +26,7 @@ class CriterionSet(ConceptSet):
     about each criterion.
     """
     def __setstate__(self, dict_):
-        queryset = CriterionConcept.objects.all()
+        queryset = Criterion.objects.all()
         super(CriterionSet, self).__setstate__(dict_, queryset)
 
     def _get_filters(self, concepts):
