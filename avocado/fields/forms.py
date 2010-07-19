@@ -1,5 +1,5 @@
 from django import forms
-from django import models
+from django.db import models
 
 from avocado.fields.models import ModelField
 
