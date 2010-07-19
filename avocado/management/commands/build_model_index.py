@@ -16,8 +16,8 @@ class Command(LabelCommand):
     label = '<app_name.model_name> | <app_name>'
     
     option_list = LabelCommand.option_list + (
-        make_option('--no-categories', action='store_true',
-            dest='no_categories', default=False,
+        make_option('--no-categories', action='store_false',
+            dest='use_categories', default=True,
             help='Do not create categories.'),
     )
     
@@ -25,7 +25,7 @@ class Command(LabelCommand):
         models.OneToOneField, models.ForeignKey)
     
     def __init__(self, *args, **kwargs):
-        super(Command, self).super(*args, **kwargs)
+        super(Command, self).__init__(*args, **kwargs)
         self._categories = {}
     
     def _get_category(self, model_name):
@@ -37,34 +37,32 @@ class Command(LabelCommand):
         return category
     
     def handle_label(self, label, **options):
-        """Handles and `app_label' or `app_label'.`model_label' formats."""
-        print options
+        "Handles and `app_label' or `app_label'.`model_label' formats."
         labels = label.split('.')
-        _models = None
+        mods = None
+        use_categories = options.get('use_categories')
         
         if len(labels) == 2:
             model = models.get_model(*labels)
             if model is None:
                 print 'Cannot find model "%s", skipping...' % label
                 return
-            _models = [model]
-        elif len(labels) == 1:
-            _models = models.get_models(*labels)
-            if _models is None:
+            mods = [model]
+        else:
+            app = models.get_app(*labels)
+            mods = models.get_models(app)
+            if mods is None:
                 print 'Cannot find app "%s", skipping...' % label
                 return
-        else:
-            print 'Unknown label "%s", skipping...' % label
-            return
         
         app_name = labels[0]
 
-        for model in _models:
+        for model in mods:
             cnt = 0
 
             model_name = model.__name__
             
-            if False:
+            if use_categories:
                 category = self._get_category(model_name)
 
             for field in model._meta.fields:
@@ -75,7 +73,7 @@ class Command(LabelCommand):
 
                 kwargs = {
                     'app_name': app_name.lower(),
-                    'model_label': model_name.lower(),
+                    'model_name': model_name.lower(),
                     'field_name': field.name,
                 }
 
@@ -89,7 +87,7 @@ class Command(LabelCommand):
 
                 model_field = ModelField(**kwargs)
                 
-                if False:
+                if use_categories:
                     model_field.category = category
                     
                 model_field.is_public = False
