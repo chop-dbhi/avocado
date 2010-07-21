@@ -10,7 +10,7 @@ class Settings(object):
 
         'TRANSLATOR_MODULE_NAME': 'translate',
 
-        'MODEL_TREE_MODELS': None,
+        'MODELTREE_MODELS': None,
 
         'DEFAULT_COLUMN_ORDERING': None,
         'DEFAULT_COLUMNS': None,

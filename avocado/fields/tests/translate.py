@@ -27,8 +27,8 @@ class TranslatorLibraryTestCase(TestCase):
         self.assertRaises(RegisterError, library.register, FooTranslator)
 
     def test_simple_filter(self):
-        f = SimpleTranslator()
+        t = SimpleTranslator()
         c = cache.get(1)
 
-        self.assertEqual(str(f('iexact', 'foo', c)), str(Q(name__iexact=u'foo')))
+        self.assertEqual(str(t('iexact', 'foo', c)), str(Q(name__iexact=u'foo')))
 

@@ -46,10 +46,7 @@ class Concept(models.Model):
 
 
 class ConceptField(models.Model):
-    from avocado.fields.models import ModelField
-
     order = models.SmallIntegerField(default=0)
-    field = models.ForeignKey(ModelField)
 
     class Meta(object):
         abstract = True

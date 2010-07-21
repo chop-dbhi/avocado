@@ -10,7 +10,7 @@ class LogicTreeTestCase(TestCase):
     fixtures = ['test_data.yaml']
 
     def setUp(self):
-        self.logictree = LogicTree(ModelTree(Column))
+        self.logictree = LogicTree()
         cache.clear()
 
     def test_single_field(self):
@@ -21,7 +21,7 @@ class LogicTreeTestCase(TestCase):
             'value': 'foobar'
         }]
 
-        q = self.logictree.parse(nodes)
+        q = self.logictree.collapse(nodes)
         self.assertEqual(str(q), str(Q(name__iexact='foobar')))
 
     def test_single_conditions(self):
@@ -41,13 +41,13 @@ class LogicTreeTestCase(TestCase):
             }]
         }]
 
-        q1 = self.logictree.parse(nodes)
+        q1 = self.logictree.collapse(nodes)
         q2 = Q(name__icontains='test') & Q(keywords__exact='test2')
         self.assertEqual(str(q1), str(q2))
 
         nodes[0]['operator'] = 'or'
 
-        q3 = self.logictree.parse(nodes)
+        q3 = self.logictree.collapse(nodes)
         q4 = Q(name__icontains='test') | Q(keywords__exact='test2')
         self.assertEqual(str(q3), str(q4))
 
@@ -77,6 +77,6 @@ class LogicTreeTestCase(TestCase):
             }]
         }]
 
-        q1 = self.logictree.parse(nodes)
+        q1 = self.logictree.collapse(nodes)
         q2 = Q(name__in=['one', 'two']) & (Q(fields__name__exact='foobar') | Q(fields__name__exact='barbaz'))
         self.assertEqual(str(q1), str(q2))

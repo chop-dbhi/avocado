@@ -41,6 +41,7 @@ class Criterion(Concept):
 
 class CriterionField(ConceptField):
     concept = models.ForeignKey(Criterion)
+    field = models.ForeignKey(ModelField)
 
     class Meta(ConceptField.Meta):
         pass

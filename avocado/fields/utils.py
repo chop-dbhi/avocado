@@ -1,6 +1,6 @@
 from django.db.models.query_utils import Q
 
-from avocado.modeltree import ModelTree, DEFAULT_MODEL_TREE
+from avocado.modeltree import ModelTree, DEFAULT_MODELTREE
 from avocado.fields.models import ModelField
 from avocado.fields.cache import cache
 from avocado.fields.operators import FIELD_LOOKUPS
@@ -12,7 +12,7 @@ class AmbiguousField(Exception):
 class M(Q):
     # a reference to a modeltree instance is set, so that it can be dynamically
     # changed at runtime
-    modeltree = DEFAULT_MODEL_TREE
+    modeltree = DEFAULT_MODELTREE
     
     def __init__(self, modeltree=None, **kwargs):
         modeltree = modeltree or self.modeltree

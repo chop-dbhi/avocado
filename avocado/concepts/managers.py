@@ -6,22 +6,20 @@ from django.utils import stopwords
 
 from avocado.settings import settings
 
-def tokenize_search_str(search_str):
-    "Strips stopwords and tokenizes search string if not already a list."
-    if isinstance(search_str, basestring):
-        # TODO determine appropriate characters that should be retained
-        cleaned_str = re.sub('[^\w\s@-]+', '', search_str)
-        tok_str = stopwords.strip_stopwords(cleaned_str)
-        toks = tok_str.split()
-    else:
-        toks = list(search_str)
-
-    return toks
-
-
 class ConceptManager(models.Manager):
     use_for_related_fields = True
     
+    def _tokenize(self, search_str):
+        "Strips stopwords and tokenizes search string if not already a list."
+        if isinstance(search_str, basestring):
+            # TODO determine appropriate characters that should be retained
+            sanitized_str = re.sub('[^\w\s@-]+', '', search_str)
+            cleaned_str = stopwords.strip_stopwords(sanitized_str)
+            toks = cleaned_str.split()
+        else:
+            toks = list(search_str)
+        return toks
+
     def public(self, *args, **kwargs):
         return self.get_query_set().filter(*args, is_public=True, **kwargs)
 
@@ -47,7 +45,7 @@ class ConceptManager(models.Manager):
         if base_queryset is None:
             base_queryset = self.get_query_set()
 
-        toks = tokenize_search_str(search_str)
+        toks = self._tokenize(search_str)
         tok_str = '&'.join(toks)
 
         queryset = base_queryset.extra(where=('search_tsv @@ to_tsquery(%s)',),
@@ -68,7 +66,7 @@ class ConceptManager(models.Manager):
         else:
             queryset = base_queryset.all()
 
-        toks = tokenize_search_str(search_str)
+        toks = self._tokenize(search_str)
 
         for t in toks:
             queryset = queryset.filter(search_doc__icontains=t)

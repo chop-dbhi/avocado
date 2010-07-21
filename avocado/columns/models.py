@@ -25,6 +25,7 @@ class Column(Concept, ColumnMixin):
 
 class ColumnField(ConceptField):
     concept = models.ForeignKey(Column)
+    field = models.ForeignKey(ModelField)
 
     class Meta(ConceptField.Meta):
         pass

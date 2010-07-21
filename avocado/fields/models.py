@@ -150,11 +150,18 @@ class ModelField(models.Model):
         return list(dist)
 
     def query_string(self, operator=None, modeltree=None):
-        if modeltree is None:
-            from avocado.modeltree import DEFAULT_MODEL_TREE
-            modeltree = DEFAULT_MODEL_TREE
+        if not modeltree:
+            from avocado.modeltree import DEFAULT_MODELTREE
+            modeltree = DEFAULT_MODELTREE
         nodes = modeltree.path_to(self.model)
         return modeltree.query_string(nodes, self.field_name, operator)
+    
+    def q(self, value, operator=None, modeltree=None):
+        if not modeltree:
+            from avocado.modeltree import DEFAULT_MODELTREE
+            modeltree = DEFAULT_MODELTREE
+        nodes = modeltree.path_to(self.model)
+        return modeltree.q(nodes, self.field_name, value, operator)
 
     def formfield(self, formfield=None, widget=None, **kwargs):
         "Returns the default `formfield' instance for the `field' type."

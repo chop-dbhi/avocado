@@ -3,7 +3,7 @@ from django.db.models import Q
 
 from avocado.settings import settings
 
-__all__ = ('ModelTreeNode', 'ModelTree', 'DEFAULT_MODEL_TREE')
+__all__ = ('ModelTreeNode', 'ModelTree', 'DEFAULT_MODELTREE')
 
 class ModelTreeNode(object):
     def __init__(self, model, parent=None, rel_type=None, rel_is_reversed=None,
@@ -410,12 +410,12 @@ class ModelTree(object):
         return zip(node_path, accessor_names)
 
 
-if not settings.MODEL_TREE_MODELS:
-    raise RuntimeError, 'The settings "MODEL_TREE_MODELS" must be set'
+if not settings.MODELTREE_MODELS:
+    raise RuntimeError, 'The settings "MODELTREE_MODELS" must be set'
 
 mods = []
-for label in settings.MODEL_TREE_MODELS:
+for label in settings.MODELTREE_MODELS:
     app_label, model_label = label.split('.')
     mods.append(models.get_model(app_label, model_label))
-DEFAULT_MODEL_TREE = ModelTree(mods.pop(0), exclude=mods)
-del mods
+
+DEFAULT_MODELTREE = ModelTree(mods.pop(0), exclude=mods)
