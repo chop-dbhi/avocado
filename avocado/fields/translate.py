@@ -14,13 +14,13 @@ class AbstractTranslator(object):
     operators = None
     formfield = None
 
-    def __call__(self, operator, value, concept):
-        fieldtype = MODEL_FIELD_MAP[concept.field.__class__.__name__]
+    def __call__(self, operator, value, mfield, **kwargs):
+        fieldtype = MODEL_FIELD_MAP[mfield.field.__class__.__name__]
         if not self.operators:
             self.operators = fieldtype.operators
         if not self.formfield:
             self.formfield = fieldtype.formfield
-        return self.translate(operator, value, concept)
+        return self.translate(operator, value, mfield=mfield, **kwargs)
 
     def _get_operators(self):
         if not hasattr(self, '__operators'):
@@ -28,23 +28,23 @@ class AbstractTranslator(object):
         return self.__operators
     _operators = property(_get_operators)
 
-    def _clean_operator(self, operator, field=None):
+    def _clean_operator(self, operator, **kwargs):
         if not self._operators.has_key(operator):
             raise OperatorNotPermitted, 'operator "%s" cannot be used for this translator' % operator
         return self._operators[operator]
 
-    def _clean_value(self, value, concept=None):
+    def _clean_value(self, value, **kwargs):
         field = self.formfield()
         return field.clean(value)
 
-    def validate(self, operator, value, concept=None):
-        clean_op = self._clean_operator(operator, concept)
-        clean_val = self._clean_value(value, concept)
+    def validate(self, operator, value, **kwargs):
+        clean_op = self._clean_operator(operator, **kwargs)
+        clean_val = self._clean_value(value, **kwargs)
         return clean_op, clean_val
 
-    def translate(self, operator, value, concept):
-        clean_operator, clean_value = self.validate(operator, value, concept)
-        query_string = concept.query_string(operator)
+    def translate(self, operator, value, mfield, **kwargs):
+        clean_operator, clean_value = self.validate(operator, value, **kwargs)
+        query_string = mfield.query_string(operator)
         kwarg = {query_string: clean_value}
         return Q(**kwarg)
 

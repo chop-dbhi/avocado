@@ -1,34 +1,78 @@
-from avocado.fields.cache import cache
+from avocado.fields.cache import cache as fieldcache
+from avocado.criteria.cache import cache as critcache
 from avocado.modeltree import DEFAULT_MODELTREE
 
-class LogicTree(object):
-    def __init__(self, modeltree=DEFAULT_MODELTREE):
+class ModelFieldNode(object):
+    "Contains information for a single query condition."
+    def __init__(self, fid, operator, value, cid=None,
+        modeltree=DEFAULT_MODELTREE):
+
+        self.fid = fid
+        self.cid = cid
+        self.operator = operator
+        self.value = value
         self.modeltree = modeltree
 
-    def _combine(self, op, q1, q2):
-        if op == 'or':
+    def _get_field(self):
+        if not hasattr(self, '_field'):
+            self._field = fieldcache.get(self.fid)
+        return self._field
+    field = property(_get_field)
+
+    def _get_criterion(self):
+        if not hasattr(self, '_criterion'):
+            self._criterion = critcache.get(self.cid)
+        return self._criterion
+    criterion = property(_get_criterion)
+
+    def _get_q(self):
+        if not hasattr(self, '_q'):
+            self._q = self.field.q(self.value, self.operator, self.modeltree)
+        return self._q
+    q = property(_get_q)
+
+
+class LogicNode(object):
+    "Provides a logical relationship between it's children."
+    def __init__(self, operator, **kwargs):
+        self.operator = operator
+        self.children = []
+        self._collapsed = None
+
+    def _combine(self, q1, q2):
+        if self.operator.upper() == 'OR':
             return q1 | q2
         return q1 & q2
 
-    def _q(self, concept_id, operator, value):
-        field = cache.get(concept_id)
-        return field.q(value, operator, modeltree=self.modeltree)
+    def _get_q(self):
+        if not hasattr(self, '_q'):
+            q = None
+            for node in self.children:
+                if q:
+                    q = self._combine(node.q, q)
+                else:
+                    q = node.q
+            self._q = q
+        return self._q
+    q = property(_get_q)
 
-    def collapse(self, nodes, bitop=None):
-        cq = None
 
-        # iterate over siblings. siblings relate based on `bitop'
-        for node in nodes:
-            ntype, operator = node['type'], node['operator']
+class LogicTree(object):
+    "Transforms a tree of raw dicts to nodes."
+    def __init__(self, modeltree=DEFAULT_MODELTREE):
+        self.modeltree = modeltree
 
-            if ntype == 'logic':
-                q = self.collapse(node['children'], operator)
-            elif ntype == 'field':
-                q = self._q(node['id'], operator, node['value'])
+    def transform(self, raw_node, pnode=None):
+        "Takes the raw data structure and converts it into the node tree."
+        if raw_node.has_key('children'):
+            node = LogicNode(raw_node['operator'])
+            for child in raw_node['children']:
+                self.transform(child, node)
+        else:
+            node = ModelFieldNode(modeltree=self.modeltree, **raw_node)
 
-            if cq is None:
-                cq = q
-            else:
-                cq = self._combine(bitop, cq, q)
+        # top level node returns, i.e. no parent node
+        if pnode is None:
+            return node
 
-        return cq
+        pnode.children.append(node)

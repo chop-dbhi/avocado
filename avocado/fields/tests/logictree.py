@@ -2,9 +2,7 @@ from django.test import TestCase
 from django.db.models import Q
 from django.core.cache import cache
 
-from avocado.modeltree import ModelTree
 from avocado.fields.logictree import LogicTree
-from avocado.models import Column
 
 class LogicTreeTestCase(TestCase):
     fixtures = ['test_data.yaml']
@@ -14,69 +12,62 @@ class LogicTreeTestCase(TestCase):
         cache.clear()
 
     def test_single_field(self):
-        nodes = [{
-            'type': 'field',
-            'id': 1,
+        raw_node = {
+            'fid': 1,
+            'cid': 1,
             'operator': 'iexact',
             'value': 'foobar'
-        }]
+        }
 
-        q = self.logictree.collapse(nodes)
+        q = self.logictree.transform(raw_node).q
         self.assertEqual(str(q), str(Q(name__iexact='foobar')))
 
     def test_single_conditions(self):
-        nodes = [{
-            'type': 'logic',
+        raw_node = {
             'operator': 'and',
             'children': [{
-                'type': 'field',
-                'id': 1,
+                'fid': 1,
                 'operator': 'icontains',
                 'value': 'test'
             }, {
-                'type': 'field',
-                'id': 2,
+                'fid': 2,
                 'operator': 'exact',
                 'value': 'test2'
             }]
-        }]
+        }
 
-        q1 = self.logictree.collapse(nodes)
-        q2 = Q(name__icontains='test') & Q(keywords__exact='test2')
+        q1 = self.logictree.transform(raw_node).q
+        q2 = Q(keywords__exact='test2') & Q(name__icontains='test')
         self.assertEqual(str(q1), str(q2))
 
-        nodes[0]['operator'] = 'or'
+        raw_node['operator'] = 'or'
 
-        q3 = self.logictree.collapse(nodes)
-        q4 = Q(name__icontains='test') | Q(keywords__exact='test2')
+        q3 = self.logictree.transform(raw_node).q
+        q4= Q(keywords__exact='test2') | Q(name__icontains='test')
         self.assertEqual(str(q3), str(q4))
 
     def test_multi_level_condition(self):
-        nodes = [{
-            'type': 'logic',
+        raw_node = {
             'operator': 'and',
             'children': [{
-                'type': 'field',
-                'id': 1,
+                'fid': 1,
                 'operator': 'in',
                 'value': ['one', 'two'],
             }, {
-                'type': 'logic',
                 'operator': 'or',
                 'children': [{
-                    'type': 'field',
-                    'id': 3,
+                    'fid': 3,
                     'operator': 'exact',
                     'value': 'foobar'
                 }, {
-                    'type': 'field',
-                    'id': 3,
+                    'fid': 3,
                     'operator': 'exact',
                     'value': 'barbaz'
                 }]
             }]
-        }]
+        }
 
-        q1 = self.logictree.collapse(nodes)
-        q2 = Q(name__in=['one', 'two']) & (Q(fields__name__exact='foobar') | Q(fields__name__exact='barbaz'))
+        q1 = self.logictree.transform(raw_node).q
+        q2 = (Q(fields__name__exact='barbaz') | Q(fields__name__exact='foobar')) & Q(name__in=['one', 'two'])
+
         self.assertEqual(str(q1), str(q2))

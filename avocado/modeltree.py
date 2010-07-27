@@ -379,7 +379,7 @@ class ModelTree(object):
             else:
                 connections.extend(node.join_connections[1:])
         return connections
-    
+
     def add_joins(self, model, queryset):
         clone = queryset._clone()
         nodes = self.path_to(model)

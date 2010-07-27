@@ -12,7 +12,7 @@ from avocado.utils.iter import is_iter_not_string
 __all__ = ('exact', 'iexact', 'contains', 'inlist', 'lt', 'gt', 'lte', 'gte',
     'between', 'null', 'notbetween', 'notexact', 'notiexact', 'doesnotcontain',
     'notinlist', 'notnull')
-    
+
 FIELD_LOOKUPS = re.compile(r'(i?exact|i?contains|in|gte?|lte?|i?startswith'\
     '|i?endswith|range|year|month|day|week_day|isnull|search|i?regex)')
 
@@ -42,15 +42,13 @@ class PrimitiveOperator(Operator):
     def is_valid(self, value):
         if not is_iter_not_string(value):
             return True
-        return False#, 'Expected a string or non-sequence type, instead got %r' % value        
-
+        return False
 
 class SequenceOperator(Operator):
     def is_valid(self, value):
         if is_iter_not_string(value):
             return True
-        return False#, 'Expected a non-string sequence type, instead got %r' % value
-
+        return False
 
 class iExact(PrimitiveOperator):
     short_name = '='

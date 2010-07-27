@@ -33,7 +33,7 @@ class ModelField(models.Model):
     app_name = models.CharField(max_length=100)
     model_name = models.CharField(max_length=100)
     field_name = models.CharField(max_length=100)
-    
+
     name = models.CharField(max_length=100)
     description = models.TextField(null=True, blank=True)
     keywords = models.CharField(max_length=100, null=True, blank=True)
@@ -41,7 +41,7 @@ class ModelField(models.Model):
     is_public = models.BooleanField(default=False)
     order = models.PositiveSmallIntegerField(default=0, help_text='This ' \
         'ordering is relative to the category this concept belongs to.')
-        
+
     # search optimizations
     search_doc = models.TextField(editable=False, null=True)
 
@@ -49,7 +49,7 @@ class ModelField(models.Model):
         groups = models.ManyToManyField(Group, blank=True)
 
     translator = models.CharField(max_length=100, choices=library.choices())
-    
+
     # specify a constrained list of choices for this field, applies for
     # valiation and for display in the UI
     enable_choices = models.BooleanField(default=False)
@@ -100,44 +100,39 @@ class ModelField(models.Model):
 
     def _get_choices(self, choices_handler=None):
         if not hasattr(self, '_choices') or choices_handler:
-            self._choices = None
-            if self.enable_choices or choices_handler:
-                self._choices = ()
+            choices = None
+            if self.enable_choices:
                 choices_handler = choices_handler or self.choices_handler
 
+                # use introspection
                 if not choices_handler:
                     name = self.field_name
                     choices = list(self.model.objects.values_list(name,
                         flat=True).order_by(name).distinct())
                     choices = zip(choices, map(lambda x: x.title(), choices))
-                else:
-                    from avocado.fields import parsers
-                    funcs = (
-                        (parsers.model_attr, (self.model, choices_handler)),
-                        (parsers.module_attr, (self.module, choices_handler)),
-                        (parsers.eval_choices, (choices_handler,)),
-                    )
 
-                    for func, attrs in funcs:
-                        try:
-                            choices = tuple(func(*attrs))
-                            break
-                        except TypeError:
-                            pass
-                    else:
-                        choices = None
-                self._choices = choices
+                # attempt to evaluate custom handler
+                else:
+                    from avocado.fields import evaluators
+                    choices = evaluators.evaluate(self)
+
+            self._choices = choices
         return self._choices
     choices = property(_get_choices)
 
-    def _db_choices(self):
+    def _get_raw_choices(self):
         if self.choices is not None:
             return map(lambda x: x[0], self.choices)
+    raw_choices = property(_get_raw_choices)
+
+    def reset_choices(self):
+        if hasattr(self, '_choices'):
+            delattr(self, '_choices')
 
     def distribution(self, exclude=[], **filters):
         name = self.field_name
         dist = self.model.objects.values(name)
-        
+
         # exclude certain values (e.g. None, or (empty string))
         if exclude:
             kwarg = {str('%s__in' % name): exclude}
@@ -155,7 +150,7 @@ class ModelField(models.Model):
             modeltree = DEFAULT_MODELTREE
         nodes = modeltree.path_to(self.model)
         return modeltree.query_string(nodes, self.field_name, operator)
-    
+
     def q(self, value, operator=None, modeltree=None):
         if not modeltree:
             from avocado.modeltree import DEFAULT_MODELTREE
