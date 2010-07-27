@@ -16,27 +16,36 @@ class AbstractTranslator(object):
     formfield = None
 
     def __call__(self, modelfield, operator, value, modeltree=None, **kwargs):
+        self._setup(modelfield)
+        try:
+            return self.translate(modelfield, operator, value, modeltree, **kwargs)
+        finally:
+            self._cleanup()
+    
+    def _setup(self, modelfield):
         fieldtype = MODEL_FIELD_MAP[modelfield.field.__class__.__name__]
 
-        if not self.operators:
-            self.operators = fieldtype.operators
-        if not self.formfield:
-            self.formfield = fieldtype.formfield
-        return self.translate(modelfield, operator, value, modeltree, **kwargs)
-
-    def _get_operators(self):
-        if not hasattr(self, '__operators'):
-            self.__operators = dict([(x.uid, x) for x in self.operators])
-        return self.__operators
-    _operators = property(_get_operators)
+        operators = self.operators
+        if not operators:
+            operators = fieldtype.operators
+        self._operators = dict([(x.uid, x) for x in fieldtype.operators])
+        
+        formfield = self.formfield
+        if not formfield:
+            formfield = fieldtype.formfield
+        self._formfield = formfield
+    
+    def _cleanup(self):
+        hasattr(self, '_operators') and delattr(self, '_operators')
+        hasattr(self, '_formfield') and delattr(self, '_formfield')
 
     def _clean_operator(self, operator):
         if not self._operators.has_key(operator):
             raise OperatorNotPermitted, 'operator "%s" cannot be used for this translator' % operator
-        return self._operators[operator].operator
+        return self._operators[operator]
 
     def _clean_value(self, value):
-        field = self.formfield()
+        field = self._formfield()
         if is_iter_not_string(value):
             return map(field.clean, value)
         return field.clean(value)
@@ -53,8 +62,11 @@ class AbstractTranslator(object):
 class DefaultTranslator(AbstractTranslator):
     def translate(self, modelfield, operator, value, modeltree, **kwargs):
         operator, value = self.validate(operator, value)
-        key = modelfield.query_string(operator, modeltree)
+        key = modelfield.query_string(operator.operator, modeltree)
         kwarg = {key: value}
+        
+        if operator.negated:
+            return ~Q(**kwarg)
         return Q(**kwarg)
 
 
