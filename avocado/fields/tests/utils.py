@@ -19,34 +19,34 @@ class MTestCase(TestCase):
         self.assertRaises(RuntimeError, M, failing__test=4)
         
     def test_variations(self):
-        concepts = Column.objects.filter(M(translator='Simple'))
-        self.assertEqual(len(concepts), 4)
+        concepts = Column.objects.filter(M(field_name='keywords'))
+        self.assertEqual(len(concepts), 1)
         
-        concepts = Column.objects.filter(M(translator__icontains='Sim'))
-        self.assertEqual(len(concepts), 4)
+        concepts = Column.objects.filter(M(field_name__icontains='key'))
+        self.assertEqual(len(concepts), 1)
         
-        concepts = Column.objects.filter(M(avocado__modelfield__translator='Simple'))
-        self.assertEqual(len(concepts), 4)
+        concepts = Column.objects.filter(M(avocado__modelfield__field_name='keywords'))
+        self.assertEqual(len(concepts), 1)
         
-        concepts = Column.objects.filter(M(avocado__modelfield__translator__icontains='Sim'))
-        self.assertEqual(len(concepts), 4)
+        concepts = Column.objects.filter(M(avocado__modelfield__field_name__icontains='key'))
+        self.assertEqual(len(concepts), 1)
         M.modeltree = None
         
         concepts = Column.objects.filter(M(ORIG_MODEL_TREE,
-            translator='Simple'))
-        self.assertEqual(len(concepts), 4)
+            field_name='keywords'))
+        self.assertEqual(len(concepts), 1)
         
         concepts = Column.objects.filter(M(ORIG_MODEL_TREE,
-            translator__icontains='Sim'))
-        self.assertEqual(len(concepts), 4)
+            field_name__icontains='key'))
+        self.assertEqual(len(concepts), 1)
         
         concepts = Column.objects.filter(M(ORIG_MODEL_TREE,
-            avocado__modelfield__translator='Simple'))
-        self.assertEqual(len(concepts), 4)
+            avocado__modelfield__field_name='keywords'))
+        self.assertEqual(len(concepts), 1)
         
         concepts = Column.objects.filter(M(ORIG_MODEL_TREE,
-            avocado__modelfield__translator__icontains='Sim'))
-        self.assertEqual(len(concepts), 4)
+            avocado__modelfield__field_name__icontains='key'))
+        self.assertEqual(len(concepts), 1)
 
     def test_ambiguous(self):
         self.assertRaises(AmbiguousField, M, name='Foo')

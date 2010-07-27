@@ -32,6 +32,12 @@ class Operator(object):
 
     def __repr__(self):
         return str(self.__class__)
+    
+    def _get_uid(self):
+        if self.negated:
+            return '~%s' % self.operator
+        return '%s' % self.operator
+    uid = property(_get_uid)
 
     def is_valid(self, value):
         "Cleans and verifies `value' can be used for this operator."
@@ -49,6 +55,15 @@ class SequenceOperator(Operator):
         if is_iter_not_string(value):
             return True
         return False
+
+
+class Exact(PrimitiveOperator):
+    "Only used with boolean fields. Use `iexact' otherwise."
+    short_name = '='
+    verbose_name = 'is equal to'
+    operator = 'exact'
+exact = Exact()
+
 
 class iExact(PrimitiveOperator):
     short_name = '='
@@ -99,14 +114,6 @@ class Null(PrimitiveOperator):
 null = Null()
 
 
-class Exact(PrimitiveOperator):
-    "Only used with boolean fields. Use `iexact' otherwise."
-    short_name = '='
-    verbose_name = 'is equal to'
-    operator = 'exact'
-exact = Exact()
-
-
 class InList(SequenceOperator):
     short_name = 'in list'
     verbose_name = 'is in list'
@@ -122,7 +129,7 @@ class Between(SequenceOperator):
     def is_valid(self, value):
         if is_iter_not_string(value) and len(value) == 2:
             return True
-        return False#, 'Two values expected'
+        return False
 between = Between()
 
 

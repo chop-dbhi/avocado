@@ -15,7 +15,7 @@
       app_name: avocado
       model_name: column
       field_name: name
-      translator: Simple
+      translator: null
 
 - model: avocado.modelfield
   pk: 2
@@ -29,7 +29,7 @@
       app_name: avocado
       model_name: column
       field_name: keywords
-      translator: Simple
+      translator: null
 
 - model: avocado.modelfield
   pk: 3
@@ -43,7 +43,7 @@
       app_name: avocado
       model_name: modelfield
       field_name: name
-      translator: Simple
+      translator: null
 
 - model: avocado.modelfield
   pk: 4
@@ -57,7 +57,7 @@
       app_name: avocado
       model_name: modelfield
       field_name: field_name
-      translator: Simple
+      translator: null
 
 - model: avocado.modelfield
   pk: 5
@@ -71,7 +71,7 @@
       app_name: avocado
       model_name: modelfield
       field_name: translator
-      translator: Simple
+      translator: null
 
 - model: avocado.column
   pk: 1

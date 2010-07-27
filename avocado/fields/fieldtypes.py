@@ -30,7 +30,7 @@ class FieldType(object):
         if not self.operators:
             raise NotImplementedError, 'subclasses must have at least one ' \
                 'operator associated with it'
-        self._operators = dict([(x.operator, x) for x in self.operators])
+        self._operators = dict([(x.uid, x) for x in self.operators])
 
     def get_operator(self, operator):
         try:
@@ -50,7 +50,8 @@ class NumberType(FieldType):
 
 
 class CharField(FieldType):
-    operators = (iexact, notiexact, contains, doesnotcontain, null, notnull)
+    operators = (iexact, notiexact, contains, doesnotcontain,
+        inlist, notinlist, null, notnull)
 
 
 class IntegerField(NumberType):

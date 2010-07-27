@@ -48,7 +48,8 @@ class ModelField(models.Model):
     if settings.ENABLE_GROUP_PERMISSIONS:
         groups = models.ManyToManyField(Group, blank=True)
 
-    translator = models.CharField(max_length=100, choices=library.choices())
+    translator = models.CharField(max_length=100, choices=library.choices(),
+        blank=True, null=True)
 
     # specify a constrained list of choices for this field, applies for
     # valiation and for display in the UI
@@ -155,9 +156,12 @@ class ModelField(models.Model):
         if not modeltree:
             from avocado.modeltree import DEFAULT_MODELTREE
             modeltree = DEFAULT_MODELTREE
-        nodes = modeltree.path_to(self.model)
-        return modeltree.q(nodes, self.field_name, value, operator)
-
+        
+        trans = library.get(self.translator)
+        if trans is None:
+            trans = library.default
+        return trans(self, operator, value, modeltree)
+        
     def formfield(self, formfield=None, widget=None, **kwargs):
         "Returns the default `formfield' instance for the `field' type."
         if formfield is None:

@@ -20,7 +20,7 @@ class LogicTreeTestCase(TestCase):
         }
 
         q = self.logictree.transform(raw_node).q
-        self.assertEqual(str(q), str(Q(name__iexact='foobar')))
+        self.assertEqual(str(q), str(Q(name__iexact=u'foobar')))
 
     def test_single_conditions(self):
         raw_node = {
@@ -31,19 +31,19 @@ class LogicTreeTestCase(TestCase):
                 'value': 'test'
             }, {
                 'fid': 2,
-                'operator': 'exact',
+                'operator': 'iexact',
                 'value': 'test2'
             }]
         }
 
         q1 = self.logictree.transform(raw_node).q
-        q2 = Q(keywords__exact='test2') & Q(name__icontains='test')
+        q2 = Q(keywords__iexact=u'test2') & Q(name__icontains=u'test')
         self.assertEqual(str(q1), str(q2))
 
         raw_node['operator'] = 'or'
 
         q3 = self.logictree.transform(raw_node).q
-        q4= Q(keywords__exact='test2') | Q(name__icontains='test')
+        q4= Q(keywords__iexact=u'test2') | Q(name__icontains=u'test')
         self.assertEqual(str(q3), str(q4))
 
     def test_multi_level_condition(self):
@@ -57,17 +57,17 @@ class LogicTreeTestCase(TestCase):
                 'operator': 'or',
                 'children': [{
                     'fid': 3,
-                    'operator': 'exact',
+                    'operator': 'iexact',
                     'value': 'foobar'
                 }, {
                     'fid': 3,
-                    'operator': 'exact',
+                    'operator': 'iexact',
                     'value': 'barbaz'
                 }]
             }]
         }
 
         q1 = self.logictree.transform(raw_node).q
-        q2 = (Q(fields__name__exact='barbaz') | Q(fields__name__exact='foobar')) & Q(name__in=['one', 'two'])
+        q2 = (Q(fields__name__iexact=u'barbaz') | Q(fields__name__iexact=u'foobar')) & Q(name__in=[u'one', u'two'])
 
         self.assertEqual(str(q1), str(q2))
