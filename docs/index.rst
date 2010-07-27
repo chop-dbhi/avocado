@@ -3,15 +3,20 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to django-avocado's documentation!
+Avocado's Documentation
 ==========================================
 
 Contents:
 
 .. toctree::
 
-   intro
-   concepts
+    intro
+    concepts
+    modelfield
+    criterion
+    column
+    translators
+   
 
 Indices and tables
 ==================
