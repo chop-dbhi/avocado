@@ -1,3 +1,5 @@
+import inspect
+
 from django.db import models
 from django.db.models import Q
 
@@ -20,7 +22,8 @@ class ModelTreeNode(object):
 
             `parent' - a reference to the parent ModelTreeNode
 
-            `parent_model' - a reference to the `parent' model
+            `parent_model' - a reference to the `parent' model, since it may be
+            None
 
             `rel_type' - denotes the _kind_ of relationship with the
             following possibilities: 'manytomany', 'onetoone', or 'foreignkey'.
@@ -48,6 +51,7 @@ class ModelTreeNode(object):
 
         self.parent = parent
         self.parent_model = parent and parent.model or None
+        
         self.rel_type = rel_type
         self.rel_is_reversed = rel_is_reversed
         self.related_name = related_name
@@ -147,30 +151,123 @@ class ModelTree(object):
         defined
 
         `exclude' - a list of models that are not to be added to the tree
+        
+        `join_routes' - 
     """
-    def __init__(self, root_model, exclude=()):
-        if not root_model or not issubclass(root_model, models.Model):
-            raise TypeError, 'root_model must be a Model subclass'
-        self.root_model = root_model
-        self.exclude = exclude
+    def __init__(self, root_model, exclude=(), routes=()):
+        self.root_model = self._get_model(root_model)
+        self.exclude = map(self._get_model, exclude)
+        
+        self._rts, self._tos = self._build_routes(routes)
+        
         self._tree_hash = {}
-        self._exclude = frozenset(exclude)
-        self._node_path = None
+    
+    def _get_model(self, label):
+        # models class
+        if inspect.isclass(label) and issubclass(label, models.Model):
+            return label
+        # passed as a label string
+        elif isinstance(label, basestring):
+            app_label, model_label = label.lower().split('.')
+            model = models.get_model(app_label, model_label)
+            if model:
+                return model
+        raise TypeError, 'model "%s" could not be found' % label
+
+    def _build_routes(self, routes):
+        rts = {}
+        tos = {}
+
+        for route in routes:
+            # unpack
+            from_label, to_label, join_field, symmetrical = route
+
+            # get models
+            from_model = self._get_model(from_label)
+            to_model = self._get_model(to_label)
+
+            # get field
+            if join_field is not None:
+                model_name, field_name = join_field.split('.')
+                model_name = model_name.lower()
+            
+                if model_name == from_model.__name__.lower():
+                    field = from_model._meta.get_field_by_name(field_name)[0]
+                elif model_name == to_model.__name__.lower():
+                    field = to_model._meta.get_field_by_name(field_name)[0]
+                else:
+                    raise TypeError, 'model for join_field, "%s", does not match' % field_name
+            
+                if field is None:
+                    raise TypeError, 'field "%s" not found'
+            else:
+                field = None
+            
+            if field:
+                rts[(from_model, to_model)] = field
+                if symmetrical:
+                    rts[(to_model, from_model)] = field
+            else:
+                tos[to_model] = from_model
+        
+        return rts, tos
+            
 
     def _filter_one2one(self, field):
         if isinstance(field, models.OneToOneField):
+            # route has been defined with a specific field required
+            tup = (field.model, field.rel.to)
+            # skip if not the correct field
+            if self._rts.has_key(tup) and self._rts.get(tup) is not field:
+                return
             return field
 
     def _filter_related_one2one(self, rel):
-        if isinstance(rel.field, models.OneToOneField):
+        field = rel.field
+        if isinstance(field, models.OneToOneField):
+            # route has been defined with a specific field required
+            tup = (rel.model, field.model)
+            # skip if not the correct field
+            if self._rts.has_key(tup) and self._rts.get(tup) is not field:
+                return
             return rel
 
     def _filter_fk(self, field):
         if isinstance(field, models.ForeignKey):
+            # route has been defined with a specific field required
+            tup = (field.model, field.rel.to)
+            # skip if not the correct field
+            if self._rts.has_key(tup) and self._rts.get(tup) is not field:
+                return
             return field
 
     def _filter_related_fk(self, rel):
-        if isinstance(rel.field, models.ForeignKey):
+        field = rel.field
+        if isinstance(field, models.ForeignKey):
+            # route has been defined with a specific field required
+            tup = (rel.model, field.model)
+            # skip if not the correct field
+            if self._rts.has_key(tup) and self._rts.get(tup) is not field:
+                return
+            return rel
+
+    def _filter_m2m(self, field):
+        if isinstance(field, models.ManyToManyField):
+            # route has been defined with a specific field required
+            tup = (field.model, field.rel.to)
+            # skip if not the correct field
+            if self._rts.has_key(tup) and self._rts.get(tup) is not field:
+                return
+            return field
+
+    def _filter_related_m2m(self, rel):
+        field = rel.field
+        if isinstance(field, models.ManyToManyField):
+            # route has been defined with a specific field required
+            tup = (rel.model, field.model)
+            # skip if not the correct field
+            if self._rts.has_key(tup) and self._rts.get(tup) is not field:
+                return
             return rel
 
     def _add_node(self, parent, model, rel_type, rel_is_reversed, related_name,
@@ -178,27 +275,41 @@ class ModelTree(object):
         """Adds a node to the tree only if a node of the same `model' does not
         already exist in the tree with smaller depth. If the node is added, the
         tree traversal continues finding the node's relations.
+        
+        Conditions in which the node will fail to be added:
+        
+            - the model is excluded completely
+            - the model is going back the same path is came
+            - the model is circling back to the root_model
+            - the model does not come from the parent.model (via _tos)
         """
-        if model in self._exclude:
+        exclude = set(self.exclude + [parent.parent_model, self.root_model])
+        
+        
+        # ignore excluded models and prevent circular paths
+        if model in exclude:
             return
 
-        # check to make sure circular references don't exist
-        if model not in (self.root_model, parent.parent_model):
-            # don't add node if a path with a shorter depth exists
-            node_hash = self._tree_hash.get(model, None)
-            if not node_hash or node_hash['depth'] > depth:
-                if node_hash:
-                    node_hash['parent'].remove_child(model)
+        # if a route exists, only allow the model to be added if coming from the 
+        # specified parent.model
+        if self._tos.has_key(model) and self._tos.get(model) is not parent.model:
+            return
+            
+        # don't add node if a path with a shorter depth exists
+        node_hash = self._tree_hash.get(model, None)
+        if not node_hash or node_hash['depth'] > depth:
+            if node_hash:
+                node_hash['parent'].remove_child(model)
 
-                node = ModelTreeNode(model, parent, rel_type, rel_is_reversed,
-                    related_name, accessor_name, depth)
+            node = ModelTreeNode(model, parent, rel_type, rel_is_reversed,
+                related_name, accessor_name, depth)
 
-                self._tree_hash[model] = {'parent': parent, 'depth': depth,
-                    'node': node}
+            self._tree_hash[model] = {'parent': parent, 'depth': depth,
+                'node': node}
 
-                node = self._find_relations(node, depth)
-                parent.children.append(node)
-                del node
+            node = self._find_relations(node, depth)
+            parent.children.append(node)
+            del node
 
     def _find_relations(self, node, depth=0):
         """Finds all relations given a node.
@@ -207,21 +318,24 @@ class ModelTree(object):
         'through' models being bound as a ForeignKey relationship.
         """
         depth += 1
+    
+        model = node.model
+        
+        # determine relational fields to determine paths
+        forward_fields = model._meta.fields
+        reverse_fields = model._meta.get_all_related_objects()
 
-        model_fields = node.model._meta.fields
-        related_fields = node.model._meta.get_all_related_objects()
+        forward_o2o = filter(self._filter_one2one, forward_fields)
+        reverse_o2o = filter(self._filter_related_one2one, reverse_fields)
 
-        o2o_on_model = filter(self._filter_one2one, model_fields)
-        related_o2o = filter(self._filter_related_one2one, related_fields)
+        forward_fk = filter(self._filter_fk, forward_fields)
+        reverse_fk = filter(self._filter_related_fk, reverse_fields)
 
-        fk_on_model = filter(self._filter_fk, model_fields)
-        related_fk = filter(self._filter_related_fk, related_fields)
-
-        m2m_fields = node.model._meta.many_to_many
-        related_m2m = node.model._meta.get_all_related_many_to_many_objects()
-
+        forward_m2m = filter(self._filter_m2m, model._meta.many_to_many)
+        reverse_m2m = filter(self._filter_related_m2m, model._meta.get_all_related_many_to_many_objects())
+        
         # iterate m2m relations
-        for f in m2m_fields:
+        for f in forward_m2m:
             kwargs = {
                 'parent': node,
                 'model': f.rel.to,
@@ -234,20 +348,20 @@ class ModelTree(object):
             self._add_node(**kwargs)
 
         # iterate over related m2m fields
-        for f in related_m2m:
+        for r in reverse_m2m:
             kwargs = {
                 'parent': node,
-                'model': f.model,
+                'model': r.model,
                 'rel_type': 'manytomany',
                 'rel_is_reversed': True,
-                'related_name': f.field.related_query_name(),
-                'accessor_name': f.get_accessor_name(),
+                'related_name': r.field.related_query_name(),
+                'accessor_name': r.get_accessor_name(),
                 'depth': depth,
             }
             self._add_node(**kwargs)
 
         # iterate over one2one fields
-        for f in o2o_on_model:
+        for f in forward_o2o:
             kwargs = {
                 'parent': node,
                 'model': f.rel.to,
@@ -260,20 +374,20 @@ class ModelTree(object):
             self._add_node(**kwargs)
 
         # iterate over related one2one fields
-        for f in related_o2o:
+        for r in reverse_o2o:
             kwargs = {
                 'parent': node,
-                'model': f.model,
+                'model': r.model,
                 'rel_type': 'onetoone',
                 'rel_is_reversed': True,
-                'related_name': f.field.related_query_name(),
-                'accessor_name': f.get_accessor_name(),
+                'related_name': r.field.related_query_name(),
+                'accessor_name': r.get_accessor_name(),
                 'depth': depth,
             }
             self._add_node(**kwargs)
 
         # iterate over fk fields
-        for f in fk_on_model:
+        for f in forward_fk:
             kwargs = {
                 'parent': node,
                 'model': f.rel.to,
@@ -286,14 +400,14 @@ class ModelTree(object):
             self._add_node(**kwargs)
 
         # iterate over related foreign keys
-        for f in related_fk:
+        for r in reverse_fk:
             kwargs = {
                 'parent': node,
-                'model': f.model,
+                'model': r.model,
                 'rel_type': 'foreignkey',
                 'rel_is_reversed': True,
-                'related_name': f.field.related_query_name(),
-                'accessor_name': f.get_accessor_name(),
+                'related_name': r.field.related_query_name(),
+                'accessor_name': r.get_accessor_name(),
                 'depth': depth,
             }
             self._add_node(**kwargs)
@@ -318,19 +432,27 @@ class ModelTree(object):
             if mpath:
                 return mpath
 
-    def path_to(self, end_model):
+    def path_to(self, model):
         "Returns a list of nodes thats defines the path of traversal."
-        return self._find_path(end_model, self.root_node)
+        model = self._get_model(model)
+        return self._find_path(model, self.root_node)
 
-    def path_to_with_root(self, end_model):
+    def path_to_with_root(self, model):
         """Returns a list of nodes thats defines the path of traversal
         including the root node.
         """
-        return self._find_path(end_model, self.root_node, [self.root_node])
+        model = self._get_model(model)
+        return self._find_path(model, self.root_node, [self.root_node])
 
     def get_node_by_model(self, model):
         "Finds the node with the specified model."
-        return self._tree_hash[model]['node']
+        model = self._get_model(model)
+        if not self._tree_hash:
+            self.root_node
+        val = self._tree_hash.get(model, None)
+        if val is None:
+            return
+        return val['node']
 
     def query_string(self, node_path, field_name, operator=None):
         "Returns a query string given a path"
@@ -374,6 +496,8 @@ class ModelTree(object):
         return connections
 
     def add_joins(self, model, queryset):
+        model = self._get_model(model)
+
         clone = queryset._clone()
         nodes = self.path_to(model)
         conns = self.get_all_join_connections(nodes)
@@ -405,10 +529,4 @@ class ModelTree(object):
 
 if not settings.MODELTREE_MODELS:
     raise RuntimeError, 'The settings "MODELTREE_MODELS" must be set'
-
-mods = []
-for label in settings.MODELTREE_MODELS:
-    app_label, model_label = label.split('.')
-    mods.append(models.get_model(app_label, model_label))
-
-DEFAULT_MODELTREE = ModelTree(mods.pop(0), exclude=mods)
+DEFAULT_MODELTREE = ModelTree(settings.MODELTREE_MODELS[0], exclude=settings.MODELTREE_MODELS[1:])
