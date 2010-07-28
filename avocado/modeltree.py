@@ -55,16 +55,9 @@ class ModelTreeNode(object):
         self.depth = depth
 
         self.children = []
-
-    def _get_parent_db_table(self):
-        "Returns the `parent_model' database table name."
-        return self.parent_model._meta.db_table
-    parent_db_table = property(_get_parent_db_table)
-
-    def _get_parent_pk_field(self):
-        "Returns the `parent_model' primary key column name."
-        return self.parent_model._meta.pk.column
-    parent_pk_field = property(_get_parent_pk_field)
+    
+    def __str__(self):
+        return '%s via %s' % (self.name, self.parent_model.__name__)
 
     def _get_m2m_db_table(self):
         f = getattr(self.parent_model, self.accessor_name)
@@ -105,14 +98,14 @@ class ModelTreeNode(object):
         if not hasattr(self, '_join_connections'):
             connections = []
             # setup initial FROM clause
-            connections.append((None, self.parent_db_table, None, None))
+            connections.append((None, self.parent.db_table, None, None))
 
             # setup two connections for m2m
             if self.rel_type == 'manytomany':
                 c1 = (
-                    self.parent_db_table,
+                    self.parent.db_table,
                     self.m2m_db_table,
-                    self.parent_pk_field,
+                    self.parent.pk_field,
                     self.rel_is_reversed and self.m2m_reverse_field or \
                         self.m2m_field,
                 )
@@ -128,12 +121,12 @@ class ModelTreeNode(object):
                 connections.append(c2)
             else:
                 c1 = (
-                    self.parent_db_table,
+                    self.parent.db_table,
                     self.db_table,
-                    self.rel_is_reversed and self.parent_pk_field or \
+                    self.rel_is_reversed and self.parent.pk_field or \
                         self.foreignkey_field,
                     self.rel_is_reversed and self.foreignkey_field or \
-                        self.parent_pk_field,
+                        self.parent.pk_field,
                 )
                 connections.append(c1)
 
@@ -142,7 +135,7 @@ class ModelTreeNode(object):
     join_connections = property(_get_join_connections)
 
     def remove_child(self, model):
-        for i,cnode in enumerate(self.children):
+        for i, cnode in enumerate(self.children):
             if cnode.model is model:
                 return self.children.pop(i)
 
