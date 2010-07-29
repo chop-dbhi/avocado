@@ -57,22 +57,17 @@ class LogicNode(object):
     q = property(_get_q)
 
 
-class LogicTree(object):
-    "Transforms a tree of raw dicts to nodes."
-    def __init__(self, modeltree=DEFAULT_MODELTREE):
-        self.modeltree = modeltree
+def transform(self, raw_node, pnode=None, modeltree=DEFAULT_MODELTREE):
+    "Takes the raw data structure and converts it into the node tree."
+    if raw_node.has_key('children'):
+        node = LogicNode(raw_node['operator'])
+        for child in raw_node['children']:
+            transform(child, node)
+    else:
+        node = ModelFieldNode(modeltree=modeltree, **raw_node)
 
-    def transform(self, raw_node, pnode=None):
-        "Takes the raw data structure and converts it into the node tree."
-        if raw_node.has_key('children'):
-            node = LogicNode(raw_node['operator'])
-            for child in raw_node['children']:
-                self.transform(child, node)
-        else:
-            node = ModelFieldNode(modeltree=self.modeltree, **raw_node)
+    # top level node returns, i.e. no parent node
+    if pnode is None:
+        return node
 
-        # top level node returns, i.e. no parent node
-        if pnode is None:
-            return node
-
-        pnode.children.append(node)
+    pnode.children.append(node)

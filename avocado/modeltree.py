@@ -8,7 +8,7 @@ from avocado.settings import settings
 __all__ = ('ModelTreeNode', 'ModelTree', 'DEFAULT_MODELTREE')
 
 class ModelTreeNode(object):
-    def __init__(self, model, parent=None, rel_type=None, rel_is_reversed=None,
+    def __init__(self, model, parent=None, rel_type=None, rel_reversed=None,
         related_name=None, accessor_name=None, depth=0):
 
         """Defines attributes of a `model' and the relationship to the parent
@@ -28,7 +28,7 @@ class ModelTreeNode(object):
             `rel_type' - denotes the _kind_ of relationship with the
             following possibilities: 'manytomany', 'onetoone', or 'foreignkey'.
 
-            `rel_is_reversed' - denotes whether this node was derived from a
+            `rel_reversed' - denotes whether this node was derived from a
             forward relationship (an attribute lives on the parent model) or
             a reverse relationship (an attribute lives on this model).
 
@@ -53,7 +53,7 @@ class ModelTreeNode(object):
         self.parent_model = parent and parent.model or None
         
         self.rel_type = rel_type
-        self.rel_is_reversed = rel_is_reversed
+        self.rel_reversed = rel_reversed
         self.related_name = related_name
         self.accessor_name = accessor_name
         self.depth = depth
@@ -65,7 +65,7 @@ class ModelTreeNode(object):
 
     def _get_m2m_db_table(self):
         f = getattr(self.parent_model, self.accessor_name)
-        if self.rel_is_reversed:
+        if self.rel_reversed:
             return f.related.field.m2m_db_table()
         else:
             return f.field.m2m_db_table()
@@ -73,7 +73,7 @@ class ModelTreeNode(object):
 
     def _get_m2m_field(self):
         f = getattr(self.parent_model, self.accessor_name)
-        if self.rel_is_reversed:
+        if self.rel_reversed:
             return f.related.field.m2m_column_name()
         else:
             return f.field.m2m_column_name()
@@ -81,7 +81,7 @@ class ModelTreeNode(object):
 
     def _get_m2m_reverse_field(self):
         f = getattr(self.parent_model, self.accessor_name)
-        if self.rel_is_reversed:
+        if self.rel_reversed:
             return f.related.field.m2m_reverse_name()
         else:
             return f.field.m2m_reverse_name()
@@ -89,7 +89,7 @@ class ModelTreeNode(object):
 
     def _get_foreignkey_field(self):
         f = getattr(self.parent_model, self.accessor_name)
-        if self.rel_is_reversed:
+        if self.rel_reversed:
             return f.related.field.column
         else:
             return f.field.column
@@ -110,14 +110,14 @@ class ModelTreeNode(object):
                     self.parent.db_table,
                     self.m2m_db_table,
                     self.parent.pk_field,
-                    self.rel_is_reversed and self.m2m_reverse_field or \
+                    self.rel_reversed and self.m2m_reverse_field or \
                         self.m2m_field,
                 )
 
                 c2 = (
                     self.m2m_db_table,
                     self.db_table,
-                    self.rel_is_reversed and self.m2m_field or \
+                    self.rel_reversed and self.m2m_field or \
                         self.m2m_reverse_field,
                     self.pk_field,
                 )
@@ -127,9 +127,9 @@ class ModelTreeNode(object):
                 c1 = (
                     self.parent.db_table,
                     self.db_table,
-                    self.rel_is_reversed and self.parent.pk_field or \
+                    self.rel_reversed and self.parent.pk_field or \
                         self.foreignkey_field,
-                    self.rel_is_reversed and self.foreignkey_field or \
+                    self.rel_reversed and self.foreignkey_field or \
                         self.parent.pk_field,
                 )
                 connections.append(c1)
@@ -159,11 +159,10 @@ class ModelTree(object):
         self.exclude = map(self._get_model, exclude)
         
         self._rts, self._tos = self._build_routes(routes)
-        
         self._tree_hash = {}
     
     def _get_model(self, label):
-        # models class
+        # model class
         if inspect.isclass(label) and issubclass(label, models.Model):
             return label
         # passed as a label string
@@ -270,7 +269,7 @@ class ModelTree(object):
                 return
             return rel
 
-    def _add_node(self, parent, model, rel_type, rel_is_reversed, related_name,
+    def _add_node(self, parent, model, rel_type, rel_reversed, related_name,
         accessor_name, depth):
         """Adds a node to the tree only if a node of the same `model' does not
         already exist in the tree with smaller depth. If the node is added, the
@@ -301,7 +300,7 @@ class ModelTree(object):
             if node_hash:
                 node_hash['parent'].remove_child(model)
 
-            node = ModelTreeNode(model, parent, rel_type, rel_is_reversed,
+            node = ModelTreeNode(model, parent, rel_type, rel_reversed,
                 related_name, accessor_name, depth)
 
             self._tree_hash[model] = {'parent': parent, 'depth': depth,
@@ -340,7 +339,7 @@ class ModelTree(object):
                 'parent': node,
                 'model': f.rel.to,
                 'rel_type': 'manytomany',
-                'rel_is_reversed': False,
+                'rel_reversed': False,
                 'related_name': f.name,
                 'accessor_name': f.name,
                 'depth': depth,
@@ -353,7 +352,7 @@ class ModelTree(object):
                 'parent': node,
                 'model': r.model,
                 'rel_type': 'manytomany',
-                'rel_is_reversed': True,
+                'rel_reversed': True,
                 'related_name': r.field.related_query_name(),
                 'accessor_name': r.get_accessor_name(),
                 'depth': depth,
@@ -366,7 +365,7 @@ class ModelTree(object):
                 'parent': node,
                 'model': f.rel.to,
                 'rel_type': 'onetoone',
-                'rel_is_reversed': False,
+                'rel_reversed': False,
                 'related_name': f.name,
                 'accessor_name': f.name,
                 'depth': depth,
@@ -379,7 +378,7 @@ class ModelTree(object):
                 'parent': node,
                 'model': r.model,
                 'rel_type': 'onetoone',
-                'rel_is_reversed': True,
+                'rel_reversed': True,
                 'related_name': r.field.related_query_name(),
                 'accessor_name': r.get_accessor_name(),
                 'depth': depth,
@@ -392,7 +391,7 @@ class ModelTree(object):
                 'parent': node,
                 'model': f.rel.to,
                 'rel_type': 'foreignkey',
-                'rel_is_reversed': False,
+                'rel_reversed': False,
                 'related_name': f.name,
                 'accessor_name': f.name,
                 'depth': depth,
@@ -405,7 +404,7 @@ class ModelTree(object):
                 'parent': node,
                 'model': r.model,
                 'rel_type': 'foreignkey',
-                'rel_is_reversed': True,
+                'rel_reversed': True,
                 'related_name': r.field.related_query_name(),
                 'accessor_name': r.get_accessor_name(),
                 'depth': depth,

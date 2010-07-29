@@ -35,7 +35,7 @@ class AbstractViewSet(object):
         resps.extend(views.values())
 
         resp = {
-            'pk': concept.id,
+            'cid': concept.id,
             'js': self.js or None,
             'css': self.css or None,
             'views': resps,
@@ -50,8 +50,8 @@ class ViewSetLibrary(BaseLibrary):
     def _get_store(self, key=None):
         return self._cache
 
-    def _fmt_name(self, name):
-        return super(ViewSetLibrary, self)._fmt_name(name, 'ViewSet')
+    def _format_name(self, name):
+        return super(ViewSetLibrary, self)._format_name(name, 'ViewSet')
 
     def _register(self, klass_name, obj):
         self._add_item(None, klass_name, obj)

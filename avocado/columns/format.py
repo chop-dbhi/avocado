@@ -88,8 +88,8 @@ class FormatterLibrary(BaseLibrary):
 
         self._add_store()
     
-    def _fmt_name(self, name):
-        return super(FormatterLibrary, self)._fmt_name(name, 'Formatter')
+    def _format_name(self, name):
+        return super(FormatterLibrary, self)._format_name(name, 'Formatter')
 
     def _register(self, klass_name, obj):
         for ftype in self.format_types:

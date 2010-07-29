@@ -28,20 +28,23 @@ class ColumnSet(ConceptSet):
     """A ColumnSet provides a simple interface to alter querysets in terms
     of adding additional columns and adding column ordering.
     """
-    def __setstate__(self, dict_):
+    def __setstate__(self, state):
         queryset = Column.objects.all()
-        super(ColumnSet, self).__setstate__(dict_, queryset)
+        super(ColumnSet, self).__setstate__(state, queryset)
 
-    def add_columns(self, queryset, concepts):
+    def add_columns(self, queryset, columns):
         """Takes a `queryset' and ensures the proper table join have been
         setup to display the table columns.
         """
+        # TODO determine if the aliases can contain more than one reference
+        # to a table
+        
         # add queryset model's pk field
         aliases = [(queryset.model._meta.db_table,
             queryset.model._meta.pk.column)]
 
-        for concept in concepts:
-            fields = cache.get_fields(concept, self.queryset)
+        for column in columns:
+            fields = cache.get_fields(column, self.queryset)
 
             for field in fields:
                 model = field.model
@@ -52,19 +55,18 @@ class ColumnSet(ConceptSet):
 
         return queryset
 
-    def add_ordering(self, queryset, concept_orders):
+    def add_ordering(self, queryset, column_orders):
         """Applies column ordering to a queryset. Resolves a Column's
         fields and generates the `order_by' paths.
         """
         queryset.query.clear_ordering()
         orders = []
 
-        for concept, direction in concept_orders:
-            fields = cache.get_fields(concept, self.queryset)
+        for column, direction in column_orders:
+            fields = cache.get_fields(column, self.queryset)
 
             for field in fields:
-                nodes = self.modeltree.path_to(field.model)
-                order = self.modeltree.query_string(nodes, field.field_name)
+                order = field.query_string(modeltree=self.modeltree)
 
                 if direction.lower() == 'desc':
                     order = '-' + order

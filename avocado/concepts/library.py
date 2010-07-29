@@ -17,7 +17,7 @@ class BaseLibrary(object):
         for key in self._cache:
             self._cache[key][self.STORE_KEY] = {}        
 
-    def _fmt_name(self, name, suffix=''):
+    def _format_name(self, name, suffix=''):
         if suffix and name.endswith(suffix):
             name = name[:-len(suffix)]
         return uncamel(name)
@@ -28,7 +28,7 @@ class BaseLibrary(object):
     def _get_class_name(self, klass):
         if hasattr(klass, 'name'):
             return klass.name
-        return self._fmt_name(klass.__name__)
+        return self._format_name(klass.__name__)
 
     def _add_item(self, key, klass_name, obj, errmsg=''):
         store = self._get_store(key)

@@ -38,6 +38,7 @@ class ModelField(models.Model):
     description = models.TextField(null=True, blank=True)
     keywords = models.CharField(max_length=100, null=True, blank=True)
     category = models.ForeignKey(Category, null=True, blank=True)
+    
     is_public = models.BooleanField(default=False)
     order = models.PositiveSmallIntegerField(default=0, help_text='This ' \
         'ordering is relative to the category this concept belongs to.')
@@ -161,6 +162,14 @@ class ModelField(models.Model):
         if trans is None:
             trans = library.default
         return trans(self, operator, value, modeltree)
+    
+    def query_by_value(value, operator=None, modeltree=None):
+        if not modeltree:
+            from avocado.modeltree import DEFAULT_MODELTREE
+            modeltree = DEFAULT_MODELTREE
+
+        q = self.q(value, operator, modeltree)
+        return modeltree.root_model.objects.filter(q)
         
     def formfield(self, formfield=None, widget=None, **kwargs):
         "Returns the default `formfield' instance for the `field' type."
@@ -176,25 +185,3 @@ class ModelField(models.Model):
             widget = forms.SelectMultiple(choices=self.choices)
 
         return formfield(label=label, widget=widget, **kwargs)
-
-    # def clean_value(self, value, *args, **kwargs):
-    #     """Cleans the supplied value with respect to the formfield. If
-    #     `enable_choices' is true, it tests to ensure each value supplied
-    #     is a valid choice.
-    #     """
-    #     field = self.formfield(*args, **kwargs)
-    # 
-    #     try:
-    #         if is_iter_not_string(value):
-    #             cleaned_value = map(field.clean, value)
-    #         else:
-    #             cleaned_value = field.clean(value)
-    #     except forms.ValidationError, e:
-    #         return (False, None, e.messages)
-    # 
-    # 
-    #     if self.enable_choices:
-    #         if not all(map(lambda x: x in self._db_choices, cleaned_value)):
-    #             return (False, None, ('Value(s) supplied is not a valid choice'))
-    # 
-    #     return (True, cleaned_value, ())

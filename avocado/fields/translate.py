@@ -79,8 +79,8 @@ class TranslatorLibrary(BaseLibrary):
     def _get_store(self, key=None):
         return self._cache
 
-    def _fmt_name(self, name):
-        return super(TranslatorLibrary, self)._fmt_name(name, 'Translator')
+    def _format_name(self, name):
+        return super(TranslatorLibrary, self)._format_name(name, 'Translator')
 
     def _register(self, klass_name, obj):
         self._add_item(None, klass_name, obj)

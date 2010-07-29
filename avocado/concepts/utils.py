@@ -15,13 +15,13 @@ class ConceptSet(object):
         self.modeltree = modeltree
 
     def __getstate__(self):
-        dict_ = self.__dict__.copy()
-        dict_['query'] = dict_.pop('queryset').query
-        return dict_
+        state = self.__dict__.copy()
+        state['query'] = state.pop('queryset').query
+        return state
     
-    def __setstate__(self, dict_, queryset=None):
+    def __setstate__(self, state, queryset=None):
         if queryset is None:
             raise NotImplemented, '__setstate__ must be implemented in a subclass'
-        queryset.query = dict_.pop('query')
-        dict_['queryset'] = queryset
-        self.__dict__.update(dict_)
+        queryset.query = state.pop('query')
+        state['queryset'] = queryset
+        self.__dict__.update(state)

@@ -23,25 +23,8 @@ class OperatorNotPermitted(Exception):
 
 class FieldType(object):
     formfield = forms.CharField
-    widget_class = None
+    widget = None
     operators = None
-
-    def __init__(self):
-        if not self.operators:
-            raise NotImplementedError, 'subclasses must have at least one ' \
-                'operator associated with it'
-        self._operators = dict([(x.uid, x) for x in self.operators])
-
-    def get_operator(self, operator):
-        try:
-            return self._operators[operator]
-        except KeyError:
-            raise OperatorNotPermitted, '%s is not permitted for field type %s' % \
-                (operator, self.__class__.__name__)
-
-    def clean(self, value):
-        field = self.formfield()
-        return field.clean(value)
 
 
 class NumberType(FieldType):
