@@ -10,7 +10,7 @@ class Settings(object):
 
         'TRANSLATOR_MODULE_NAME': 'translate',
 
-        'MODELTREE_MODELS': None,
+        'MODELTREE_CONF': None,
 
         'DEFAULT_COLUMN_ORDERING': None,
         'DEFAULT_COLUMNS': None,
@@ -28,4 +28,3 @@ try:
     settings = Settings(getattr(base_settings, 'AVOCADO_SETTINGS', {}))
 except ImportError:
     settings = Settings()
-    

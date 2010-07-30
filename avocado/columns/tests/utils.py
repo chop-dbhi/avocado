@@ -72,16 +72,16 @@ class ColumnSetTestCase(TestCase):
         self.assertEqual(str(queryset3.query), 'SELECT "avocado_column"."id", "avocado_column"."name", "avocado_column"."keywords", "avocado_modelfield"."name", "avocado_modelfield"."field_name" FROM "avocado_column" LEFT OUTER JOIN "avocado_columnfield" ON ("avocado_column"."id" = "avocado_columnfield"."concept_id") LEFT OUTER JOIN "avocado_modelfield" ON ("avocado_columnfield"."field_id" = "avocado_modelfield"."id") ORDER BY "avocado_column"."name" ASC')
 
     def test_add_ordering(self):
-        queryset1 = Column.objects.all()
+        queryset1 = Column.objects.values('id')
         concept_orders = [(1, 'desc')]
         queryset2 = self.set.add_ordering(queryset1, concept_orders)
 
-        self.assertEqual(str(queryset2.query), 'SELECT "avocado_column"."id", "avocado_column"."name", "avocado_column"."description", "avocado_column"."keywords", "avocado_column"."category_id", "avocado_column"."is_public", "avocado_column"."order", "avocado_column"."search_doc" FROM "avocado_column" ORDER BY "avocado_column"."name" DESC, "avocado_column"."keywords" DESC')
+        self.assertEqual(str(queryset2.query), 'SELECT "avocado_column"."id" FROM "avocado_column" ORDER BY "avocado_column"."name" DESC, "avocado_column"."keywords" DESC')
 
         concept_orders = [(2, 'desc'), (1, 'asc')]
         queryset3 = self.set.add_ordering(queryset1, concept_orders)
 
-        self.assertEqual(str(queryset3.query), 'SELECT "avocado_column"."id", "avocado_column"."name", "avocado_column"."description", "avocado_column"."keywords", "avocado_column"."category_id", "avocado_column"."is_public", "avocado_column"."order", "avocado_column"."search_doc" FROM "avocado_column" LEFT OUTER JOIN "avocado_columnfield" ON ("avocado_column"."id" = "avocado_columnfield"."concept_id") LEFT OUTER JOIN "avocado_modelfield" ON ("avocado_columnfield"."field_id" = "avocado_modelfield"."id") ORDER BY "avocado_modelfield"."name" DESC, "avocado_modelfield"."field_name" DESC, "avocado_column"."name" ASC, "avocado_column"."keywords" ASC')
+        self.assertEqual(str(queryset3.query), 'SELECT "avocado_column"."id" FROM "avocado_column" LEFT OUTER JOIN "avocado_columnfield" ON ("avocado_column"."id" = "avocado_columnfield"."concept_id") LEFT OUTER JOIN "avocado_modelfield" ON ("avocado_columnfield"."field_id" = "avocado_modelfield"."id") ORDER BY "avocado_modelfield"."name" DESC, "avocado_modelfield"."field_name" DESC, "avocado_column"."name" ASC, "avocado_column"."keywords" ASC')
 
     def test_add_both(self):
         queryset1 = Column.objects.all()

@@ -1,17 +1,14 @@
 from avocado.fields.cache import cache as fieldcache
 from avocado.criteria.cache import cache as critcache
-from avocado.modeltree import DEFAULT_MODELTREE
 
 class ModelFieldNode(object):
     "Contains information for a single query condition."
-    def __init__(self, fid, operator, value, cid=None,
-        modeltree=DEFAULT_MODELTREE):
-
+    def __init__(self, modeltree, fid, operator, value, cid=None):
+        self.modeltree = modeltree
         self.fid = fid
         self.cid = cid
         self.operator = operator
         self.value = value
-        self.modeltree = modeltree
 
     def _get_field(self):
         if not hasattr(self, '_field'):
@@ -57,12 +54,12 @@ class LogicNode(object):
     q = property(_get_q)
 
 
-def transform(self, raw_node, pnode=None, modeltree=DEFAULT_MODELTREE):
+def transform(modeltree, raw_node, pnode=None):
     "Takes the raw data structure and converts it into the node tree."
     if raw_node.has_key('children'):
         node = LogicNode(raw_node['operator'])
         for child in raw_node['children']:
-            transform(child, node)
+            transform(modeltree, child, node)
     else:
         node = ModelFieldNode(modeltree=modeltree, **raw_node)
 

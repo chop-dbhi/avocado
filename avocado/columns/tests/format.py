@@ -9,7 +9,10 @@ __all__ = ('FormatterLibraryTestCase',)
 class FormatterLibraryTestCase(TestCase):
     def test_no_formatters(self):
         library = FormatterLibrary()
-        self.assertEqual(library._cache, {})
+        self.assertEqual(library._cache, {'json': {'formatters': {}, 'error': '[data format error]'},
+            'html': {'null': '<span class="lg ht">(no data)</span>', 'formatters': {},
+                'error': '<span class="data-format-error">[data format error]</span>'},
+            'csv': {'null': '', 'formatters': {}, 'error': '[data format error]'}})
 
     def test_bad_register(self):
         library = FormatterLibrary({

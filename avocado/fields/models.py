@@ -146,28 +146,17 @@ class ModelField(models.Model):
         dist = dist.annotate(count=Count(name)).values_list(name, 'count')
         return list(dist)
 
-    def query_string(self, operator=None, modeltree=None):
-        if not modeltree:
-            from avocado.modeltree import DEFAULT_MODELTREE
-            modeltree = DEFAULT_MODELTREE
+    def query_string(self, operator, modeltree):
         nodes = modeltree.path_to(self.model)
         return modeltree.query_string(nodes, self.field_name, operator)
 
-    def q(self, value, operator=None, modeltree=None):
-        if not modeltree:
-            from avocado.modeltree import DEFAULT_MODELTREE
-            modeltree = DEFAULT_MODELTREE
-        
+    def q(self, value, operator, modeltree):
         trans = library.get(self.translator)
         if trans is None:
             trans = library.default
         return trans(self, operator, value, modeltree)
     
-    def query_by_value(value, operator=None, modeltree=None):
-        if not modeltree:
-            from avocado.modeltree import DEFAULT_MODELTREE
-            modeltree = DEFAULT_MODELTREE
-
+    def query_by_value(self, value, operator, modeltree):
         q = self.q(value, operator, modeltree)
         return modeltree.root_model.objects.filter(q)
         

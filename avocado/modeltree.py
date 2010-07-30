@@ -526,6 +526,6 @@ class ModelTree(object):
         return zip(node_path, accessor_names)
 
 
-if not settings.MODELTREE_MODELS:
-    raise RuntimeError, 'The settings "MODELTREE_MODELS" must be set'
-DEFAULT_MODELTREE = ModelTree(settings.MODELTREE_MODELS[0], exclude=settings.MODELTREE_MODELS[1:])
+if not settings.MODELTREE_CONF:
+    raise RuntimeError, 'The settings "MODELTREE_CONF" must be set'
+DEFAULT_MODELTREE = ModelTree(**settings.MODELTREE_CONF)

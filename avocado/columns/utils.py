@@ -1,6 +1,5 @@
 from django.utils.datastructures import SortedDict
 
-from avocado.concepts.utils import ConceptSet
 from avocado.columns.models import Column
 from avocado.columns.cache import cache
 
@@ -24,13 +23,24 @@ def get_column_orders(column_orders, queryset=None):
         columns.update(kwarg)
     return columns
 
-class ColumnSet(ConceptSet):
+class ColumnSet(object):
     """A ColumnSet provides a simple interface to alter querysets in terms
     of adding additional columns and adding column ordering.
     """
+    def __init__(self, queryset, modeltree):
+        self.queryset = queryset
+        self.modeltree = modeltree
+
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        state['query'] = state.pop('queryset').query
+        return state
+
     def __setstate__(self, state):
         queryset = Column.objects.all()
-        super(ColumnSet, self).__setstate__(state, queryset)
+        queryset.query = state.pop('query')
+        state['queryset'] = queryset
+        self.__dict__.update(state)    
 
     def add_columns(self, queryset, columns):
         """Takes a `queryset' and ensures the proper table join have been
