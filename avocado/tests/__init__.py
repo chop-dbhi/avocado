@@ -1,3 +1,4 @@
+from avocado.tests.cache import *
 from avocado.tests.modeltree import *
 from avocado.tests.utils import *
 from avocado.columns.tests import *

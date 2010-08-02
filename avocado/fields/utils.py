@@ -47,7 +47,7 @@ class M(Q):
     
             field = self._get_field(field_id, app_name, model_name, field_name)
 
-            skey = field.query_string(operator, self.modeltree)
+            skey = field.query_string(operator, modeltree)
             nkwargs[skey] = value
 
         return super(M, self).__init__(**nkwargs)

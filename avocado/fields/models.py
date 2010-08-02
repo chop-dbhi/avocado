@@ -149,6 +149,12 @@ class ModelField(models.Model):
     def query_string(self, operator, modeltree):
         nodes = modeltree.path_to(self.model)
         return modeltree.query_string(nodes, self.field_name, operator)
+    
+    def order_string(self, modeltree, direction='asc'):
+        qs = self.query_string(None, modeltree)
+        if direction.lower() == 'desc':
+            return '-' + qs
+        return qs
 
     def q(self, value, operator, modeltree):
         trans = library.get(self.translator)

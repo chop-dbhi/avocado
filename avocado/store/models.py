@@ -1,36 +1,28 @@
-from django.db import models
-from django.db import connections, transaction
+import base64
+
+from django.db import models, connections, transaction
 from django.contrib.auth.models import User
 
 from avocado.db_fields import PickledObjectField
 from avocado.columns.models import Column
-from avocado.columns.utils import ColumnSet
+from avocado.columns import utils
 from avocado.fields import logictree
 
-__all__ = ('DynamicQuery',)
+__all__ = ('DynamicQuery', 'ObjectSet')
 
-class StoredQuery(models.Model):
+class QueryDescriptor(models.Model):
+    "Contains a set of fields that can be used to describe a particular query."
     user = models.ForeignKey(User)
     name = models.CharField(max_length=100)
     description = models.TextField(null=True, blank=True)
     keywords = models.CharField(max_length=100, null=True, blank=True)
-
     cnt = models.PositiveIntegerField('count', null=True, blank=True)
-    sql = models.TextField('SQL representation', null=True, blank=True,
-        help_text='A snapshot of the last save')
-
+    
     class Meta:
         abstract = True
 
-    def __unicode__(self):
-        return u'%s' % self.name
 
-    def store_sql(self, queryset):
-        queryset.query.clear_limits()
-        self.sql = str(queryset.query)
-
-
-class ObjectSet(StoredQuery):
+class ObjectSet(QueryDescriptor):
     """Provides a means of saving off a set of objects.
 
     `criteria' is persisted so the original can be rebuilt. `removed_ids'
@@ -66,7 +58,13 @@ class ObjectSet(StoredQuery):
         transaction.commit_unless_managed()
 
 
-class DynamicQuery(StoredQuery):
+def _encode_url(value):
+    return base64.urlsafe_base64encode(str(value))
+
+def _decode_url(self, url):
+    return base64.urlsafe_base64decode(url)
+
+class DynamicQuery(QueryDescriptor):
     """Provides a means of saving off a dynamic query by serializing each main
     component to a stringified JSON format. On retrieval, the query is
     regenerated. As new data is loaded or updated, those data will be reflected
@@ -75,9 +73,16 @@ class DynamicQuery(StoredQuery):
     criteria = PickledObjectField()
     columns = PickledObjectField()
     ordering = PickledObjectField()
+
+    sql = models.TextField('SQL representation', null=True, blank=True,
+        help_text='A snapshot of the last saved query')
     
     class Meta:
         app_label = u'avocado'
+
+    def store_sql(self, queryset):
+        queryset.query.clear_limits()
+        self.sql = str(queryset.query)
     
     def q(self, modeltree):
         node = logictree.transform(modeltree, self.criteria)
@@ -95,12 +100,13 @@ class DynamicQuery(StoredQuery):
             queryset = queryset.filter(self.q(modeltree))
         
         if self.columns or self.ordering:
-            columns = Column.objects.restrict_by_group(self.user.groups.all())
-            cset = ColumnSet(columns, modeltree=modeltree)
-
             if self.columns:
-                queryset = cset.add_columns(queryset, self.columns)
+                queryset = utils.add_columns(queryset, self.columns, modeltree)
             if self.ordering:
-                queryset = cset.add_ordering(queryset, self.ordering)
+                queryset = cset.add_ordering(queryset, self.ordering, modeltree)
         
         return queryset
+    
+    def get_url(self):
+        if self.id is not None:
+            return _encode_url(self.id)

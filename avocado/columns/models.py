@@ -21,7 +21,21 @@ class Column(Concept, ColumnMixin):
 
     class Meta(Concept.Meta):
         pass
-
+    
+    def add_fields_to_queryset(self, queryset, modeltree):
+        fields = self.fields.all()
+        aliases = []
+        for f in fields:
+            queryset = modeltree.add_joins(f.model, queryset)
+            aliases.append((f.model._meta.db_table, f.field_name))
+        return (queryset, aliases)
+    
+    def get_ordering_for_queryset(self, modeltree, direction='asc'):
+        fields = self.fields.all()
+        orders = []
+        for f in fields:
+            orders.append(f.order_string(modeltree, direction))
+        return orders
 
 class ColumnField(ConceptField):
     concept = models.ForeignKey(Column)

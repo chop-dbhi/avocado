@@ -21,8 +21,10 @@ class ConceptCache(object):
 
     def get_many(self, concept_ids, queryset=None):
         "Returns a generator of concept objects."
+        concepts = []
         for cid in concept_ids:
-            yield self.get(cid, queryset=queryset)
+            concepts.append(self.get(cid, queryset=queryset))
+        return concepts
 
 
     def get_fields(self, concept_id, queryset, ret_val=None):

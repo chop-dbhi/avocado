@@ -5,7 +5,7 @@ from django.db.models import Q
 
 from avocado.settings import settings
 
-__all__ = ('ModelTreeNode', 'ModelTree', 'DEFAULT_MODELTREE')
+__all__ = ('ModelTree', 'DEFAULT_MODELTREE')
 
 class ModelTreeNode(object):
     def __init__(self, model, parent=None, rel_type=None, rel_reversed=None,

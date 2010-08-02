@@ -15,7 +15,7 @@ class AbstractTranslator(object):
     operators = None
     formfield = None
 
-    def __call__(self, modelfield, operator, value, modeltree=None, **kwargs):
+    def __call__(self, modelfield, operator, value, modeltree, **kwargs):
         self._setup(modelfield)
         try:
             return self.translate(modelfield, operator, value, modeltree, **kwargs)

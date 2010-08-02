@@ -2,6 +2,7 @@ from django.test import TestCase
 from django.db.models import Q
 from django.core.cache import cache
 
+from avocado.modeltree import DEFAULT_MODELTREE
 from avocado.fields import logictree
 
 class LogicTreeTestCase(TestCase):
@@ -18,7 +19,7 @@ class LogicTreeTestCase(TestCase):
             'value': 'foobar'
         }
 
-        q = logictree.transform(raw_node).q
+        q = logictree.transform(DEFAULT_MODELTREE, raw_node).q
         self.assertEqual(str(q), str(Q(name__iexact=u'foobar')))
 
     def test_single_conditions(self):
@@ -35,13 +36,13 @@ class LogicTreeTestCase(TestCase):
             }]
         }
 
-        q1 = logictree.transform(raw_node).q
+        q1 = logictree.transform(DEFAULT_MODELTREE, raw_node).q
         q2 = Q(keywords__iexact=u'test2') & Q(name__icontains=u'test')
         self.assertEqual(str(q1), str(q2))
 
         raw_node['operator'] = 'or'
 
-        q3 = logictree.transform(raw_node).q
+        q3 = logictree.transform(DEFAULT_MODELTREE, raw_node).q
         q4= Q(keywords__iexact=u'test2') | Q(name__icontains=u'test')
         self.assertEqual(str(q3), str(q4))
 
@@ -66,7 +67,7 @@ class LogicTreeTestCase(TestCase):
             }]
         }
 
-        q1 = logictree.transform(raw_node).q
+        q1 = logictree.transform(DEFAULT_MODELTREE, raw_node).q
         q2 = (Q(fields__name__iexact=u'barbaz') | Q(fields__name__iexact=u'foobar')) & Q(name__in=[u'one', u'two'])
 
         self.assertEqual(str(q1), str(q2))

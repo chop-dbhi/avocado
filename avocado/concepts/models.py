@@ -1,7 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import Group
 
-from avocado.settings import settings
 from avocado.concepts.managers import ConceptManager
 
 __all__ = ('Category', 'Concept', 'ConceptField')
@@ -27,9 +25,6 @@ class Concept(models.Model):
     is_public = models.BooleanField(default=False)
     order = models.PositiveSmallIntegerField(default=0, help_text='This ' \
         'ordering is relative to the category this concept belongs to.')
-
-    if settings.ENABLE_GROUP_PERMISSIONS:
-        groups = models.ManyToManyField(Group, null=True, blank=True)
 
     # search optimizations
     search_doc = models.TextField(editable=False, null=True)

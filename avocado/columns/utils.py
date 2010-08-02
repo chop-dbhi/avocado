@@ -1,85 +1,30 @@
-from django.utils.datastructures import SortedDict
-
-from avocado.columns.models import Column
-from avocado.columns.cache import cache
-
-def get_columns(concept_ids, queryset=None):
-    """Simple helper to retrieve an ordered list of columns. Columns that are
-    not found are simply ignored.
+def add_columns(queryset, columns, modeltree):
+    """Takes a `queryset' and ensures the proper table join have been
+    setup to display the table columns.
     """
-    concepts = []
-    for concept in cache.get_many(concept_ids, queryset):
-        if concept is not None:
-            concepts.append(concept)
-    return concepts
+    # TODO determine if the aliases can contain more than one reference
+    # to a table
 
-def get_column_orders(column_orders, queryset=None):
-    columns = SortedDict({})
-    for order, (pk, direction) in enumerate(column_orders):
-        column = cache.get(pk, queryset)
-        if column is None:
-            continue
-        kwarg = {column: {'direction': direction, 'order': order}}
-        columns.update(kwarg)
-    return columns
+    # add queryset model's pk field
+    aliases = [(queryset.model._meta.db_table,
+        queryset.model._meta.pk.column)]
 
-class ColumnSet(object):
-    """A ColumnSet provides a simple interface to alter querysets in terms
-    of adding additional columns and adding column ordering.
+    for column in columns:
+        queryset, c_aliases = column.add_fields_to_queryset(queryset, modeltree)
+        aliases.extend(c_aliases)
+
+    queryset.query.select = aliases
+    return queryset
+
+def add_ordering(queryset, column_orders, modeltree):
+    """Applies column ordering to a queryset. Resolves a Column's
+    fields and generates the `order_by' paths.
     """
-    def __init__(self, queryset, modeltree):
-        self.queryset = queryset
-        self.modeltree = modeltree
+    queryset.query.clear_ordering()
+    orders = []
 
-    def __getstate__(self):
-        state = self.__dict__.copy()
-        state['query'] = state.pop('queryset').query
-        return state
+    for column, direction in column_orders:
+        c_orders = column.get_ordering_for_queryset(modeltree, direction)
+        orders.extend(c_orders)
 
-    def __setstate__(self, state):
-        queryset = Column.objects.all()
-        queryset.query = state.pop('query')
-        state['queryset'] = queryset
-        self.__dict__.update(state)    
-
-    def add_columns(self, queryset, columns):
-        """Takes a `queryset' and ensures the proper table join have been
-        setup to display the table columns.
-        """
-        # TODO determine if the aliases can contain more than one reference
-        # to a table
-        
-        # add queryset model's pk field
-        aliases = [(queryset.model._meta.db_table,
-            queryset.model._meta.pk.column)]
-
-        for column in columns:
-            fields = cache.get_fields(column, self.queryset)
-
-            for field in fields:
-                model = field.model
-                aliases.append((model._meta.db_table, field.field_name))
-                queryset = self.modeltree.add_joins(model, queryset)
-
-        queryset.query.select = aliases
-
-        return queryset
-
-    def add_ordering(self, queryset, column_orders):
-        """Applies column ordering to a queryset. Resolves a Column's
-        fields and generates the `order_by' paths.
-        """
-        queryset.query.clear_ordering()
-        orders = []
-
-        for column, direction in column_orders:
-            fields = cache.get_fields(column, self.queryset)
-
-            for field in fields:
-                order = field.query_string(modeltree=self.modeltree)
-
-                if direction.lower() == 'desc':
-                    order = '-' + order
-                orders.append(order)
-
-        return queryset.order_by(*orders)
+    return queryset.order_by(*orders)

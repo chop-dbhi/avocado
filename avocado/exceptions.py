@@ -12,3 +12,7 @@ class AlreadyRegisteredError(Exception):
 
 class RegisterError(Exception):
     pass
+
+
+class PermissionError(Exception):
+    pass
