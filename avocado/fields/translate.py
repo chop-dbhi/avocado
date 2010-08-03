@@ -44,8 +44,8 @@ class AbstractTranslator(object):
             raise OperatorNotPermitted, 'operator "%s" cannot be used for this translator' % operator
         return self._operators[operator]
 
-    def _clean_value(self, value):
-        field = self._formfield()
+    def _clean_value(self, value, **kwargs):
+        field = self._formfield(**kwargs)
         if is_iter_not_string(value):
             return map(field.clean, value)
         return field.clean(value)
@@ -56,6 +56,14 @@ class AbstractTranslator(object):
         return clean_op, clean_val
 
     def translate(self, modelfield, operator, value, modeltree, **kwargs):
+        """Returns three types of queryset modifiers including:
+            - a Q object applied via the `filter()' method
+            - a dict of annotations
+            - a dict of aggregations
+            
+        It should be noted that no checks are performed to prevent the same
+        name being used for either annotations or aggregations.
+        """
         raise NotImplementedError
 
 
@@ -66,8 +74,8 @@ class DefaultTranslator(AbstractTranslator):
         kwarg = {key: value}
         
         if operator.negated:
-            return ~Q(**kwarg)
-        return Q(**kwarg)
+            return ~Q(**kwarg), {}, {}
+        return Q(**kwarg), {}, {}
 
 
 class TranslatorLibrary(BaseLibrary):

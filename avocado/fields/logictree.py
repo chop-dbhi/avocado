@@ -24,7 +24,7 @@ class ModelFieldNode(object):
 
     def _get_q(self):
         if not hasattr(self, '_q'):
-            self._q = self.field.q(self.value, self.operator, self.modeltree)
+            q, ant, agg = self.field.q(self.value, self.operator, self.modeltree)
         return self._q
     q = property(_get_q)
 

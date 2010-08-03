@@ -156,15 +156,22 @@ class ModelField(models.Model):
             return '-' + qs
         return qs
 
-    def q(self, value, operator, modeltree):
+    def translate(self, value, operator, modeltree):
         trans = library.get(self.translator)
         if trans is None:
             trans = library.default
         return trans(self, operator, value, modeltree)
     
     def query_by_value(self, value, operator, modeltree):
-        q = self.q(value, operator, modeltree)
-        return modeltree.root_model.objects.filter(q)
+        q, ants, aggs = self.translate(value, operator, modeltree)
+        qs = modeltree.root_model.objects.all()
+        if ants:
+            qs = qs.annotate(**ants)
+        if aggs:
+            qs = qs.aggregate(**aggs)
+        if q:
+            qs = qs.filter(q)
+        return qs
         
     def formfield(self, formfield=None, widget=None, **kwargs):
         "Returns the default `formfield' instance for the `field' type."

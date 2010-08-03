@@ -95,6 +95,7 @@ class ListField(FieldType):
 
 
 MODEL_FIELD_MAP = {
+    'AutoField': IntegerField,
     'CharField': CharField,
     'IntegerField': IntegerField,
     'FloatField': FloatField,
