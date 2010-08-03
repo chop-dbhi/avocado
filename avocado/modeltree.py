@@ -161,6 +161,11 @@ class ModelTree(object):
         self._rts, self._tos = self._build_routes(routes)
         self._tree_hash = {}
     
+    def check(self, queryset):
+        if queryset.model is self.root_model:
+            return True
+        return False
+    
     def _get_model(self, label):
         # model class
         if inspect.isclass(label) and issubclass(label, models.Model):
@@ -525,7 +530,14 @@ class ModelTree(object):
             accessor_names = accessor_names[1:]
         return zip(node_path, accessor_names)
 
+# create default modeltree instance
 
 if not settings.MODELTREE_CONF:
     raise RuntimeError, 'The settings "MODELTREE_CONF" must be set'
 DEFAULT_MODELTREE = ModelTree(**settings.MODELTREE_CONF)
+
+
+# decorator for any function that requires a modeltree
+# def default_modeltree(func):
+#     def decorator(*args, **kwargs):
+#         

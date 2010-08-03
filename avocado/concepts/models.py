@@ -2,7 +2,7 @@ from django.db import models
 
 from avocado.concepts.managers import ConceptManager
 
-__all__ = ('Category', 'Concept', 'ConceptField')
+__all__ = ('Category',)
 
 class Category(models.Model):
     name = models.CharField(max_length=100)

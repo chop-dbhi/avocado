@@ -4,9 +4,7 @@ from django.db import models, connections, transaction
 from django.contrib.auth.models import User
 
 from avocado.db_fields import PickledObjectField
-from avocado.columns.models import Column
 from avocado.columns import utils
-from avocado.fields import logictree
 
 __all__ = ('DynamicQuery', 'ObjectSet')
 
@@ -85,6 +83,7 @@ class DynamicQuery(QueryDescriptor):
         self.sql = str(queryset.query)
     
     def q(self, modeltree):
+        from avocado.fields import logictree        
         node = logictree.transform(modeltree, self.criteria)
         return node.q
     
@@ -103,7 +102,7 @@ class DynamicQuery(QueryDescriptor):
             if self.columns:
                 queryset = utils.add_columns(queryset, self.columns, modeltree)
             if self.ordering:
-                queryset = cset.add_ordering(queryset, self.ordering, modeltree)
+                queryset = utils.add_ordering(queryset, self.ordering, modeltree)
         
         return queryset
     

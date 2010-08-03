@@ -2,7 +2,7 @@
 Simple set of classes that roughly map one-to-one to the operations that can
 performed in the django ORM.
 
-Each class must provide a `clean' method that is_valids a given `value' is of
+Each class must provide a `clean' method that checks a given `value' is of
 the right length and in some cases, type.
 """
 import re
@@ -11,7 +11,7 @@ from avocado.utils.iter import is_iter_not_string
 
 __all__ = ('exact', 'iexact', 'contains', 'inlist', 'lt', 'gt', 'lte', 'gte',
     'between', 'null', 'notbetween', 'notexact', 'notiexact', 'doesnotcontain',
-    'notinlist', 'notnull')
+    'notinlist', 'notnull', 'MODEL_FIELD_MAP')
 
 FIELD_LOOKUPS = re.compile(r'(i?exact|i?contains|in|gte?|lte?|i?startswith'\
     '|i?endswith|range|year|month|day|week_day|isnull|search|i?regex)')
@@ -39,19 +39,19 @@ class Operator(object):
         return '%s' % self.operator
     uid = property(_get_uid)
 
-    def is_valid(self, value):
+    def check(self, value):
         "Cleans and verifies `value' can be used for this operator."
         raise NotImplementedError
 
 
 class PrimitiveOperator(Operator):
-    def is_valid(self, value):
+    def check(self, value):
         if not is_iter_not_string(value):
             return True
         return False
 
 class SequenceOperator(Operator):
-    def is_valid(self, value):
+    def check(self, value):
         if is_iter_not_string(value):
             return True
         return False
@@ -126,7 +126,7 @@ class Between(SequenceOperator):
     verbose_name = 'is between'
     operator = 'range'
 
-    def is_valid(self, value):
+    def check(self, value):
         if is_iter_not_string(value) and len(value) == 2:
             return True
         return False
@@ -174,3 +174,22 @@ class NotNull(Null):
     negated = True
 notnull = NotNull()
 
+
+CHAR_OPERATORS = (iexact, notiexact, contains, doesnotcontain, inlist,
+    notinlist, null, notnull)
+    
+NUMERIC_OPERATORS = (exact, notexact, lt, lte, gt, gte, between,
+    notbetween, null, notnull)
+    
+MODEL_FIELD_MAP = {
+    'AutoField': (exact, inlist, notexact, notinlist),
+    'CharField': CHAR_OPERATORS,
+    'IntegerField': NUMERIC_OPERATORS,
+    'FloatField': NUMERIC_OPERATORS,
+    'DecimalField': NUMERIC_OPERATORS,
+    'DateField': NUMERIC_OPERATORS,
+    'DateTimeField': NUMERIC_OPERATORS,
+    'TimeField': NUMERIC_OPERATORS,
+    'BooleanField': (exact,),
+    'NullBooleanField': (exact, null, notnull),
+}

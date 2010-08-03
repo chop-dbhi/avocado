@@ -1,9 +1,9 @@
 from django.db.models import Q
 
+from avocado.exceptions import ValidationError
 from avocado.settings import settings as avs
 from avocado.concepts.library import BaseLibrary
-from avocado.fields.operators import *
-from avocado.fields.fieldtypes import MODEL_FIELD_MAP
+from avocado.fields.operators import MODEL_FIELD_MAP
 from avocado.utils.iter import is_iter_not_string
 
 class OperatorNotPermitted(Exception):
@@ -15,24 +15,21 @@ class AbstractTranslator(object):
     operators = None
     formfield = None
 
-    def __call__(self, modelfield, operator, value, modeltree, **kwargs):
+    def __call__(self, modeltree, modelfield, operator=None, value=None, **context):
         self._setup(modelfield)
         try:
-            return self.translate(modelfield, operator, value, modeltree, **kwargs)
+            return self.translate(modeltree, modelfield, operator, value, **context)
         finally:
             self._cleanup()
     
     def _setup(self, modelfield):
-        fieldtype = MODEL_FIELD_MAP[modelfield.field.__class__.__name__]
-
         operators = self.operators
+        formfield = modelfield.formfield
+
         if not operators:
-            operators = fieldtype.operators
-        self._operators = dict([(x.uid, x) for x in fieldtype.operators])
-        
-        formfield = self.formfield
-        if not formfield:
-            formfield = fieldtype.formfield
+            operators = MODEL_FIELD_MAP.get(modelfield.field.__class__.__name__)
+
+        self._operators = dict([(x.uid, x) for x in operators])
         self._formfield = formfield
     
     def _cleanup(self):
@@ -53,29 +50,30 @@ class AbstractTranslator(object):
     def validate(self, operator, value):
         clean_op = self._clean_operator(operator)
         clean_val = self._clean_value(value)
+        if not clean_op.check(clean_val):
+            raise ValidationError, '"%s" is not valid for the operator "%s"' % (clean_val, clean_op)
         return clean_op, clean_val
 
-    def translate(self, modelfield, operator, value, modeltree, **kwargs):
-        """Returns three types of queryset modifiers including:
+    def translate(self, modeltree, modelfield, operator, value, **context):
+        """Returns two types of queryset modifiers including:
             - a Q object applied via the `filter()' method
             - a dict of annotations
-            - a dict of aggregations
             
         It should be noted that no checks are performed to prevent the same
-        name being used for either annotations or aggregations.
+        name being used for annotations.
         """
         raise NotImplementedError
 
 
 class DefaultTranslator(AbstractTranslator):
-    def translate(self, modelfield, operator, value, modeltree, **kwargs):
+    def translate(self, modeltree, modelfield, operator, value, **context):
         operator, value = self.validate(operator, value)
-        key = modelfield.query_string(operator.operator, modeltree)
+        key = modelfield.query_string(modeltree, operator.operator)
         kwarg = {key: value}
         
         if operator.negated:
-            return ~Q(**kwarg), {}, {}
-        return Q(**kwarg), {}, {}
+            return ~Q(**kwarg), {}
+        return Q(**kwarg), {}
 
 
 class TranslatorLibrary(BaseLibrary):

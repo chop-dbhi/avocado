@@ -18,7 +18,7 @@ class ModelFieldAdminForm(forms.ModelForm):
         
         # test `model_name'
         model_name = cleaned_data['model_name']
-        if self._instance._get_model(app_name, model_name) is None:
+        if self.instance._get_model(app_name, model_name) is None:
             del cleaned_data['model_name']
             msg = 'The model "%s" could not be found' % model_name
             self._errors['model_name'] = self.error_class([msg])

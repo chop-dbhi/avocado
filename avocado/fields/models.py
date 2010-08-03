@@ -146,29 +146,27 @@ class ModelField(models.Model):
         dist = dist.annotate(count=Count(name)).values_list(name, 'count')
         return list(dist)
 
-    def query_string(self, operator, modeltree):
+    def query_string(self, modeltree, operator=None):
         nodes = modeltree.path_to(self.model)
         return modeltree.query_string(nodes, self.field_name, operator)
     
     def order_string(self, modeltree, direction='asc'):
-        qs = self.query_string(None, modeltree)
+        qs = self.query_string(modeltree)
         if direction.lower() == 'desc':
             return '-' + qs
         return qs
 
-    def translate(self, value, operator, modeltree):
+    def translate(self, modeltree, operator=None, value=None, **context):
         trans = library.get(self.translator)
         if trans is None:
             trans = library.default
-        return trans(self, operator, value, modeltree)
+        return trans(modeltree, self, operator, value, **context)
     
-    def query_by_value(self, value, operator, modeltree):
-        q, ants, aggs = self.translate(value, operator, modeltree)
+    def query_by_value(self, modeltree, operator, value):
+        q, ants, aggs = self.translate(modeltree, operator, value)
         qs = modeltree.root_model.objects.all()
         if ants:
             qs = qs.annotate(**ants)
-        if aggs:
-            qs = qs.aggregate(**aggs)
         if q:
             qs = qs.filter(q)
         return qs
