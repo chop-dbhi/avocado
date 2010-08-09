@@ -5,7 +5,7 @@ class ConceptCache(object):
     def __init__(self, model_name):
         self.id_key = ':'.join(['avocado', model_name, '%s'])
         self.field_id_key = ':'.join(['avocado', model_name, '%s', 'fields'])
-    
+
     def get(self, concept_id, queryset=None, ret_val=None):
         "Simple interface for getting (and setting) a concept from global cache."
         key = self.id_key % concept_id
@@ -30,7 +30,7 @@ class ConceptCache(object):
     def get_fields(self, concept_id, queryset, ret_val=None):
         """Simple interface for getting (and setting) a concept's fields
         from global cache. `concept' can be an object or a integer.
-    
+
         The optional `queryset' parameter simply passes it to `self.get'
         if called.
         """

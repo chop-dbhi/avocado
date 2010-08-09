@@ -17,8 +17,8 @@ In a nutshell, avocado allows for asking arbitrary questions at runtime.
 The Data Model Index
 --------------------
 
-``avocado.fields.models.ModelField`` provides the structure to create an index
-of your project's data model. ``ModelField`` has three required fields that
+``avocado.fields.models.Field`` provides the structure to create an index
+of your project's data model. ``Field`` has three required fields that
 provide the unique identifier to a particular data model field, ``app_name``,
 ``model_name``, and ``field_name``. The ``app_name`` is the unique identifier
 with respect to a django project since a project cannot reference two apps of
@@ -98,7 +98,7 @@ There is no reference to it, nothing that inferred it, or anything. The
 The ``M`` Class
 ---------------
 
-To facilitate ease of use with respect to the ``ModelField`` index, the ``M``
+To facilitate ease of use with respect to the ``Field`` index, the ``M``
 class enables very simple "query by value" without needing to know the
 field's origin (what model it is apart of).
 
@@ -109,7 +109,7 @@ Taking the above two examples to the next level of simplicity, one could do::
 Unlike the previous two examples, using the ``M`` class to specify a condition
 doesn't even require knowing the end model (where the field "name" lives on).
 Note that there are two assumptions made here. One being that there is one
-``ModelField`` object that has a ``field_name`` of "name". If this is untrue,
+``Field`` object that has a ``field_name`` of "name". If this is untrue,
 an ``AmbiguousField`` exception will be thrown. One could also do this to be
 less ambiguous::
 

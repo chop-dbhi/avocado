@@ -48,12 +48,12 @@ class FormatterLibraryTestCase(TestCase):
 
         # should not raise AlreadyRegisteredError, it will merely replace it
         library.register(Add)
-        
+
         class Add2(AbstractFormatter):
             name = 'Add Numbers'
             def csv(self, *args):
-                return sum(args)        
-        
+                return sum(args)
+
         self.assertRaises(AlreadyRegisteredError, library.register, Add2)
 
         self.assertEqual(library.choices('csv'), [('Add Numbers', 'Add Numbers'),
@@ -113,7 +113,7 @@ class FormatterLibraryTestCase(TestCase):
 
         # builtin formatters
         library.register(RemoveFormatter)
-        library.register(IgnoreFormatter)        
+        library.register(IgnoreFormatter)
 
         @library.register
         class AddOneFormatter(AbstractFormatter):

@@ -15,19 +15,19 @@ class AbstractTranslator(object):
     operators = None
     formfield = None
 
-    def __call__(self, modeltree, modelfield, operator=None, value=None, **context):
-        self._setup(modelfield)
+    def __call__(self, modeltree, field, operator=None, value=None, **context):
+        self._setup(field)
         try:
-            return self.translate(modeltree, modelfield, operator, value, **context)
+            return self.translate(modeltree, field, operator, value, **context)
         finally:
             self._cleanup()
     
-    def _setup(self, modelfield):
+    def _setup(self, field):
         operators = self.operators
-        formfield = modelfield.formfield
+        formfield = field.formfield
 
         if not operators:
-            operators = MODEL_FIELD_MAP.get(modelfield.field.__class__.__name__)
+            operators = MODEL_FIELD_MAP.get(field.field.__class__.__name__)
 
         self._operators = dict([(x.uid, x) for x in operators])
         self._formfield = formfield
@@ -54,7 +54,7 @@ class AbstractTranslator(object):
             raise ValidationError, '"%s" is not valid for the operator "%s"' % (clean_val, clean_op)
         return clean_op, clean_val
 
-    def translate(self, modeltree, modelfield, operator, value, **context):
+    def translate(self, modeltree, field, operator, value, **context):
         """Returns two types of queryset modifiers including:
             - a Q object applied via the `filter()' method
             - a dict of annotations
@@ -66,9 +66,9 @@ class AbstractTranslator(object):
 
 
 class DefaultTranslator(AbstractTranslator):
-    def translate(self, modeltree, modelfield, operator, value, **context):
+    def translate(self, modeltree, field, operator, value, **context):
         operator, value = self.validate(operator, value)
-        key = modelfield.query_string(modeltree, operator.operator)
+        key = field.query_string(modeltree, operator.operator)
         kwarg = {key: value}
         
         if operator.negated:

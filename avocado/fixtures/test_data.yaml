@@ -3,7 +3,7 @@
   fields:
     name: cat1
 
-- model: avocado.modelfield
+- model: avocado.field
   pk: 1
   fields:
       name: f1
@@ -17,7 +17,7 @@
       field_name: name
       translator: null
 
-- model: avocado.modelfield
+- model: avocado.field
   pk: 2
   fields:
       name: f2
@@ -31,7 +31,7 @@
       field_name: keywords
       translator: null
 
-- model: avocado.modelfield
+- model: avocado.field
   pk: 3
   fields:
       name: f3
@@ -41,11 +41,11 @@
       is_public: true
       order: 0
       app_name: avocado
-      model_name: modelfield
+      model_name: field
       field_name: name
       translator: null
 
-- model: avocado.modelfield
+- model: avocado.field
   pk: 4
   fields:
       name: f4
@@ -55,11 +55,11 @@
       is_public: true
       order: 0
       app_name: avocado
-      model_name: modelfield
+      model_name: field
       field_name: field_name
       translator: null
 
-- model: avocado.modelfield
+- model: avocado.field
   pk: 5
   fields:
       name: f5
@@ -69,7 +69,7 @@
       is_public: true
       order: 0
       app_name: avocado
-      model_name: modelfield
+      model_name: field
       field_name: translator
       translator: null
 

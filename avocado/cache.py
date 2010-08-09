@@ -9,13 +9,13 @@ class QueryStore(object):
     def _make_key(self, *args):
         p = pickle.dumps(args)
         return hashlib.md5(p).hexdigest()
-    
+
     def _querykey(self, criteria, columns, ordering):
         return self._make_key(criteria, columns, ordering)
-    
+
     def _datakey(self, criteria, columns, ordering, offset):
         return self._make_key(criteria, columns, ordering, offset)
-    
+
     def get_datakeys(self, criteria, columns, ordering):
         querykey = self._querykey(criteria, columns, ordering)
         # the tups represents a list of pairs representing the 'offset' for that
@@ -45,21 +45,21 @@ class QueryStore(object):
             # cache hit!
             if st_offset <= offset < st_end and end <= st_end:
                 return cache.get(datakey)
-            
+
     def set(self, criteria, columns, ordering, offset, data):
         """Adds a slice of data if it doesn't already exist."""
         datakey = self._datakey(criteria, columns, ordering, offset)
         # set data prior to making it accessible, i.e. no race conditions
         cache.set(datakey, data)
-        
+
         querykey = self._querykey(criteria, columns, ordering)
         tups = cache.get(querykey)
         # not yet set
         if tups is None:
             tups = set([])
         tups.add((offset, datakey))
-        querykey 
+        querykey
         # update the cache with additional tup
         cache.set(querykey, tups)
-    
+
 querystore = QueryStore()

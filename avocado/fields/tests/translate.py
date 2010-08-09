@@ -29,5 +29,7 @@ class TranslatorLibraryTestCase(TestCase):
         t = DefaultTranslator()
         c = cache.get(1)
 
-        self.assertEqual(str(t(c, 'iexact', 'foo', DEFAULT_MODELTREE)), str(Q(name__iexact=u'foo')))
+        q, a = t(DEFAULT_MODELTREE, c, 'iexact', 'foo')
+
+        self.assertEqual(str(q), str(Q(name__iexact=u'foo')))
 

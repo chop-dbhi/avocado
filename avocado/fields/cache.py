@@ -1,9 +1,9 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.cache import cache as _cache
 
-from avocado.fields.models import ModelField
+from avocado.fields.models import Field
 
-class ModelFieldCache(object):
+class FieldCache(object):
     def __init__(self, class_name):
         self.id_key = ':'.join(['avocado', class_name, '%s'])
         self.label_key = ':'.join(['avocado', class_name, '%s', '%s', '%s'])
@@ -16,7 +16,7 @@ class ModelFieldCache(object):
             raise RuntimeError, 'not enough lookup params defined'
 
         if queryset is None:
-            queryset = ModelField.objects.all()
+            queryset = Field.objects.all()
 
         if field_id:
             key = self.id_key % field_id
@@ -53,4 +53,4 @@ class ModelFieldCache(object):
                 yield self.get(None, *args, queryset=queryset)
 
 
-cache = ModelFieldCache(ModelField.__name__.lower())
+cache = FieldCache(Field.__name__.lower())

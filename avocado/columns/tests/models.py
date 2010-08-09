@@ -6,7 +6,7 @@ __all__ = ('ColumnSearchTestCase',)
 
 class ColumnSearchTestCase(TestCase):
     fixtures = ['test_data.yaml']
-    
+
     def test_fulltext(self):
         queryset1 = Column.objects.fulltext_search('[)roc#ks')
         self.assertEqual(str(queryset1.values('id').query), 'SELECT "avocado_column"."id" FROM "avocado_column" WHERE search_tsv @@ to_tsquery(rocks) ORDER BY "avocado_column"."name" ASC')

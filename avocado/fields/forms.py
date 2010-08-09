@@ -1,9 +1,9 @@
 from django import forms
 from django.db import models
 
-from avocado.fields.models import ModelField
+from avocado.fields.models import Field
 
-class ModelFieldAdminForm(forms.ModelForm):
+class FieldAdminForm(forms.ModelForm):
     
     def clean_app_name(self):
         app_name = self.cleaned_data['app_name']
@@ -12,7 +12,7 @@ class ModelFieldAdminForm(forms.ModelForm):
         return app_name
         
     def clean(self):
-        cleaned_data = super(ModelFieldAdminForm, self).clean()
+        cleaned_data = super(FieldAdminForm, self).clean()
         
         app_name = cleaned_data['app_name']
         
@@ -41,4 +41,4 @@ class ModelFieldAdminForm(forms.ModelForm):
         return cleaned_data
 
     class Meta:
-        model = ModelField
+        model = Field

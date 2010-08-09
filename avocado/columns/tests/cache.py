@@ -8,7 +8,7 @@ __all__ = ('ColumnCacheTestCase',)
 
 class ColumnCacheTestCase(TestCase):
     fixtures = ['test_data.yaml']
-    
+
     def setUp(self):
         djcache.clear()
 

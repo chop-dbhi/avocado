@@ -19,15 +19,15 @@ create language plpgsql;
 
 -- create the search_tsv column for fast keyword searching
 
-alter table avocado_modelfield add column search_tsv tsvector;
+alter table avocado_field add column search_tsv tsvector;
 
-update avocado_modelfield U0 set search_tsv = to_tsvector(
+update avocado_field U0 set search_tsv = to_tsvector(
     coalesce((select U1.name from avocado_category U1 where U0.category_id = U1.id), '') || ' ' ||
     U0.name || ' ' || U0.description || ' ' || U0.keywords);
 
-create index avocado_modelfield_search_tsv on avocado_modelfield using gin(search_tsv);
+create index avocado_field_search_tsv on avocado_field using gin(search_tsv);
 
-create or replace function avocado_modelfield_search_tsv_func() returns trigger as $$
+create or replace function avocado_field_search_tsv_func() returns trigger as $$
     begin
         new.search_tsv :=
             to_tsvector(
@@ -37,15 +37,15 @@ create or replace function avocado_modelfield_search_tsv_func() returns trigger 
     end
 $$ LANGUAGE plpgsql;
 
-create trigger avocado_modelfield_search_tsv_update before insert or update
-    on avocado_modelfield for each row execute procedure avocado_modelfield_search_tsv_func();
+create trigger avocado_field_search_tsv_update before insert or update
+    on avocado_field for each row execute procedure avocado_field_search_tsv_func();
 
 -- update the search_doc column for icontains searching
 
-update avocado_modelfield U0 set search_doc = (coalesce((select U1.name from avocado_category U1
+update avocado_field U0 set search_doc = (coalesce((select U1.name from avocado_category U1
     where U0.category_id = U1.id), '') || ' ' || U0.name || ' ' || U0.description || ' ' || U0.keywords);
 
-create or replace function avocado_modelfield_search_doc_func() returns trigger as $$
+create or replace function avocado_field_search_doc_func() returns trigger as $$
     begin
         new.search_doc :=
         (coalesce((select U1.name from avocado_category U1 where new.category_id = U1.id), '') || ' '
@@ -54,8 +54,8 @@ create or replace function avocado_modelfield_search_doc_func() returns trigger 
     end
 $$ LANGUAGE plpgsql;
 
-create trigger avocado_modelfield_search_doc_update before insert or update
-    on avocado_modelfield for each row execute procedure avocado_modelfield_search_doc_func();
+create trigger avocado_field_search_doc_update before insert or update
+    on avocado_field for each row execute procedure avocado_field_search_doc_func();
 
 -- Column Concept
 

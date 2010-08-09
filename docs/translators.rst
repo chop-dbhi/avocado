@@ -57,7 +57,7 @@ fully constructed, it is important to incrementally validate the correctness of
 each component of the query as it becomes available, i.e. don't wait till the
 ``QuerySet`` is fully constructed before testing if it is broken.
 
-Validation pertaining to ``ModelField`` objects is important since they are the
+Validation pertaining to ``Field`` objects is important since they are the
 root of this dynamic query engine. When evaluating whether a particular value
 and operator are valid for use as a query condition, there are a few questions
 to be asked:
@@ -71,7 +71,7 @@ value.
 
 **Is the value an available choice?**
 
-If the ``ModelField`` object has ``enable_choices`` set to true, the value must
+If the ``Field`` object has ``enable_choices`` set to true, the value must
 be one of the available choices.
 
 **Does the operator make sense for the field?**

@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.core.cache import cache as djcache
 
 from avocado.fields.cache import cache
-from avocado.models import ModelField
+from avocado.models import Field
 
 __all__ = ('FieldCacheTestCase',)
 
@@ -20,7 +20,7 @@ class FieldCacheTestCase(TestCase):
 
         djcache.delete(key)
 
-        queryset = ModelField.objects.none()
+        queryset = Field.objects.none()
         concept = cache.get(concept_id, queryset=queryset)
         self.assertEqual(concept, None)
         self.assertFalse(djcache.has_key(key))

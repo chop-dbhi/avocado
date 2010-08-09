@@ -87,7 +87,7 @@ class FormatterLibrary(BaseLibrary):
         self.format_types = self._cache.keys()
 
         self._add_store()
-    
+
     def _format_name(self, name):
         return super(FormatterLibrary, self)._format_name(name, 'Formatter')
 
@@ -95,7 +95,7 @@ class FormatterLibrary(BaseLibrary):
         for ftype in self.format_types:
             if hasattr(obj, ftype) or obj.apply_to_all:
                 self._add_item(ftype, klass_name, obj)
-    
+
     def register(self, klass):
         return super(FormatterLibrary, self).register(klass, AbstractFormatter)
 
@@ -103,7 +103,7 @@ class FormatterLibrary(BaseLibrary):
         "Returns a list of tuples that can be used as choices in a form."
         store = self._get_store(ftype)
         choices = []
-        
+
         for name, obj in store.items():
             if obj.is_choice:
                 choices.append((name, name))
@@ -170,7 +170,7 @@ class FormatterLibrary(BaseLibrary):
         formatters = self._cache[ftype]['formatters']
         error = self._cache[ftype].get('error', '')
         null = self._cache[ftype].get('null', None)
-        
+
         for seq in iter(iterable):
             yield self.format_seq(seq, rules, ftype, formatters, error, null)
 

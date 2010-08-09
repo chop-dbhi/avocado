@@ -8,10 +8,10 @@ from avocado.settings import settings
 from avocado.concepts.models import Category
 from avocado.fields.translate import library
 
-__all__ = ('ModelField',)
+__all__ = ('Field',)
 
-class ModelField(models.Model):
-    """The `ModelField' class stores off meta data about a "field of
+class Field(models.Model):
+    """The `Field' class stores off meta data about a "field of
     interest" located on another model. This, in a sense, provides a way to
     specify the fields that can be utilized by the query engine.
 
@@ -64,8 +64,6 @@ class ModelField(models.Model):
 
     class Meta:
         app_label = u'avocado'
-        verbose_name = 'model field'
-        verbose_name_plural = 'model fields'
         unique_together = ('app_name', 'model_name', 'field_name')
 
     def __unicode__(self):

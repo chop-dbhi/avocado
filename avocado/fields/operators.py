@@ -32,7 +32,7 @@ class Operator(object):
 
     def __repr__(self):
         return str(self.__class__)
-    
+
     def _get_uid(self):
         if self.negated:
             return '~%s' % self.operator

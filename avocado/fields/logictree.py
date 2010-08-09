@@ -15,7 +15,7 @@ grammar is as follows:
                     'operator'  ::= 'AND' | 'OR'
                     'children'  ::= '[' NODE{2,} ']'
                 '}'
-                    
+
 Two examples as follows:
 
     # single F_NODE
@@ -42,7 +42,7 @@ Two examples as follows:
         }]
     }
 """
-from avocado.models import ModelField, Criterion
+from avocado.models import Field, Criterion
 
 class Node(object):
     def apply(self, queryset):
@@ -52,7 +52,7 @@ class Node(object):
             raise RuntimeError, 'models differ between queryset and modeltree'
         if self.annotations:
             queryset = queryset.values('pk').annotate(**self.annotations)
-        return queryset.filter(self.condition)    
+        return queryset.filter(self.condition)
 
 
 class FieldNode(Node):
@@ -67,7 +67,7 @@ class FieldNode(Node):
 
     def _get_field(self):
         if not hasattr(self, '_field'):
-            self._field = ModelField.objects.get(id=self.fid)
+            self._field = Field.objects.get(id=self.fid)
         return self._field
     field = property(_get_field)
 
@@ -79,7 +79,7 @@ class FieldNode(Node):
                 self._criterion = Criterion.objects.get(id=self.cid)
         return self._criterion
     criterion = property(_get_criterion)
-    
+
     def _translate(self):
         cond, ants = self.field.translate(self.modeltree, self.operator,
             self.value, **self.context)
@@ -110,7 +110,7 @@ class LogicNode(Node):
         if self.operator.upper() == 'OR':
             return q1 | q2
         return q1 & q2
-    
+
     def _get_condition(self):
         if not hasattr(self, '_condition'):
             condition = None

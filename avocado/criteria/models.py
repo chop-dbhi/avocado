@@ -2,13 +2,13 @@ from django import forms
 from django.db import models
 
 from avocado.concepts.models import Concept, ConceptField
-from avocado.fields.models import ModelField
+from avocado.fields.models import Field
 from avocado.criteria.viewset import library
 
 __all__ = ('Criterion', 'CriterionField')
 
 class Criterion(Concept):
-    fields = models.ManyToManyField(ModelField, through='CriterionField')
+    fields = models.ManyToManyField(Field, through='CriterionField')
     viewset = models.CharField(max_length=100, choices=library.choices())
 
     class Meta(Concept.Meta):
@@ -41,7 +41,7 @@ class Criterion(Concept):
 
 class CriterionField(ConceptField):
     concept = models.ForeignKey(Criterion)
-    field = models.ForeignKey(ModelField)
+    field = models.ForeignKey(Field)
 
     class Meta(ConceptField.Meta):
         pass

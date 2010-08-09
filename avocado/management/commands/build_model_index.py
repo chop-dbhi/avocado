@@ -3,7 +3,7 @@ from optparse import make_option
 from django.core.management.base import LabelCommand
 from django.db import models
 
-from avocado.models import ModelField, Category
+from avocado.models import Field, Category
 from avocado.utils.camel import uncamel
 
 class Command(LabelCommand):
@@ -78,14 +78,14 @@ class Command(LabelCommand):
                 }
 
                 # do initial lookup to see if it already exists, skip if it does
-                if ModelField.objects.filter(**kwargs).exists():
+                if Field.objects.filter(**kwargs).exists():
                     print '%s.%s already exists. Skipping...' % (model_name, field.name)
                     continue
 
                 # add derived name
                 kwargs['name'] = field.name.replace('_', ' ').title()
 
-                model_field = ModelField(**kwargs)
+                model_field = Field(**kwargs)
                 
                 if use_categories:
                     model_field.category = category
