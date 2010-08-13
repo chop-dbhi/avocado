@@ -1,4 +1,4 @@
-from types import MethodType
+import inspect
 
 from avocado.settings import settings as avs
 from avocado.concepts.library import BaseLibrary
@@ -8,37 +8,41 @@ class AbstractViewSet(object):
     order = ()
     js = ''
     css = ''
-    
+
     def __call__(self, concept, *args, **kwargs):
-        return self._get_responses(concept, *args, **kwargs)
-    
-    def _get_responses(self, concept, *args, **kwargs):
-        views = {}
-        resps = []
+        fields = concept.fields.order_by('criterionfield__order')
+        return self._get_responses(concept, fields, *args, **kwargs)
+
+    def _get_responses(self, concept, fields, *args, **kwargs):
+        views = []
+        resps = {}
 
         for name in dir(self):
             if name.startswith('_'):
                 continue
-            
+
             method = getattr(self, name)
-            if type(method) is MethodType:
-                resp = method(concept, *args, **kwargs)
+            if inspect.ismethod(method):
+                resp = method(concept, fields, *args, **kwargs)
                 if not resp.has_key('tabname'):
                     resp['tabname'] = name.replace('_', ' ').title()
-                views[name] = resp
+                resps[name] = resp
 
         if self.order:
             for x in self.order:
-                resps.append(views.pop(x))
+                views.append(resps.pop(x))
 
         # add rest of un-ordered views
-        resps.extend(views.values())
+        views.extend(resps.values())
 
+        # TODO add caching mechanism to try and fetch this before
+        # rebuilding it
         resp = {
-            'cid': concept.id,
+            'pk': concept.id,
+            'name': concept.name,
             'js': self.js or None,
             'css': self.css or None,
-            'views': resps,
+            'views': views,
         }
 
         return resp
