@@ -1,10 +1,9 @@
 import re
 
 from django.db import models
-from django.db.models import Q
 from django.utils import stopwords
 
-from avocado.settings import settings
+from avocado.conf import settings
 
 class ConceptManager(models.Manager):
     use_for_related_fields = True
@@ -22,14 +21,6 @@ class ConceptManager(models.Manager):
 
     def public(self, *args, **kwargs):
         return self.get_query_set().filter(*args, is_public=True, **kwargs)
-
-    if settings.ENABLE_GROUP_PERMISSIONS:
-        def restrict_by_group(self, groups):
-            """Returns public concepts that are apart of the specified groups or
-            none at all.
-            """
-            return self.public(Q(groups__isnull=True) |
-                Q(groups__in=groups)).distinct()
 
     def fulltext_search(self, search_str, base_queryset=None, use_icontains=False):
         """Performs a fulltext search provided the database backend supports

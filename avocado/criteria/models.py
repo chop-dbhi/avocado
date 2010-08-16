@@ -32,11 +32,9 @@ class Criterion(Concept):
         return self._form
     form = property(_get_form)
     
-    def _get_view_responses(self):
-        if not hasattr(self, '_view_responses'):
-            self._view_responses = library.get(self.viewset, self)
-        return self._view_responses
-    view_responses = property(_get_view_responses)
+    def view_responses(self):
+        resps = library.get(self.viewset, self)
+        return resps
 
 
 class CriterionField(ConceptField):

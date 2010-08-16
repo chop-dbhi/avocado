@@ -1,6 +1,6 @@
 from copy import deepcopy
 
-from avocado.settings import settings as avs
+from avocado.conf import settings as avs
 from avocado.concepts.library import BaseLibrary
 from avocado.utils.iter import is_iter_not_string
 

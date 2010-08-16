@@ -4,7 +4,7 @@ from django.db.models import Count
 from django.contrib.auth.models import Group
 from django.db.models.fields import FieldDoesNotExist
 
-from avocado.settings import settings
+from avocado.conf import settings
 from avocado.concepts.models import Category
 from avocado.fields.translate import library
 

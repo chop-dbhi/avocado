@@ -3,7 +3,7 @@ import inspect
 from django.db import models
 from django.db.models import Q
 
-from avocado.settings import settings
+from avocado.conf import settings
 
 __all__ = ('ModelTree', 'DEFAULT_MODELTREE')
 

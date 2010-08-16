@@ -1,6 +1,6 @@
 import inspect
 
-from avocado.settings import settings as avs
+from avocado.conf import settings as avs
 from avocado.concepts.library import BaseLibrary
 
 class AbstractViewSet(object):

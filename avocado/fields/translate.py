@@ -1,7 +1,7 @@
 from django.db.models import Q
 
 from avocado.exceptions import ValidationError
-from avocado.settings import settings as avs
+from avocado.conf import settings as avs
 from avocado.concepts.library import BaseLibrary
 from avocado.fields.operators import MODEL_FIELD_MAP
 from avocado.utils.iter import is_iter_not_string

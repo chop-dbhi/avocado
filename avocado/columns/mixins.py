@@ -1,6 +1,6 @@
 from django.db import models
 
-from avocado.settings import settings
+from avocado.conf import settings
 from avocado.utils.mixins import create_mixin
 from avocado.columns.format import library
 
