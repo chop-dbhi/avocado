@@ -1,7 +1,7 @@
 import inspect
 
-from avocado.conf import settings as avs
-from avocado.concepts.library import BaseLibrary
+from avocado.conf import settings
+from avocado.concepts.library import Library
 
 class AbstractViewSet(object):
     "The AbstractViewSet class."
@@ -48,31 +48,11 @@ class AbstractViewSet(object):
         return resp
 
 
-class ViewSetLibrary(BaseLibrary):
-    STORE_KEY = 'viewsets'
-
-    def _get_store(self, key=None):
-        return self._cache
-
-    def _format_name(self, name):
-        return super(ViewSetLibrary, self)._format_name(name, 'ViewSet')
-
-    def _register(self, klass_name, obj):
-        self._add_item(None, klass_name, obj)
-
-    def register(self, klass):
-        return super(ViewSetLibrary, self).register(klass, AbstractViewSet)
-
-    def choices(self):
-        "Returns a list of tuples that can be used as choices in a form."
-        return [(n, n) for n in self._cache.keys()]
-
+class ViewSetLibrary(Library):
     def get(self, name, concept):
-        viewset = super(ViewSetLibrary, self).get(None, name)
+        viewset = super(ViewSetLibrary, self).get(name)
         return viewset(concept)
 
 
-library = ViewSetLibrary()
-
-# find all other views
-library.autodiscover(avs.VIEW_MODULE_NAME)
+library = ViewSetLibrary(AbstractViewSet, settings.VIEWSET_MODULE_NAME,
+    suffix='ViewSet')

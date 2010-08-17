@@ -1,26 +1,37 @@
 from django.test import TestCase
 
 from avocado.exceptions import RegisterError, AlreadyRegisteredError
-from avocado.columns.format import (AbstractFormatter, FormatterLibrary,
+from avocado.columns.format import (AbstractFormatter, library,
     RemoveFormatter, IgnoreFormatter, FormatError)
 
 __all__ = ('FormatterLibraryTestCase',)
 
+
+class ConcatStrFormatter(AbstractFormatter):
+    def csv(self, *args):
+        return ' '.join(map(lambda x: str(x), args))
+
+
+class Add(AbstractFormatter):
+    name = 'Add Numbers'
+    def csv(self, *args):
+        return sum(args)
+
+
+class Add2(AbstractFormatter):
+    name = 'Add Numbers'
+    def csv(self, *args):
+        return sum(args)
+
+
 class FormatterLibraryTestCase(TestCase):
     def test_no_formatters(self):
-        library = FormatterLibrary()
         self.assertEqual(library._cache, {'json': {'formatters': {}, 'error': '[data format error]'},
             'html': {'null': '<span class="lg ht">(no data)</span>', 'formatters': {},
                 'error': '<span class="data-format-error">[data format error]</span>'},
             'csv': {'null': '', 'formatters': {}, 'error': '[data format error]'}})
 
     def test_bad_register(self):
-        library = FormatterLibrary({
-            'csv': {
-                'error': 'error'
-            }
-        })
-
         class BadConcatFormatter(object):
             def csv(self, arg1, arg2):
                 return ' '.join([str(arg1), str(arg2)])
@@ -28,31 +39,10 @@ class FormatterLibraryTestCase(TestCase):
         self.assertRaises(RegisterError, library.register, BadConcatFormatter)
 
     def _setup_library(self):
-        library = FormatterLibrary({
-            'csv': {
-                'error': 'error'
-            }
-        })
-
-        @library.register
-        class ConcatStrFormatter(AbstractFormatter):
-            def csv(self, *args):
-                return ' '.join(map(lambda x: str(x), args))
-
-
-        @library.register
-        class Add(AbstractFormatter):
-            name = 'Add Numbers'
-            def csv(self, *args):
-                return sum(args)
-
+        library.register(ConcatStrFormatter)
+        library.register(Add)
         # should not raise AlreadyRegisteredError, it will merely replace it
         library.register(Add)
-
-        class Add2(AbstractFormatter):
-            name = 'Add Numbers'
-            def csv(self, *args):
-                return sum(args)
 
         self.assertRaises(AlreadyRegisteredError, library.register, Add2)
 
@@ -110,10 +100,6 @@ class FormatterLibraryTestCase(TestCase):
 
     def test_error_fallback(self):
         library = self._setup_library()
-
-        # builtin formatters
-        library.register(RemoveFormatter)
-        library.register(IgnoreFormatter)
 
         @library.register
         class AddOneFormatter(AbstractFormatter):

@@ -1,7 +1,8 @@
 from copy import deepcopy
 
-from avocado.conf import settings as avs
-from avocado.concepts.library import BaseLibrary
+from avocado.conf import settings
+from avocado.exceptions import AlreadyRegisteredError
+from avocado.concepts.library import Library
 from avocado.utils.iter import is_iter_not_string
 
 class FormatError(Exception):
@@ -37,7 +38,7 @@ class IgnoreFormatter(AbstractFormatter):
         return args
 
 
-class FormatterLibrary(BaseLibrary):
+class FormatterLibrary(Library):
     """The base class for defining a formatter library.
 
     This library dynamically determines the available formatter types via a
@@ -79,29 +80,32 @@ class FormatterLibrary(BaseLibrary):
 
     The "html" formatter merely points to the "json" method.
     """
-    STORE_KEY = 'formatters'
-    FORMATTER_TYPES = avs.FORMATTER_TYPES
-
-    def __init__(self, formatter_types={}):
-        self._cache = deepcopy(formatter_types or self.FORMATTER_TYPES)
+    def __init__(self, *args, **kwargs):
+        super(FormatterLibrary, self).__init__(*args, **kwargs)
+        self._cache = deepcopy(settings.FORMATTER_TYPES)
         self.format_types = self._cache.keys()
 
-        self._add_store()
+        for key in self._cache:
+            self._cache[key]['formatters'] = {}
 
-    def _format_name(self, name):
-        return super(FormatterLibrary, self)._format_name(name, 'Formatter')
+    def add_object(self, key, class_name, obj, errmsg=''):
+        store = self.get_store()[key]['formatters']
+        # if already registered under the same name, test if the classes are
+        # the same -- replace if true, throw error if not
+        if store.has_key(class_name):
+            robj = store.get(class_name)
+            if obj.__class__ is not robj.__class__:
+                raise AlreadyRegisteredError, errmsg
+        store.update({class_name: obj})            
 
-    def _register(self, klass_name, obj):
-        for ftype in self.format_types:
-            if hasattr(obj, ftype) or obj.apply_to_all:
-                self._add_item(ftype, klass_name, obj)
+    def register_object(self, klass_name, obj):
+        for key in self.format_types:
+            if hasattr(obj, key) or obj.apply_to_all:
+                self.add_object(key, klass_name, obj)
 
-    def register(self, klass):
-        return super(FormatterLibrary, self).register(klass, AbstractFormatter)
-
-    def choices(self, ftype):
+    def choices(self, key):
         "Returns a list of tuples that can be used as choices in a form."
-        store = self._get_store(ftype)
+        store = self.get_store()[key]['formatters']
         choices = []
 
         for name, obj in store.items():
@@ -167,18 +171,18 @@ class FormatterLibrary(BaseLibrary):
 
                     [(3, 'FOO', '848', 'BAR', 392)]
         """
-        formatters = self._cache[ftype]['formatters']
-        error = self._cache[ftype].get('error', '')
-        null = self._cache[ftype].get('null', None)
+        store = self.get_store()[ftype]
+
+        formatters = store['formatters']
+        error = store.get('error', '')
+        null = store.get('null', None)
 
         for seq in iter(iterable):
             yield self.format_seq(seq, rules, ftype, formatters, error, null)
 
 
-library = FormatterLibrary()
+library = FormatterLibrary(AbstractFormatter, settings.FORMATTER_MODULE_NAME,
+    suffix='Formatter')
 
 library.register(RemoveFormatter)
 library.register(IgnoreFormatter)
-
-# find all other formatters
-library.autodiscover(avs.FORMATTER_MODULE_NAME)

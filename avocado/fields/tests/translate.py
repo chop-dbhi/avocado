@@ -3,7 +3,7 @@ from django.db.models import Q
 
 from avocado.modeltree import DEFAULT_MODELTREE
 from avocado.exceptions import RegisterError
-from avocado.fields.translate import TranslatorLibrary, DefaultTranslator
+from avocado.fields.translate import library, DefaultTranslator
 from avocado.fields.cache import cache
 
 __all__ = ('TranslatorLibraryTestCase',)
@@ -11,15 +11,7 @@ __all__ = ('TranslatorLibraryTestCase',)
 class TranslatorLibraryTestCase(TestCase):
     fixtures = ['test_data.yaml']
 
-    def test_no_translators(self):
-        library = TranslatorLibrary()
-        self.assertEqual(library._cache, {})
-
     def test_bad_register(self):
-        library = TranslatorLibrary()
-
-        library.register(DefaultTranslator)
-
         class FooTranslator(object):
             pass
 

@@ -46,7 +46,7 @@ class Field(models.Model):
     # search optimizations
     search_doc = models.TextField(editable=False, null=True)
 
-    if settings.ENABLE_GROUP_PERMISSIONS:
+    if settings.FIELD_GROUP_PERMISSIONS:
         groups = models.ManyToManyField(Group, blank=True)
 
     translator = models.CharField(max_length=100, choices=library.choices(),

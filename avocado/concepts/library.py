@@ -6,76 +6,85 @@ from django.utils.importlib import import_module
 from avocado.exceptions import RegisterError, AlreadyRegisteredError
 from avocado.utils.camel import uncamel
 
-class BaseLibrary(object):
-    STORE_KEY = ''
-    DISCOVER_MODE = False
+class Library(object):
+    def __init__(self, superclass, module_name, suffix='', default=None):
+        self.superclass = superclass
+        self.module_name = module_name
+        self.suffix = suffix
+        self.default = default
 
-    def __init__(self):
         self._cache = {}
+        self._loaded = False
+        self._discovery = False
 
-    def _add_store(self):
-        for key in self._cache:
-            self._cache[key][self.STORE_KEY] = {}        
-
-    def _format_name(self, name, suffix=''):
-        if suffix and name.endswith(suffix):
-            name = name[:-len(suffix)]
+    def _clean_name(self, name):
+        if self.suffix and name.endswith(self.suffix):
+            name = name[:-len(self.suffix)]
         return uncamel(name)
-
-    def _get_store(self, key):
-        return self._cache[key][self.STORE_KEY]
 
     def _get_class_name(self, klass):
         if hasattr(klass, 'name'):
             return klass.name
-        return self._format_name(klass.__name__)
-
-    def _add_item(self, key, klass_name, obj, errmsg=''):
-        store = self._get_store(key)
-
+        return self._clean_name(klass.__name__)
+    
+    def add_object(self, class_name, obj, errmsg=''):
+        store = self.get_store()
         # if already registered under the same name, test if the classes are
         # the same -- replace if true, throw error if not
-        if store.has_key(klass_name):
-            robj = store.get(klass_name)
+        if store.has_key(class_name):
+            robj = store.get(class_name)
             if obj.__class__ is not robj.__class__:
                 raise AlreadyRegisteredError, errmsg
-        store.update({klass_name: obj})
+        store.update({class_name: obj})
+    
+    def remove_object(self, class_name):
+        store = self.get_store()
+        if store.has_key(class_name):
+            store.remove(class_name)
 
-    def _pre_register(self, klass, superclass):
-        "Test class being registered is valid."
-        if not issubclass(klass, superclass):
+    def get_store(self):
+        if not self._cache and not self._loaded:
+            self.autodiscover()
+        return self._cache
+
+    def register_object(self, class_name, obj):
+        self.add_object(class_name, obj)
+    
+    def unregister_object(self, class_name):
+        self.remove_object(class_name)
+
+    def register(self, klass):
+        if not issubclass(klass, self.superclass):
             raise RegisterError, '%s must be a subclass of %s' % (repr(klass),
-                superclass.__name__)
+                self.superclass.__name__)
 
-    def _register(self, klass_name, obj):
-        raise NotImplementedError, 'Subclasses must implement this method'
-
-    def register(self, klass, superclass=object):
-        self._pre_register(klass, superclass)
-
-        class_name = self._get_class_name(klass)
         obj = klass()
+        class_name = self._get_class_name(klass)
 
-        self._register(class_name, obj)
+        self.register_object(class_name, obj)
         return klass
+    
+    def unregister(self, klass):
+        class_name = self._get_class_name(klass)
+        self.unregister_object(class_name)
 
-    def choices(self, key):
+    def choices(self):
         "Returns a list of tuples that can be used as choices in a form."
-        store = self._get_store(key)
+        store = self.get_store()
         choices = []
         for name in store.keys():
             choices.append((name, name))
         return choices
 
-    def get(self, key, name):
+    def get(self, name):
         "Retrieve the cached instance given the name it is registered under."
-        return self._get_store(key).get(name, None)
+        return self.get_store().get(name, self.default)
 
-    def autodiscover(self, mod_name):
-        if self.DISCOVER_MODE:
+    def autodiscover(self):
+        if self._discovery:
             return
 
-        self.DISCOVER_MODE = True
+        self._discovery = True
 
         for app in settings.INSTALLED_APPS:
             try:
@@ -83,10 +92,10 @@ class BaseLibrary(object):
             except AttributeError:
                 continue
             try:
-                imp.find_module(mod_name, app_path)
+                imp.find_module(self.module_name, app_path)
             except ImportError:
                 continue
 
-            import_module('%s.%s' % (app, mod_name))
+            import_module('%s.%s' % (app, self.module_name))
 
-        self.DISCOVER_MODE = False
+        self._discovery = False

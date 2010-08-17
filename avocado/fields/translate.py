@@ -1,8 +1,8 @@
 from django.db.models import Q
 
 from avocado.exceptions import ValidationError
-from avocado.conf import settings as avs
-from avocado.concepts.library import BaseLibrary
+from avocado.conf import settings
+from avocado.concepts.library import Library
 from avocado.fields.operators import MODEL_FIELD_MAP
 from avocado.utils.iter import is_iter_not_string
 
@@ -66,6 +66,7 @@ class AbstractTranslator(object):
 
 
 class DefaultTranslator(AbstractTranslator):
+    "Provides the default behavior of creating a simple lookup."
     def translate(self, modeltree, field, operator, value, **context):
         operator, value = self.validate(operator, value)
         key = field.query_string(modeltree, operator.operator)
@@ -76,33 +77,5 @@ class DefaultTranslator(AbstractTranslator):
         return Q(**kwarg), {}
 
 
-class TranslatorLibrary(BaseLibrary):
-    "The base class for defining the translator library."
-    STORE_KEY = 'translators'
-    
-    default = DefaultTranslator()
-
-    def _get_store(self, key=None):
-        return self._cache
-
-    def _format_name(self, name):
-        return super(TranslatorLibrary, self)._format_name(name, 'Translator')
-
-    def _register(self, klass_name, obj):
-        self._add_item(None, klass_name, obj)
-
-    def register(self, klass):
-        return super(TranslatorLibrary, self).register(klass, AbstractTranslator)
-
-    def choices(self):
-        "Returns a list of tuples that can be used as choices in a form."
-        return [(n, n) for n in self._cache.keys()]
-    
-    def get(self, name):
-        return super(TranslatorLibrary, self).get(None, name)
-
-
-library = TranslatorLibrary()
-
-# find all other translators
-library.autodiscover(avs.TRANSLATOR_MODULE_NAME)
+library = Library(AbstractTranslator, settings.TRANSLATOR_MODULE_NAME,
+    suffix='Translator', default=DefaultTranslator())

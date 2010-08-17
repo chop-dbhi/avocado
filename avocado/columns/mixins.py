@@ -5,8 +5,8 @@ from avocado.utils.mixins import create_mixin
 from avocado.columns.format import library
 
 fields = {}
-for name in library.format_types:
-    fn = settings.FORMATTER_FIELD_SUFFIX % name
+for name in settings.FORMATTER_TYPES:
+    fn = name + settings.FORMATTER_FIELD_SUFFIX
     fields[fn] = models.CharField('%s formatter' % name, max_length=100,
         choices=library.choices(name))
 

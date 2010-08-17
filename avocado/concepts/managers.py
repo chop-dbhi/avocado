@@ -1,26 +1,33 @@
 import re
 
 from django.db import models
+from django.db.models import Q
 from django.utils import stopwords
 
 from avocado.conf import settings
 
+def _tokenize(search_str):
+    "Strips stopwords and tokenizes search string if not already a list."
+    if isinstance(search_str, basestring):
+        # TODO determine appropriate characters that should be retained
+        sanitized_str = re.sub('[^\w\s@-]+', '', search_str)
+        cleaned_str = stopwords.strip_stopwords(sanitized_str)
+        toks = cleaned_str.split()
+    else:
+        toks = list(search_str)
+    return toks
+
 class ConceptManager(models.Manager):
     use_for_related_fields = True
     
-    def _tokenize(self, search_str):
-        "Strips stopwords and tokenizes search string if not already a list."
-        if isinstance(search_str, basestring):
-            # TODO determine appropriate characters that should be retained
-            sanitized_str = re.sub('[^\w\s@-]+', '', search_str)
-            cleaned_str = stopwords.strip_stopwords(sanitized_str)
-            toks = cleaned_str.split()
-        else:
-            toks = list(search_str)
-        return toks
-
     def public(self, *args, **kwargs):
         return self.get_query_set().filter(*args, is_public=True, **kwargs)
+    
+    if settings.FIELD_GROUP_PERMISSIONS:
+        def restrict_by_group(self, groups):
+            "Restrict by the associated fields' groups."
+            return self.public(Q(fields__groups__isnull=True) |
+                Q(fields__groups__in=groups)).distinct()
 
     def fulltext_search(self, search_str, base_queryset=None, use_icontains=False):
         """Performs a fulltext search provided the database backend supports
@@ -36,7 +43,7 @@ class ConceptManager(models.Manager):
         if base_queryset is None:
             base_queryset = self.get_query_set()
 
-        toks = self._tokenize(search_str)
+        toks = _tokenize(search_str)
         tok_str = '&'.join(toks)
 
         queryset = base_queryset.extra(where=('search_tsv @@ to_tsquery(%s)',),
@@ -57,7 +64,7 @@ class ConceptManager(models.Manager):
         else:
             queryset = base_queryset.all()
 
-        toks = self._tokenize(search_str)
+        toks = _tokenize(search_str)
 
         for t in toks:
             queryset = queryset.filter(search_doc__icontains=t)
