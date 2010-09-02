@@ -28,7 +28,7 @@ class Concept(models.Model):
 
     # search optimizations
     search_doc = models.TextField(editable=False, null=True)
-    
+
     objects = ConceptManager()
 
     class Meta(object):

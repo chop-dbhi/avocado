@@ -43,6 +43,8 @@ class ConceptManager(models.Manager):
         if base_queryset is None:
             base_queryset = self.get_query_set()
 
+        column = '"%s"."search_tsv"' % self.model._meta.db_table
+
         toks = _tokenize(search_str)
 
         if not toks:
@@ -50,7 +52,7 @@ class ConceptManager(models.Manager):
 
         tok_str = '&'.join(toks)
 
-        queryset = base_queryset.extra(where=('search_tsv @@ to_tsquery(%s)',),
+        queryset = base_queryset.extra(where=(column + ' @@ to_tsquery(%s)',),
             params=(tok_str,))
 
         if use_icontains and queryset.exists():
