@@ -118,7 +118,7 @@ class Field(models.Model):
                     name = self.field_name
                     choices = list(self.model.objects.values_list(name,
                         flat=True).order_by(name).distinct())
-                    choices = zip(choices, map(lambda x: x.title(), choices))
+                    choices = zip(choices, map(lambda x: str(x).title(), choices))
 
                 # attempt to evaluate custom handler
                 else:

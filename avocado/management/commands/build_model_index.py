@@ -7,27 +7,27 @@ from avocado.models import Field, Category
 from avocado.utils.camel import uncamel
 
 class Command(LabelCommand):
-    help = """Finds all models in the provided app(s) and attempts to populate
-        the table of Field objects. Fields on the model that already exist will not
-        be touched.
-        """
-    
+    help = """
+        Finds all models in the provided app(s) and attempts to populate
+        the table of Field objects. Fields on the model that already exist will
+        not be touched."""
+
     args = '(<app_name.model_name> | <app_name>)+'
     label = '<app_name.model_name> | <app_name>'
-    
+
     option_list = LabelCommand.option_list + (
         make_option('--no-categories', action='store_false',
             dest='use_categories', default=True,
             help='Do not create categories.'),
     )
-    
+
     ignored_field_types = (models.AutoField, models.ManyToManyField,
         models.OneToOneField, models.ForeignKey)
-    
+
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)
         self._categories = {}
-    
+
     def _get_category(self, model_name):
         if self._categories.has_key(model_name):
             category = self._categories[model_name]
@@ -35,13 +35,13 @@ class Command(LabelCommand):
             category, is_new = Category.objects.get_or_create(name=uncamel(model_name))
             self._categories[model_name] = category
         return category
-    
+
     def handle_label(self, label, **options):
         "Handles and `app_label' or `app_label'.`model_label' formats."
         labels = label.split('.')
         mods = None
         use_categories = options.get('use_categories')
-        
+
         if len(labels) == 2:
             model = models.get_model(*labels)
             if model is None:
@@ -54,14 +54,14 @@ class Command(LabelCommand):
             if mods is None:
                 print 'Cannot find app "%s", skipping...' % label
                 return
-        
+
         app_name = labels[0]
 
         for model in mods:
             cnt = 0
 
             model_name = model.__name__
-            
+
             if use_categories:
                 category = self._get_category(model_name)
 
@@ -86,10 +86,10 @@ class Command(LabelCommand):
                 kwargs['name'] = field.name.replace('_', ' ').title()
 
                 model_field = Field(**kwargs)
-                
+
                 if use_categories:
                     model_field.category = category
-                    
+
                 model_field.is_public = False
                 model_field.save()
 

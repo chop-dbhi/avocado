@@ -19,10 +19,10 @@ def _tokenize(search_str):
 
 class ConceptManager(models.Manager):
     use_for_related_fields = True
-    
+
     def public(self, *args, **kwargs):
         return self.get_query_set().filter(*args, is_public=True, **kwargs)
-    
+
     if settings.FIELD_GROUP_PERMISSIONS:
         def restrict_by_group(self, groups):
             "Restrict by the associated fields' groups."
@@ -37,13 +37,17 @@ class ConceptManager(models.Manager):
 
             `use_icontains' - a boolean for whether to fallback to the
                 `icontains_search' if no hits are found using fulltext
-        
+
         TODO update to take in account different database backends
         """
         if base_queryset is None:
             base_queryset = self.get_query_set()
 
         toks = _tokenize(search_str)
+
+        if not toks:
+            return base_queryset
+
         tok_str = '&'.join(toks)
 
         queryset = base_queryset.extra(where=('search_tsv @@ to_tsquery(%s)',),
