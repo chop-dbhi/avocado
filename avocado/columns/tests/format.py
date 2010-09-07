@@ -1,7 +1,7 @@
 from django.test import TestCase
 
 from avocado.exceptions import RegisterError, AlreadyRegisteredError
-from avocado.columns.format import (AbstractFormatter, library,
+from avocado.columns.format import (FormatterLibrary, AbstractFormatter,
     RemoveFormatter, IgnoreFormatter, FormatError)
 
 __all__ = ('FormatterLibraryTestCase',)
@@ -26,12 +26,16 @@ class Add2(AbstractFormatter):
 
 class FormatterLibraryTestCase(TestCase):
     def test_no_formatters(self):
-        self.assertEqual(library._cache, {'json': {'formatters': {}, 'error': '[data format error]'},
+        library = FormatterLibrary()
+        self.assertEqual(library._cache, {
+            'json': {'formatters': {}, 'error': '[data format error]'},
             'html': {'null': '<span class="lg ht">(no data)</span>', 'formatters': {},
                 'error': '<span class="data-format-error">[data format error]</span>'},
-            'csv': {'null': '', 'formatters': {}, 'error': '[data format error]'}})
+            'csv': {'null': '', 'formatters': {}, 'error': '[data format error]'}
+        })
 
     def test_bad_register(self):
+        library = FormatterLibrary()
         class BadConcatFormatter(object):
             def csv(self, arg1, arg2):
                 return ' '.join([str(arg1), str(arg2)])
@@ -39,6 +43,7 @@ class FormatterLibraryTestCase(TestCase):
         self.assertRaises(RegisterError, library.register, BadConcatFormatter)
 
     def _setup_library(self):
+        library = FormatterLibrary()
         library.register(ConcatStrFormatter)
         library.register(Add)
         # should not raise AlreadyRegisteredError, it will merely replace it
@@ -100,6 +105,9 @@ class FormatterLibraryTestCase(TestCase):
 
     def test_error_fallback(self):
         library = self._setup_library()
+        # builtin formatters
+        library.register(RemoveFormatter)
+        library.register(IgnoreFormatter)
 
         @library.register
         class AddOneFormatter(AbstractFormatter):
@@ -121,7 +129,7 @@ class FormatterLibraryTestCase(TestCase):
         ], 'csv')
 
         self.assertEqual(list(out), [
-            ('4 None', 'foo', set([3,4,5]), 23.5, 'error'),
-            ('10 29', 'foo', [3,4,5], 'error', 'error'),
-            ('None bar', 'foo', None, 201.0, 193)
+            ('4 None', 'foo', set([3, 4, 5]), 23.5, '[data format error]'),
+            ('10 29', 'foo', [3, 4, 5], '[data format error]', '[data format error]'),
+            ('None bar', 'foo', '', 201.0, 193)
         ])

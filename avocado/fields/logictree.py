@@ -5,14 +5,13 @@ grammar is as follows:
     NODE    ::= F_NODE | L_NODE
 
     F_NODE  ::= '{'
-                    'fid'       ::= INT
-                    'cid'       ::= INT | None
+                    'id'        ::= INT
                     'operator'  ::= STRING
                     'value'     ::= STRING | NUMBER | BOOL | None
                 '}'
 
     L_NODE  ::= '{'
-                    'operator'  ::= 'AND' | 'OR'
+                    'type'  ::= 'AND' | 'OR'
                     'children'  ::= '[' NODE{2,} ']'
                 '}'
 
@@ -20,29 +19,26 @@ Two examples as follows:
 
     # single F_NODE
     {
-        'fid': 1,
-        'cid': None,
+        'id': 1,
         'operator': 'exact',
         'value': 30
     }
 
-    # nested NODE structure
+    # nested L_NODE structure
     {
-        'operator': 'OR',
+        'type': 'OR',
         'children': [{
-            'fid': 1,
-            'cid': None,
+            'id': 1,
             'operator': 'exact',
             'value': 30
         }, {
-            'fid': 1,
-            'cid': None,
+            'id': 1,
             'operator': 'exact',
             'value': 45
         }]
     }
 """
-from avocado.models import Field, Criterion
+from avocado.models import Field
 
 class Node(object):
     def apply(self, queryset):
@@ -55,30 +51,20 @@ class Node(object):
         return queryset.filter(self.condition)
 
 
-class FieldNode(Node):
+class Condition(Node):
     "Contains information for a single query condition."
-    def __init__(self, modeltree, context, fid, operator, value, cid=None):
+    def __init__(self, modeltree, context, id, operator, value, cid=None):
         self.modeltree = modeltree
         self.context = context
-        self.fid = fid
-        self.cid = cid
+        self.id = id
         self.operator = operator
         self.value = value
 
     def _get_field(self):
         if not hasattr(self, '_field'):
-            self._field = Field.objects.get(id=self.fid)
+            self._field = Field.objects.get(id=self.id)
         return self._field
     field = property(_get_field)
-
-    def _get_criterion(self):
-        if not hasattr(self, '_criterion'):
-            if self.cid is None:
-                self._criterion = None
-            else:
-                self._criterion = Criterion.objects.get(id=self.cid)
-        return self._criterion
-    criterion = property(_get_criterion)
 
     def _translate(self):
         cond, ants = self.field.translate(self.modeltree, self.operator,
@@ -99,15 +85,15 @@ class FieldNode(Node):
     annotations = property(_get_annotations)
 
 
-class LogicNode(Node):
+class LogicalOperator(Node):
     "Provides a logical relationship between it's children."
-    def __init__(self, modeltree, operator):
+    def __init__(self, modeltree, type):
         self.modeltree = modeltree
-        self.operator = operator
+        self.type = type
         self.children = []
 
     def _combine(self, q1, q2):
-        if self.operator.upper() == 'OR':
+        if self.type.upper() == 'OR':
             return q1 | q2
         return q1 & q2
 
@@ -131,16 +117,6 @@ class LogicNode(Node):
         return self._annotations
     annotations = property(_get_annotations)
 
-    def field_ids(self):
-        "Returns a unique set of field ids used."
-        ids = []
-        for node in self.children:
-            if isinstance(node, LogicNode):
-                ids.extend(node.field_ids())
-            else:
-                ids.append(node.fid)
-        return set(ids)
-
 
 def transform(modeltree, rnode, pnode=None, **context):
     "Takes the raw data structure and converts it into the node tree."
@@ -149,11 +125,11 @@ def transform(modeltree, rnode, pnode=None, **context):
         if len(rnode['children']) < 2:
             raise RuntimeError, 'a logical operator must apply to 2 or more ' \
                 'statements'
-        node = LogicNode(modeltree, rnode['operator'])
+        node = LogicalOperator(modeltree, rnode['type'])
         for child in rnode['children']:
             transform(modeltree, child, node, **context)
     else:
-        node = FieldNode(modeltree, context, **rnode)
+        node = Condition(modeltree, context, **rnode)
     # top level node returns, i.e. no parent node
     if pnode is None:
         return node

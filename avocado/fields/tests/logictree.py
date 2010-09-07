@@ -13,8 +13,7 @@ class LogicTreeTestCase(TestCase):
 
     def test_single_field(self):
         raw_node = {
-            'fid': 1,
-            'cid': 1,
+            'id': 1,
             'operator': 'iexact',
             'value': 'foobar'
         }
@@ -24,13 +23,13 @@ class LogicTreeTestCase(TestCase):
 
     def test_single_conditions(self):
         raw_node = {
-            'operator': 'and',
+            'type': 'and',
             'children': [{
-                'fid': 1,
+                'id': 1,
                 'operator': 'icontains',
                 'value': 'test'
             }, {
-                'fid': 2,
+                'id': 2,
                 'operator': 'iexact',
                 'value': 'test2'
             }]
@@ -40,7 +39,7 @@ class LogicTreeTestCase(TestCase):
         q2 = Q(keywords__iexact=u'test2') & Q(name__icontains=u'test')
         self.assertEqual(str(q1), str(q2))
 
-        raw_node['operator'] = 'or'
+        raw_node['type'] = 'or'
 
         q3 = logictree.transform(DEFAULT_MODELTREE, raw_node).condition
         q4= Q(keywords__iexact=u'test2') | Q(name__icontains=u'test')
@@ -48,19 +47,19 @@ class LogicTreeTestCase(TestCase):
 
     def test_multi_level_condition(self):
         raw_node = {
-            'operator': 'and',
+            'type': 'and',
             'children': [{
-                'fid': 1,
+                'id': 1,
                 'operator': 'in',
                 'value': ['one', 'two'],
             }, {
-                'operator': 'or',
+                'type': 'or',
                 'children': [{
-                    'fid': 3,
+                    'id': 3,
                     'operator': 'iexact',
                     'value': 'foobar'
                 }, {
-                    'fid': 3,
+                    'id': 3,
                     'operator': 'iexact',
                     'value': 'barbaz'
                 }]

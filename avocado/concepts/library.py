@@ -7,12 +7,12 @@ from avocado.exceptions import RegisterError, AlreadyRegisteredError
 from avocado.utils.camel import uncamel
 
 class Library(object):
-    def __init__(self, superclass, module_name, suffix='', default=None):
-        self.superclass = superclass
-        self.module_name = module_name
-        self.suffix = suffix
-        self.default = default
+    superclass = None
+    module_name = None
+    suffix = ''
+    default = None
 
+    def __init__(self):
         self._cache = {}
         self._loaded = False
         self._discovery = False

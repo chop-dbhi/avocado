@@ -9,17 +9,17 @@ class ColumnSearchTestCase(TestCase):
 
     def test_fulltext(self):
         queryset1 = Column.objects.fulltext_search('[)roc#ks')
-        self.assertEqual(str(queryset1.values('id').query), 'SELECT "avocado_column"."id" FROM "avocado_column" WHERE search_tsv @@ to_tsquery(rocks) ORDER BY "avocado_column"."name" ASC')
+        self.assertEqual(str(queryset1.values('id').query), 'SELECT "avocado_column"."id" FROM "avocado_column" WHERE "avocado_column"."search_tsv" @@ to_tsquery(rocks) ORDER BY "avocado_column"."name" ASC')
         self.assertEqual(queryset1.count(), 1)
         self.assertEqual(queryset1[0].id, 1)
 
         queryset2 = Column.objects.fulltext_search('google< search *>')
-        self.assertEqual(str(queryset2.values('id').query), 'SELECT "avocado_column"."id" FROM "avocado_column" WHERE search_tsv @@ to_tsquery(google&search) ORDER BY "avocado_column"."name" ASC')
+        self.assertEqual(str(queryset2.values('id').query), 'SELECT "avocado_column"."id" FROM "avocado_column" WHERE "avocado_column"."search_tsv" @@ to_tsquery(google&search) ORDER BY "avocado_column"."name" ASC')
         self.assertEqual(queryset2.count(), 1)
         self.assertEqual(queryset2[0].id, 2)
 
         queryset3 = Column.objects.fulltext_search('ca&$t1')
-        self.assertEqual(str(queryset3.values('id').query), 'SELECT "avocado_column"."id" FROM "avocado_column" WHERE search_tsv @@ to_tsquery(cat1) ORDER BY "avocado_column"."name" ASC')
+        self.assertEqual(str(queryset3.values('id').query), 'SELECT "avocado_column"."id" FROM "avocado_column" WHERE "avocado_column"."search_tsv" @@ to_tsquery(cat1) ORDER BY "avocado_column"."name" ASC')
         self.assertEqual(queryset3.count(), 2)
 
     def test_icontains(self):

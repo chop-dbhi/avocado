@@ -80,6 +80,10 @@ class FormatterLibrary(Library):
 
     The "html" formatter merely points to the "json" method.
     """
+    superclass = AbstractFormatter
+    module_name = settings.FORMATTER_MODULE_NAME
+    suffix = 'Formatter'
+
     def __init__(self, *args, **kwargs):
         super(FormatterLibrary, self).__init__(*args, **kwargs)
         self._cache = deepcopy(settings.FORMATTER_TYPES)
@@ -181,8 +185,7 @@ class FormatterLibrary(Library):
             yield self.format_seq(seq, rules, ftype, formatters, error, null)
 
 
-library = FormatterLibrary(AbstractFormatter, settings.FORMATTER_MODULE_NAME,
-    suffix='Formatter')
+library = FormatterLibrary()
 
 library.register(RemoveFormatter)
 library.register(IgnoreFormatter)

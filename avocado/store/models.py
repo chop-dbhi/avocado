@@ -1,26 +1,62 @@
-import base64
-
-from django.db import models, connections, transaction
+from django.db import models, transaction, connections
 from django.contrib.auth.models import User
 
 from avocado.db_fields import PickledObjectField
-from avocado.columns import utils
 
-__all__ = ('DynamicQuery', 'ObjectSet')
+__all__ = ('Scope', 'Perspective', 'Report')
 
-class QueryDescriptor(models.Model):
-    "Contains a set of fields that can be used to describe a particular query."
-    user = models.ForeignKey(User)
-    name = models.CharField(max_length=100)
-    description = models.TextField(null=True, blank=True)
-    keywords = models.CharField(max_length=100, null=True, blank=True)
-    cnt = models.PositiveIntegerField('count', null=True, blank=True)
-    
+class Descriptor(models.Model):
+    user = models.ForeignKey(User, blank=True, null=True)
+    name = models.CharField(max_length=100, blank=True)
+    description = models.TextField(blank=True)
+    keywords = models.CharField(max_length=100, null=True, blank=True)    
+
     class Meta:
         abstract = True
+        app_label = 'avocado'
 
 
-class ObjectSet(QueryDescriptor):
+class Context(Descriptor):
+    """A generic interface for storing an arbitrary context around the data
+    model. The object defining the context must be serializable.
+    """
+    store = PickledObjectField()
+    definition = models.TextField(editable=False)
+
+    class Meta:
+        abstract = True
+        app_label = 'avocado'
+
+    def define(self):
+        "Interprets the stored data structure."
+        raise NotImplementedError
+
+    def write(self, obj):
+        "Takes an object and writes it to the ``store``."
+        self.store = obj
+
+    def read(self):
+        "Reads the ``store`` and returns an object."
+        return self.store
+
+
+class Scope(Context):
+    "Stores information needed to provide scope to data."
+    pass
+
+
+class Perspective(Context):
+    "Stores information needed to represent data."
+    pass
+
+
+class Report(Descriptor):
+    "Represents a combination ``scope`` and ``perspective``."
+    scope = models.ForeignKey(Scope)
+    perspective = models.ForeignKey(Perspective)
+
+
+class ObjectSet(Descriptor):
     """Provides a means of saving off a set of objects.
 
     `criteria' is persisted so the original can be rebuilt. `removed_ids'
@@ -32,9 +68,9 @@ class ObjectSet(QueryDescriptor):
     `ObjectSet' must be subclassed to add the many-to-many relationship
     to the "object" of interest.
     """
-    criteria = PickledObjectField()
-    removed_ids = PickledObjectField()
-
+    scope = models.ForeignKey(Scope)    
+    cnt = models.PositiveIntegerField('count', editable=False)  
+        
     class Meta:
         abstract = True
 
@@ -54,58 +90,3 @@ class ObjectSet(QueryDescriptor):
 
         transaction.set_dirty()
         transaction.commit_unless_managed()
-
-
-def _encode_url(value):
-    return base64.urlsafe_base64encode(str(value))
-
-def _decode_url(self, url):
-    return base64.urlsafe_base64decode(url)
-
-class DynamicQuery(QueryDescriptor):
-    """Provides a means of saving off a dynamic query by serializing each main
-    component to a stringified JSON format. On retrieval, the query is
-    regenerated. As new data is loaded or updated, those data will be reflected
-    in dynamic queries.
-    """
-    criteria = PickledObjectField()
-    columns = PickledObjectField()
-    ordering = PickledObjectField()
-
-    sql = models.TextField('SQL representation', null=True, blank=True,
-        help_text='A snapshot of the last saved query')
-    
-    class Meta:
-        app_label = u'avocado'
-
-    def store_sql(self, queryset):
-        queryset.query.clear_limits()
-        self.sql = str(queryset.query)
-    
-    def q(self, modeltree):
-        from avocado.fields import logictree        
-        node = logictree.transform(modeltree, self.criteria)
-        return node.q
-    
-    def generate(self, modeltree=None):
-        if modeltree is None:
-            from avocado.modeltree import DEFAULT_MODELTREE
-            modeltree = DEFAULT_MODELTREE
-
-        queryset = modeltree.root_model.objects.all()
-        
-        # apply criteria
-        if self.criteria:
-            queryset = queryset.filter(self.q(modeltree))
-        
-        if self.columns or self.ordering:
-            if self.columns:
-                queryset = utils.add_columns(queryset, self.columns, modeltree)
-            if self.ordering:
-                queryset = utils.add_ordering(queryset, self.ordering, modeltree)
-        
-        return queryset
-    
-    def get_url(self):
-        if self.id is not None:
-            return _encode_url(self.id)

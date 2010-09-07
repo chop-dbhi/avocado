@@ -66,7 +66,7 @@ class AbstractTranslator(object):
 
 
 class DefaultTranslator(AbstractTranslator):
-    "Provides the default behavior of creating a simple lookup."
+    "Provides the default behavior of creating a simple lookup."    
     def translate(self, modeltree, field, operator, value, **context):
         operator, value = self.validate(operator, value)
         key = field.query_string(modeltree, operator.operator)
@@ -77,5 +77,11 @@ class DefaultTranslator(AbstractTranslator):
         return Q(**kwarg), {}
 
 
-library = Library(AbstractTranslator, settings.TRANSLATOR_MODULE_NAME,
-    suffix='Translator', default=DefaultTranslator())
+class TranslatorLibrary(Library):
+    superclass = AbstractTranslator
+    module_name = settings.TRANSLATOR_MODULE_NAME
+    suffix = 'Translator'
+    default = DefaultTranslator()
+
+
+library = TranslatorLibrary()

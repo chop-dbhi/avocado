@@ -49,10 +49,13 @@ class AbstractViewSet(object):
 
 
 class ViewSetLibrary(Library):
+    superclass = AbstractViewSet
+    module_name = settings.VIEWSET_MODULE_NAME
+    suffix = 'ViewSet'
+
     def get(self, name, concept):
         viewset = super(ViewSetLibrary, self).get(name)
         return viewset(concept)
 
 
-library = ViewSetLibrary(AbstractViewSet, settings.VIEWSET_MODULE_NAME,
-    suffix='ViewSet')
+library = ViewSetLibrary()
