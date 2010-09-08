@@ -176,7 +176,7 @@ nav {
 }
 
 nav ul {
-    color: #fff;
+    color: #ddd;
     display: inline-block;
     margin: 0;
     padding: 7px 10px;
@@ -194,7 +194,7 @@ nav ul {
 
 nav ul li {
     display: inline;
-    padding-left: 8px;
+    padding-left: 10px;
     margin-right: 12px;
     background-image: url(../img/bc.gif);
     background-repeat: no-repeat;
@@ -217,22 +217,22 @@ nav ul li:last-child {
     background-color: #666;
     font-size: 12px;
     text-shadow: #555 -1px -1px 0;
-    z-index: 250;    
+    z-index: 250;
+    border-bottom: 1px solid #555;
+    border-left: 1px solid #555;    
     -webkit-box-shadow: #eee -1px 1px 0;
     -moz-box-shadow: #eee -1px 1px 0;
-    border-bottom: 1px solid #555;
-    border-left: 1px solid #555;
     -webkit-border-bottom-left-radius: 3px;    
     -moz-border-radius-bottomleft: 3px;     
 }
 
 #tools span {
     display: inline;
-    padding: 0 15px 0 5px;
+    padding: 0 5px 0 20px;
     margin-left: 12px;
     background-image: url(../img/asc.gif);
     background-repeat: no-repeat;
-    background-position: right center;
+    background-position: 5px 6px;
     cursor: pointer;
 }
 
@@ -240,11 +240,12 @@ nav ul li:last-child {
     color: #000;
     background-color: #fff;    
     background-image: url(../img/desc.gif);
-    background-position: right center;
+    background-position: 5px 8px;
     padding-top: 2px;
     padding-bottom: 10px;
     text-shadow: none;
-    -webkit-box-shadow: #333 0 0 3px;
+    -webkit-box-shadow: #333 0 0 5px;
+    -webkit-box-shadow: #333 0 0 5px;    
     -webkit-border-top-right-radius: 2px;
     -moz-border-radius-topright: 2px;
     -webkit-border-top-left-radius: 2px;
@@ -269,8 +270,8 @@ nav ul li:last-child {
     right: 0;
     background-color: #fff;
     padding: 5px;
-    -webkit-box-shadow: #999 3px 3px 3px;
-    -moz-box-shadow: #999 3px 3px 3px;  
+    -webkit-box-shadow: #999 0 3px 3px;
+    -moz-box-shadow: #999 0 3px 3px;  
 }
 
 #content {

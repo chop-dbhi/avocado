@@ -33,18 +33,6 @@
 }
 
 /*
-** Tools
-*/
-
-#scope-menu {
-    right: 10px;
-}
-
-#patient-set-menu {
-    right: 10px;
-}
-
-/*
  * Panels - components within the panes
  */
 #search-panel .content {

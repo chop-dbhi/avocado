@@ -13,24 +13,51 @@ require(['design/search', 'design/views'], function(search, views) {
         var viewManager = new views.manager(pluginPanel, pluginTitle, pluginTabs, pluginDynamicContent,
             pluginStaticContent);
 
-        var tools = $('#tools').children(),
-            toolMenus = $('#tool-menus').children();
+        // TODO change this into a jQuery extension or something..
+        (function() {
+            var cache = {},
+                re = 10,
+                ft = 100;
+            
+            function get(e) {
+                if (!cache[e.id]) {
+                    var t = $(e),
+                        m = $(t.attr('data-for')),
+                        mw = m.outerWidth();
+                    
+                    le = document.width - t.offset().left;
+                    // if menu will be at least up against the left edge
+                    if (re + mw >= le)
+                        m.css('right', re);
+                    // default to up against left edge assuming it doesn't fall
+                    // off the right
+                    else
+                        m.css('right', le - mw);
+                    cache[e.id] = [t, m];
+                }
+                return cache[e.id];
+            };
+            
+            function hide() {
+                for (var e in cache) {
+                    cache[e][1].hide();
+                    cache[e][0].removeClass('selected');
+                }
+            };
 
-        var mid;
-        tools.toggle(function(evt) {
-            tools.removeClass('selected');
-            toolMenus.hide();
-            var target = $(this);
-            mid = '#' + target.attr('id') + '-menu';
-            $(mid).show()
-            target.addClass('selected');
-            return false;
-        }, function() {
-            var target = $(this);
-            mid = '#' + target.attr('id') + '-menu';
-            $(mid).hide()
-            target.removeClass('selected');
-        })
+            $('#tools').delegate('span', 'click', function(evt) {
+                var e = get(this), t = e[0], m = e[1];
+                
+                if (t.hasClass('selected')) {
+                    m.fadeOut(ft);
+                    t.removeClass('selected');
+                } else {
+                    hide();
+                    t.addClass('selected');
+                    m.fadeIn(ft);
+                }
+            });            
+        })();
 
         $('[data-model=category]').live('click', function(evt) {
             var target = $(this);

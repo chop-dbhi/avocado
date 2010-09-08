@@ -17,11 +17,16 @@
 {% endblock %}
 
 {% block tools %}
-    <span id="patient-set">Patient Cohorts</span>
-    <span id="scope">Scopes</span>
+    <span id="another" data-for="#another-menu">Another Menu</span>
+    <span id="patient-set" data-for='#patient-set-menu'>Patient Cohorts</span>
+    <span id="scope" data-for='#scope-menu'>Questions</span>
 {% endblock %}
 
 {% block tool_menus %}
+    <div id="another-menu">
+        Some text.
+    </div>
+    
     <div id="patient-set-menu">
         <ul>
             <li>Patient Set 1</li>
@@ -31,9 +36,9 @@
 
     <div id="scope-menu">
         <form method="get" action="{# {% url api:scope:read %} #}">
-            <input type="search" results="0" placeholder="Search scopes...">
+            <input type="search" results="0" placeholder="Search questions...">
         </form>
-        <a class="ht" href="#">Add Scope</a>
+        <a class="ht" href="#">Save current question</a>
     </div>
 {% endblock %}
 
