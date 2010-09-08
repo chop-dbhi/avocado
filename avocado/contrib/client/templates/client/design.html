@@ -17,10 +17,18 @@
 {% endblock %}
 
 {% block tools %}
+    <span id="patient-set">Patient Cohorts</span>
     <span id="scope">Scopes</span>
 {% endblock %}
 
 {% block tool_menus %}
+    <div id="patient-set-menu">
+        <ul>
+            <li>Patient Set 1</li>
+            <li>Patient Set 2</li>
+        </ul>
+    </div>
+
     <div id="scope-menu">
         <form method="get" action="{# {% url api:scope:read %} #}">
             <input type="search" results="0" placeholder="Search scopes...">

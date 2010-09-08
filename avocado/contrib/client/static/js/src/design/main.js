@@ -13,18 +13,24 @@ require(['design/search', 'design/views'], function(search, views) {
         var viewManager = new views.manager(pluginPanel, pluginTitle, pluginTabs, pluginDynamicContent,
             pluginStaticContent);
 
-        var scopeButton = $('#scope'),
-            scopeMenu = $('#scope-menu');
+        var tools = $('#tools').children(),
+            toolMenus = $('#tool-menus').children();
 
-        scopeButton.toggle(function(evt) {
-            scopeButton.addClass('selected');
-            scopeMenu.show();
+        var mid;
+        tools.toggle(function(evt) {
+            tools.removeClass('selected');
+            toolMenus.hide();
+            var target = $(this);
+            mid = '#' + target.attr('id') + '-menu';
+            $(mid).show()
+            target.addClass('selected');
             return false;
-        }, function(evt) {
-            scopeButton.removeClass('selected');
-            scopeMenu.hide();
-            return false;
-        });
+        }, function() {
+            var target = $(this);
+            mid = '#' + target.attr('id') + '-menu';
+            $(mid).hide()
+            target.removeClass('selected');
+        })
 
         $('[data-model=category]').live('click', function(evt) {
             var target = $(this);

@@ -37,7 +37,10 @@
 */
 
 #scope-menu {
-    width: 200px;
+    right: 10px;
+}
+
+#patient-set-menu {
     right: 10px;
 }
 

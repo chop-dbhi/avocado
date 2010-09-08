@@ -228,11 +228,11 @@ nav ul li:last-child {
 
 #tools span {
     display: inline;
-    padding: 0 23px 0 5px;
+    padding: 0 15px 0 5px;
     margin-left: 12px;
     background-image: url(../img/asc.gif);
     background-repeat: no-repeat;
-    background-position: 55px 5px;
+    background-position: right center;
     cursor: pointer;
 }
 
@@ -240,7 +240,7 @@ nav ul li:last-child {
     color: #000;
     background-color: #fff;    
     background-image: url(../img/desc.gif);
-    background-position: 55px 7px;
+    background-position: right center;
     padding-top: 2px;
     padding-bottom: 10px;
     text-shadow: none;
@@ -251,7 +251,7 @@ nav ul li:last-child {
     -moz-border-radius-topleft: 2px;
 }
 
-#tools span:last-child {
+#tools span:first-child {
     margin-left: 0;
 }
 
@@ -263,6 +263,7 @@ nav ul li:last-child {
 }
 
 #tool-menus > * {
+    width: 200px;
     display: none;
     position: relative;
     right: 0;
