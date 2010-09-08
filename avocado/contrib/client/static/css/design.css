@@ -1,0 +1,217 @@
+/*
+ * Panes - layout
+ */
+
+#left-pane {
+    display: inline-block;
+    position: relative;
+    top: 0;
+    left: 0;
+    width: 200px;
+    z-index: 100;
+}
+
+#middle-pane {
+    display: inline-block;
+    position: relative;
+    vertical-align: top;
+    top: 0;
+    left: 10px;
+    width: 530px;
+    min-height: 400px;
+    background: transparent url(../img/sb/1_click.png) no-repeat 0 100px;
+}
+
+#right-pane {
+    display: inline-block;
+    position: relative;
+    vertical-align: top;
+    top: 0;
+    left: 22px;
+    width: 200px;
+    z-index: 100;
+}
+
+/*
+** Tools
+*/
+
+#scope-menu {
+    width: 200px;
+    right: 10px;
+}
+
+/*
+ * Panels - components within the panes
+ */
+#search-panel .content {
+    height: 400px;
+    overflow: auto;
+}
+
+#categories {
+    display: none;
+    float: left;
+    width: 180px;
+    border-top: 1px solid #ccc;
+    border-right: 1px solid #ccc;
+    border-left: 1px solid #ccc;
+}
+
+#categories > * {
+    padding: 5px;
+    background-color: #eee;
+    text-shadow: #fff 1px 1px 0;
+    border-bottom: 1px solid #ccc;
+}
+
+#categories > :hover {
+    color: #fff;
+    cursor: pointer;
+    background-color: #666;
+    text-shadow: #000 -1px 1px 0;
+}
+
+#criteria {
+    float: right;
+    width: 180px;
+}
+
+#criteria > * {
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+
+#criteria > :hover {
+    background-color: #eee;
+}
+
+#plugin-panel {
+    display: none;
+}
+
+#description {
+    clear: both;
+    line-height: 18px;
+    font-size: 13px;
+}
+
+.chart {
+    width: 510px;
+}
+
+/*#canvas, #forms {
+    vertical-align: middle;
+}
+
+#canvas {
+    height: 300px;
+}
+
+#exec-query {
+    font-size: 12px;
+    float: right;
+}
+
+#form-message {
+    display: none;
+}
+
+#commonly-used {
+    display: none;
+    text-align: center;
+    font-size: 11px;
+}
+
+#commonly-used > span {
+    vertical-align: top;
+    width: 64px;
+    height: 80px;
+    margin: 0 5px;
+    display: inline-block;
+    text-align: center;
+}
+
+#commonly-used img {
+    width: 42px;
+}
+
+#search input {
+    font-size: 11px;
+}
+
+.criterion {
+    font-size: 12px;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.criterion a {
+    text-decoration: none;
+}
+
+.remove-criterion:link, .remove-criterion:visited {
+    color: #666;
+    font-weight: bold;
+    float: right;
+}
+
+.remove-criterion:hover, .remove-criterion:active {
+    color: #333;
+}
+
+.criterion .field-anchor:link, .criterion .field-anchor:visited {
+    color: #000;
+    float: left;
+    background-color: #FFFEE0;
+    border: 1px solid #ECE670;
+    padding: 4px 5px;
+    width: 135px;
+    -moz-box-shadow: 2px 2px 1px #eee;
+    -webkit-box-shadow: 2px 2px 1px #eee;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+}
+
+.criterion .field-anchor:hover, .criterion .field-anchor:active {
+    background-color: #FFFBB3;
+}
+
+.field-form table {
+    margin: 0 auto;
+}
+
+.field-form table td {
+    padding: 5px 20px;
+}
+
+.field-icon {
+    display: inline-block;
+    width: 63px;
+    height: 80px;
+    margin: 5px;
+    padding: 5px;
+    text-align: center;
+    font-weight: bold;
+    vertical-align: top;
+    font-size: 14px;
+}
+
+.field-icon img {
+    margin: 0 auto 10px auto;
+}
+
+.field-icon a:link, .field-icon a:visited {
+    color: #666;
+    text-decoration: none;
+    font-size: 0.7em;
+}
+
+.field-icon a:hover, .field-icon a:active {
+    color: #000;
+}
+
+.chart{
+    width: 500px;
+}
+*/

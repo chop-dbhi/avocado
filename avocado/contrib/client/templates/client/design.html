@@ -1,0 +1,112 @@
+{% extends "base_nav.html" %}
+
+{% block title %}{{ block.super }} : Design{% endblock %}
+
+{% block styles %}
+    <link rel="stylesheet" href="{{ CLIENT_MEDIA_URL }}css/design.css">
+    <link rel="stylesheet" href="{{ CLIENT_MEDIA_URL }}css/design-ie7fix.css">
+{% endblock %}
+
+{% block scripts %}
+    {{ block.super }}
+    <script>require(['extensions', 'design/main']);</script>
+{% endblock %}
+
+{% block navigation %}
+    <li>Design Question</li>
+{% endblock %}
+
+{% block tools %}
+    <span id="scope">Scopes</span>
+{% endblock %}
+
+{% block tool_menus %}
+    <div id="scope-menu">
+        <form method="get" action="{# {% url api:scope:read %} #}">
+            <input type="search" results="0" placeholder="Search scopes...">
+        </form>
+        <a class="ht" href="#">Add Scope</a>
+    </div>
+{% endblock %}
+
+{% block content %}
+    
+    <div id="left-pane" class="clearfix">
+        
+        {# The "search" panel provides the means of navigating the available query options #}
+        <div id="search-panel" class="container">
+            
+            <div class="title">
+                <a id="expand-search" class="fr" style="color: #fff; text-decoration:none" href="#">&raquo;</a>
+                {% block search_title %}{% endblock %}
+            </div>
+            
+           <div class="header toolbar tabs">
+                {# This form is used for searching available query options, it makes an async #}
+                {# request and returns the results in the #browse-all element. #}
+                <form method="get" action="{% url api:criteria:read %}">
+                    <input id="search" type="search" name="q" results="0" placeholder="I want to find out about..." autofocus="true">
+                </form>
+            </div>
+        
+            <div class="content">
+                <div id="categories" data-uri="{% url api:categories:read %}"></div>
+                <div id="criteria" data-uri="{% url api:criteria:read %}"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="middle-pane">
+        {# The "option-detail" panel displays information about a particular query option and the means #}
+        {# to interact with it.  #}
+        <div id="plugin-panel" class="container">
+
+            <div id="plugin-title" class="title"></div>
+            
+            {# This toolbar will contain the dynamically generated tabs based on a query option's #}
+            {# initial response from the server. Tabs are context-specific and do not have cross #}
+            {# query option interaction. #}
+            <div id="plugin-tabs" class="toolbar header tabs"></div>
+
+            <div class="content">
+                
+                {# Content associated with a particular "view" (one-to-one with a tab). This is considered #}
+                {# dynamic content because it changes within the context of a query option. #}
+                <div id="plugin-dynamic-content"></div>
+                
+                {# Content associated with a query option, independent of the tabs and there content. This is #}
+                {# considered static content because it persists during the lifetime of the query option #}
+                {# context. #}
+                <div id="plugin-static-content"></div>
+                
+            </div>
+        </div>
+
+    </div>
+
+
+    <div id="right-pane" class="clearfix">
+        {# This panel defines the validated criteria the user has defined for the #}
+        {# current query #}
+        <div id="user-criteria" class="container">
+
+             <div class="title">Your Question</div>
+
+            <div class="content">
+                <div id="criteria-list">
+                    <strong>No criteria defined</strong><br>
+                    <span class="ht mg">Click on a query option icon and specify some conditions</span>
+                </div>
+            </div>
+            
+            {# The tools to act on the user-defined criteria #}
+            <div class="toolbar footer">
+                <a id="remove-criteria" href="#">Remove All</a>
+            </div>
+
+        </div>
+
+    </div>
+
+{% endblock %}
