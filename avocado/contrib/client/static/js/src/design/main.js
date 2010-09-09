@@ -16,24 +16,30 @@ require(['design/search', 'design/views'], function(search, views) {
         // TODO change this into a jQuery extension or something..
         (function() {
             var cache = {},
-                re = 10,
+                tools = $('#tools'),
+                tools_width = tools.width(),
+                left_pad = right_pad = 10,
                 ft = 100;
             
             function get(e) {
                 if (!cache[e.id]) {
-                    var t = $(e),
-                        m = $(t.attr('data-for')),
-                        mw = m.outerWidth();
+                    // center the menu unless it conflicts with the far right
+                    // or left edges
+                    var label = $(e),
+                        menu = $(label.attr('data-for')),
+                        menu_width = menu.outerWidth();
+            
+                    // absolute midpoint of label
+                    var label_abs_mid = label.offset().left + (label.outerWidth() / 2),
+                        menu_abs_right = label_abs_mid + (menu_width / 2);
                     
-                    le = document.width - t.offset().left;
-                    // if menu will be at least up against the left edge
-                    if (re + mw >= le)
-                        m.css('right', re);
-                    // default to up against left edge assuming it doesn't fall
-                    // off the right
-                    else
-                        m.css('right', le - mw);
-                    cache[e.id] = [t, m];
+                    // menu overflows right edge of document, default to right edge
+                    if (menu_abs_right >= document.width - right_pad) {
+                        menu.css('right', right_pad);
+                    } else {
+                        menu.css('right', document.width - menu_abs_right);
+                    }
+                    cache[e.id] = [label, menu];
                 }
                 return cache[e.id];
             };
@@ -45,7 +51,7 @@ require(['design/search', 'design/views'], function(search, views) {
                 }
             };
 
-            $('#tools').delegate('span', 'click', function(evt) {
+            tools.delegate('#tools > *', 'click', function(evt) {
                 var e = get(this), t = e[0], m = e[1];
                 
                 if (t.hasClass('selected')) {

@@ -11,7 +11,27 @@ class FormatError(Exception):
 
 class AbstractFormatter(object):
     """The AbstractFormatter defines the base behavior for formatting a set of
-    arguments.
+    objects.
+    
+    Each ``AbstractFormatter`` subclass will be registered with each output
+    type if it has an applicable method. For example, if I have defined two
+    output types 'json' and 'csv', then the following class will only be
+    registered with the 'json' output type::
+    
+        class MyFormatter(AbstractFormatter):
+            def json(self, *args, **args):
+                # ...
+        
+    The requirement is that a method on the formatter subclass with the same
+    name as the output type is defined. To override this behavior and apply
+    a formatter to all output types, set ``apply_to_all`` to true.
+    
+    .. note::
+        
+        Note that when the formatters are registered, a single object is
+        instantiated and registered with each output type. The objects should
+        be stateless since the object can be shared.
+
     """
     apply_to_all = False
     is_choice = True
@@ -21,7 +41,7 @@ class AbstractFormatter(object):
 
 
 class RemoveFormatter(AbstractFormatter):
-    "Overrides default behavior. Returns an empty list; removing the output."
+    "Returns an empty list, removing the output."
     apply_to_all = True
     is_choice = False
 

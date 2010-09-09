@@ -88,32 +88,32 @@ input[type=text], input[type=password], textarea {
 }
 
 input[type=button], input[type=submit], button {
-    font-size: 1em;
+    font-size: 11px;
     color: #000;
     border: 1px solid #aaa;
-    font-weight: bold;
-    background-color: #eee;
-    background-image: -moz-linear-gradient(100% 100% 90deg, #eee, #ddd);
-    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#eee), to(#ddd));
-    text-shadow: #fff 1px 1px 0;
+    background-color: #ddd;
+    background-image: -moz-linear-gradient(100% 100% 90deg, #ddd, #bbb);
+    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ddd), to(#bbb));
+    text-shadow: #eee 1px 1px 0;
     cursor: pointer;
     font-size: 12px;
     padding: 2px 8px;
     -moz-border-radius: 3px;
     -webkit-border-radius: 3px;
-    -moz-box-shadow: 2px 2px 2px #eee;
-    -webkit-box-shadow: 2px 2px 2px #eee;
 }
 
 input[type=button]:hover, input[type=submit]:hover, button:hover,
 input[type=button]:active, input[type=submit]:active, button:active {
-    color: #004474;
+    border-color: #666;
 }
 
-input[type=button]:active, input[type=submit]:active, button:active {
-    background-color: #ddd;
-    background-image: -moz-linear-gradient(100% 100% 90deg, #ddd, #eee);
-    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ddd), to(#eee));    
+input[type=button]:active, input[type=submit]:active, button:active, button.selected {
+    border-color: #666;
+    color: #fff;
+    text-shadow: #222 -1px -1px 0;
+    background-color: #666;
+    background-image: -moz-linear-gradient(100% 100% 90deg, #666, #888);
+    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#666), to(#888));    
 }
 
 input[type=search] {
@@ -179,7 +179,7 @@ nav ul {
     color: #ddd;
     display: inline-block;
     margin: 0;
-    padding: 7px 10px;
+    padding: 5px 10px;
     list-style: none;
     background-color: #666;
     font-size: 12px;
@@ -214,59 +214,24 @@ nav ul li:last-child {
 }
 
 #tools {
-    font-weight: 500;
     position: absolute;
     top: 26px;
     right: 0;
-    color: #FFE100;
     display: inline-block;
-    padding: 7px 10px;
+    padding: 5px 0;
     list-style: none;
-    background-color: #666;
     font-size: 12px;
     text-shadow: #555 -1px -1px 0;
     z-index: 250;
-    border-bottom: 1px solid #555;
-    border-left: 1px solid #555;    
-    -webkit-box-shadow: #eee -1px 1px 0;
-    -moz-box-shadow: #eee -1px 1px 0;
-    -webkit-border-bottom-left-radius: 3px;    
-    -moz-border-radius-bottomleft: 3px;     
 }
 
-#tools span {
-    display: inline;
-    padding: 0 5px 0 20px;
-    margin-left: 12px;
-    background-image: url(../img/asc.gif);
-    background-repeat: no-repeat;
-    background-position: 5px 6px;
-    cursor: pointer;
-}
-
-#tools span.selected {
-    color: #000;
-    background-color: #fff;    
-    background-image: url(../img/desc.gif);
-    background-position: 5px 8px;
-    padding-top: 2px;
-    padding-bottom: 10px;
-    text-shadow: none;
-    -webkit-box-shadow: #333 0 0 5px;
-    -webkit-box-shadow: #333 0 0 5px;    
-    -webkit-border-top-right-radius: 2px;
-    -moz-border-radius-topright: 2px;
-    -webkit-border-top-left-radius: 2px;
-    -moz-border-radius-topleft: 2px;
-}
-
-#tools span:first-child {
-    margin-left: 0;
+#tools > * {
+    margin-right: 10px;
 }
 
 #tool-menus {
     position: fixed;
-    top: 53px;
+    top: 56px;
     right: 0;
     z-index: 300;
 }
@@ -278,8 +243,8 @@ nav ul li:last-child {
     right: 0;
     background-color: #fff;
     padding: 5px;
-    -webkit-box-shadow: #999 0 3px 3px;
-    -moz-box-shadow: #999 0 3px 3px;  
+    -webkit-box-shadow: #888 0 2px 7px;
+    -moz-box-shadow: #888 0 2px 7px;
 }
 
 #content {
