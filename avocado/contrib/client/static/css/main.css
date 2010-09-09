@@ -201,6 +201,14 @@ nav ul li {
     background-position: center left;
 }
 
+nav a:link, a:visited {
+    color: #fff;
+}
+
+nav a:hover, nav a:active {
+    color: #FFE100;
+}
+
 nav ul li:last-child {
     margin-right: 0;
 }
@@ -210,7 +218,7 @@ nav ul li:last-child {
     position: absolute;
     top: 26px;
     right: 0;
-    color: #fff;
+    color: #FFE100;
     display: inline-block;
     padding: 7px 10px;
     list-style: none;
