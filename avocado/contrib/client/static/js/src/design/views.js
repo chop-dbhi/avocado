@@ -22,7 +22,7 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
       @param {jQuery} $contentBox Represents the content area within the
       container that the active view is displayed
     */
-    var manager = function($container, $titleBar, $tabsBar, $contentBox, $addQueryBox) {
+    var manager = function($container, $titleBar, $tabsBar, $contentBox, $staticBox) {
         
         var binaryFieldRe = /^(\d*)_(\d*)_input([01])$/;
         var fieldRe = /^(\d*)_(\d*)$/;
@@ -330,13 +330,95 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
         }
         
         
+       /**
+             This function notifies the framework that the user has entered invalid input. 
+             The framework will only show the same error message once, and it will only show
+             one error message per invalid field (the last one to be sent). By default if no
+             error message is sent on the event, then a generic error message is displayed.
+             If there are any error messages, the submit button will be disabled.
+             @private
+        */
+        
+        function badInputHandler(evt){
+            var invalid_fields = cache[activeConcept].invalid_fields;
+            $.each(cache[activeConcept].views, function(index,view){
+                   view.contents && view.contents.find("[name="+evt.target.name+"]").addClass("invalid");
+            });
+            var message = evt.message ? event.message : "This query contains invalid input, please correct any invalid fields.";
+            var already_displayed = false;
+            $.each($staticBox.find(".warning"), function(index, warning) {
+                warning = $(warning);
+                var rc = warning.data("ref_count");
+                if (warning.text() === message) {
+  
+                    // We are already displaying this message
+                    already_displayed = true;
+                    if (invalid_fields[evt.target.name] === undefined){
+                        // This message has been displayed, but for another r=field, increase
+                        // the reference count
+                        invalid_fields[evt.target.name] = warning;
+                        warning.data("ref_count", rc+1);
+                        
+                    } else if (warning.text() !== invalid_fields[evt.target.name].text()){
+                        // This field already has an error message, but its different,
+                        // swap them
+                        var field_rc = invalid_fields[evt.target.name].data("ref_count");
+                        invalid_fields[evt.target.name].data("ref_count", field_rc-1);
+                        if (invalid_fields[evt.target.name].data("ref_count") === 0){
+                            invalid_fields[evt.target.name].remove();
+                        }
+                        invalid_fields[evt.target.name] = warning;
+                        warning.data("ref_count", rc+1);
+                    }
+                }
+            });
+            if (already_displayed) {
+                return;
+            }
+
+            var warning = $('<div class="warning">'+message+'</div>');
+            warning.data('ref_count',1);
+            invalid_fields[evt.target.name] = warning;
+            $staticBox.prepend(warning);
+            $staticBox.find("#add_to_query").attr("disabled","true");
+        }
+        
+        
+        /**
+                 This function notifies the framework that the user corrected an invalid field. 
+                 The framework will only show the same error message once, and it will only show
+                 one error message per invalid field (the last one to be sent). By default if no
+                 error message is sent on the event, then a generic error message is displayed.
+                 If there are any error messages, the submit button will be disabled.
+                 @private
+        */
+        function fixedInputHandler(evt){
+            var invalid_fields = cache[activeConcept].invalid_fields;
+            $.each(cache[activeConcept].views, function(index,view){
+                view.contents && view.contents.find("[name="+evt.target.name+"]").removeClass("invalid");
+            });
+            var rc = invalid_fields[evt.target.name].data('ref_count') - 1;
+            if (rc === 0){
+                invalid_fields[evt.target.name].remove();
+            }else{
+                invalid_fields[evt.target.name].data('ref_count',rc);
+            }
+            delete cache[activeConcept].invalid_fields[evt.target.name];
+            if ($staticBox.find(".warning").length===0){
+                $staticBox.find("#add_to_query").attr("disabled","false");
+            }
+        }
+        
+        
         $container.bind({
             'ViewReadyEvent': viewReadyHandler,
             'UpdateQueryEvent': updateQueryHandler,
             'ViewErrorEvent': viewErrorHandler,
             'ShowViewEvent': showViewHandler,
             'ElementChangedEvent' : elementChangedHandler,
-            'UpdateQueryButtonClicked' : createAndSendQueryDataStructure
+            'UpdateQueryButtonClicked' : createAndSendQueryDataStructure,
+            'InvalidInputEvent' : badInputHandler,
+            'InputCorrectedEvent': fixedInputHandler
         });
      
         /**
@@ -378,9 +460,7 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
         
             var tabs = $.jqote(tab_tmpl, concept.views);
             $tabsBar.html(tabs); 
-            // Regardless of whether the tabs are visible, load the first view
-            $tabsBar.children(':first').click();
-            
+
             // If all of the views are builtin, we are going to let the framework
             // handle the add to query button, otherwise the plugin needs to do it
             // (The plugin would raise the UpdateQueryEvent itself)
@@ -391,11 +471,25 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
                 }
             });
             
-            if (builtin){
-                $addQueryBox.show();
+            $staticBox.hide();
+            if (concept.static){
+                $staticBox.append(concept.static);
             }else{
-                $addQueryBox.hide();
+                // Prepare the static concept box
+                var $addQueryButton = $('<input id="add_to_query" type="button" value="Add To Query"/>');
+                $addQueryButton.click(function(){
+                     var event = $.Event("UpdateQueryButtonClicked");
+                     event.target = this;
+                     $(this).trigger(event); // TODO send current Concept Here to verify its correct
+                });
+                $staticBox.append($addQueryButton);
             }
+            
+            if (builtin){
+                $staticBox.show();
+            }
+            // Regardless of whether the tabs are visible, load the first view
+            $tabsBar.children(':first').click();
         };
     
         /**
@@ -419,16 +513,6 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
         
         
         
-        // Prepare the static concept box
-        $addQueryBox.hide();
-        var $addQueryButton = $('<input id="add_to_query" type="button" value="Add To Query"/>');
-        $addQueryButton.click(function(){
-             var event = $.Event("UpdateQueryButtonClicked");
-             event.target = this;
-             $(this).trigger(event); // TODO send current Concept Here to verify its correct
-        });
-        $addQueryBox.append($addQueryButton);
-        
         // PUBLIC METHODS
    
         /**
@@ -442,6 +526,11 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
                 if (!concept.ds){
                     concept.ds = {};
                 }
+                
+                // Add a spot to store invalid fields.
+                if (!concept.invalid_fields){
+                    concept.invalid_fields = {};
+                }
         };
 
         /**
@@ -452,7 +541,12 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
            // Verify that we need to do anything.
            if (concept.pk === activeConcept)
                return;
-
+           
+           // If there is concept being displayed, save its static 
+           // content
+           if (activeConcept){
+               cache[activeConcept].static = $staticBox.children().detach();
+           }
            // Set the name of the concept in the title bar
            $titleBar.text(concept.name);
            if (cache[concept.pk] && cache[concept.pk].globalsLoaded){

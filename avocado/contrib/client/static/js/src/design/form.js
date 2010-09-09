@@ -29,9 +29,9 @@ require.def('design/form', ['lib/jquery.jqote2'], {
                                             '<select id="<%=this.field_id%>_operator" name="<%=this.field_id%>_operator">',
                                                decOperatorsTmpl,
                                             '</select>',
-                                            '<input id="<%=this.field_id%>_input0" type="text" name="<%=this.field_id%>_input0" size="5">',
+                                            '<input data-validate="decimal" id="<%=this.field_id%>_input0" type="text" name="<%=this.field_id%>_input0" size="5">',
                                             '<label for="<%=this.field_id%>_input1">and</label>',
-                                            '<input id="<%=this.field_id%>_input1" type="text" name="<%=this.field_id%>_input1" size="5">'];
+                                            '<input data-validate="decimal" id="<%=this.field_id%>_input1" type="text" name="<%=this.field_id%>_input1" size="5">'];
                                     break;
                  case 'choice'    : input = [ '<label for="<%=this.field_id%>"><%=this.label%></label>',
                                               '<select id="<%=this.field_id%>-operator" name="<%=this.field_id%>_operator">',
@@ -64,7 +64,7 @@ require.def('design/form', ['lib/jquery.jqote2'], {
          });
          
          // Trigger an event when anything changes
-         $("input,select",$form).change(function(evt){
+         $("input,select",$form).bind('change', function(evt){
             switch (evt.target.type){
                     case "checkbox": $form.trigger("ElementChangedEvent", [{name:evt.target.name,value:evt.target.checked}]);
                                      break;
@@ -86,11 +86,23 @@ require.def('design/form', ['lib/jquery.jqote2'], {
                                              });
                                              // Since this code executes for select choices boxes as well as operators (which should
                                              // never be plural), we make sure to send the correct type array, or single item
-                                             var sendValue = evt.target.type === "select-multiple" ? selected : selected[0]; // JMM I am concerned selcted[0] could sometimes be undefined?
-                                             //var sendValue = selected;
+                                             var sendValue = evt.target.type === "select-multiple" ? selected : selected[0]; // JMM I am concerned selected[0] could sometimes be undefined?
                                              $form.trigger("ElementChangedEvent", [{name:evt.target.name, value:sendValue}]);
                                              break;
                     default   : // This catches input boxes, if input boxes are not currently visible, send null for them
+                                // Input boxes require an extra validation step because of the free form input
+                                switch ($(evt.target).attr('data-validate')){
+                                    case "decimal": if (isNaN(Number(evt.target.value))) {
+                                                        var input_evt = $.Event("InvalidInputEvent");
+                                                        $(evt.target).trigger(input_evt);
+                                                    } else if ($(evt.target).hasClass('invalid')){
+                                                        // Was invalid but has been corrected.
+                                                        var input_evt = $.Event("InputCorrectedEvent");
+                                                        $(evt.target).trigger(input_evt);
+                                                    }
+                                                    break;
+                                    default: break;
+                                }
                                 var value = $(evt.target).css("display") !== "none" ? evt.target.value : null;
                                 $form.trigger("ElementChangedEvent", [{name:evt.target.name,value:value}]);
                                 break;
@@ -116,7 +128,7 @@ require.def('design/form', ['lib/jquery.jqote2'], {
                                                   }
                                               });
                                               break; 
-                     default   :    //inputs and singular selects 
+                     default   :    // inputs and singular selects 
                                     $element.attr("value",element.value); 
                                     break;
                  }
