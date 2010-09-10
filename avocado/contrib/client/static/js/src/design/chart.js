@@ -464,7 +464,9 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
             manual_field_handler(null);
          
             // Listen for updates to the datasource from the framework
-            $chartDiv.bind("UpdateDSEvent", function(evt, d){
+            $chartDiv.bind("UpdateDSEvent", function(evt, ds){
+                $range_form.triggerHandler(evt,[ds]);
+                
             });
             
             $chartDiv.bind("UpdateElementEvent", function(evt, element) {
