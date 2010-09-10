@@ -158,13 +158,14 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
             activeView.contents.css("display","block");
             $(".chart", activeView.contents).css("display","block"); // Hack because of IE
             
-            $view.children().trigger("GainedFocusEvent");
-            
             // Has this view been displayed to the user before?
             if (!activeView.loaded){
                 // Give the view its datasource
                 $view.children().trigger('UpdateDSEvent', [cache[activeConcept].ds]);
             }
+            
+            $view.children().trigger("GainedFocusEvent");
+            
             activeView.loaded = true;
         };
     
