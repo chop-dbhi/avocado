@@ -10,6 +10,14 @@ require.def('design/templates', function() {
         },
         categories: {
             list: '<div data-model="category"><%= this.name %></div>'
-        }
+        },
+        scope_element: ['<div id="<%= this.pk %>" class="criterion clearfix">',
+                            '<a href="#" class="remove-criterion">X</a>',
+                            '<a href="#" class="field-anchor">',
+                            '<%= this.description %>',
+                            '</a>',
+                        '</div>'].join('')
     };    
 });
+
+

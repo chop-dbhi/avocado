@@ -48,7 +48,6 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                 }
             });
             
-            
             Highcharts.setOptions({colors: [UNSELECTED_COLOR, UNSELECTED_COLOR, UNSELECTED_COLOR]});
             
             var chart = new Highcharts.Chart({
@@ -140,6 +139,10 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                    chart.redraw();
              });
             
+             $chartDiv.bind("UpdateDSEvent", function(evt, ds){
+                selected =  ds[concept_id+"_"+view.data.pk] || [];
+             });
+            
             return $chartDiv;
         };
     
@@ -157,7 +160,7 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                     selected = element.value;
                 }
             });
-             $.each(view.data.coords, function(index,element){
+            $.each(view.data.coords, function(index,element){
                    view.data.coords[index][0] = String(view.data.coords[index][0]);
                    if (view.data.coords[index][0] === "null") {
                        view.data.coords[index][0] = "No Data";
@@ -326,6 +329,10 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                     chart.series[0].isDirty = true;                 
                     chart.redraw();
             });
+            
+            $chartDiv.bind("UpdateDSEvent", function(evt, ds){
+               selected =  ds[concept_id+"_"+view.data.pk] || [];
+            });
             return $chartDiv;
         };    
     
@@ -464,7 +471,9 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
             manual_field_handler(null);
          
             // Listen for updates to the datasource from the framework
-            $chartDiv.bind("UpdateDSEvent", function(evt, d){
+            $chartDiv.bind("UpdateDSEvent", function(evt, ds){
+                $range_form.triggerHandler(evt,[ds]);
+                
             });
             
             $chartDiv.bind("UpdateElementEvent", function(evt, element) {

@@ -1,4 +1,4 @@
-require(['design/search', 'design/views'], function(search, views) {
+require(['design/search', 'design/views', 'design/criterialist'], function(search, views, criterialist) {
    
     $(function() {
         search.init();
@@ -7,11 +7,19 @@ require(['design/search', 'design/views'], function(search, views) {
             pluginPanel = $('#plugin-panel'),
             pluginTitle = $('#plugin-title'),
             pluginDynamicContent = $('#plugin-dynamic-content'),
-            pluginStaticContent = $('#plugin-static-content');
+            pluginStaticContent = $('#plugin-static-content'),
+            criteriaPanel = $("#criteria-list");
+            
     
         // Create an instance of the viewManager object. Only do this once.
-        var viewManager = new views.manager(pluginPanel, pluginTitle, pluginTabs, pluginDynamicContent,
+        var viewManager = views.manager(pluginPanel, pluginTitle, pluginTabs, pluginDynamicContent,
             pluginStaticContent);
+        
+        var criteriaManager = criterialist.Manager(criteriaPanel);
+        //            
+        $("#content").bind('UpdateQueryEvent', function(evt, concept_constraint) {
+            criteriaPanel.triggerHandler("UpdateQueryEvent", [concept_constraint]);
+        });
 
         // TODO change this into a jQuery extension or something..
         (function() {

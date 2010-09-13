@@ -103,11 +103,35 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
                 }
             });
             
-            // Give the view its datasource
-            result.children().trigger('UpdateDSEvent', [cache[activeConcept].ds]);
+
             // Show the view
             $container.trigger('ViewReadyEvent', [result]);
         };
+        
+         /**
+              This function takes an avocado query datastructure and 
+              returns a datasource object for a concept. This is recursive.
+              
+              @private
+         */
+         function createDSFromQuery(query, recurse_ds){
+             var ds = resurse_ds || {};
+             $.each(query, function(index, parameter) {
+                 if (parameter.type === "field"){
+                     if (parameter.value instanceof Array){
+                         for (var index; index < parameter.value.length; index++){
+                             ds[parameter.name+"_input"+index] = parameter.value[index];
+                         }
+                     }else{
+                         ds[parameter.name] = parameter.value;
+                     }
+                     ds[parameter.name+"_"+"operator"] = parameter.operator;
+                 } else if (parameter.type === "logic"){
+                     createDSFromQuery(parameter.children, ds);
+                 }
+             });
+             return ds;
+         }
     
         /**
           The handler for the 'ViewReadyEvent' event
@@ -133,7 +157,15 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
             }
             activeView.contents.css("display","block");
             $(".chart", activeView.contents).css("display","block"); // Hack because of IE
+            
+            // Has this view been displayed to the user before?
+            if (!activeView.loaded){
+                // Give the view its datasource
+                $view.children().trigger('UpdateDSEvent', [cache[activeConcept].ds]);
+            }
+            
             $view.children().trigger("GainedFocusEvent");
+            
             activeView.loaded = true;
         };
     
@@ -186,8 +218,7 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
           @private
         */
         function updateQueryHandler(evt, query) {
-            console.log(query);
-            var concept = cache[activeConcept]
+            // Not currently used
         };
 
         /**
@@ -284,14 +315,16 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
                                     'type' : 'field',
                                     'operator' : field.op,
                                     'id' : field_id,
-                                    'value' : [field.val0,field.val1]
+                                    'value' : [field.val0,field.val1],
+                                    'concept_id': activeConcept
                                 });
                 } else if (field.val0 && field.op && !(field.val0 instanceof Array)){ // Decimal
                     nodes.push({
                                     'type' : 'field',
                                     'operator' : field.op,
                                     'id' : field_id,
-                                    'value' : field.val0
+                                    'value' : field.val0,
+                                    'concept_id': activeConcept
                                 });
                 } else if (field.val0 && field.val0 instanceof Array){ // Choice Same as obove ...
                     // if field.op is null, assume the query was the default, which is "in"
@@ -300,7 +333,8 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
                                     'type' : 'field',
                                     'operator' : field.op,
                                     'id' : field_id,
-                                    'value' : field.val0
+                                    'value' : field.val0,
+                                    'concept_id': activeConcept
                                 });
                 } else if (field.val0 !== null && !(field.val0 instanceof Array) &&
                            field.op === null && field.val1 === null){ // assertion/or boolean
@@ -308,7 +342,8 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
                                         'type' : 'field',
                                         'operator' : "exact",
                                         'id' : field_id,
-                                        'value' : field.val0
+                                        'value' : field.val0,
+                                        'concept_id': activeConcept
                                 });
                 } else {
                     // Unable to determine what this field is ?
@@ -323,7 +358,8 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
                 server_query = [{
                                      'type': 'logic',
                                      'operator': 'and',
-                                     'children': nodes
+                                     'children': nodes,
+                                     'concept_id':activeConcept
                                }];
             }
             $(event.target).trigger("UpdateQueryEvent", [server_query]); 
@@ -354,7 +390,7 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
                     // We are already displaying this message
                     already_displayed = true;
                     if (invalid_fields[evt.target.name] === undefined){
-                        // This message has been displayed, but for another r=field, increase
+                        // This message has been displayed, but for another field, increase
                         // the reference count
                         invalid_fields[evt.target.name] = warning;
                         warning.data("ref_count", rc+1);
@@ -412,14 +448,16 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
         
         $container.bind({
             'ViewReadyEvent': viewReadyHandler,
-            'UpdateQueryEvent': updateQueryHandler,
             'ViewErrorEvent': viewErrorHandler,
             'ShowViewEvent': showViewHandler,
             'ElementChangedEvent' : elementChangedHandler,
             'UpdateQueryButtonClicked' : createAndSendQueryDataStructure,
             'InvalidInputEvent' : badInputHandler,
-            'InputCorrectedEvent': fixedInputHandler
+            'InputCorrectedEvent': fixedInputHandler,
+            'UpdateQueryEvent': updateQueryHandler
         });
+        
+        
      
         /**
           A callback does not have to be specified if the view is custom because
@@ -479,7 +517,7 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
                 var $addQueryButton = $('<input id="add_to_query" type="button" value="Add To Query"/>');
                 $addQueryButton.click(function(){
                      var event = $.Event("UpdateQueryButtonClicked");
-                     event.target = this;
+                     // event.target = this; I think this happens automatically
                      $(this).trigger(event); // TODO send current Concept Here to verify its correct
                 });
                 $staticBox.append($addQueryButton);
@@ -524,7 +562,15 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
                 cache[concept.pk] = concept;
                 // Create a datasource for this concept if we don't have one
                 if (!concept.ds){
-                    concept.ds = {};
+                    // If this concept already has a query associated with it, 
+                    // populate the datasource
+                    if (concept.query) {
+                        concept.ds = createDSFromQuery(concept.query);
+                        
+                    }else{
+                        // create empty datasource
+                        concept.ds = {};
+                    }
                 }
                 
                 // Add a spot to store invalid fields.
@@ -537,10 +583,17 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
           Loads and makes a particular concept active and in view
           @public
         */
-        function show(concept, index, target) {
+        function show(concept, existing_query, index, target) {
+
            // Verify that we need to do anything.
            if (concept.pk === activeConcept)
                return;
+           
+           // If we already have a query for this concept, set it 
+           // on the concept
+           if (existing_query) {
+               concept.query = existing_query;
+           }
            
            // If there is concept being displayed, save its static 
            // content
