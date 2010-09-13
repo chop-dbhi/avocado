@@ -4,7 +4,7 @@ from avocado.exceptions import ValidationError
 from avocado.conf import settings
 from avocado.concepts.library import Library
 from avocado.fields.operators import MODEL_FIELD_MAP
-from avocado.utils.iter import is_iter_not_string
+from avocado.utils.iter import ins
 
 class OperatorNotPermitted(Exception):
     pass
@@ -43,7 +43,7 @@ class AbstractTranslator(object):
 
     def _clean_value(self, value, **kwargs):
         field = self._formfield(**kwargs)
-        if is_iter_not_string(value):
+        if ins(value):
             return map(field.clean, value)
         return field.clean(value)
 

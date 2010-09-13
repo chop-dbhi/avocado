@@ -8,9 +8,9 @@ kwargs = {
     'description': 'A data-driven query engine',
     'license': 'BSD',
     'keywords': 'snippets tools utilities',
-    'install_requires': ['django>=1.2'],
+    'install_requires': ['django>=1.2', 'django-compressor'],
     'package_data': {
-    
+
     },
     'packages': find_packages(exclude=('*.tests', '*.tests.*')),
     'package_data': {

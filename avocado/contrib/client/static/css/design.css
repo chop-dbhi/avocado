@@ -7,19 +7,14 @@
     position: relative;
     top: 0;
     left: 0;
-    width: 200px;
+    width: 730px;
     z-index: 100;
 }
 
-#middle-pane {
-    display: inline-block;
+#center-pane {
+    display: block;
     position: relative;
-    vertical-align: top;
-    top: 0;
-    left: 10px;
-    width: 530px;
-    min-height: 400px;
-    background: transparent url(../img/sb/1_click.png) no-repeat 0 100px;
+    z-index: 200;
 }
 
 #right-pane {
@@ -27,7 +22,7 @@
     position: relative;
     vertical-align: top;
     top: 0;
-    left: 22px;
+    left: 20px;
     width: 200px;
     z-index: 100;
 }
@@ -35,25 +30,26 @@
 /*
  * Panels - components within the panes
  */
-#search-panel .content {
-    height: 400px;
-    overflow: auto;
+
+#search-panel form {
+    background-color: #D5E2F2;
+    background-image: -moz-linear-gradient(100% 100% 90deg, #D5E2F2, #C8D8F2);
+    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#D5E2F2), to(#C8D8F2));    
 }
 
 #categories {
-    display: none;
-    float: left;
-    width: 180px;
-    border-top: 1px solid #ccc;
-    border-right: 1px solid #ccc;
-    border-left: 1px solid #ccc;
+    padding: 13px 0;
+    text-shadow: #fff 1px 1px 0; 
+    background-color: #eee;
 }
 
 #categories > * {
-    padding: 5px;
-    background-color: #eee;
-    text-shadow: #fff 1px 1px 0;
-    border-bottom: 1px solid #ccc;
+    padding: 13px 10px;
+    border-right: none;
+}
+
+#categories > :first-child {
+    border-left: none;
 }
 
 #categories > :hover {
@@ -61,11 +57,26 @@
     cursor: pointer;
     background-color: #666;
     text-shadow: #000 -1px 1px 0;
+    -webkit-box-shadow: inset 0 0 10px #333;
+}
+
+#categories > .active {
+    color: #000;
+    background-color: #fff;
+    text-shadow: none;
+    cursor: default;
+    -webkit-box-shadow: none;
+}
+
+#search {
+    width: 200px;
+    font-size: 16px;
 }
 
 #criteria {
-    float: right;
+    display: inline-block;
     width: 180px;
+    margin-right: 20px;
 }
 
 #criteria > * {
@@ -77,8 +88,16 @@
     background-color: #eee;
 }
 
+#criteria > .active {
+    background-color: #FFF89F;
+}
+
 #plugin-panel {
     display: none;
+    float: right;
+    width: 500px;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
 }
 
 #description {
@@ -88,121 +107,5 @@
 }
 
 .chart {
-    width: 510px;
+    width: 485px;
 }
-
-/*#canvas, #forms {
-    vertical-align: middle;
-}
-
-#canvas {
-    height: 300px;
-}
-
-#exec-query {
-    font-size: 12px;
-    float: right;
-}
-
-#form-message {
-    display: none;
-}
-
-#commonly-used {
-    display: none;
-    text-align: center;
-    font-size: 11px;
-}
-
-#commonly-used > span {
-    vertical-align: top;
-    width: 64px;
-    height: 80px;
-    margin: 0 5px;
-    display: inline-block;
-    text-align: center;
-}
-
-#commonly-used img {
-    width: 42px;
-}
-
-#search input {
-    font-size: 11px;
-}
-
-.criterion {
-    font-size: 12px;
-    margin-bottom: 10px;
-    color: #333;
-}
-
-.criterion a {
-    text-decoration: none;
-}
-
-.remove-criterion:link, .remove-criterion:visited {
-    color: #666;
-    font-weight: bold;
-    float: right;
-}
-
-.remove-criterion:hover, .remove-criterion:active {
-    color: #333;
-}
-
-.criterion .field-anchor:link, .criterion .field-anchor:visited {
-    color: #000;
-    float: left;
-    background-color: #FFFEE0;
-    border: 1px solid #ECE670;
-    padding: 4px 5px;
-    width: 135px;
-    -moz-box-shadow: 2px 2px 1px #eee;
-    -webkit-box-shadow: 2px 2px 1px #eee;
-    -moz-border-radius: 3px;
-    -webkit-border-radius: 3px;
-}
-
-.criterion .field-anchor:hover, .criterion .field-anchor:active {
-    background-color: #FFFBB3;
-}
-
-.field-form table {
-    margin: 0 auto;
-}
-
-.field-form table td {
-    padding: 5px 20px;
-}
-
-.field-icon {
-    display: inline-block;
-    width: 63px;
-    height: 80px;
-    margin: 5px;
-    padding: 5px;
-    text-align: center;
-    font-weight: bold;
-    vertical-align: top;
-    font-size: 14px;
-}
-
-.field-icon img {
-    margin: 0 auto 10px auto;
-}
-
-.field-icon a:link, .field-icon a:visited {
-    color: #666;
-    text-decoration: none;
-    font-size: 0.7em;
-}
-
-.field-icon a:hover, .field-icon a:active {
-    color: #000;
-}
-
-.chart{
-    width: 500px;
-}
-*/

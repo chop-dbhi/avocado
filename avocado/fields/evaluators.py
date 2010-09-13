@@ -1,15 +1,15 @@
 from functools import wraps
 
-from avocado.utils.iter import is_iter_not_string
+from avocado.utils.iter import ins
 
 def _check_iter(func):
     @wraps(func)
     def decorator(*args, **kwargs):
         val = func(*args, **kwargs)
-        if not is_iter_not_string(val):
+        if not ins(val):
             raise TypeError
         for e in val:
-            if not is_iter_not_string(e) or len(e) != 2:
+            if not ins(e) or len(e) != 2:
                 raise TypeError
         return tuple(val)
     return decorator

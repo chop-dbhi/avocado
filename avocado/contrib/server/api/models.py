@@ -8,10 +8,14 @@ class CriterionProxy(Criterion):
         proxy = True
 
     def json(self):
-        return {
+        json = {
             'id': self.id,
             'uri': reverse('api:criteria:read', args=(self.id,)),
             'name': self.name,
             'description': self.description,
-            'icon': self.category.icon,
+            'icon': None
         }
+        
+        if self.category:
+            json['icon'] = self.category.icon
+        return json

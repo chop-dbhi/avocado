@@ -5,12 +5,29 @@ require.def('design/search',
 
         function init() {
 
-            var panel = $('#search-panel'),
+            var body = $('body'),
+                panel = $('#search-panel'),
                 criteria = $('#criteria'),
                 categories = $('#categories'),
-                search = $('#search'),
-                expand = $('#expand-search');
+                search = $('#search');
 
+            body.bind('delegate_search_select', function(evt, term) {
+                var target, dterm;
+                $('[data-search-select]').each(function() {
+                    target = $(this);
+                    dterm = target.attr('data-search-term').toLowerCase();
+                    if (dterm == term.toLowerCase())
+                        target.addClass('active');
+                    else
+                        target.removeClass('active');
+                });
+                return false;
+            });
+
+            /*
+            ** Initialize renderers for the available criterion options
+            ** and the categories.
+            */
             var rnd = {
                 criteria: new renderer.template({
                     target: criteria,
@@ -40,9 +57,14 @@ require.def('design/search',
             // make initial request
             src.criteria.get();
             src.categories.get();
+            
+            categories.delegate('[data-model=category]', 'click', function(evt) {
+                var target = $(this);
+                target.trigger('search_criteria', target.attr('data-search-term'));
+                return false;
+            });            
 
             panel
-                .data('collapsed', true)
                 .bind('load_criteria', function(evt, params) {
                     src.criteria.get(null, params);
                     return false;
@@ -51,49 +73,14 @@ require.def('design/search',
                 .bind('search_criteria', function(evt, term) {
                     search.val(term).keyup();
                     return false;
-                })
-
-                .bind('expand_search', function(evt) {
-                    expand.html('&laquo;');
-                    criteria.animate({width: 498}, 400);
-                    panel.animate({width: 744}, 400)
-                        .data('collapsed', false);
-                    setTimeout(function() {
-                        categories.fadeIn(100);
-                    }, 400);
-                    return false;
-                })
-                
-                .bind('collapse_search', function(evt) {
-                    expand.html('&raquo;');
-                    categories.fadeOut(100);
-                    setTimeout(function() {
-                        criteria.animate({width: 180}, 400);
-                        panel.animate({width: 200}, 400)
-                            .data('collapsed', true);                        
-                    }, 100);
-                    return false;
-                })
-                
-                .bind('toggle_search', function(evt) {
-                    var collapsed = panel.data('collapsed');
-                    if (collapsed)
-                        panel.trigger('expand_search');
-                    else
-                        panel.trigger('collapse_search');
-                    return false;
                 });
-                        
 
             search.autocomplete({
                 success: function(query, json) {
+                    console.log(query);
                     rnd.criteria.render(json);
+                    search.trigger('delegate_search_select', query);
                 }
-            });
-
-            expand.click(function(evt) {
-                panel.trigger('toggle_search');
-                return false;
             });
         };
 

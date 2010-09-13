@@ -3,7 +3,7 @@ from copy import deepcopy
 from avocado.conf import settings
 from avocado.exceptions import AlreadyRegisteredError
 from avocado.concepts.library import Library
-from avocado.utils.iter import is_iter_not_string
+from avocado.utils.iter import ins
 
 class FormatError(Exception):
     pass
@@ -49,7 +49,7 @@ class RemoveFormatter(AbstractFormatter):
         return []
 
 
-class IgnoreFormatter(AbstractFormatter):
+class PassFormatter(AbstractFormatter):
     "Overrides default behavior. Simple retruns the args as-is."
     apply_to_all = True
     is_choice = False
@@ -82,7 +82,7 @@ class FormatterLibrary(Library):
 
     Every formatter registered must be a sublcass of the AbstractFormatter
     class. Each formatter can support any number of formatter types by simply
-    defining a method of the same name, e.g:
+    defining a method of the same name, e.g::
 
         class MyFormatter(AbstractFormatter):
             def json(*args):
@@ -149,7 +149,7 @@ class FormatterLibrary(Library):
             except Exception:
                 tok = error
 
-            if is_iter_not_string(tok):
+            if ins(tok):
                 tok = list(tok)
                 for i, t in enumerate(iter(tok)):
                     if t is None:
@@ -208,4 +208,4 @@ class FormatterLibrary(Library):
 library = FormatterLibrary()
 
 library.register(RemoveFormatter)
-library.register(IgnoreFormatter)
+library.register(PassFormatter)

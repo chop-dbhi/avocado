@@ -37,12 +37,9 @@ class Field(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(null=True, blank=True)
     keywords = models.CharField(max_length=100, null=True, blank=True)
-    category = models.ForeignKey(Category, null=True, blank=True)
 
     is_public = models.BooleanField(default=False)
-    order = models.PositiveSmallIntegerField(default=0, help_text='This ' \
-        'ordering is relative to the category this concept belongs to.')
-
+    
     # search optimizations
     search_doc = models.TextField(editable=False, null=True)
 

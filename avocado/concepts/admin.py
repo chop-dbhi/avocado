@@ -2,6 +2,8 @@ from django.contrib import admin
 
 from avocado.concepts.models import Category
 
+__all__ = ('ConceptAdmin', 'EditorsConceptAdmin')
+
 def make_public(modeladmin, request, queryset):
     queryset.update(is_public=True)
 make_public.short_description = 'Mark selected as public'
@@ -25,7 +27,7 @@ class ConceptAdmin(admin.ModelAdmin):
 
 class EditorsConceptAdmin(admin.ModelAdmin):
     list_display = ('name', 'category', 'is_public')
-    list_filter = ('is_public', 'category',)
+    list_filter = ('is_public', 'category')
     list_per_page = 25
     ordering = ('-is_public',)
 

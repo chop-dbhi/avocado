@@ -533,9 +533,3 @@ class ModelTree(object):
 if not settings.MODELTREE_CONF:
     raise RuntimeError, 'The settings "MODELTREE_CONF" must be set'
 DEFAULT_MODELTREE = ModelTree(**settings.MODELTREE_CONF)
-
-
-# decorator for any function that requires a modeltree
-# def default_modeltree(func):
-#     def decorator(*args, **kwargs):
-#

@@ -175,7 +175,7 @@ if (!Array.prototype.map) {
             
             ajax_.start = function() {
                 done = false;
-                ajax.start();
+                ajax.start(query);
             };
             
             ajax_.end = function() {

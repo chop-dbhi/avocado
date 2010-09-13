@@ -39,7 +39,7 @@ class Column(Concept, ColumnMixin):
 
 class ColumnField(ConceptField):
     concept = models.ForeignKey(Column)
-    field = models.ForeignKey(Field)
+    field = models.ForeignKey(Field, limit_choices_to={'is_public': True})
 
     class Meta(ConceptField.Meta):
         pass
