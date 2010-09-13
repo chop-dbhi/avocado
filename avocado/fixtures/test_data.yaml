@@ -9,9 +9,7 @@
       name: f1
       description: null
       keywords: null
-      category: 1
       is_public: true
-      order: 0
       app_name: avocado
       model_name: column
       field_name: name
@@ -23,9 +21,7 @@
       name: f2
       description: null
       keywords: null
-      category: 1
       is_public: true
-      order: 0
       app_name: avocado
       model_name: column
       field_name: keywords
@@ -37,9 +33,7 @@
       name: f3
       description: null
       keywords: null
-      category: 1
       is_public: true
-      order: 0
       app_name: avocado
       model_name: field
       field_name: name
@@ -51,9 +45,7 @@
       name: f4
       description: null
       keywords: null
-      category: 1
       is_public: true
-      order: 0
       app_name: avocado
       model_name: field
       field_name: field_name
@@ -65,9 +57,7 @@
       name: f5
       description: null
       keywords: null
-      category: 1
       is_public: true
-      order: 0
       app_name: avocado
       model_name: field
       field_name: translator

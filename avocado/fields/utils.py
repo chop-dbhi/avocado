@@ -1,6 +1,6 @@
 from django.db.models.query_utils import Q
 
-from avocado.modeltree import ModelTree, DEFAULT_MODELTREE
+from avocado.modeltree import DEFAULT_MODELTREE_ALIAS
 from avocado.fields.models import Field
 from avocado.fields.cache import cache
 from avocado.fields.operators import FIELD_LOOKUPS
@@ -10,15 +10,7 @@ class AmbiguousField(Exception):
 
 
 class M(Q):
-    # a reference to a modeltree instance is set, so that it can be dynamically
-    # changed at runtime
-    modeltree = DEFAULT_MODELTREE
-
-    def __init__(self, modeltree=None, **kwargs):
-        modeltree = modeltree or self.modeltree
-        if not isinstance(modeltree, ModelTree):
-            raise RuntimeError, 'A ModelTree instance required'
-
+    def __init__(self, using=DEFAULT_MODELTREE_ALIAS, **kwargs):
         nkwargs = {}
         for key, value in kwargs.items():
             toks = key.split('__')
@@ -47,7 +39,7 @@ class M(Q):
 
             field = self._get_field(field_id, app_name, model_name, field_name)
 
-            skey = field.query_string(modeltree, operator)
+            skey = field.query_string(operator, using)
             nkwargs[skey] = value
 
         return super(M, self).__init__(**nkwargs)

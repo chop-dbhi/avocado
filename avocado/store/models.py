@@ -1,7 +1,11 @@
-from django.db import models, transaction, connections
+from django.db import models, transaction, connections, DEFAULT_DB_ALIAS
+from django.db.models.sql import RawQuery
 from django.contrib.auth.models import User
 
 from avocado.db_fields import PickledObjectField
+from avocado.modeltree import DEFAULT_MODELTREE_ALIAS, mts
+from avocado.fields import logictree
+from avocado.columns import utils
 
 __all__ = ('Scope', 'Perspective', 'Report')
 
@@ -9,7 +13,7 @@ class Descriptor(models.Model):
     user = models.ForeignKey(User, blank=True, null=True)
     name = models.CharField(max_length=100, blank=True)
     description = models.TextField(blank=True)
-    keywords = models.CharField(max_length=100, null=True, blank=True)    
+    keywords = models.CharField(max_length=100, null=True, blank=True)
 
     class Meta:
         abstract = True
@@ -42,18 +46,47 @@ class Context(Descriptor):
 
 class Scope(Context):
     "Stores information needed to provide scope to data."
-    pass
+    def get_queryset(self, queryset=None, using=DEFAULT_MODELTREE_ALIAS, **context):
+        modeltree = mts[using]
+        if queryset is None:
+            queryset = modeltree.root_model.objects.all()
+
+        node = logictree.transform(self.store, using, **context)
+        return node.apply(queryset)
 
 
 class Perspective(Context):
     "Stores information needed to represent data."
-    pass
+    def get_queryset(self, queryset=None, using=DEFAULT_MODELTREE_ALIAS):
+        modeltree = mts[using]
+        if queryset is None:
+            queryset = modeltree.root_model.objects.all()
+
+        queryset = utils.add_columns(queryset, self.store['columns'], using)
+        queryset = utils.add_ordering(queryset, self.store['sorting'], using)
+        
+        return queryset
 
 
 class Report(Descriptor):
     "Represents a combination ``scope`` and ``perspective``."
     scope = models.ForeignKey(Scope)
     perspective = models.ForeignKey(Perspective)
+
+    def get_queryset(self, queryset=None, using=DEFAULT_MODELTREE_ALIAS):
+        modeltree = mts[using]        
+        if queryset is None:
+            queryset = modeltree.root_model.objects.all()
+
+        queryset = self.scope.get_queryset(queryset, using)
+        queryset = self.perspective.get_queryset(queryset, using)
+        return queryset
+
+    def get_report_query(self, queryset=None, using=DEFAULT_MODELTREE_ALIAS):
+        queryset = self.get_queryset(queryset, using)
+        sql, params = queryset.query.get_compiler(DEFAULT_DB_ALIAS).as_sql()
+        raw = RawQuery(sql, DEFAULT_DB_ALIAS, params)
+        return raw
 
 
 class ObjectSet(Descriptor):
@@ -68,9 +101,9 @@ class ObjectSet(Descriptor):
     `ObjectSet' must be subclassed to add the many-to-many relationship
     to the "object" of interest.
     """
-    scope = models.ForeignKey(Scope)    
-    cnt = models.PositiveIntegerField('count', editable=False)  
-        
+    scope = models.ForeignKey(Scope)
+    cnt = models.PositiveIntegerField('count', editable=False)
+
     class Meta:
         abstract = True
 

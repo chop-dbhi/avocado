@@ -38,6 +38,7 @@ Two examples as follows:
         }]
     }
 """
+from avocado.modeltree import DEFAULT_MODELTREE_ALIAS
 from avocado.models import Field
 
 class Node(object):
@@ -53,12 +54,12 @@ class Node(object):
 
 class Condition(Node):
     "Contains information for a single query condition."
-    def __init__(self, modeltree, context, id, operator, value, cid=None):
-        self.modeltree = modeltree
+    def __init__(self, context=None, using=DEFAULT_MODELTREE_ALIAS, **kwargs):
+        self.using = using
         self.context = context
-        self.id = id
-        self.operator = operator
-        self.value = value
+        self.id = kwargs['id']
+        self.operator = kwargs['operator']
+        self.value = kwargs['value']
 
     def _get_field(self):
         if not hasattr(self, '_field'):
@@ -67,10 +68,10 @@ class Condition(Node):
     field = property(_get_field)
 
     def _translate(self):
-        cond, ants = self.field.translate(self.modeltree, self.operator,
-            self.value, **self.context)
-        self._condition = cond
-        self._annotations = ants
+        condition, annotations = self.field.translate(self.operator, self.value,
+            using=self.using, **self.context)
+        self._condition = condition
+        self._annotations = annotations
 
     def _get_condition(self):
         if not hasattr(self, '_condition'):
@@ -87,8 +88,8 @@ class Condition(Node):
 
 class LogicalOperator(Node):
     "Provides a logical relationship between it's children."
-    def __init__(self, modeltree, type):
-        self.modeltree = modeltree
+    def __init__(self, type, using=DEFAULT_MODELTREE_ALIAS):
+        self.using = using
         self.type = type
         self.children = []
 
@@ -118,18 +119,18 @@ class LogicalOperator(Node):
     annotations = property(_get_annotations)
 
 
-def transform(modeltree, rnode, pnode=None, **context):
+def transform(rnode, pnode=None, using=DEFAULT_MODELTREE_ALIAS, **context):
     "Takes the raw data structure and converts it into the node tree."
     if rnode.has_key('children'):
         # ensure the logic makes sense
         if len(rnode['children']) < 2:
             raise RuntimeError, 'a logical operator must apply to 2 or more ' \
                 'statements'
-        node = LogicalOperator(modeltree, rnode['type'])
+        node = LogicalOperator(rnode['type'], using=using)
         for child in rnode['children']:
-            transform(modeltree, child, node, **context)
+            transform(child, node, using, **context)
     else:
-        node = Condition(modeltree, context, **rnode)
+        node = Condition(context, using=using, **rnode)
     # top level node returns, i.e. no parent node
     if pnode is None:
         return node

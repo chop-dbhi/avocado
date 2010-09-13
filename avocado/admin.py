@@ -1,6 +1,6 @@
 "App-level admin module so all subapps admins get registered."
 
-import avocado.fields.admin
-import avocado.columns.admin
-import avocado.criteria.admin
-import avocado.concepts.admin
+from avocado.fields.admin import *
+from avocado.columns.admin import *
+from avocado.criteria.admin import *
+from avocado.concepts.admin import *

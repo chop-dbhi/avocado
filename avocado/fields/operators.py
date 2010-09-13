@@ -7,7 +7,7 @@ the right length and in some cases, type.
 """
 import re
 
-from avocado.utils.iter import is_iter_not_string
+from avocado.utils.iter import ins
 
 __all__ = ('exact', 'iexact', 'contains', 'inlist', 'lt', 'gt', 'lte', 'gte',
     'between', 'null', 'notbetween', 'notexact', 'notiexact', 'doesnotcontain',
@@ -46,13 +46,13 @@ class Operator(object):
 
 class PrimitiveOperator(Operator):
     def check(self, value):
-        if not is_iter_not_string(value):
+        if not ins(value):
             return True
         return False
 
 class SequenceOperator(Operator):
     def check(self, value):
-        if is_iter_not_string(value):
+        if ins(value):
             return True
         return False
 
@@ -127,7 +127,7 @@ class Between(SequenceOperator):
     operator = 'range'
 
     def check(self, value):
-        if is_iter_not_string(value) and len(value) == 2:
+        if ins(value) and len(value) == 2:
             return True
         return False
 between = Between()

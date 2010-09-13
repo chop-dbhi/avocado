@@ -6,7 +6,7 @@ __all__ = ('Category',)
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
-    icon = models.FileField(upload_to='uploads/categories/')
+    icon = models.FileField(upload_to='uploads/categories/', blank=True)
 
     class Meta(object):
         verbose_name_plural = 'categories'

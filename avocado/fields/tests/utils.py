@@ -1,22 +1,13 @@
 from django.test import TestCase
 
 from avocado.columns.models import Column
+from avocado.modeltree import DEFAULT_MODELTREE_ALIAS
 from avocado.fields.utils import M, AmbiguousField
-from avocado.modeltree import ModelTree
 
 __all__ = ('MTestCase',)
 
-ORIG_MODEL_TREE = M.modeltree
-
 class MTestCase(TestCase):
     fixtures = ['test_data.yaml']
-
-    def setUp(self):
-        M.modeltree = ORIG_MODEL_TREE
-
-    def test_error(self):
-        M.modeltree = None
-        self.assertRaises(RuntimeError, M, failing__test=4)
 
     def test_variations(self):
         concepts = Column.objects.filter(M(field_name='keywords'))
@@ -32,19 +23,19 @@ class MTestCase(TestCase):
         self.assertEqual(len(concepts), 1)
         M.modeltree = None
 
-        concepts = Column.objects.filter(M(ORIG_MODEL_TREE,
+        concepts = Column.objects.filter(M(DEFAULT_MODELTREE_ALIAS,
             field_name='keywords'))
         self.assertEqual(len(concepts), 1)
 
-        concepts = Column.objects.filter(M(ORIG_MODEL_TREE,
+        concepts = Column.objects.filter(M(DEFAULT_MODELTREE_ALIAS,
             field_name__icontains='key'))
         self.assertEqual(len(concepts), 1)
 
-        concepts = Column.objects.filter(M(ORIG_MODEL_TREE,
+        concepts = Column.objects.filter(M(DEFAULT_MODELTREE_ALIAS,
             avocado__field__field_name='keywords'))
         self.assertEqual(len(concepts), 1)
 
-        concepts = Column.objects.filter(M(ORIG_MODEL_TREE,
+        concepts = Column.objects.filter(M(DEFAULT_MODELTREE_ALIAS,
             avocado__field__field_name__icontains='key'))
         self.assertEqual(len(concepts), 1)
 

@@ -1,4 +1,6 @@
-def add_columns(queryset, columns, modeltree):
+from avocado.modeltree import DEFAULT_MODELTREE_ALIAS
+
+def add_columns(queryset, columns, using=DEFAULT_MODELTREE_ALIAS):
     """Takes a `queryset' and ensures the proper table join have been
     setup to display the table columns.
     """
@@ -10,13 +12,13 @@ def add_columns(queryset, columns, modeltree):
         queryset.model._meta.pk.column)]
 
     for column in columns:
-        queryset, c_aliases = column.add_fields_to_queryset(queryset, modeltree)
+        queryset, c_aliases = column.add_fields_to_queryset(queryset, using)
         aliases.extend(c_aliases)
 
     queryset.query.select = aliases
     return queryset
 
-def add_ordering(queryset, column_orders, modeltree):
+def add_ordering(queryset, column_orders, using=DEFAULT_MODELTREE_ALIAS):
     """Applies column ordering to a queryset. Resolves a Column's
     fields and generates the `order_by' paths.
     """
@@ -24,7 +26,7 @@ def add_ordering(queryset, column_orders, modeltree):
     orders = []
 
     for column, direction in column_orders:
-        c_orders = column.get_ordering_for_queryset(modeltree, direction)
+        c_orders = column.get_ordering_for_queryset(direction, using)
         orders.extend(c_orders)
 
     return queryset.order_by(*orders)

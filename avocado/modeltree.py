@@ -2,10 +2,13 @@ import inspect
 
 from django.db import models
 from django.db.models import Q
+from django.core.exceptions import ImproperlyConfigured
 
 from avocado.conf import settings
 
-__all__ = ('ModelTree', 'DEFAULT_MODELTREE')
+__all__ = ('ModelTree',)
+
+DEFAULT_MODELTREE_ALIAS = 'default'
 
 class ModelTreeNode(object):
     def __init__(self, model, parent=None, rel_type=None, rel_reversed=None,
@@ -528,14 +531,20 @@ class ModelTree(object):
             accessor_names = accessor_names[1:]
         return zip(node_path, accessor_names)
 
-# create default modeltree instance
 
-if not settings.MODELTREE_CONF:
-    raise RuntimeError, 'The settings "MODELTREE_CONF" must be set'
-DEFAULT_MODELTREE = ModelTree(**settings.MODELTREE_CONF)
+class LazyModelTree(object):
+    def __init__(self, modeltrees):
+        if not modeltrees:
+            raise ImproperlyConfigured, 'You must at least specify the "%s" ' \
+                'modeltree config' % DEFAULT_MODELTREE_ALIAS
 
+        self.modeltrees = modeltrees
+        self._modeltrees = {}
 
-# decorator for any function that requires a modeltree
-# def default_modeltree(func):
-#     def decorator(*args, **kwargs):
-#
+    def __getitem__(self, alias):
+        if alias not in self._modeltrees:
+            kwargs = self.modeltrees[alias]
+            self._modeltrees[alias] = ModelTree(**kwargs)
+        return self._modeltrees[alias]
+
+mts = LazyModelTree(settings.MODELTREES)

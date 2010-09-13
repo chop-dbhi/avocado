@@ -4,7 +4,8 @@ from avocado.exceptions import ValidationError
 from avocado.conf import settings
 from avocado.concepts.library import Library
 from avocado.fields.operators import MODEL_FIELD_MAP
-from avocado.utils.iter import is_iter_not_string
+from avocado.modeltree import DEFAULT_MODELTREE_ALIAS, mts
+from avocado.utils.iter import ins
 
 class OperatorNotPermitted(Exception):
     pass
@@ -15,10 +16,10 @@ class AbstractTranslator(object):
     operators = None
     formfield = None
 
-    def __call__(self, modeltree, field, operator=None, value=None, **context):
+    def __call__(self, field, operator=None, value=None, using=DEFAULT_MODELTREE_ALIAS, **context):
         self._setup(field)
         try:
-            return self.translate(modeltree, field, operator, value, **context)
+            return self.translate(field, operator, value, using, **context)
         finally:
             self._cleanup()
     
@@ -43,7 +44,7 @@ class AbstractTranslator(object):
 
     def _clean_value(self, value, **kwargs):
         field = self._formfield(**kwargs)
-        if is_iter_not_string(value):
+        if ins(value):
             return map(field.clean, value)
         return field.clean(value)
 
@@ -54,7 +55,7 @@ class AbstractTranslator(object):
             raise ValidationError, '"%s" is not valid for the operator "%s"' % (clean_val, clean_op)
         return clean_op, clean_val
 
-    def translate(self, modeltree, field, operator, value, **context):
+    def translate(self, field, operator, value, using, **context):
         """Returns two types of queryset modifiers including:
             - a Q object applied via the `filter()' method
             - a dict of annotations
@@ -67,9 +68,10 @@ class AbstractTranslator(object):
 
 class DefaultTranslator(AbstractTranslator):
     "Provides the default behavior of creating a simple lookup."    
-    def translate(self, modeltree, field, operator, value, **context):
+    def translate(self, field, operator, value, using, **context):
+        modeltree = mts[using]
         operator, value = self.validate(operator, value)
-        key = field.query_string(modeltree, operator.operator)
+        key = field.query_string(operator.operator, using=using)
         kwarg = {key: value}
         
         if operator.negated:

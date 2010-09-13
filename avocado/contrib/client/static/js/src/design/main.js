@@ -72,18 +72,10 @@ require(['design/search', 'design/views', 'design/criterialist'], function(searc
                 }
             });            
         })();
-
-        $('[data-model=category]').live('click', function(evt) {
-            var target = $(this);
-            target.trigger('search_criteria', target.data('name'));
-            return false;
-        });
     
         $('[data-model=criterion]').live('click', function(evt) {
             evt.preventDefault();
             var target = $(this);
-
-            target.trigger('collapse_search');
 
             $.ajax({
                 url: target.attr('data-uri'),

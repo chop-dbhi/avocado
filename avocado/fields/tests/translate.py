@@ -1,7 +1,6 @@
 from django.test import TestCase
 from django.db.models import Q
 
-from avocado.modeltree import DEFAULT_MODELTREE
 from avocado.exceptions import RegisterError
 from avocado.fields.translate import library, DefaultTranslator
 from avocado.fields.cache import cache
@@ -21,7 +20,7 @@ class TranslatorLibraryTestCase(TestCase):
         t = DefaultTranslator()
         c = cache.get(1)
 
-        q, a = t(DEFAULT_MODELTREE, c, 'iexact', 'foo')
+        q, a = t(c, 'iexact', 'foo')
 
         self.assertEqual(str(q), str(Q(name__iexact=u'foo')))
 
