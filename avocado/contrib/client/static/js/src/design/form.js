@@ -1,4 +1,4 @@
-require.def('design/form', ['lib/jquery.jqote2'], {
+require.def('design/form', [], {
     
     Form : function(view, concept_pk){
           var $form = $('<form method="get" action=""></form>');

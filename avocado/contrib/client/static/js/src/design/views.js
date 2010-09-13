@@ -161,11 +161,14 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
             // Has this view been displayed to the user before?
             if (!activeView.loaded){
                 // Give the view its datasource
+                // This will also prevent re-populating datasources when the
+                // user clicks on a criteria in the right panel but the concept 
+                // has been shown before.
                 $view.children().trigger('UpdateDSEvent', [cache[activeConcept].ds]);
             }
             
             $view.children().trigger("GainedFocusEvent");
-            
+
             activeView.loaded = true;
         };
     
@@ -353,14 +356,14 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
             
             var server_query;
             if (nodes.length === 1){
-                server_query = nodes;
+                server_query = nodes[0];
             }else{
-                server_query = [{
+                server_query = {
                                      'type': 'logic',
                                      'operator': 'and',
                                      'children': nodes,
                                      'concept_id':activeConcept
-                               }];
+                               };
             }
             $(event.target).trigger("UpdateQueryEvent", [server_query]); 
         }
@@ -396,7 +399,7 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
                         warning.data("ref_count", rc+1);
                         
                     } else if (warning.text() !== invalid_fields[evt.target.name].text()){
-                        // This field already has an error message, but its different,
+                        // This field already has an error message, but it's different,
                         // swap them
                         var field_rc = invalid_fields[evt.target.name].data("ref_count");
                         invalid_fields[evt.target.name].data("ref_count", field_rc-1);
