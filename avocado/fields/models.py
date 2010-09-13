@@ -5,7 +5,7 @@ from django.contrib.auth.models import Group
 from django.db.models.fields import FieldDoesNotExist
 
 from avocado.conf import settings
-from avocado.concepts.models import Category
+from avocado.modeltree import DEFAULT_MODELTREE_ALIAS, mts
 from avocado.fields.translate import library
 
 __all__ = ('Field',)
@@ -225,31 +225,33 @@ class Field(models.Model):
 
         return tuple(dist)
 
-    def query_string(self, modeltree, operator=None):
+    def query_string(self, operator=None, using=DEFAULT_MODELTREE_ALIAS):
         "Returns a django lookup string relative to the ``modeltree`` object."
+        modeltree = mts[using]
         nodes = modeltree.path_to(self.model)
         return modeltree.query_string(nodes, self.field_name, operator)
 
-    def order_string(self, modeltree, direction='asc'):
-        qs = self.query_string(modeltree)
+    def order_string(self, direction='asc', using=DEFAULT_MODELTREE_ALIAS):
+        qs = self.query_string(using=using)
         if direction.lower() == 'desc':
             return '-' + qs
         return qs
 
-    def translate(self, modeltree, operator=None, value=None, **context):
+    def translate(self, operator=None, value=None, using=DEFAULT_MODELTREE_ALIAS, **context):
         trans = library.get(self.translator)
         if trans is None:
             trans = library.default
-        return trans(modeltree, self, operator, value, **context)
+        return trans(self, operator, value, using, **context)
 
-    def query_by_value(self, modeltree, operator, value):
-        q, ants = self.translate(modeltree, operator, value)
-        qs = modeltree.root_model.objects.all()
-        if ants:
-            qs = qs.annotate(**ants)
-        if q:
-            qs = qs.filter(q)
-        return qs
+    def query_by_value(self, operator, value, using=DEFAULT_MODELTREE_ALIAS):
+        modeltree = mts[using]
+        condition, annotations = self.translate(operator, value, using)
+        queryset = modeltree.root_model.objects.all()
+        if annotations:
+            queryset = queryset.annotate(**annotations)
+        if condition:
+            queryset = queryset.filter(condition)
+        return queryset
 
     def formfield(self, formfield=None, widget=None, **kwargs):
         "Returns the default `formfield' instance for the `field' type."

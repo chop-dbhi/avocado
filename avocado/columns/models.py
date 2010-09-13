@@ -9,6 +9,7 @@ fields for the Column class to use.
 
 from django.db import models
 
+from avocado.modeltree import DEFAULT_MODELTREE_ALIAS, mts
 from avocado.concepts.models import Concept, ConceptField
 from avocado.fields.models import Field
 from avocado.columns.mixins import ColumnMixin
@@ -22,7 +23,9 @@ class Column(Concept, ColumnMixin):
     class Meta(Concept.Meta):
         pass
 
-    def add_fields_to_queryset(self, queryset, modeltree):
+    def add_fields_to_queryset(self, queryset, using=DEFAULT_MODELTREE_ALIAS):
+        modeltree = mts[using]
+
         fields = self.fields.all()
         aliases = []
         for f in fields:
@@ -30,11 +33,11 @@ class Column(Concept, ColumnMixin):
             aliases.append((f.model._meta.db_table, f.field_name))
         return (queryset, aliases)
 
-    def get_ordering_for_queryset(self, modeltree, direction='asc'):
+    def get_ordering_for_queryset(self, direction='asc', using=DEFAULT_MODELTREE_ALIAS):
         fields = self.fields.all()
         orders = []
         for f in fields:
-            orders.append(f.order_string(modeltree, direction))
+            orders.append(f.order_string(direction, using))
         return orders
 
 class ColumnField(ConceptField):

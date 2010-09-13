@@ -3,7 +3,7 @@ from django.db.models.sql import RawQuery
 from django.contrib.auth.models import User
 
 from avocado.db_fields import PickledObjectField
-from avocado.modeltree import DEFAULT_MODELTREE
+from avocado.modeltree import DEFAULT_MODELTREE_ALIAS, mts
 from avocado.fields import logictree
 from avocado.columns import utils
 
@@ -46,26 +46,25 @@ class Context(Descriptor):
 
 class Scope(Context):
     "Stores information needed to provide scope to data."
-    def get_queryset(self, queryset=None, **context):
+    def get_queryset(self, queryset=None, using=DEFAULT_MODELTREE_ALIAS, **context):
+        modeltree = mts[using]
         if queryset is None:
-            queryset = DEFAULT_MODELTREE.root_model.objects.all()
+            queryset = modeltree.root_model.objects.all()
 
-        node = logictree.transform(DEFAULT_MODELTREE, self.store, **context)
+        node = logictree.transform(self.store, using, **context)
         return node.apply(queryset)
 
 
 class Perspective(Context):
     "Stores information needed to represent data."
-    def get_queryset(self, queryset=None):
+    def get_queryset(self, queryset=None, using=DEFAULT_MODELTREE_ALIAS):
+        modeltree = mts[using]
         if queryset is None:
-            queryset = DEFAULT_MODELTREE.root_model.objects.all()
+            queryset = modeltree.root_model.objects.all()
 
-        queryset = utils.add_columns(queryset, self.store['columns'],
-            DEFAULT_MODELTREE)
-
-        queryset = utils.add_ordering(queryset, self.store['sorting'],
-            DEFAULT_MODELTREE)
-
+        queryset = utils.add_columns(queryset, self.store['columns'], using)
+        queryset = utils.add_ordering(queryset, self.store['sorting'], using)
+        
         return queryset
 
 
@@ -74,16 +73,17 @@ class Report(Descriptor):
     scope = models.ForeignKey(Scope)
     perspective = models.ForeignKey(Perspective)
 
-    def get_queryset(self, queryset=None):
+    def get_queryset(self, queryset=None, using=DEFAULT_MODELTREE_ALIAS):
+        modeltree = mts[using]        
         if queryset is None:
-            queryset = DEFAULT_MODELTREE.root_model.objects.all()
+            queryset = modeltree.root_model.objects.all()
 
-        queryset = self.scope.get_queryset(queryset)
-        queryset = self.perspective.get_queryset(queryset)
+        queryset = self.scope.get_queryset(queryset, using)
+        queryset = self.perspective.get_queryset(queryset, using)
         return queryset
 
-    def get_report_query(self, queryset=None):
-        queryset = self.get_queryset(queryset)
+    def get_report_query(self, queryset=None, using=DEFAULT_MODELTREE_ALIAS):
+        queryset = self.get_queryset(queryset, using)
         sql, params = queryset.query.get_compiler(DEFAULT_DB_ALIAS).as_sql()
         raw = RawQuery(sql, DEFAULT_DB_ALIAS, params)
         return raw
