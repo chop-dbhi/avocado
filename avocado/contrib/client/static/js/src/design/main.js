@@ -3,12 +3,14 @@ require(['design/search', 'design/views', 'design/criterialist'], function(searc
     $(function() {
         search.init();
         // The view manager needs to know where in the DOM to place certain things
-        var pluginTabs = $('#plugin-tabs'),
+        var rootNode = $("#content"),
+            pluginTabs = $('#plugin-tabs'),
             pluginPanel = $('#plugin-panel'),
             pluginTitle = $('#plugin-title'),
-            pluginDynamicContent = $('#plugin-dynamic-content'),
+            criteriaPanel = $("#user-criteria"),
             pluginStaticContent = $('#plugin-static-content'),
-            criteriaPanel = $("#user-criteria");
+            pluginDynamicContent = $('#plugin-dynamic-content');
+            
             
     
         // Create an instance of the viewManager object. Only do this once.
@@ -17,8 +19,24 @@ require(['design/search', 'design/views', 'design/criterialist'], function(searc
         
         var criteriaManager = criterialist.Manager(criteriaPanel);
         //            
-        $("#content").bind('UpdateQueryEvent', function(evt, concept_constraint) {
-            criteriaPanel.triggerHandler("UpdateQueryEvent", [concept_constraint]);
+        rootNode.bind('UpdateQueryEvent', function(evt, criteria_constraint) {
+            criteriaPanel.triggerHandler("UpdateQueryEvent", [criteria_constraint]);
+        });
+        
+        // Listen for the user clicking on criteria in the right hand panel
+        rootNode.bind("ShowConceptEvent", function(evt){
+            
+            var target = $(evt.target);
+           // console.log(target.attr('data-uri'));
+            $.ajax({
+                url: target.attr('data-uri'),
+                dataType:'json',
+                success: function(json) {
+                        pluginPanel.fadeIn(100);
+                        viewManager.show(json);
+                    }
+                });
+                    
         });
 
         // TODO change this into a jQuery extension or something..
@@ -76,7 +94,6 @@ require(['design/search', 'design/views', 'design/criterialist'], function(searc
         $('[data-model=criterion]').live('click', function(evt) {
             evt.preventDefault();
             var target = $(this);
-
             $.ajax({
                 url: target.attr('data-uri'),
                 dataType:'json',
@@ -85,6 +102,9 @@ require(['design/search', 'design/views', 'design/criterialist'], function(searc
                     viewManager.show(json);
                 }
             });
+
+            target.trigger('collapse_search');
+            target.trigger('ShowConceptEvent');
         });
     });
 });

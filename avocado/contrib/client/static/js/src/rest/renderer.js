@@ -11,13 +11,12 @@ require.def('rest/renderer', ['lib/base', 'lib/jquery.jqote2'], function() {
          * on with the data.
          */
         _datamethod: function(data) {
-            this.data = data;
             return function(key, value) {
                 if (key === undefined)
-                    return this.data;
+                    return data;
                 if (value === undefined)
-                    return this.data[key];
-                this.data[key] = value;
+                    return data[key];
+                data[key] = value;
             };
         },
 
@@ -25,7 +24,7 @@ require.def('rest/renderer', ['lib/base', 'lib/jquery.jqote2'], function() {
             if (e.jquery !== undefined)
                 e.data(d);
             else if (typeof e == 'object')
-                e.data = this._datamethod(d);
+                e.data = this._datamethod(d); 
             return e;
         },
 
