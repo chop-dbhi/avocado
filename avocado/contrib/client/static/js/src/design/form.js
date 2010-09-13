@@ -64,7 +64,7 @@ require.def('design/form', ['lib/jquery.jqote2'], {
          });
          
          // Trigger an event when anything changes
-         $("input,select",$form).bind('change', function(evt){
+         $("input,select",$form).bind('change keyup', function(evt){
             switch (evt.target.type){
                     case "checkbox": $form.trigger("ElementChangedEvent", [{name:evt.target.name,value:evt.target.checked}]);
                                      break;

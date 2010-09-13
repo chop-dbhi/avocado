@@ -126,7 +126,7 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
                          ds[parameter.name] = parameter.value;
                      }
                      ds[parameter.name+"_"+"operator"] = parameter.operator;
-                 } else (parameter.type === "logic"){
+                 } else if (parameter.type === "logic"){
                      createDSFromQuery(parameter.children, ds);
                  }
              });
@@ -218,8 +218,7 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
           @private
         */
         function updateQueryHandler(evt, query) {
-            console.log(query);
-            var concept = cache[activeConcept]
+            // Not currently used
         };
 
         /**
@@ -316,14 +315,16 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
                                     'type' : 'field',
                                     'operator' : field.op,
                                     'id' : field_id,
-                                    'value' : [field.val0,field.val1]
+                                    'value' : [field.val0,field.val1],
+                                    'concept_id': activeConcept
                                 });
                 } else if (field.val0 && field.op && !(field.val0 instanceof Array)){ // Decimal
                     nodes.push({
                                     'type' : 'field',
                                     'operator' : field.op,
                                     'id' : field_id,
-                                    'value' : field.val0
+                                    'value' : field.val0,
+                                    'concept_id': activeConcept
                                 });
                 } else if (field.val0 && field.val0 instanceof Array){ // Choice Same as obove ...
                     // if field.op is null, assume the query was the default, which is "in"
@@ -332,7 +333,8 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
                                     'type' : 'field',
                                     'operator' : field.op,
                                     'id' : field_id,
-                                    'value' : field.val0
+                                    'value' : field.val0,
+                                    'concept_id': activeConcept
                                 });
                 } else if (field.val0 !== null && !(field.val0 instanceof Array) &&
                            field.op === null && field.val1 === null){ // assertion/or boolean
@@ -340,7 +342,8 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
                                         'type' : 'field',
                                         'operator' : "exact",
                                         'id' : field_id,
-                                        'value' : field.val0
+                                        'value' : field.val0,
+                                        'concept_id': activeConcept
                                 });
                 } else {
                     // Unable to determine what this field is ?
@@ -355,7 +358,8 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
                 server_query = [{
                                      'type': 'logic',
                                      'operator': 'and',
-                                     'children': nodes
+                                     'children': nodes,
+                                     'concept_id':activeConcept
                                }];
             }
             $(event.target).trigger("UpdateQueryEvent", [server_query]); 
@@ -444,14 +448,16 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
         
         $container.bind({
             'ViewReadyEvent': viewReadyHandler,
-            'UpdateQueryEvent': updateQueryHandler,
             'ViewErrorEvent': viewErrorHandler,
             'ShowViewEvent': showViewHandler,
             'ElementChangedEvent' : elementChangedHandler,
             'UpdateQueryButtonClicked' : createAndSendQueryDataStructure,
             'InvalidInputEvent' : badInputHandler,
-            'InputCorrectedEvent': fixedInputHandler
+            'InputCorrectedEvent': fixedInputHandler,
+            'UpdateQueryEvent': updateQueryHandler
         });
+        
+        
      
         /**
           A callback does not have to be specified if the view is custom because

@@ -140,7 +140,7 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
              });
             
              $chartDiv.bind("UpdateDSEvent", function(evt, ds){
-                selected =  ds[concept_id+"_"+view.data.pk];
+                selected =  ds[concept_id+"_"+view.data.pk] || [];
              });
             
             return $chartDiv;
@@ -331,7 +331,7 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
             });
             
             $chartDiv.bind("UpdateDSEvent", function(evt, ds){
-               selected =  ds[concept_id+"_"+view.data.pk];
+               selected =  ds[concept_id+"_"+view.data.pk] || [];
             });
             return $chartDiv;
         };    
