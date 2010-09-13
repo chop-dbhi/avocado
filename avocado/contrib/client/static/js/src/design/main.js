@@ -8,7 +8,7 @@ require(['design/search', 'design/views', 'design/criterialist'], function(searc
             pluginTitle = $('#plugin-title'),
             pluginDynamicContent = $('#plugin-dynamic-content'),
             pluginStaticContent = $('#plugin-static-content'),
-            criteriaPanel = $("#criteria-list");
+            criteriaPanel = $("#user-criteria");
             
     
         // Create an instance of the viewManager object. Only do this once.

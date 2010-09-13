@@ -16,7 +16,8 @@ require.def('design/templates', function() {
                             '<a href="#" class="field-anchor">',
                             '<%= this.description %>',
                             '</a>',
-                        '</div>'].join('')
+                        '</div>'].join(''),
+        run_query : '<input id="submit-query" type="button" value="Run the query!">'
     };    
 });
 
