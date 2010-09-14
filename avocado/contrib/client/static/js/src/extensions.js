@@ -31,23 +31,59 @@ if (!Array.prototype.map) {
 
 (function($) {
 
-    $.log = function(msg) {
-        /*
-        ** Simple helper to either log to console (gecko or webkit) otherwise
-        ** display an alert.
-        */
-        if (window.console)
-            console.log(msg);
-        else
-            alert(msg);
-    };
+    $.extend({
+        log: function(msg) {
+            /*
+            ** Simple helper to either log to console (gecko or webkit) otherwise
+            ** display an alert.
+            */
+            if (window.console)
+                console.log(msg);
+            else
+                alert(msg);
+        },
     
-    $.jqoteobj = function(template, data, tag) {
-        /*
-        ** Wraps the default $.jqote result in a jQuery object.
-        */
-        return $($.jqote(template, data, tag));
-    };
+        jqoteobj: function(template, data, tag) {
+            /*
+            ** Wraps the default $.jqote result in a jQuery object.
+            */
+            return $($.jqote(template, data, tag));
+        },
+    
+        put: function( url, data, callback, type ) {
+    		// shift arguments if data argument was omited
+    		if ( jQuery.isFunction( data ) ) {
+    			type = type || callback;
+    			callback = data;
+    			data = {};
+    		}
+
+    		return jQuery.ajax({
+    			type: "PUT",
+    			url: url,
+    			data: data,
+    			success: callback,
+    			dataType: type
+    		});
+    	},
+    	
+    	'delete': function( url, data, callback, type ) {
+    		// shift arguments if data argument was omited
+    		if ( jQuery.isFunction( data ) ) {
+    			type = type || callback;
+    			callback = data;
+    			data = {};
+    		}
+
+    		return jQuery.ajax({
+    			type: "DELETE",
+    			url: url,
+    			data: data,
+    			success: callback,
+    			dataType: type
+    		});
+    	}
+    });
 
     $.fn.placeholder = function(placeholder) {
         /*
