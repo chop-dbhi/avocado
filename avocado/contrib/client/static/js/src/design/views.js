@@ -114,22 +114,25 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
               
               @private
          */
-         function createDSFromQuery(query, recurse_ds){
-             var ds = resurse_ds || {};
-             $.each(query, function(index, parameter) {
-                 if (parameter.type === "field"){
-                     if (parameter.value instanceof Array){
-                         for (var index; index < parameter.value.length; index++){
-                             ds[parameter.name+"_input"+index] = parameter.value[index];
-                         }
-                     }else{
-                         ds[parameter.name] = parameter.value;
+         function createDSFromQuery(parameter, recurse_ds){
+             var ds = recurse_ds || {};
+             var field_prefix;
+             if (parameter.type === "field"){
+                 
+                 field_prefix = parameter.concept_id+"_"+parameter.id;
+                 if (parameter.value instanceof Array){
+                     for (var index=0; index < parameter.value.length; index++){
+                         ds[field_prefix+"_input"+index] = parameter.value[index];
                      }
-                     ds[parameter.name+"_"+"operator"] = parameter.operator;
-                 } else if (parameter.type === "logic"){
-                     createDSFromQuery(parameter.children, ds);
+                 }else{
+                     ds[field_prefix] = parameter.value;
                  }
-             });
+                 ds[field_prefix+"_"+"operator"] = parameter.operator;
+             } else if (parameter.type === "logic"){
+                $.each(parameter.children, function(index, child){
+                    createDSFromQuery(child, ds);
+                });
+             }
              return ds;
          }
     
@@ -158,7 +161,7 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
             activeView.contents.css("display","block");
             $(".chart", activeView.contents).css("display","block"); // Hack because of IE
             
-            // Has this view been displayed to the user before?
+
             if (!activeView.loaded){
                 // Give the view its datasource
                 // This will also prevent re-populating datasources when the
@@ -254,8 +257,16 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
             // Did anything actually change?
             // if (ds[element.name] === element.value) return;
             
-            // Update teh datasource
-            cache[activeConcept].ds[element.name] = element.value;
+            
+            // A field is no longe in use, most likely a field was hidden due to 
+            // an operator change
+            if (element.value == null){
+                // Clear out this value in the datasource
+                delete cache[activeConcept].ds[element.name];
+            }else{
+                // Update the datasource
+                cache[activeConcept].ds[element.name] = element.value;
+            }
             // If other views on this concept are already instantiated
             // notify them of the change
             $.each(cache[activeConcept].views, function(index,view) {
@@ -265,8 +276,53 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
             });
         };
         
+        
+        function postViewErrorCheck(ds){
+            // verify that an fields in the datsource are not null, empty strings, undefined, or empty arrays
+            // and that the ds is not itself empty
+            
+            // Is the datasource an empty object?
+            if ($.isEmptyObject(ds)) {
+                return false;
+            }
+            
+            for (var key in ds){
+                if (!ds.hasOwnProperty(key)) continue;
+                
+                if ((ds[key] === undefined) || (ds[key]===null) || (ds[key] === "")){
+                    return false;
+                }
+                if (($.isArray(ds[key])) && (ds[key].length === 0)){
+                    return false;
+                }
+            }
+            return true;
+        }    
         /**
-              This function is triggered by the "Add To Query" Button,
+               This function is the handler for the "add to query" button for builtin concepts
+               It scans the datasource to verify it is not empty, calls a utility function to
+               create the server query datastructure, and then passes the structure to the 
+               framework.
+               @private
+        */
+
+        function addQueryButtonHandler(event){
+             var ds = cache[activeConcept].ds;
+             
+             // Does this datasource contain valid values?
+             if (!postViewErrorCheck(ds)){
+                 var evt = $.Event("InvalidInputEvent");
+                 evt.ephemeral = true;
+                 evt.message = "No value has been specified.";
+                 $(event.target).trigger(evt);
+                 return;
+             }
+             var server_query = createQueryDataStructure(ds); 
+             $(event.target).trigger("UpdateQueryEvent", [server_query]); 
+        }
+        
+        /**
+              This function is a utility function, currently called by the AddQueryButtonHandler,
               for concepts made of builtin views, the function will be responsible
               for analyzing the current concept's datasource and creating the 
               datastructure reprsenting the proper query for the server to 
@@ -275,9 +331,7 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
               @private
          */
         
-        function createAndSendQueryDataStructure(event) {
-            // Get the current concept datasource
-            var ds = cache[activeConcept].ds;
+        function createQueryDataStructure(ds) {
             var fields={};
             // We need to analyze the current concept and the datasource and construct
             // the proper datastructure to represent this query on the server
@@ -365,7 +419,7 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
                                      'concept_id':activeConcept
                                };
             }
-            $(event.target).trigger("UpdateQueryEvent", [server_query]); 
+            return (server_query)
         }
         
         
@@ -383,16 +437,18 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
             $.each(cache[activeConcept].views, function(index,view){
                    view.contents && view.contents.find("[name="+evt.target.name+"]").addClass("invalid");
             });
-            var message = evt.message ? event.message : "This query contains invalid input, please correct any invalid fields.";
+            var message = evt.message ? evt.message : "This query contains invalid input, please correct any invalid fields.";
             var already_displayed = false;
             $.each($staticBox.find(".warning"), function(index, warning) {
                 warning = $(warning);
                 var rc = warning.data("ref_count");
                 if (warning.text() === message) {
-  
                     // We are already displaying this message
                     already_displayed = true;
-                    if (invalid_fields[evt.target.name] === undefined){
+                    if (evt.ephemeral){
+                        return;
+                    }
+                    else if (invalid_fields[evt.target.name] === undefined){
                         // This message has been displayed, but for another field, increase
                         // the reference count
                         invalid_fields[evt.target.name] = warning;
@@ -419,7 +475,17 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
             warning.data('ref_count',1);
             invalid_fields[evt.target.name] = warning;
             $staticBox.prepend(warning);
-            $staticBox.find("#add_to_query").attr("disabled","true");
+            // if the warning is ephemeral (meaning its should be flashed on
+            // screen, but not kept there until a specific thing is fixed)
+            // then fade out and then remove
+            if (evt.ephemeral){
+                warning.fadeOut(3000, function(){
+                    warning.remove();
+                });
+            }else{
+                // if not ephemeral, disable the button
+                $staticBox.find("#add_to_query").attr("disabled","true"); // TODO this is not visibly disabled to the user
+            }
         }
         
         
@@ -443,8 +509,10 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
                 invalid_fields[evt.target.name].data('ref_count',rc);
             }
             delete cache[activeConcept].invalid_fields[evt.target.name];
-            if ($staticBox.find(".warning").length===0){
-                $staticBox.find("#add_to_query").attr("disabled","false");
+            
+            // Re-enable the button if there are not more errors.
+            if ($.isEmptyObject(cache[activeConcept].invalid_fields)){
+                $staticBox.find("#add_to_query").attr("disabled","");
             }
         }
         
@@ -454,7 +522,7 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
             'ViewErrorEvent': viewErrorHandler,
             'ShowViewEvent': showViewHandler,
             'ElementChangedEvent' : elementChangedHandler,
-            'UpdateQueryButtonClicked' : createAndSendQueryDataStructure,
+            'UpdateQueryButtonClicked' : addQueryButtonHandler,
             'InvalidInputEvent' : badInputHandler,
             'InputCorrectedEvent': fixedInputHandler,
             'UpdateQueryEvent': updateQueryHandler
@@ -520,7 +588,6 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
                 var $addQueryButton = $('<input id="add_to_query" type="button" value="Add To Query"/>');
                 $addQueryButton.click(function(){
                      var event = $.Event("UpdateQueryButtonClicked");
-                     // event.target = this; I think this happens automatically
                      $(this).trigger(event); // TODO send current Concept Here to verify its correct
                 });
                 $staticBox.append($addQueryButton);
@@ -561,26 +628,27 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
           @public
         */
         function register(concept) {
-            if (cache[concept.pk] === undefined)
+
+            if (cache[concept.pk] === undefined){
                 cache[concept.pk] = concept;
-                // Create a datasource for this concept if we don't have one
-                if (!concept.ds){
-                    // If this concept already has a query associated with it, 
-                    // populate the datasource
-                    if (concept.query) {
-                        concept.ds = createDSFromQuery(concept.query);
-                        
-                    }else{
-                        // create empty datasource
-                        concept.ds = {};
-                    }
+            }
+            //concept = cache[concept.pk];
+            // Create a datasource for this concept if we don't have one
+            if (!concept.ds){
+                // If this concept already has a query associated with it, 
+                // populate the datasource
+                if (concept.query) {
+                    concept.ds = createDSFromQuery(concept.query); 
+                }else{
+                    // create empty datasource
+                    concept.ds = {};
                 }
-                
-                // Add a spot to store invalid fields.
-                if (!concept.invalid_fields){
-                    concept.invalid_fields = {};
-                }
-        };
+            }    
+            // Add a spot to store invalid fields.
+            if (!concept.invalid_fields){
+                concept.invalid_fields = {};
+            }
+        };  
 
         /**
           Loads and makes a particular concept active and in view
