@@ -59,27 +59,20 @@ require.def('design/search',
             src.categories.get();
             
             categories.delegate('[data-model=category]', 'click', function(evt) {
-                var target = $(this);
-                target.trigger('search_criteria', target.attr('data-search-term'));
+                var value = $(this).attr('data-search-term');
+                search.trigger('search', value);
                 return false;
             });            
 
-            panel
-                .bind('load_criteria', function(evt, params) {
-                    src.criteria.get(null, params);
-                    return false;
-                })
-
-                .bind('search_criteria', function(evt, term) {
-                    search.val(term).keyup();
-                    return false;
-                });
+            // manual delegation, since there is a specific
+            panel.bind('search', function(evt, value) {
+                search.trigger('search', value);
+                return false;
+            });
 
             search.autocomplete({
-                success: function(query, json) {
-                    console.log(query);
+                success: function(value, json) {
                     rnd.criteria.render(json);
-                    search.trigger('delegate_search_select', query);
                 }
             });
         };

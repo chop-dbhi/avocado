@@ -4,6 +4,27 @@ from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect
 from django.utils import simplejson
 
+from avocado.models import Report, Scope, Perspective
+
+class SessionReportMiddleware(object):
+    def process_request(self, request):
+        modified = False
+        if not request.session.has_key('report'):
+            modified = True
+            report = Report()
+            request.session['report'] = report
+        else:
+            report = request.session['report']
+        
+        if not report.scope_id:
+            modified = True
+            report.scope = Scope()
+        if not report.perspective_id:
+            modified = True
+            report.perspective = Perspective()
+        
+        request.session.modified = modified
+
 # dumb regex to extract the referer's path
 extract_path = re.compile(r'^https?:\/\/[^\/]*(.*)$')
 

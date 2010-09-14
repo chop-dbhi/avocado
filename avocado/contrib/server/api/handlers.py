@@ -38,6 +38,7 @@ class CategoryHandler(BaseHandler):
 class ScopeHandler(BaseHandler):
     allowed_methods = ('GET',)
     model = Scope
+    fields = ('id', 'store')
 
     def queryset(self, request):
         return self.model.objects.filter(user=request.user)
@@ -45,12 +46,13 @@ class ScopeHandler(BaseHandler):
     def read(self, request, *args, **kwargs):
         if kwargs.get('id', None) != 'session':
             return super(ScopeHandler, self).read(request, *args, **kwargs)
-        return request.session.get('scope')
+        return request.session.get('report').scope
 
 
 class PerspectiveHandler(BaseHandler):
     allowed_methods = ('GET',)
     model = Perspective
+    fields = ('id', 'store')    
 
     def queryset(self, request):
         return self.model.objects.filter(user=request.user)
@@ -58,12 +60,16 @@ class PerspectiveHandler(BaseHandler):
     def read(self, request, *args, **kwargs):
         if kwargs.get('id', None) != 'session':
             return super(PerspectiveHandler, self).read(request, *args, **kwargs)
-        return request.session.get('perspective')
+        return request.session.get('report').perspective
 
 
 class ReportHandler(BaseHandler):
     allowed_methods = ('GET',)
     model = Report
+    fields = ('id', 'name',
+        ('scope', ('id', 'store')),
+        ('perspective', ('id', 'store'))
+    )
 
     def queryset(self, request):
         return self.model.objects.filter(user=request.user)
@@ -72,4 +78,3 @@ class ReportHandler(BaseHandler):
         if kwargs.get('id', None) != 'session':
             return super(ReportHandler, self).read(request, *args, **kwargs)
         return request.session.get('report')
-

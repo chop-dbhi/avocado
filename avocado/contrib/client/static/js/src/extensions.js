@@ -49,40 +49,35 @@ if (!Array.prototype.map) {
         return $($.jqote(template, data, tag));
     };
 
-    $.fn.placeholder = function(text) {
+    $.fn.placeholder = function(placeholder) {
         /*
-        ** Provides a simple means for having inline "help text" for text input
+        ** Provides a simple means for having inline "help placeholder" for text input
         ** fields. This currently only applies to input[type=text] or textarea
-        ** fields. The behavior allows for displaying `text' in grey
+        ** fields. The behavior allows for displaying `placeholder' in grey
         ** on blur and is hidden on focus.
         */
         var obj = this;
 
         obj.each(function() {
-            var $this = $(this);
-            text = text || $this.attr('placeholder');
+            var $this = $(this),
+                color = $this.css('color');
+            placeholder = placeholder || $this.attr('placeholder');
 
             if (!$this.is('input') && !$this.is('textarea'))
                 return obj;
 
             // set initial style
-            if (this.value == '' || this.value == text) {
-                $this.val(text).css('color', '#999');
-            } else {
-                $this.css('color', '#000');
-            }
+            if ($this.val()=== '' || $this.val() === placeholder)
+                $this.val(placeholder).css('color', '#999');
             
             // bind events
             $this.focus(function() {
-                $this.css('color', '#000');
-                if ($this.val() == text) {
-                    $this.val('');
-                }
+                if ($this.val() === placeholder)
+                    $this.css('color', color).val('');
             }).blur(function() {
-                $this.css('color', '#000');
-                if ($this.val() == '') {
-                    $this.val(text).css('color', '#999');
-                }
+                $this.css('color', color);
+                if ($this.val() === '')
+                    $this.css('color', '#999').val(placeholder);
             });
         });
         
@@ -100,7 +95,7 @@ if (!Array.prototype.map) {
         return $(arr);
     };
 
-    $.fn.autocomplete = function(ajax, placeholder, timeout, single) {
+    $.fn.autocomplete = function(ajax, placeholder, maxTimeout, cacheResp) {
         /*
         ** Binds an input[type=text] field with autocomplete-like behavior.
         ** The parameter `ajax' is required and consists of the
@@ -114,107 +109,110 @@ if (!Array.prototype.map) {
         **
         **      `end' - a function handler to be called after success or error
         **
-        ** `timeout' - defines the amount of time between each keyup before
+        ** `maxTimeout' - defines the amount of time between each keyup before
         ** triggering a request. Default is 400.
         **
-        ** `single' - if true will only hit the server the first time and store
+        ** `cacheResp' - if true will only hit the server the first time and store
         ** the response locally. successive requests will use the response and
         ** will not hit the server. Default is false.
         */
         if (!this.is('input[type=text]') && !this.is('input[type=search]'))
             throw new TypeError('A text or search field is required');            
 
-        return this.each(function() {
-            placeholder = placeholder || null;
-            timeout = timeout || 300;
-            single = single || false;
+        placeholder = placeholder || null;
+        maxTimeout = maxTimeout || 300;
+        cacheResp = cacheResp || false;
 
-            var $input = $(this),
-                $form,
-                query,
-                ajax_,                
-                last = null,
-                timer = null,
-                first = null,
-                done = true;
-            
-            // setup defaults
-            ajax.success = ajax.success || function(){};
-            ajax.error = ajax.error || function(){};
-            ajax.start = ajax.start || function(){};
-            ajax.end = ajax.end || function(){};
-            ajax.data = ajax.data || {q: query};
-            
-            ajax_ = $.extend('deep', {}, ajax);
+        // make copy, so original object is not changed
+        var ajaxargs = $.extend({}, ajax);
         
-            // prevent form submission (e.g. via the Enter key)
-            $form = $input.closest('form').submit(function(evt) {
-                evt.preventDefault();
-                evt.stopPropagation();
-            });
-            
-            ajax_.url = $form.attr('action');
+        // setup defaults
+        var success = ajaxargs.success || function(){},
+            error = ajaxargs.error || function(){},
+            start = ajaxargs.start || function(){},
+            end = ajaxargs.end || function(){};
+
+        ajaxargs.data = {};
+        
+        return this.each(function() {
+
+            var input = $(this),
+                form,
+                value,
+                lastValue = null,
+                timer = null,
+                firstResp = null,
+                loading = false;                
+
+            // prevent default form submission (e.g. via the Enter key)
+            form = input.closest('form').submit(function(evt) {return false;});
+            ajaxargs.url = form.attr('action');
 
             // redefine the `success' to provide additional argument
-            ajax_.success = function(resp, status, xhr) {
+            ajaxargs.success = function(resp, status, xhr) {
                 // process user-defined ajax-success handler
-                ajax.success(query, resp, status, xhr);
-                // if only a single request is to be made, cache first response
+                success(value, resp, status, xhr);
+                // if only a cacheResp request is to be made, cache first response
                 // for later faux-usage
-                if (first == null && single)
-                    first = {resp: resp, status: status, xhr: xhr};
-                last = query;
-                done = true;
-                ajax_.end();
+                if (firstResp == null && cacheResp)
+                    firstResp = {resp: resp, status: status, xhr: xhr};
+                lastValue = value;
+                loading = false;
+                ajaxargs.end();
             };
         
-            ajax_.error = function(xhr, status, err) {
-                ajax.error(query, xhr, status, err);
-                ajax_.end();
+            ajaxargs.error = function(xhr, status, err) {
+                error(value, xhr, status, err);
+                ajaxargs.end();
             };
             
-            ajax_.start = function() {
-                done = false;
-                ajax.start(query);
+            ajaxargs.start = function() {
+                loading = true;
+                start(value);
             };
             
-            ajax_.end = function() {
-                done = true;
-                ajax.end();
+            ajaxargs.end = function() {
+                loading = false;
+                end();
             };
             
-            $input.keyup(function() {
-                // clear previous timeout to cancel last request
+            input.keyup(function(evt) {
+                // clear previous maxTimeout to cancel last request
                 clearTimeout(timer);
-
                 // get new value
-                query = $input.val();
+                value = input.val();
 
                 // if any `placeholder' is provided, test if the value matches it
-                if (placeholder != null && query == placeholder)
-                    query = '';
+                if (placeholder !== null && value === placeholder)
+                    value = '';
 
-                // sanitize and strip useless stopwords
-                // temporary commenting out, have to find the file its in JMM
-                // query = SearchSanitizer.clean(query);
+                // sanitize and strip useless stopwords and non-alphanumerics, and lowercase
+                value = value.toLowerCase(); //SearchSanitizer.clean(value).toLowerCase();
                 
-                if (query != last) {
+                if (value !== lastValue) {
                     // only start once, when the user first begins typing
-                    if (done == true)
-                        ajax_.start();
+                    if (loading == false)
+                        ajaxargs.start();
 
-                    ajax_.data.q = query;
+                    ajaxargs.data.q = value;
 
                     timer = setTimeout(function() {
-                        // run pseudo-request for single request autocompletes
-                        if (single && first)
-                            ajax_.success(first.resp, first.status, first.xhr);
+                        // run pseudo-request for cacheResp request autocompletes
+                        if (cacheResp && firstResp)
+                            ajaxargs.success(firstResp.resp, firstResp.status, firstResp.xhr);
+                        // otherwise, actually make request
                         else
-                            $.ajax(ajax_);
-                    }, timeout);
+                            $.ajax(ajaxargs);
+                    }, maxTimeout);
                 } else {
-                    ajax_.end();
+                    // run `end' function which mimics finalizing a duplicate request
+                    ajaxargs.end();
                 }
+            }).bind('search', function(evt, value) {
+                if (value !== null || value !== undefined)
+                    input.val(value);
+                input.keyup();
+                return false;
             });
         });
     };
