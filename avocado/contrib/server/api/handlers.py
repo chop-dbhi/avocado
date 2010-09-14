@@ -1,4 +1,5 @@
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
+from django.utils import simplejson
 from piston.handler import BaseHandler
 from piston.utils import rc
 
@@ -70,11 +71,12 @@ class ScopeHandler(BaseHandler):
         # for it, iself, to be updated, but rather the session representation.
         # therefore, if the session scope is not temporary, make it a 
         # temporary object with the new parameters.
+        json = simplejson.loads(request._raw_post_data)
         inst = request.session['report'].scope
         
         # assume the PUT request is only the store
         if kwargs['id'] == 'session':
-            inst.write(request.PUT)
+            inst.write(json)
 
         # an object has been targeted via the ``id`` referenced in the url
         else:
@@ -86,10 +88,8 @@ class ScopeHandler(BaseHandler):
                 except MultipleObjectsReturned:
                     return rc.BAD_REQUEST
 
-            data = request.PUT.copy()
-
-            store = data.pop('store', None)
-            attrs = self.flatten_dict(data)
+            store = json.pop('store', None)
+            attrs = self.flatten_dict(json)
 
             # special case
             if store is not None:
@@ -141,11 +141,12 @@ class PerspectiveHandler(BaseHandler):
         # for it, iself, to be updated, but rather the session representation.
         # therefore, if the session perspective is not temporary, make it a 
         # temporary object with the new parameters.
+        json = simplejson.loads(request._raw_post_data)
         inst = request.session['report'].perspective
         
         # assume the PUT request is only the store
         if kwargs['id'] == 'session':
-            inst.write(request.PUT)
+            inst.write(json)
 
         # an object has been targeted via the ``id`` referenced in the url
         else:
@@ -157,10 +158,8 @@ class PerspectiveHandler(BaseHandler):
                 except MultipleObjectsReturned:
                     return rc.BAD_REQUEST
 
-            data = request.PUT.copy()
-
-            store = data.pop('store', None)
-            attrs = self.flatten_dict(data)
+            store = json.pop('store', None)
+            attrs = self.flatten_dict(json)
 
             # special case
             if store is not None:
