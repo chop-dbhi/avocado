@@ -369,7 +369,6 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
                 var field = fields[field_id];
                 if (field.val0 && field.val1 && field.op) { // Decimal Binary Op
                     nodes.push({
-                                    'type' : 'field',
                                     'operator' : field.op,
                                     'id' : field_id,
                                     'value' : [field.val0,field.val1],
@@ -377,7 +376,6 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
                                 });
                 } else if (field.val0 && field.op && !(field.val0 instanceof Array)){ // Decimal
                     nodes.push({
-                                    'type' : 'field',
                                     'operator' : field.op,
                                     'id' : field_id,
                                     'value' : field.val0,
@@ -387,7 +385,6 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
                     // if field.op is null, assume the query was the default, which is "in"
                     field.op = field.op !== null ? field.op : "in";
                     nodes.push({
-                                    'type' : 'field',
                                     'operator' : field.op,
                                     'id' : field_id,
                                     'value' : field.val0,
@@ -396,7 +393,6 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
                 } else if (field.val0 !== null && !(field.val0 instanceof Array) &&
                            field.op === null && field.val1 === null){ // assertion/or boolean
                      nodes.push({
-                                        'type' : 'field',
                                         'operator' : "exact",
                                         'id' : field_id,
                                         'value' : field.val0,
@@ -413,8 +409,7 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
                 server_query = nodes[0];
             }else{
                 server_query = {
-                                     'type': 'logic',
-                                     'operator': 'and',
+                                     'type': 'and',
                                      'children': nodes,
                                      'concept_id':activeConcept
                                };

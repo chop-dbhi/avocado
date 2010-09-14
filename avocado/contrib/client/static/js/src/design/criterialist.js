@@ -1,4 +1,4 @@
-require.def('design/criterialist', ['design/criteria', "design/templates"], function(criteria, templates) {
+require.def('design/criterialist', ['design/criteria', "design/templates","lib/json2"], function(criteria, templates) {
     
     
     var manager = function($panel){
@@ -19,11 +19,25 @@ require.def('design/criterialist', ['design/criteria', "design/templates"], func
         // run the query
         $run_query.click(function(){
             var all_constraints = [];
+            var server_query;
             for (var key in criteria_cache){
                  if (criteria_cache.hasOwnProperty(key)){
                    all_constraints.push(criteria_cache[key].data("constraint"));
                  }
             }
+            
+            
+            if (all_constraints.length < 2){
+                server_query = all_constraints[0];
+            }else{
+                server_query = {type: "and", children : all_constraints};
+            }
+            $.ajax({ type:"put", 
+                     url: "/api/v1/scope/session/",
+                     data:JSON.stringify(server_query),
+                     success: function (){
+                         window.location = "/report/";
+                      }});
             console.log(all_constraints);
         });
         
