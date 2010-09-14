@@ -1,10 +1,9 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group, Permission
 
 from avocado.contrib.server.admin import main_admin
 
-class CustomUserAdmin(UserAdmin):
+class UserAdmin(admin.ModelAdmin):
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
         ('Personal info', {'fields': ('first_name', 'last_name', 'email')}),
@@ -13,9 +12,13 @@ class CustomUserAdmin(UserAdmin):
         ('Groups', {'fields': ('groups',)}),
     )
 
+    class Meta:
+        model = User
 
 # unregister default one
 admin.site.unregister(User)
-admin.site.register(User, CustomUserAdmin)
+admin.site.register(User, UserAdmin)
 
-main_admin.register(User, CustomUserAdmin)
+main_admin.register(User, UserAdmin)
+main_admin.register(Group)
+main_admin.register(Permission)
