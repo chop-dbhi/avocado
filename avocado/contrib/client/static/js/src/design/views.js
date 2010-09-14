@@ -114,22 +114,25 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
               
               @private
          */
-         function createDSFromQuery(query, recurse_ds){
-             var ds = resurse_ds || {};
-             $.each(query, function(index, parameter) {
-                 if (parameter.type === "field"){
-                     if (parameter.value instanceof Array){
-                         for (var index; index < parameter.value.length; index++){
-                             ds[parameter.name+"_input"+index] = parameter.value[index];
-                         }
-                     }else{
-                         ds[parameter.name] = parameter.value;
+         function createDSFromQuery(parameter, recurse_ds){
+             var ds = recurse_ds || {};
+             var field_prefix;
+             if (parameter.type === "field"){
+                 
+                 field_prefix = parameter.concept_id+"_"+parameter.id;
+                 if (parameter.value instanceof Array){
+                     for (var index=0; index < parameter.value.length; index++){
+                         ds[field_prefix+"_input"+index] = parameter.value[index];
                      }
-                     ds[parameter.name+"_"+"operator"] = parameter.operator;
-                 } else if (parameter.type === "logic"){
-                     createDSFromQuery(parameter.children, ds);
+                 }else{
+                     ds[field_prefix] = parameter.value;
                  }
-             });
+                 ds[field_prefix+"_"+"operator"] = parameter.operator;
+             } else if (parameter.type === "logic"){
+                $.each(parameter.children, function(index, child){
+                    createDSFromQuery(child, ds);
+                });
+             }
              return ds;
          }
     
@@ -159,13 +162,13 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
             $(".chart", activeView.contents).css("display","block"); // Hack because of IE
             
             // Has this view been displayed to the user before?
-            if (!activeView.loaded){
+            //if (!activeView.loaded){
                 // Give the view its datasource
                 // This will also prevent re-populating datasources when the
                 // user clicks on a criteria in the right panel but the concept 
                 // has been shown before.
                 $view.children().trigger('UpdateDSEvent', [cache[activeConcept].ds]);
-            }
+           //}
             
             $view.children().trigger("GainedFocusEvent");
 
@@ -520,7 +523,6 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
                 var $addQueryButton = $('<input id="add_to_query" type="button" value="Add To Query"/>');
                 $addQueryButton.click(function(){
                      var event = $.Event("UpdateQueryButtonClicked");
-                     // event.target = this; I think this happens automatically
                      $(this).trigger(event); // TODO send current Concept Here to verify its correct
                 });
                 $staticBox.append($addQueryButton);
@@ -561,26 +563,27 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
           @public
         */
         function register(concept) {
-            if (cache[concept.pk] === undefined)
+
+            if (cache[concept.pk] === undefined){
                 cache[concept.pk] = concept;
-                // Create a datasource for this concept if we don't have one
-                if (!concept.ds){
-                    // If this concept already has a query associated with it, 
-                    // populate the datasource
-                    if (concept.query) {
-                        concept.ds = createDSFromQuery(concept.query);
-                        
-                    }else{
-                        // create empty datasource
-                        concept.ds = {};
-                    }
+            }
+            //concept = cache[concept.pk];
+            // Create a datasource for this concept if we don't have one
+            if (!concept.ds){
+                // If this concept already has a query associated with it, 
+                // populate the datasource
+                if (concept.query) {
+                    concept.ds = createDSFromQuery(concept.query); 
+                }else{
+                    // create empty datasource
+                    concept.ds = {};
                 }
-                
-                // Add a spot to store invalid fields.
-                if (!concept.invalid_fields){
-                    concept.invalid_fields = {};
-                }
-        };
+            }    
+            // Add a spot to store invalid fields.
+            if (!concept.invalid_fields){
+                concept.invalid_fields = {};
+            }
+        };  
 
         /**
           Loads and makes a particular concept active and in view

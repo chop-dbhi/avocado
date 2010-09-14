@@ -27,16 +27,16 @@ require(['design/search', 'design/views', 'design/criterialist'], function(searc
         rootNode.bind("ShowConceptEvent", function(evt){
             
             var target = $(evt.target);
-           // console.log(target.attr('data-uri'));
+            var existing_ds = target.data("constraint")
+         
             $.ajax({
-                url: target.attr('data-uri'),
+                url: target.attr('data-uri') || "/api/v1/criteria/"+target.data("constraint")["concept_id"], // Clean this UP!
                 dataType:'json',
                 success: function(json) {
                         pluginPanel.fadeIn(100);
-                        viewManager.show(json);
+                        viewManager.show(json, existing_ds);
                     }
-                });
-                    
+                });    
         });
 
         // TODO change this into a jQuery extension or something..
