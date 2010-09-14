@@ -2,7 +2,7 @@ from django.test import TestCase
 
 from avocado.exceptions import RegisterError, AlreadyRegisteredError
 from avocado.columns.format import (FormatterLibrary, AbstractFormatter,
-    RemoveFormatter, IgnoreFormatter, FormatError)
+    RemoveFormatter, PassFormatter, FormatError)
 
 __all__ = ('FormatterLibraryTestCase',)
 
@@ -74,7 +74,7 @@ class FormatterLibraryTestCase(TestCase):
 
         # builtin formatters
         library.register(RemoveFormatter)
-        library.register(IgnoreFormatter)
+        library.register(PassFormatter)
 
         rows = [
             (1, 2, 3, 4, 5),
@@ -84,7 +84,7 @@ class FormatterLibraryTestCase(TestCase):
 
         out = library.format(rows, [
             ('Add Numbers', 2),
-            ('Ignore', 1),
+            ('Pass', 1),
             ('Remove', 2)
         ], 'csv')
 
@@ -107,7 +107,7 @@ class FormatterLibraryTestCase(TestCase):
         library = self._setup_library()
         # builtin formatters
         library.register(RemoveFormatter)
-        library.register(IgnoreFormatter)
+        library.register(PassFormatter)
 
         @library.register
         class AddOneFormatter(AbstractFormatter):
@@ -123,7 +123,7 @@ class FormatterLibraryTestCase(TestCase):
         out = library.format(rows, [
             ('Concat Str', 2),
             ('Concat Str', 1),
-            ('Ignore', 1),
+            ('Pass', 1),
             ('Add Numbers', 3),
             ('Add One', 1),
         ], 'csv')

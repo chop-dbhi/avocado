@@ -42,6 +42,10 @@ a img {
     border: none
 }
 
+form {
+    display: inline-block;
+}
+
 h1, h2, h3 {
     font-weight: 400;
 }
@@ -116,9 +120,9 @@ input[type=button]:active, input[type=submit]:active, button:active, button.sele
     background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#666), to(#888));    
 }
 
-input[type=search] {
+/*input[type=search] {
     width: 100%;
-}
+}*/
 
 input[type=search].search {
     background: #fff url(../img/icons/search.png) no-repeat 2px;
@@ -291,6 +295,7 @@ footer a:hover, footer a:active {
 .st {font-weight: bold}
 .in {display: inline}
 .bl {display: block}
+.ib {display: inline-block}
 
 .form-controls {
     border-top: 1px solid #ddd;
@@ -452,6 +457,17 @@ footer a:hover, footer a:active {
 /*
 ** Base container classes that define sections within a page.
 */
+
+.box {
+    display: inline-block;
+    font-family: "helvetica neue", helvetica, sans-serif;
+    font-size: 14px;
+    color: #222;
+    padding: 10px;
+	background-color: #fff;
+	-moz-box-shadow: 0 4px 4px #999;
+	-webkit-box-shadow: 0 4px 4px #999;    
+}
 
 .container {
     clear: both;

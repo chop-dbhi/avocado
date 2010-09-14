@@ -90,19 +90,21 @@ require(['design/search', 'design/views', 'design/criterialist'], function(searc
                 }
             });            
         })();
-
-        $('[data-model=category]').live('click', function(evt) {
-            var target = $(this);
-            target.trigger('search_criteria', target.data('name'));
-            return false;
-        });
     
         $('[data-model=criterion]').live('click', function(evt) {
             evt.preventDefault();
             var target = $(this);
+            $.ajax({
+                url: target.attr('data-uri'),
+                dataType:'json',
+                success: function(json) {
+                    pluginPanel.fadeIn(100);
+                    viewManager.show(json);
+                }
+            });
+
             target.trigger('collapse_search');
             target.trigger('ShowConceptEvent');
-        
         });
     });
 });

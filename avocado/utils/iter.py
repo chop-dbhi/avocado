@@ -1,24 +1,24 @@
-def is_iter_not_string(value):
+def ins(value):
     """Simple test to distinguish sequences that are not strings.
 
-    >>> is_iter_not_string(None)
+    >>> ins(None)
     False
-    >>> is_iter_not_string('')
+    >>> ins('')
     False
-    >>> is_iter_not_string(u'')
+    >>> ins(u'')
     False
-    >>> is_iter_not_string(r'')
+    >>> ins(r'')
     False
-    >>> is_iter_not_string(True)
+    >>> ins(True)
     False
 
-    >>> is_iter_not_string([])
+    >>> ins([])
     True
-    >>> is_iter_not_string(())
+    >>> ins(())
     True
-    >>> is_iter_not_string({})
+    >>> ins({})
     True
-    >>> is_iter_not_string(set([]))
+    >>> ins(set([]))
     True
     """
     if not isinstance(value, basestring):

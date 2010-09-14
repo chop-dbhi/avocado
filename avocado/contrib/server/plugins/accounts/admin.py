@@ -2,6 +2,8 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 
+from avocado.contrib.server.admin import main_admin
+
 class CustomUserAdmin(UserAdmin):
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
@@ -14,5 +16,6 @@ class CustomUserAdmin(UserAdmin):
 
 # unregister default one
 admin.site.unregister(User)
-
 admin.site.register(User, CustomUserAdmin)
+
+main_admin.register(User, CustomUserAdmin)
