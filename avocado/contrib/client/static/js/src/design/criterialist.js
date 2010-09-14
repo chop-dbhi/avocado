@@ -36,7 +36,7 @@ require.def('design/criterialist', ['design/criteria', "design/templates","lib/j
                      url: "/api/v1/scope/session/",
                      data:JSON.stringify(server_query),
                      success: function (){
-                         window.location = "/report/";
+                        // window.location = "/report/";
                       }});
             console.log(all_constraints);
         });
@@ -90,7 +90,15 @@ require.def('design/criterialist', ['design/criteria', "design/templates","lib/j
             }
         });
         
-        var that = {};
+        var that = {
+            fireFirstCriteria: function(){
+               if (!$.isEmptyObject(criteria_cache)){
+                  $($criteria_div.children()[0]).trigger("ShowConceptEvent");
+                }
+            }
+            
+            
+        };
         
         
         return that;
