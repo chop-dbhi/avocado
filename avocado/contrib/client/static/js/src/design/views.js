@@ -161,14 +161,14 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
             activeView.contents.css("display","block");
             $(".chart", activeView.contents).css("display","block"); // Hack because of IE
             
-            // Has this view been displayed to the user before?
-            //if (!activeView.loaded){
+
+            if (!activeView.loaded){
                 // Give the view its datasource
                 // This will also prevent re-populating datasources when the
                 // user clicks on a criteria in the right panel but the concept 
                 // has been shown before.
                 $view.children().trigger('UpdateDSEvent', [cache[activeConcept].ds]);
-           //}
+            }
             
             $view.children().trigger("GainedFocusEvent");
 
@@ -257,8 +257,16 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
             // Did anything actually change?
             // if (ds[element.name] === element.value) return;
             
-            // Update teh datasource
-            cache[activeConcept].ds[element.name] = element.value;
+            
+            // A field is no longe in use, most likely a field was hidden due to 
+            // an operator change
+            if (element.value == null){
+                // Clear out this value in the datasource
+                delete cache[activeConcept].ds[element.name];
+            }else{
+                // Update the datasource
+                cache[activeConcept].ds[element.name] = element.value;
+            }
             // If other views on this concept are already instantiated
             // notify them of the change
             $.each(cache[activeConcept].views, function(index,view) {
