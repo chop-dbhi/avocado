@@ -150,7 +150,7 @@ class PerspectiveHandler(BaseHandler):
 
         # an object has been targeted via the ``id`` referenced in the url
         else:
-            if kwargs['id'] != inst.id:
+            if int(kwargs['id']) != inst.id:
                 try:
                     inst = self.queryset(request).get(pk=kwargs['id'])
                 except ObjectDoesNotExist:
@@ -196,3 +196,31 @@ class ReportHandler(BaseHandler):
         if kwargs.get('id', None) != 'session':
             return super(ReportHandler, self).read(request, *args, **kwargs)
         return request.session.get('report')
+
+
+class ReportResolverHandler(BaseHandler):
+    allowed_methods = ('GET',)
+    model = Report
+    
+    def queryset(self, request):
+        return self.model.objects.filter(user=request.user)
+
+    def read(self, request, *args, **kwargs):
+        if not kwargs.has_key('id'):
+            return rc.BAD_REQUEST
+
+        inst = request.session['report']    
+
+        if kwargs.get('id') != 'session':
+            if int(kwargs['id']) != inst.id:
+                try:
+                    inst = self.queryset(request).get(pk=kwargs['id'])
+                except ObjectDoesNotExist:
+                    return rc.NOT_FOUND
+                except MultipleObjectsReturned:
+                    return rc.BAD_REQUEST   
+        
+        queryset = inst.get_queryset()[:10]
+        print queryset
+        
+        return queryset

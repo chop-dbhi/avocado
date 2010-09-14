@@ -67,6 +67,7 @@ if (!Array.prototype.map) {
     		});
     	},
     	
+    	// wrapped in quotes because it is a reserved word
     	'delete': function( url, data, callback, type ) {
     		// shift arguments if data argument was omited
     		if ( jQuery.isFunction( data ) ) {
