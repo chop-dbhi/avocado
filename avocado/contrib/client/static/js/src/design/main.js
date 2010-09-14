@@ -27,7 +27,8 @@ require(['design/search', 'design/views', 'design/criterialist'], function(searc
         rootNode.bind("ShowConceptEvent", function(evt){
             
             var target = $(evt.target);
-            var existing_ds = target.data("constraint")
+            var existing_ds = target.data("constraint");
+            console.log(existing_ds);
          
             $.ajax({
                 url: target.attr('data-uri') || "/api/v1/criteria/"+target.data("constraint")["concept_id"], // Clean this UP!
@@ -37,6 +38,21 @@ require(['design/search', 'design/views', 'design/criterialist'], function(searc
                         viewManager.show(json, existing_ds);
                     }
                 });    
+        });
+        
+        $.getJSON("/api/v1/scope/session", function(data){
+            if ((data.store === null) || ($.isEmptyObject(data.store))){
+                return;
+            }
+            if (data.store.hasOwnProperty("type")){
+                $.each(data.store.children, function(index, criteria_constraint){
+                    criteriaPanel.triggerHandler("UpdateQueryEvent", [criteria_constraint]);
+                });
+            }else{
+                criteriaPanel.triggerHandler("UpdateQueryEvent", [data.store]);
+            }
+            
+            criteriaManager.fireFirstCriteria();
         });
 
         // TODO change this into a jQuery extension or something..
