@@ -268,8 +268,53 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
             });
         };
         
+        
+        function postViewErrorCheck(ds){
+            // verify that an fields in the datsource are not null, empty strings, undefined, or empty arrays
+            // and that the ds is not itself empty
+            
+            // Is the datasource an empty object?
+            if ($.isEmptyObject(ds)) {
+                return false;
+            }
+            
+            for (var key in ds){
+                if (!ds.hasOwnProperty(key)) continue;
+                
+                if ((ds[key] === undefined) || (ds[key]===null) || (ds[key] === "")){
+                    return false;
+                }
+                if (($.isArray(ds[key])) && (ds[key].length === 0)){
+                    return false;
+                }
+            }
+            return true;
+        }    
         /**
-              This function is triggered by the "Add To Query" Button,
+               This function is the handler for the "add to query" button for builtin concepts
+               It scans the datasource to verify it is not empty, calls a utility function to
+               create the server query datastructure, and then passes the structure to the 
+               framework.
+               @private
+        */
+
+        function addQueryButtonHandler(event){
+             var ds = cache[activeConcept].ds;
+             
+             // Does this datasource contain valid values?
+             if (!postViewErrorCheck(ds)){
+                 var evt = $.Event("InvalidInputEvent");
+                 evt.ephemeral = true;
+                 evt.message = "No value has been specified.";
+                 $(event.target).trigger(evt);
+                 return;
+             }
+             var server_query = createQueryDataStructure(ds); 
+             $(event.target).trigger("UpdateQueryEvent", [server_query]); 
+        }
+        
+        /**
+              This function is a utility function, currently called by the AddQueryButtonHandler,
               for concepts made of builtin views, the function will be responsible
               for analyzing the current concept's datasource and creating the 
               datastructure reprsenting the proper query for the server to 
@@ -278,9 +323,7 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
               @private
          */
         
-        function createAndSendQueryDataStructure(event) {
-            // Get the current concept datasource
-            var ds = cache[activeConcept].ds;
+        function createQueryDataStructure(ds) {
             var fields={};
             // We need to analyze the current concept and the datasource and construct
             // the proper datastructure to represent this query on the server
@@ -368,7 +411,7 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
                                      'concept_id':activeConcept
                                };
             }
-            $(event.target).trigger("UpdateQueryEvent", [server_query]); 
+            return (server_query)
         }
         
         
@@ -386,16 +429,18 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
             $.each(cache[activeConcept].views, function(index,view){
                    view.contents && view.contents.find("[name="+evt.target.name+"]").addClass("invalid");
             });
-            var message = evt.message ? event.message : "This query contains invalid input, please correct any invalid fields.";
+            var message = evt.message ? evt.message : "This query contains invalid input, please correct any invalid fields.";
             var already_displayed = false;
             $.each($staticBox.find(".warning"), function(index, warning) {
                 warning = $(warning);
                 var rc = warning.data("ref_count");
                 if (warning.text() === message) {
-  
                     // We are already displaying this message
                     already_displayed = true;
-                    if (invalid_fields[evt.target.name] === undefined){
+                    if (evt.ephemeral){
+                        return;
+                    }
+                    else if (invalid_fields[evt.target.name] === undefined){
                         // This message has been displayed, but for another field, increase
                         // the reference count
                         invalid_fields[evt.target.name] = warning;
@@ -422,7 +467,17 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
             warning.data('ref_count',1);
             invalid_fields[evt.target.name] = warning;
             $staticBox.prepend(warning);
-            $staticBox.find("#add_to_query").attr("disabled","true");
+            // if the warning is ephemeral (meaning its should be flashed on
+            // screen, but not kept there until a specific thing is fixed)
+            // then fade out and then remove
+            if (evt.ephemeral){
+                warning.fadeOut(3000, function(){
+                    warning.remove();
+                });
+            }else{
+                // if not ephemeral, disable the button
+                $staticBox.find("#add_to_query").attr("disabled","true"); // TODO this is not visibly disabled to the user
+            }
         }
         
         
@@ -446,8 +501,10 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
                 invalid_fields[evt.target.name].data('ref_count',rc);
             }
             delete cache[activeConcept].invalid_fields[evt.target.name];
-            if ($staticBox.find(".warning").length===0){
-                $staticBox.find("#add_to_query").attr("disabled","false");
+            
+            // Re-enable the button if there are not more errors.
+            if ($.isEmptyObject(cache[activeConcept].invalid_fields)){
+                $staticBox.find("#add_to_query").attr("disabled","");
             }
         }
         
@@ -457,7 +514,7 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
             'ViewErrorEvent': viewErrorHandler,
             'ShowViewEvent': showViewHandler,
             'ElementChangedEvent' : elementChangedHandler,
-            'UpdateQueryButtonClicked' : createAndSendQueryDataStructure,
+            'UpdateQueryButtonClicked' : addQueryButtonHandler,
             'InvalidInputEvent' : badInputHandler,
             'InputCorrectedEvent': fixedInputHandler,
             'UpdateQueryEvent': updateQueryHandler
