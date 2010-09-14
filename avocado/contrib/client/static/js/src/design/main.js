@@ -28,8 +28,7 @@ require(['design/search', 'design/views', 'design/criterialist'], function(searc
             
             var target = $(evt.target);
             var existing_ds = target.data("constraint");
-            console.log(existing_ds);
-         
+                     
             $.ajax({
                 url: target.attr('data-uri') || "/api/v1/criteria/"+target.data("constraint")["concept_id"], // Clean this UP!
                 dataType:'json',

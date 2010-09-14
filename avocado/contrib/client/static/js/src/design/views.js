@@ -121,7 +121,6 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
                  
                  field_prefix = parameter.concept_id+"_"+parameter.id;
                  var choice = parameter.operator.match(/^(in|exclude:in)$/) !== null;
-                 console.log(choice);
                  if ((parameter.value instanceof Array) && (!choice)) {
                      for (var index=0; index < parameter.value.length; index++){
                          ds[field_prefix+"_input"+index] = parameter.value[index];
@@ -625,7 +624,6 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
           @public
         */
         function register(concept) {
-            //debugger;
             if (cache[concept.pk] === undefined){
                 cache[concept.pk] = concept;
             }
