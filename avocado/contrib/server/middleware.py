@@ -8,20 +8,24 @@ from avocado.models import Report, Scope, Perspective
 
 class SessionReportMiddleware(object):
     def process_request(self, request):
+        """Ensures a ``Report`` object is on the session, with associated
+        ``Scope`` and ``Perspective`` bound to it.
+        """
         modified = False
+        
         if not request.session.has_key('report'):
             modified = True
-            report = Report()
+            report = Report(scope=Scope(), perspective=Perspective())
             request.session['report'] = report
         else:
-            report = request.session['report']
-        
-        if not report.scope_id:
-            modified = True
-            report.scope = Scope()
-        if not report.perspective_id:
-            modified = True
-            report.perspective = Perspective()
+            report = request.session['report']        
+
+            if report._scope_cache is None:
+                modified = True
+                report.scope = Scope()
+            if report._perspective_cache is None:
+                modified = True
+                report.perspective = Perspective()
         
         request.session.modified = modified
 

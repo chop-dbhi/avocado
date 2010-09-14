@@ -18,6 +18,9 @@ class Descriptor(models.Model):
     class Meta:
         abstract = True
         app_label = 'avocado'
+        
+    def __unicode__(self):
+        return u'%s' % self.name
 
 
 class Context(Descriptor):
