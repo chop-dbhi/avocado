@@ -32,12 +32,7 @@ require.def('design/criterialist', ['design/criteria', "design/templates","lib/j
             }else{
                 server_query = {type: "and", children : all_constraints};
             }
-            $.ajax({ type:"put", 
-                     url: "/api/scope/session/",
-                     data:JSON.stringify(server_query),
-                     success: function (){
-                        // window.location = "/report/";
-                      }});
+            $.putJSON('/api/scope/session/', JSON.stringify(server_query));
             console.log(all_constraints);
         });
         

@@ -1,18 +1,17 @@
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
-from django.utils import simplejson
 from piston.handler import BaseHandler
 from piston.utils import rc
 
 from avocado.models import Category, Scope, Perspective, Report
 from avocado.contrib.server.api.models import CriterionProxy
 
-def convert_str(data):
+def convert2str(data):
     if isinstance(data, unicode):
         return str(data)
     elif isinstance(data, dict):
-        return dict(map(convert_str, data.iteritems()))
+        return dict(map(convert2str, data.iteritems()))
     elif isinstance(data, (list, tuple, set, frozenset)):
-        return type(data)(map(convert_str, data))
+        return type(data)(map(convert2str, data))
     else:
         return data
 
@@ -82,7 +81,7 @@ class ScopeHandler(BaseHandler):
         # for it, iself, to be updated, but rather the session representation.
         # therefore, if the session scope is not temporary, make it a 
         # temporary object with the new parameters.
-        json = convert_str(simplejson.loads(request._raw_post_data))
+        json = convert2str(request.data)
         inst = request.session['report'].scope
         # assume the PUT request is only the store
         if kwargs['id'] == 'session':
@@ -151,7 +150,7 @@ class PerspectiveHandler(BaseHandler):
         # for it, iself, to be updated, but rather the session representation.
         # therefore, if the session perspective is not temporary, make it a 
         # temporary object with the new parameters.
-        json = convert_str(simplejson.loads(request._raw_post_data))
+        json = convert2str(request.data)
         inst = request.session['report'].perspective
         
         # assume the PUT request is only the store

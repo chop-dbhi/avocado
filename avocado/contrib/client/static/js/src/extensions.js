@@ -32,6 +32,28 @@ if (!Array.prototype.map) {
 (function($) {
 
     $.extend({
+        putJSON: function(url, data, callback, type) {
+            return jQuery.ajax({
+                type: 'PUT',
+                url: url,
+                contentType: 'application/json',
+                data: data,
+                success: callback,
+                dataType: type
+            });
+        },
+        
+        postJSON: function(url, data, callback, type) {
+            return jQuery.ajax({
+                type: 'POST',
+                url: url,
+                contentType: 'application/json',
+                data: data,
+                success: callback,
+                dataType: type
+            });
+        },
+        
         log: function(msg) {
             /*
             ** Simple helper to either log to console (gecko or webkit) otherwise
@@ -48,42 +70,7 @@ if (!Array.prototype.map) {
             ** Wraps the default $.jqote result in a jQuery object.
             */
             return $($.jqote(template, data, tag));
-        },
-    
-        put: function( url, data, callback, type ) {
-    		// shift arguments if data argument was omited
-    		if ( jQuery.isFunction( data ) ) {
-    			type = type || callback;
-    			callback = data;
-    			data = {};
-    		}
-
-    		return jQuery.ajax({
-    			type: "PUT",
-    			url: url,
-    			data: data,
-    			success: callback,
-    			dataType: type
-    		});
-    	},
-    	
-    	// wrapped in quotes because it is a reserved word
-    	'delete': function( url, data, callback, type ) {
-    		// shift arguments if data argument was omited
-    		if ( jQuery.isFunction( data ) ) {
-    			type = type || callback;
-    			callback = data;
-    			data = {};
-    		}
-
-    		return jQuery.ajax({
-    			type: "DELETE",
-    			url: url,
-    			data: data,
-    			success: callback,
-    			dataType: type
-    		});
-    	}
+        }
     });
 
     $.fn.placeholder = function(placeholder) {
