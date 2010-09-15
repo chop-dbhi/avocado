@@ -11,8 +11,8 @@ __all__ = ('Scope', 'Perspective', 'Report')
 
 class Descriptor(models.Model):
     user = models.ForeignKey(User, blank=True, null=True)
-    name = models.CharField(max_length=100, blank=True)
-    description = models.TextField(blank=True)
+    name = models.CharField(max_length=100, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
     keywords = models.CharField(max_length=100, null=True, blank=True)
 
     class Meta:
@@ -28,7 +28,7 @@ class Context(Descriptor):
     model. The object defining the context must be serializable.
     """
     store = PickledObjectField()
-    definition = models.TextField(editable=False)
+    definition = models.TextField(editable=False, null=True)
 
     class Meta:
         abstract = True
@@ -50,30 +50,32 @@ class Context(Descriptor):
 class Scope(Context):
     "Stores information needed to provide scope to data."
     def get_queryset(self, queryset=None, using=DEFAULT_MODELTREE_ALIAS, **context):
-        modeltree = mts[using]
         if queryset is None:
-            queryset = modeltree.root_model.objects.all()
+            queryset = mts[using].get_queryset()
         
         store = self.read()
         
         if store:
             node = logictree.transform(store, using=using, **context)
             queryset = node.apply(queryset)
+
         return queryset
 
 
 class Perspective(Context):
     "Stores information needed to represent data."
     def get_queryset(self, queryset=None, using=DEFAULT_MODELTREE_ALIAS):
-        modeltree = mts[using]
         if queryset is None:
-            queryset = modeltree.root_model.objects.all()
+            queryset = mts[using].get_queryset()
         
         store = self.read()
         
         if store:
-            queryset = utils.add_columns(queryset, self.store.get('columns', ()), using)
-            queryset = utils.add_ordering(queryset, self.store.get('sorting', ()), using)
+            columns = self.store.get('columns', ())
+            sorting = self.store.get('sorting', ())
+            
+            queryset = utils.add_columns(queryset, columns, using=using)
+            queryset = utils.add_ordering(queryset, sorting, using=using)
         
         return queryset
 
@@ -84,21 +86,21 @@ class Report(Descriptor):
     perspective = models.ForeignKey(Perspective)
 
     def get_queryset(self, queryset=None, using=DEFAULT_MODELTREE_ALIAS):
-        modeltree = mts[using]        
-
         if queryset is None:
-            queryset = modeltree.root_model.objects.all()
+            queryset = mts[using].get_queryset()
 
-        queryset = self.scope.get_queryset(queryset, using)
-        queryset = self.perspective.get_queryset(queryset, using)
+        queryset = self.scope.get_queryset(queryset, using=using)
+        queryset = self.perspective.get_queryset(queryset, using=using)
 
         return queryset
 
-    def get_report_query(self, queryset=None, using=DEFAULT_MODELTREE_ALIAS):
-        queryset = self.get_queryset(queryset, using)
+    def get_cursor(self, queryset=None, using=DEFAULT_MODELTREE_ALIAS):
+        queryset = self.get_queryset(queryset, using=using)
         sql, params = queryset.query.get_compiler(DEFAULT_DB_ALIAS).as_sql()
+
         raw = RawQuery(sql, DEFAULT_DB_ALIAS, params)
         raw._execute_query()
+
         return raw.cursor
 
 
