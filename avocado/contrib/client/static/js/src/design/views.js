@@ -78,7 +78,7 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
           @private 
         */
         function builtinViewCreator(view) {        
-            var result = $('<div class="view"></div>')
+            var result = $('<div class="view"></div>');
             $.each(view.elements, function(index, element) {
                 switch (element.type) {
                     case 'form':
@@ -415,7 +415,7 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
                                      'concept_id':activeConcept
                                };
             }
-            return (server_query)
+            return (server_query);
         }
         
         
@@ -577,8 +577,8 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
             });
             
             $staticBox.hide();
-            if (concept.static){
-                $staticBox.append(concept.static);
+            if (concept['static']){
+                $staticBox.append(concept['static']);
             }else{
                 // Prepare the static concept box
                 var $addQueryButton = $('<input id="add_to_query" type="button" value="Add To Query"/>');
@@ -664,7 +664,7 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
            // If there is concept being displayed, save its static 
            // content
            if (activeConcept){
-               cache[activeConcept].static = $staticBox.children().detach();
+               cache[activeConcept]['static'] = $staticBox.children().detach();
            }
            // Set the name of the concept in the title bar
            $titleBar.text(concept.name);

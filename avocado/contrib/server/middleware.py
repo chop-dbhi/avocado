@@ -13,10 +13,13 @@ class SessionReportMiddleware(object):
         """
         modified = False
         
+        # initial setup
         if not request.session.has_key('report'):
             modified = True
             report = Report(scope=Scope(), perspective=Perspective())
             request.session['report'] = report
+
+        # safe fallback
         else:
             report = request.session['report']        
 

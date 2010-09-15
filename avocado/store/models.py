@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from avocado.db_fields import PickledObjectField
 from avocado.modeltree import DEFAULT_MODELTREE_ALIAS, mts
 from avocado.fields import logictree
-from avocado.columns import utils
+from avocado.columns import utils, format
 
 __all__ = ('Scope', 'Perspective', 'Report')
 
@@ -74,11 +74,19 @@ class Perspective(Context):
             columns = self.store.get('columns', ())
             sorting = self.store.get('sorting', ())
             
-            queryset = utils.add_columns(queryset, columns, using=using)
+            queryset, rules = utils.add_columns(queryset, columns, using=using)
             queryset = utils.add_ordering(queryset, sorting, using=using)
         
         return queryset
-
+    
+    def format(self, iterable, ftype):
+        store = self.read()
+        
+        if store:
+            columns = self.store.get('columns', ())
+            rules = utils.get_rules(columns, ftype)
+            return format.library.format(iterable, rules, ftype)
+        return list(iterable)
 
 class Report(Descriptor):
     "Represents a combination ``scope`` and ``perspective``."
@@ -94,14 +102,15 @@ class Report(Descriptor):
 
         return queryset
 
-    def get_cursor(self, queryset=None, using=DEFAULT_MODELTREE_ALIAS):
+    def get_result(self, ftype, queryset=None, using=DEFAULT_MODELTREE_ALIAS):
         queryset = self.get_queryset(queryset, using=using)
         sql, params = queryset.query.get_compiler(DEFAULT_DB_ALIAS).as_sql()
 
         raw = RawQuery(sql, DEFAULT_DB_ALIAS, params)
-        raw._execute_query()
 
-        return raw.cursor
+        # hard coded for now...
+        raw._execute_query()
+        return self.perspective.format(iter(raw.cursor.fetchmany(size=25)), ftype)
 
 
 class ObjectSet(Descriptor):

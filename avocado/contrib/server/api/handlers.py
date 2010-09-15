@@ -217,6 +217,10 @@ class ReportResolverHandler(BaseHandler):
     def read(self, request, *args, **kwargs):
         if not kwargs.has_key('id'):
             return rc.BAD_REQUEST
+        
+        format = request.GET.get('format', 'html')
+        page = request.GET.get('page', None)
+        paginate_by = request.GET.get('paginate_by', None)
 
         inst = request.session['report']    
 
@@ -227,8 +231,6 @@ class ReportResolverHandler(BaseHandler):
                 except ObjectDoesNotExist:
                     return rc.NOT_FOUND
                 except MultipleObjectsReturned:
-                    return rc.BAD_REQUEST   
+                    return rc.BAD_REQUEST
         
-        cursor = inst.get_cursor()
-        
-        return cursor.fetchone()
+        return inst.get_result(format)
