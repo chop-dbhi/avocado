@@ -24,13 +24,14 @@ criterion_patterns = patterns('',
     url(r'^(?P<id>\d+)/$', criterion, name='read'),
 )
 
+# represents all of the `report` url patterns including
 report_patterns = patterns('',
     url(r'^$', report, name='read'),
 
     # patterns relative to a particular saved instance
     url(r'^(?P<id>\d+)/', include(patterns('',
         url(r'^$', report, name='data'),
-        url(r'^resolve$', report_resolver, name='resolve'),
+        url(r'^resolve/$', report_resolver, name='resolve'),
     ), namespace='stored')),
     
     # patterns relative to a temporary instance on the session

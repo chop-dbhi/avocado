@@ -6,6 +6,17 @@ from piston.utils import rc
 from avocado.models import Category, Scope, Perspective, Report
 from avocado.contrib.server.api.models import CriterionProxy
 
+def convert_str(data):
+    if isinstance(data, unicode):
+        return str(data)
+    elif isinstance(data, dict):
+        return dict(map(convert_str, data.iteritems()))
+    elif isinstance(data, (list, tuple, set, frozenset)):
+        return type(data)(map(convert_str, data))
+    else:
+        return data
+
+
 class CategoryHandler(BaseHandler):
     allowed_methods = ('GET',)
     model = Category
@@ -71,9 +82,8 @@ class ScopeHandler(BaseHandler):
         # for it, iself, to be updated, but rather the session representation.
         # therefore, if the session scope is not temporary, make it a 
         # temporary object with the new parameters.
-        json = simplejson.loads(request._raw_post_data)
+        json = convert_str(simplejson.loads(request._raw_post_data))
         inst = request.session['report'].scope
-        
         # assume the PUT request is only the store
         if kwargs['id'] == 'session':
             inst.write(json)
@@ -141,7 +151,7 @@ class PerspectiveHandler(BaseHandler):
         # for it, iself, to be updated, but rather the session representation.
         # therefore, if the session perspective is not temporary, make it a 
         # temporary object with the new parameters.
-        json = simplejson.loads(request._raw_post_data)
+        json = convert_str(simplejson.loads(request._raw_post_data))
         inst = request.session['report'].perspective
         
         # assume the PUT request is only the store
@@ -221,6 +231,5 @@ class ReportResolverHandler(BaseHandler):
                     return rc.BAD_REQUEST   
         
         queryset = inst.get_queryset()[:10]
-        print queryset
         
         return queryset
