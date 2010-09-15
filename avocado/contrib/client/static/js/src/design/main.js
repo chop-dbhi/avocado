@@ -18,7 +18,7 @@ require(['design/search', 'design/views', 'design/criterialist'], function(searc
             pluginStaticContent);
         
         var criteriaManager = criterialist.Manager(criteriaPanel);
-        //            
+       
         rootNode.bind('UpdateQueryEvent', function(evt, criteria_constraint) {
             criteriaPanel.triggerHandler("UpdateQueryEvent", [criteria_constraint]);
         });
