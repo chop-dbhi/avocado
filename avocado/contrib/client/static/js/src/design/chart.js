@@ -280,15 +280,15 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                },
                xAxis: {
                   categories: $.map(view.data.coords, function(element, index){
-                     return element[0]; 
+                     return element[0].split(' ').join('<br/>'); 
                   }),
                   title: {
-                      text: view.data.xaxis
+                      text: view.data.xaxis,
+                      margin: 50
                   },
                   labels:{
-                      align:"left",
-                      rotation:90,
-                      y:10
+                      align:"center",
+                      y:20
                   }
                },
                yAxis: {
@@ -401,9 +401,8 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                        text: view.data.xaxis
                    },
                    labels:{
-                         align:"left",
-                         rotation:90,
-                         y:10
+                         align:"center",
+                         y:20
                      }
                },
                yAxis: {
