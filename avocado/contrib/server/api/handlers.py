@@ -230,7 +230,6 @@ class ReportResolverHandler(BaseHandler):
                 except MultipleObjectsReturned:
                     return rc.BAD_REQUEST   
         
-        cursor = inst.get_report_query()
-        
+        cursor = inst.get_cursor()
         
         return cursor.fetchone()

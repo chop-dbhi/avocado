@@ -2,8 +2,11 @@ from django.conf.urls.defaults import *
 from django.conf import settings
 
 urlpatterns = patterns('',
-    url(r'^denied/', 'core.views.denied', name='denied'),    
-    url(r'^api/v1/', include('avocado.contrib.server.api.urls', namespace='api')),
+    url(r'^denied/', 'core.views.denied', name='denied'),
+    # current API
+    url(r'^api/', include('avocado.contrib.server.api.urls', namespace='api')),
+    # versioned APIs
+    url(r'^api/v1/', include('avocado.contrib.server.api.urls')),
 )
 
 if settings.DEBUG:

@@ -522,7 +522,7 @@ class ModelTree(object):
                 self.print_path(x, depth)
 
     def get_accessor_pairs(self, node_path):
-        "Used testing purposes."
+        "Used for testing purposes."
         accessor_names = self.accessor_names(node_path)
         node_path = node_path[:-1] # don't need the last item
         if len(node_path) == 0 or node_path[0] is not self.root_node:
@@ -530,6 +530,10 @@ class ModelTree(object):
         else:
             accessor_names = accessor_names[1:]
         return zip(node_path, accessor_names)
+
+    def get_queryset(self):
+        "Returns a QuerySet relative to the ``root_model``."
+        return self.root_model.objects.all()
 
 
 class LazyModelTree(object):

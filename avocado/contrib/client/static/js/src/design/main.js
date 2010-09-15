@@ -39,7 +39,7 @@ require(['design/search', 'design/views', 'design/criterialist'], function(searc
                 });    
         });
         
-        $.getJSON("/api/v1/scope/session", function(data){
+        $.getJSON("/api/scope/session", function(data){
             if ((data.store === null) || ($.isEmptyObject(data.store))){
                 return;
             }
