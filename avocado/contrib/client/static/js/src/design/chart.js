@@ -1,7 +1,9 @@
 require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
     
-        var UNSELECTED_COLOR = "#4572A7";
-        var SELECTED_COLOR   = "#FF7373";
+        var UNSELECTED_COLOR = "#8E8F93";
+        var SELECTED_COLOR   = "#99BDF1";
+        var EXCLUDE_COLOR    = "#FF7373";
+        var INCLUDE_COLOR    = "#99BDF1";
         var MINIMUM_SLICE = 0.07;
         
         var getPieChart = function(view, concept_id, $location){
@@ -9,7 +11,7 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
             $.each(view.data.coords, function(index,element){
                view.data.coords[index][0] = String(view.data.coords[index][0]);
                if (view.data.coords[index][0] === "null") {
-                      view.data.coords[index][0] = "No Data";
+                   view.data.coords[index][0] = "No Data";
                }
             });
             
@@ -142,7 +144,6 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
              $chartDiv.bind("UpdateDSEvent", function(evt, ds){
                 selected =  ds[concept_id+"_"+view.data.pk] || [];
              });
-            
             return $chartDiv;
         };
     
@@ -151,25 +152,24 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
             $chartDiv.css("display","none");
             $location && $location.append($chartDiv);
             var selected = [];
+            
+            // There is no form for this chart, so this function notifies the framework 
+            // when something has changed.
             var notify = function(){
                 $chartDiv.trigger("ElementChangedEvent", [{name:concept_id+"_"+view.data.pk, value:selected}]);
             };
-            
-            $chartDiv.bind("UpdateElementEvent", function(evt, element){
-                if (element.name === concept_id+"_"+view.data.pk){
-                    selected = element.value;
-                }
-            });
+
             $.each(view.data.coords, function(index,element){
                    view.data.coords[index][0] = String(view.data.coords[index][0]);
                    if (view.data.coords[index][0] === "null") {
                        view.data.coords[index][0] = "No Data";
                    }
             });
+            
             var chart = new Highcharts.Chart({
                chart: {
                   marginLeft:100,
-                  marginBottom:50,
+                  marginBottom: view.data.coords.length > 6 ? 100 : 50,
                   renderTo: $chartDiv.get(0),
                   defaultSeriesType: 'column',
                   zoomType:'',
@@ -284,13 +284,25 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                   }),
                   title: {
                       text: view.data.xaxis,
-                      margin: 50
+                      margin: view.data.coords.length > 6 ? 90 : 50,
                   },
                   labels:{
-                      align:"center",
-                      y:20,
+                      align: view.data.coords.length > 6 ? 'left' : 'center',
+                      y: view.data.coords.length > 6 ? 10 : 20,
+                      rotation: view.data.coords.length > 6 ? 50 : 0,
                       formatter: function(){
-                            return this.value.split(" ").join("<br/>");
+                          // Make words appear on separate lines unless they are rotated
+                          var value = this.value;
+                          if (view.data.coords.length > 6) {// If there are more 6 categories, they will be rotated
+                              if (value.length > 20){
+                                  value = value.substr(0,18)+"..";
+                              }
+                          }else {
+                              // Values aren't rotated, put one word per line
+                              value = this.value.split(" ").join("<br/>");
+                          }
+                          
+                          return value;
                       }
                   }
                },
@@ -310,7 +322,9 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                                                 })
                 }]
             });
-
+            
+            
+            // AvocadoClient event listners
             $chartDiv.bind("GainedFocusEvent", function(evt){
                    $.map(chart.series[0].data, function(element,index){
                        if ($.inArray(element.category, selected) !==-1){
@@ -336,12 +350,19 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
             $chartDiv.bind("UpdateDSEvent", function(evt, ds){
                selected =  ds[concept_id+"_"+view.data.pk] || [];
             });
+            
+            $chartDiv.bind("UpdateElementEvent", function(evt, element){
+                  if (element.name === concept_id+"_"+view.data.pk){
+                      selected = element.value;
+                  }
+            });
+            
             return $chartDiv;
         };    
     
         var getLineChart = function(view, concept_id, $location) {
             var $range_form = form.Form({fields:[{ datatype: "decimal",
-                                                   label: view.data.title,
+                                                   name: view.data.name,
                                                    pk: view.data.pk}]}, concept_id);
         
             $range_form.find("input").css("margin","10px");
@@ -356,7 +377,7 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                   zoomType:'x',
                   events:{
                       selection: function(event){
-                          var color = $range_form.find("select[name*=operator]").val() === "exclude:range" ? "#FF7373" : '#DCFEC5';
+                          var color = $range_form.find("select[name*=operator]").val() === "exclude:range" ? EXCLUDE_COLOR : INCLUDE_COLOR;
                           var extremes = this.xAxis[0].getExtremes();
        
                           var min = event.xAxis[0].min;
@@ -367,8 +388,23 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                           min = parseFloat(min).toFixed(1);// TODO how are we going to handle this if they are fractions
                           max = parseFloat(max).toFixed(1);// TODO properly calculate extremes 
                           
+                          // Set the new values in the form and notify Avocado
                           $("input[name*=input0]", $range_form).val(min).change();
                           $("input[name*=input1]", $range_form).val(max).change();
+                          
+                          // We want the graph to reflect the possible operators
+                          switch ($range_form.find("select[name*=operator]").val()) {
+                              
+                              
+                              
+                              
+                              
+                          }
+                          
+                          
+                          
+                          
+                          
                           this.xAxis[0].removePlotBand();
                           this.xAxis[0].addPlotBand({
                             from:  min,
@@ -385,9 +421,9 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                   }
                },
                tooltip:{
-                      formatter:function() {
-                          return "" + this.y;
-                      }
+                   formatter:function() {
+                      return "" + this.y;
+                   }
                },
                credits:{
                    enabled:false
@@ -406,15 +442,14 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                    labels:{
                          align:"center",
                          y:20
-                     }
+                   }
                },
                yAxis: {
                    min:0,
                    title: {
-                       style: {
-                       color: '#6D869F',
-                       fontWeight: 'bold'
-                       },
+                      style: {
+                          fontWeight: 'bold'
+                      },
                       text:  view.data.yaxis,
                       rotation : 270
                    },
@@ -427,13 +462,16 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                    data: view.data.coords
                }]
             });
-        
+            
+            // Make sure the form is in line with the chart
+            $range_form.css("margin-left", chart.plotLeft);
+            
             var extremes = chart.xAxis[0].getExtremes();     
         
             // Create handler for updating graph whnen user changes min and max values
-            // in the form   
+            // in the form
             var manual_field_handler = function(event){
-                var color = $range_form.find("select[name*=operator]").val() === "exclude:range" ? "#FF7373" : '#DCFEC5';
+                var color = $range_form.find("select[name*=operator]").val() === "exclude:range" ? EXCLUDE_COLOR : INCLUDE_COLOR;
                 var min = parseFloat($("input[name*=input0]", $range_form).val()).toFixed(1);
                 var max = parseFloat($("input[name*=input1]", $range_form).val()).toFixed(1);
                 if (min && max){
@@ -446,36 +484,32 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                 }
                 chart.xAxis[0].isDirty=true;
                 chart.redraw();
-                return false;
             };
-        
-            // Event handlers for the input form 
-            $("select[name*=operator]", $range_form).change(manual_field_handler);
-            $("input", $range_form).focusout(manual_field_handler);
-            $("input", $range_form).keydown(function(evt){
-                // TODO Validate Input here!
-                if (evt.which === 13) {      // User hit Enter key
-                    manual_field_handler(evt);
-                }
-            });
             
-            $range_form.submit(manual_field_handler);
-            $range_form.css("margin-left", chart.plotLeft);
-            $chartDiv.prepend($range_form);
+            // Listen for changes in the form and make the chart reflect
+            $range_form.bind("ElementChangedEvent", manual_field_handler);
+            
+            // Add the form to the top of this chart widget
+            $chartDiv.append($range_form);
         
             // By default select the middle 1/3 of the chart
             var xrange = extremes.max - extremes.min;
             var third = (1/3) * xrange;
-
+            
+            // Set the initial middle selected range in the form and in the graph.
+            // TODO Set these using events so as not to need to know internals.
             $("input[name*=input0]", $range_form).val((extremes.min+third).toFixed(1));
             $("input[name*=input1]", $range_form).val((extremes.min+2*third).toFixed(1));
             
-            manual_field_handler(null);
-         
+            // AvocadoClient Event Listeners
+            
             // Listen for updates to the datasource from the framework
+            // We have an embedded form in this chart, which is really
+            // the only thing that changes the datasource. The graph 
+            // monitors and changes the form
             $chartDiv.bind("UpdateDSEvent", function(evt, ds){
+                // pass the datasource to the embedded form
                 $range_form.triggerHandler(evt,[ds]);
-                
             });
             
             $chartDiv.bind("UpdateElementEvent", function(evt, element) {
@@ -486,16 +520,17 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
             });
 
             $chartDiv.bind("GainedFocusEvent", function(evt){
-                   $('input,select',$chartDiv).change();
-                   
-                   chart.xAxis[0].isDirty = true;
-                   chart.yAxis[0].isDirty = true;          
-                   chart.isDirty = true;
-                   chart.redraw();
-             });
+                // TODO, remove this
+                $('input,select',$chartDiv).change();
+                chart.xAxis[0].isDirty = true;
+                chart.yAxis[0].isDirty = true;          
+                chart.isDirty = true;
+                chart.redraw();
+            });
             
             return $chartDiv;
         };
+        
         return {
             getBarChart: getBarChart,
             getLineChart: getLineChart,

@@ -60,7 +60,7 @@ require.def('design/form', [], {
                       }
                 });
                
-               $form.append($.jqote(input.join(""), {"choices":element.choices,"field_id":concept_pk+"_"+element.pk, "label":element.label}));
+               $form.append($.jqote(input.join(""), {"choices":element.choices,"field_id":concept_pk+"_"+element.pk, "label":element.name}));
          });
          
          // Trigger an event when anything changes
