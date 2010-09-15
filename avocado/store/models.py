@@ -85,18 +85,21 @@ class Report(Descriptor):
 
     def get_queryset(self, queryset=None, using=DEFAULT_MODELTREE_ALIAS):
         modeltree = mts[using]        
+
         if queryset is None:
             queryset = modeltree.root_model.objects.all()
+
         queryset = self.scope.get_queryset(queryset, using)
         queryset = self.perspective.get_queryset(queryset, using)
-        print str(queryset.query)
+
         return queryset
 
     def get_report_query(self, queryset=None, using=DEFAULT_MODELTREE_ALIAS):
         queryset = self.get_queryset(queryset, using)
         sql, params = queryset.query.get_compiler(DEFAULT_DB_ALIAS).as_sql()
         raw = RawQuery(sql, DEFAULT_DB_ALIAS, params)
-        return raw
+        raw._execute_query()
+        return raw.cursor
 
 
 class ObjectSet(Descriptor):
