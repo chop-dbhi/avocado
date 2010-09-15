@@ -43,10 +43,6 @@ from avocado.models import Field
 
 class Node(object):
     def apply(self, queryset):
-        # check to make sure the queryset uses the same root model as the
-        # modeltree
-        if not self.modeltree.check(queryset):
-            raise RuntimeError, 'models differ between queryset and modeltree'
         if self.annotations:
             queryset = queryset.values('pk').annotate(**self.annotations)
         return queryset.filter(self.condition)
@@ -55,8 +51,8 @@ class Node(object):
 class Condition(Node):
     "Contains information for a single query condition."
     def __init__(self, context=None, using=DEFAULT_MODELTREE_ALIAS, **kwargs):
-        self.using = using
         self.context = context
+        self.using = using
         self.id = kwargs['id']
         self.operator = kwargs['operator']
         self.value = kwargs['value']
@@ -125,10 +121,10 @@ def transform(rnode, pnode=None, using=DEFAULT_MODELTREE_ALIAS, **context):
         # ensure the logic makes sense
         if len(rnode['children']) < 2:
             raise RuntimeError, 'a logical operator must apply to 2 or more ' \
-                'statements'
+                'conditions'
         node = LogicalOperator(rnode['type'], using=using)
         for child in rnode['children']:
-            transform(child, node, using, **context)
+            transform(child, node, using=using, **context)
     else:
         node = Condition(context, using=using, **rnode)
     # top level node returns, i.e. no parent node

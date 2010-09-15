@@ -6,6 +6,17 @@ from piston.utils import rc
 from avocado.models import Category, Scope, Perspective, Report
 from avocado.contrib.server.api.models import CriterionProxy
 
+def convert_str(data):
+    if isinstance(data, unicode):
+        return str(data)
+    elif isinstance(data, dict):
+        return dict(map(convert_str, data.iteritems()))
+    elif isinstance(data, (list, tuple, set, frozenset)):
+        return type(data)(map(convert_str, data))
+    else:
+        return data
+
+
 class CategoryHandler(BaseHandler):
     allowed_methods = ('GET',)
     model = Category
@@ -71,9 +82,8 @@ class ScopeHandler(BaseHandler):
         # for it, iself, to be updated, but rather the session representation.
         # therefore, if the session scope is not temporary, make it a 
         # temporary object with the new parameters.
-        json = simplejson.loads(request._raw_post_data)
+        json = convert_str(simplejson.loads(request._raw_post_data))
         inst = request.session['report'].scope
-        
         # assume the PUT request is only the store
         if kwargs['id'] == 'session':
             inst.write(json)
@@ -141,7 +151,7 @@ class PerspectiveHandler(BaseHandler):
         # for it, iself, to be updated, but rather the session representation.
         # therefore, if the session perspective is not temporary, make it a 
         # temporary object with the new parameters.
-        json = simplejson.loads(request._raw_post_data)
+        json = convert_str(simplejson.loads(request._raw_post_data))
         inst = request.session['report'].perspective
         
         # assume the PUT request is only the store
@@ -150,7 +160,7 @@ class PerspectiveHandler(BaseHandler):
 
         # an object has been targeted via the ``id`` referenced in the url
         else:
-            if kwargs['id'] != inst.id:
+            if int(kwargs['id']) != inst.id:
                 try:
                     inst = self.queryset(request).get(pk=kwargs['id'])
                 except ObjectDoesNotExist:
@@ -196,3 +206,30 @@ class ReportHandler(BaseHandler):
         if kwargs.get('id', None) != 'session':
             return super(ReportHandler, self).read(request, *args, **kwargs)
         return request.session.get('report')
+
+
+class ReportResolverHandler(BaseHandler):
+    allowed_methods = ('GET',)
+    model = Report
+    
+    def queryset(self, request):
+        return self.model.objects.filter(user=request.user)
+
+    def read(self, request, *args, **kwargs):
+        if not kwargs.has_key('id'):
+            return rc.BAD_REQUEST
+
+        inst = request.session['report']    
+
+        if kwargs.get('id') != 'session':
+            if int(kwargs['id']) != inst.id:
+                try:
+                    inst = self.queryset(request).get(pk=kwargs['id'])
+                except ObjectDoesNotExist:
+                    return rc.NOT_FOUND
+                except MultipleObjectsReturned:
+                    return rc.BAD_REQUEST   
+        
+        queryset = inst.get_queryset()[:10]
+        
+        return queryset

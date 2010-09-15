@@ -42,7 +42,7 @@
 
 {% block content %}
     
-    <div id="report" class="container" data-uri="/api/v1/report/">
+    <div id="report" class="container" data-uri="{% url api:reports:session %}">
         <div class="title">Your Report</div>
         <div class="toolbar header">
             <span class="pagination"></span>

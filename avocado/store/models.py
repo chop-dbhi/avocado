@@ -44,7 +44,7 @@ class Context(Descriptor):
 
     def read(self):
         "Reads the ``store`` and returns an object."
-        return self.store
+        return self.store or {}
 
 
 class Scope(Context):
@@ -53,9 +53,13 @@ class Scope(Context):
         modeltree = mts[using]
         if queryset is None:
             queryset = modeltree.root_model.objects.all()
-
-        node = logictree.transform(self.store, using, **context)
-        return node.apply(queryset)
+        
+        store = self.read()
+        
+        if store:
+            node = logictree.transform(store, using=using, **context)
+            queryset = node.apply(queryset)
+        return queryset
 
 
 class Perspective(Context):
@@ -64,9 +68,12 @@ class Perspective(Context):
         modeltree = mts[using]
         if queryset is None:
             queryset = modeltree.root_model.objects.all()
-
-        queryset = utils.add_columns(queryset, self.store['columns'], using)
-        queryset = utils.add_ordering(queryset, self.store['sorting'], using)
+        
+        store = self.read()
+        
+        if store:
+            queryset = utils.add_columns(queryset, self.store.get('columns', ()), using)
+            queryset = utils.add_ordering(queryset, self.store.get('sorting', ()), using)
         
         return queryset
 
@@ -80,9 +87,9 @@ class Report(Descriptor):
         modeltree = mts[using]        
         if queryset is None:
             queryset = modeltree.root_model.objects.all()
-
         queryset = self.scope.get_queryset(queryset, using)
         queryset = self.perspective.get_queryset(queryset, using)
+        print str(queryset.query)
         return queryset
 
     def get_report_query(self, queryset=None, using=DEFAULT_MODELTREE_ALIAS):
