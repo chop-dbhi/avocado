@@ -9,6 +9,7 @@
 
 {% block scripts %}
     {{ block.super }}
+    {# <script src="{{ CLIENT_MEDIA_URL }}js/min/design.js"></script> #}
     <script>require(['extensions', 'design/main']);</script>
 {% endblock %}
 

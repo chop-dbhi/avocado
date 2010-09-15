@@ -1,18 +1,17 @@
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
-from django.utils import simplejson
 from piston.handler import BaseHandler
 from piston.utils import rc
 
 from avocado.models import Category, Scope, Perspective, Report
 from avocado.contrib.server.api.models import CriterionProxy
 
-def convert_str(data):
+def convert2str(data):
     if isinstance(data, unicode):
         return str(data)
     elif isinstance(data, dict):
-        return dict(map(convert_str, data.iteritems()))
+        return dict(map(convert2str, data.iteritems()))
     elif isinstance(data, (list, tuple, set, frozenset)):
-        return type(data)(map(convert_str, data))
+        return type(data)(map(convert2str, data))
     else:
         return data
 
@@ -82,7 +81,7 @@ class ScopeHandler(BaseHandler):
         # for it, iself, to be updated, but rather the session representation.
         # therefore, if the session scope is not temporary, make it a 
         # temporary object with the new parameters.
-        json = convert_str(simplejson.loads(request._raw_post_data))
+        json = convert2str(request.data)
         inst = request.session['report'].scope
         # assume the PUT request is only the store
         if kwargs['id'] == 'session':
@@ -151,7 +150,7 @@ class PerspectiveHandler(BaseHandler):
         # for it, iself, to be updated, but rather the session representation.
         # therefore, if the session perspective is not temporary, make it a 
         # temporary object with the new parameters.
-        json = convert_str(simplejson.loads(request._raw_post_data))
+        json = convert2str(request.data)
         inst = request.session['report'].perspective
         
         # assume the PUT request is only the store
@@ -218,6 +217,10 @@ class ReportResolverHandler(BaseHandler):
     def read(self, request, *args, **kwargs):
         if not kwargs.has_key('id'):
             return rc.BAD_REQUEST
+        
+        format = request.GET.get('format', 'html')
+        page = request.GET.get('page', None)
+        paginate_by = request.GET.get('paginate_by', None)
 
         inst = request.session['report']    
 
@@ -228,9 +231,6 @@ class ReportResolverHandler(BaseHandler):
                 except ObjectDoesNotExist:
                     return rc.NOT_FOUND
                 except MultipleObjectsReturned:
-                    return rc.BAD_REQUEST   
+                    return rc.BAD_REQUEST
         
-        cursor = inst.get_report_query()
-        
-        
-        return cursor.fetchone()
+        return inst.get_result(format)

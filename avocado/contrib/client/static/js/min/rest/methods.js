@@ -1,4 +1,0 @@
-require.def('rest',['lib/jquery.jqote2'],function(){$.fn.databind=function(){function Methods(){this.cache={};};Methods.prototype.GET=function(target,event,template,bindee){var target=$(target);bindee=bindee?$(bindee):target;bindee.bind(event,function(evt,params,append){evt.stopPropagation();if(!data)
-return;if(!append)
-target.html('');for(var d,e,i=0;i<data.length;i++){d=data[i];e=$($.jqote(template,d)).data(d);target.append(e);}});this.cache.GET={target:target};};Methods.prototype.init=function(methods){for(var key in methods)
-this[key.toUpperCase()].apply(this,methods[key]);};return{Methods:Methods};});
