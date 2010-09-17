@@ -110,11 +110,6 @@
     width: 485px;
 }
 
-input.invalid {
-    border-width:2px;
-    border-color:red;
-}
-
 .criterion {
     font-size: 12px;
     margin-bottom: 10px;
@@ -150,4 +145,13 @@ input.invalid {
 
 .criterion .field-anchor:hover, .criterion .field-anchor:active {
     background-color: #FFFBB3;
+}
+/*
+ *  Validation
+ */
+ 
+input[class*=invalid] {
+     border-width:2px;
+     border-color:red;
+     border-style:solid;
 }

@@ -1,13 +1,22 @@
 require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
     
-        var UNSELECTED_COLOR = "#8E8F93";
-        var SELECTED_COLOR   = "#99BDF1";
-        var EXCLUDE_COLOR    = "#FF7373";
-        var INCLUDE_COLOR    = "#99BDF1";
+        var UNSELECTED_COLOR     = "#8E8F93";
+        var SELECTED_COLOR       = "#99BDF1";
+        var EXCLUDE_COLOR        = "#FF7373";
+        var INCLUDE_COLOR        = "#99BDF1";
+        var ALTERNATE_GRID_COLOR = "#FDFFD5";
         var MINIMUM_SLICE = 0.07;
         
         var getPieChart = function(view, concept_id, $location){
             // HighCharts cannot handle boolean values in the coordinates
+            var negated = false;
+            var $range_form = form.Form({fields:[{ datatype: "choice",
+                                                   name: view.data.name,
+                                                   pk: view.data.pk}]}, concept_id);
+            
+            // The graph serves the purpose of multiple selector.
+            $range_form.find('select[multiple]').hide();
+            
             $.each(view.data.coords, function(index,element){
                view.data.coords[index][0] = String(view.data.coords[index][0]);
                if (view.data.coords[index][0] === "null") {
@@ -48,6 +57,12 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                 if (element.name === concept_id+"_"+view.data.pk){
                     selected = element.value;
                 }
+                 if (element.name === concept_id+"_"+view.data.pk+"_operator" && element.value==="in"){
+                     negated = false;
+                 }else{
+                     negated = true;
+                 }
+                 //Gain focus will take care of updating graph
             });
             
             Highcharts.setOptions({colors: [UNSELECTED_COLOR, UNSELECTED_COLOR, UNSELECTED_COLOR]});
@@ -71,7 +86,11 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                                 var category = event.point.category || event.point.name;               
                                 var index = $.inArray(category,selected);
                                 if (index === -1) {
-                                    event.point.update({color:SELECTED_COLOR});
+                                    if (negated){
+                                        event.point.update({color:EXCLUDE_COLOR});
+                                    }else{
+                                        event.point.update({color:SELECTED_COLOR});
+                                    }
                                     selected.push(category);
                                 }else{
                                     event.point.update({color:UNSELECTED_COLOR});
@@ -119,6 +138,16 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                    data: view.data.coords
                 }]
             });
+           $chartDiv.prepend($range_form);
+           
+           $range_form.bind("ElementChangedEvent",function(evt,value){
+                 if (value.value === "in"){
+                      negated = false;
+                  }else{
+                      negated = true;
+                  }
+                  $chartDiv.triggerHandler("GainedFocusEvent");
+           });
           
             $chartDiv.bind("GainedFocusEvent", function(evt){
                    // Rotated text does not show up without this in 
@@ -126,7 +155,11 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                    $.map(chart.series[0].data, function(element,index){
                           var category = element.name || element.category;
                           if ($.inArray(category, selected) !==-1){
-                              element.update({color:SELECTED_COLOR});
+                              if (negated){
+                                  element.update({color:EXCLUDE_COLOR});
+                              }else{
+                                  element.update({color:SELECTED_COLOR})
+                              }
                           }else{
                               element.update({color:UNSELECTED_COLOR});
                           }
@@ -142,19 +175,28 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
              });
             
              $chartDiv.bind("UpdateDSEvent", function(evt, ds){
-                selected =  ds[concept_id+"_"+view.data.pk] || [];
+                selected = ds[concept_id+  "_"+view.data.pk] || [];
+                negated =  ds[concept_id + "_"+view.data.pk + "_operator"] === "exclude:in";
+                $range_form.triggerHandler(evt,[ds]);
              });
             return $chartDiv;
         };
     
         var getBarChart = function(view, concept_id, $location) {
+            var negated = false;
+            var $range_form = form.Form({fields:[{ datatype: "choice",
+                                                   name: view.data.name,
+                                                   pk: view.data.pk}]}, concept_id);
+            
+            // The graph serves the purpose of multiple selector.
+            $range_form.find('select[multiple]').hide();
+
+            $range_form.find("input").css("margin","10px"); //TODO should not be here
             var $chartDiv = $('<div class="chart"></div>');
             $chartDiv.css("display","none");
             $location && $location.append($chartDiv);
             var selected = [];
             
-            // There is no form for this chart, so this function notifies the framework 
-            // when something has changed.
             var notify = function(){
                 $chartDiv.trigger("ElementChangedEvent", [{name:concept_id+"_"+view.data.pk, value:selected}]);
             };
@@ -190,11 +232,15 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                             
                                 $(col.dataLabel.element).click(function(c){
                                     return (function(event){
-                                             c.series.chart.hoverPoint=c;
+                                             c.series.chart.hoverPoint = c;
                                              c.series.chart.isDirty = true;
                                              var index = $.inArray(c.category, selected);
                                              if (index === -1) {
-                                                 c.update({color:SELECTED_COLOR});
+                                                 if (negated){
+                                                     c.update({color:EXCLUDE_COLOR});
+                                                 }else{
+                                                     c.update({color:SELECTED_COLOR});
+                                                 }
                                                  selected.push(c.category);
                                              }else{
                                                  c.update({color:UNSELECTED_COLOR});
@@ -221,8 +267,14 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                                            c.series.chart.isDirty = true;
                                            var index = $.inArray(c.category, selected);
                                            if (index === -1) {
-                                               $(c.dataLabel.element).css("color", SELECTED_COLOR);
-                                               c.update({color:SELECTED_COLOR});
+                                               
+                                               if (negated){
+                                                    $(c.dataLabel.element).css("color", EXCLUDE_COLOR);
+                                                   c.update({color:EXCLUDE_COLOR});
+                                               }else{
+                                                    $(c.dataLabel.element).css("color", SELECTED_COLOR);
+                                                   c.update({color:SELECTED_COLOR});
+                                               }
                                                selected.push(c.category);
                                            }else{
                                                $(c.dataLabel.element).css("color", UNSELECTED_COLOR);
@@ -242,7 +294,11 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                                 var category = event.point.category || event.point.name;               
                                 var index = $.inArray(category,selected);
                                 if (index === -1) {
-                                    event.point.update({color:SELECTED_COLOR});
+                                    if (negated){
+                                          event.point.update({color:EXCLUDE_COLOR});
+                                    }else{
+                                          event.point.update({color:SELECTED_COLOR});
+                                    }
                                     selected.push(category);
                                 }else{
                                     event.point.update({color:UNSELECTED_COLOR});
@@ -284,7 +340,7 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                   }),
                   title: {
                       text: view.data.xaxis,
-                      margin: view.data.coords.length > 6 ? 90 : 50,
+                      margin: view.data.coords.length > 6 ? 90 : 50
                   },
                   labels:{
                       align: view.data.coords.length > 6 ? 'left' : 'center',
@@ -293,7 +349,7 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                       formatter: function(){
                           // Make words appear on separate lines unless they are rotated
                           var value = this.value;
-                          if (view.data.coords.length > 6) {// If there are more 6 categories, they will be rotated
+                          if (view.data.coords.length > 6) { // If there are more 6 categories, they will be rotated
                               if (value.length > 20){
                                   value = value.substr(0,18)+"..";
                               }
@@ -314,6 +370,7 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                   labels:{
                        rotation: 45
                   }
+                  
                },
                series: [{
                   name: view.data.title,
@@ -323,12 +380,27 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                 }]
             });
             
+            $chartDiv.prepend($range_form);
+
+            $range_form.bind("ElementChangedEvent", function(evt, item){
+              
+               if (item.value==="in"){
+                   negated = false;
+               }else{
+                   negated = true;
+               }
+               $chartDiv.triggerHandler("GainedFocusEvent");
+            });
             
             // AvocadoClient event listners
             $chartDiv.bind("GainedFocusEvent", function(evt){
                    $.map(chart.series[0].data, function(element,index){
                        if ($.inArray(element.category, selected) !==-1){
-                           element.update({color:SELECTED_COLOR});
+                           if (negated){
+                               element.update({color:EXCLUDE_COLOR});
+                           }else{
+                               element.update({color:SELECTED_COLOR});    
+                           }
                        }else{
                            element.update({color:UNSELECTED_COLOR});
                        }
@@ -349,12 +421,23 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
             
             $chartDiv.bind("UpdateDSEvent", function(evt, ds){
                selected =  ds[concept_id+"_"+view.data.pk] || [];
+
+               negated = ds[concept_id + "_"+view.data.pk + "_operator"] === "exclude:in";
+               $range_form.triggerHandler(evt,[ds]);
             });
             
             $chartDiv.bind("UpdateElementEvent", function(evt, element){
                   if (element.name === concept_id+"_"+view.data.pk){
                       selected = element.value;
+                  }else if (element.name === concept_id + "_"+view.data.pk + "_operator"){
+                      if (element.value==="in"){
+                         negated = false;
+                      }else{
+                         negated = true;
+                      }
                   }
+                  // Gained focus will take care of actually changing the colors for us
+                  $range_form.triggerHandler(evt,[element]);
             });
             
             return $chartDiv;
@@ -393,31 +476,34 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                           $("input[name*=input1]", $range_form).val(max).change();
                           
                           // We want the graph to reflect the possible operators
-                          switch ($range_form.find("select[name*=operator]").val()) {
-                              
-                              
-                              
-                              
-                              
-                          }
-                          
-                          
-                          
-                          
-                          
-                          this.xAxis[0].removePlotBand();
-                          this.xAxis[0].addPlotBand({
-                            from:  min,
-                            to:   max,
-                            color: color
-                          });
                           
                           this.xAxis[0].isDirty = true;
                           chart.isDirty = true;
                           this.xAxis[0].redraw();
                           chart.redraw();
                           event.preventDefault();
+                      },
+                      click: function clickEvent(event){
+                          if (chart.options.chart.zoomType){ // If select is on we don't care about click
+                              return; 
+                          }
+                          var extremes = this.xAxis[0].getExtremes();
+                          
+                          var min = event.xAxis[0].value;
+   
+                          min = min < extremes.min ? extremes.min : min;
+       
+                          min = parseFloat(min).toFixed(1);// TODO how are we going to handle this if they are fractions
+                       
+                          // Set the new values in the form and notify Avocado
+                          $("input[name*=input0]", $range_form).val(min).change();
+                            this.xAxis[0].isDirty = true;
+                            chart.isDirty = true;
+                            this.xAxis[0].redraw();
+                            chart.redraw();
                       }
+                      
+                      
                   }
                },
                tooltip:{
@@ -460,28 +546,226 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                series: [{
                    name: view.data.title,
                    data: view.data.coords
-               }]
+               }],
+               plotOptions: {
+                   series:{
+                       point:{
+                           events:{
+                               click: function clickEvent(event){
+                                     if (chart.options.chart.zoomType){ // If select is on we don't care about click
+                                         return; 
+                                     }
+                                     var extremes = chart.xAxis[0].getExtremes();
+
+                                     var min = this.x
+
+                                     min = min < extremes.min ? extremes.min : min;
+
+                                     min = parseFloat(min).toFixed(1);// TODO how are we going to handle this if they are fractions
+
+                                     // Set the new values in the form and notify Avocado
+                                     $("input[name*=input0]", $range_form).val(min).change();
+                                       chart.xAxis[0].isDirty = true;
+                                       chart.isDirty = true;
+                                       chart.xAxis[0].redraw();
+                                       chart.redraw();
+                                 }
+                           }
+                       }
+                   }
+               }
             });
             
             // Make sure the form is in line with the chart
-            $range_form.css("margin-left", chart.plotLeft);
+            //range_form.css("margin-left", chart.plotLeft);
             
             var extremes = chart.xAxis[0].getExtremes();     
         
             // Create handler for updating graph whnen user changes min and max values
             // in the form
             var manual_field_handler = function(event){
-                var color = $range_form.find("select[name*=operator]").val() === "exclude:range" ? EXCLUDE_COLOR : INCLUDE_COLOR;
+                var color;
+                // Depending on the value of the operator, clicking on the graph is going to do different things.
+                // For example, range and exclude:range will allow "select" of a box.
+                // All other operators will insert a line on click.
+                // the lt,gt,lte,gte, will insert a box after the user clicks to indicate the region
+                var options = chart.options;
                 var min = parseFloat($("input[name*=input0]", $range_form).val()).toFixed(1);
                 var max = parseFloat($("input[name*=input1]", $range_form).val()).toFixed(1);
-                if (min && max){
-                    chart.xAxis[0].removePlotBand();
-                    chart.xAxis[0].addPlotBand({
-                      from: min,
-                      to: max,
-                      color:color
-                    });
+                
+                switch($range_form.find("select[name*=operator]").val()) {
+                    case "range": 
+                        color = INCLUDE_COLOR;
+                        if (options.chart.zoomType !== "x"){
+                            $range_form.detach();
+                            chart.destroy();
+                            options.chart.zoomType = "x";
+                            options.plotOptions.line.animation = false;
+                            chart = new Highcharts.Chart(options);
+                            $chartDiv.append($range_form);
+                         }
+                         chart.xAxis[0].removePlotBand();
+                         if (min && max){     
+                                chart.xAxis[0].addPlotBand({
+                                  from: min,
+                                  to: max,
+                                  color:color
+                                });
+                         }
+                        
+                        break;
+                    case "exclude:range":
+                        color = EXCLUDE_COLOR;
+                        if (options.chart.zoomType !== "x"){
+                                $range_form.detach();
+                                chart.destroy();
+                                options.chart.zoomType = "x";
+                                options.plotOptions.line.animation = false;
+                                chart = new Highcharts.Chart(options);
+                                $chartDiv.append($range_form);
+                        }
+                        chart.xAxis[0].removePlotBand();
+                        if (min && max){     
+                               chart.xAxis[0].addPlotBand({
+                                 from: min,
+                                 to: max,
+                                 color:color
+                               });
+                        }
+                        break;
+                    case "lt":
+                        color = INCLUDE_COLOR;
+                        if (options.chart.zoomType !== ""){
+                            $range_form.detach();
+                            chart.destroy();
+                            options.chart.zoomType = "";
+                            options.plotOptions.line.animation = false;
+                            chart = new Highcharts.Chart(options);
+                            $chartDiv.append($range_form);
+                        }
+                        chart.xAxis[0].removePlotBand();
+                        
+                        if (min){
+                            chart.xAxis[0].addPlotLine({
+                                        value: min,
+                                        color: EXCLUDE_COLOR,
+                                        width: 3
+                            });
+                            chart.xAxis[0].addPlotBand({
+                                 from: extremes.min,
+                                 to: min,
+                                 color:color
+                            });
+                        }
+                        break;
+                    case "gt":
+                        color = INCLUDE_COLOR;
+                        if (options.chart.zoomType !== ""){
+                            $range_form.detach();
+                            chart.destroy();
+                            options.chart.zoomType = "";
+                            options.plotOptions.line.animation = false;
+                            chart = new Highcharts.Chart(options);
+                            $chartDiv.append($range_form);
+                        }
+                        chart.xAxis[0].removePlotBand();
+                        
+                        if (min){
+                            chart.xAxis[0].addPlotLine({
+                                        value: min,
+                                        color: EXCLUDE_COLOR,
+                                        width: 3
+                            });
+                            chart.xAxis[0].addPlotBand({
+                                 from: min,
+                                 to: extremes.max,
+                                 color:color
+                            });
+                        }
+                        break;
+                    case "lte":
+                        color = INCLUDE_COLOR;
+                        if (options.chart.zoomType !== ""){
+                            $range_form.detach();
+                            chart.destroy();
+                            options.chart.zoomType = "";
+                            options.plotOptions.line.animation = false;
+                            chart = new Highcharts.Chart(options);
+                            $chartDiv.append($range_form);
+                        }
+                        chart.xAxis[0].removePlotBand();
+                        
+                        if (min){
+                            chart.xAxis[0].addPlotBand({
+                                 from: extremes.min,
+                                 to: min,
+                                 color:color
+                            });
+                        }
+                        break;
+                    case "gte":
+                        color = INCLUDE_COLOR;
+                        if (options.chart.zoomType !== ""){
+                            $range_form.detach();
+                            chart.destroy();
+                            options.chart.zoomType = "";
+                            options.plotOptions.line.animation = false;
+                            chart = new Highcharts.Chart(options);
+                            $chartDiv.append($range_form);
+                        }
+                        chart.xAxis[0].removePlotBand();
+                        
+                        if (min){
+                            chart.xAxis[0].addPlotBand({
+                                 from: min,
+                                 to: extremes.max,
+                                 color:color
+                            });
+                        }
+                        break
+                    case "exact":
+                        color = INCLUDE_COLOR;
+                        if (options.chart.zoomType !== ""){
+                            $range_form.detach();
+                            chart.destroy();
+                            options.chart.zoomType = "";
+                            options.plotOptions.line.animation = false;
+                            chart = new Highcharts.Chart(options);
+                            $chartDiv.append($range_form);
+                        }
+                        chart.xAxis[0].removePlotBand();
+                        
+                        if (min){
+                            chart.xAxis[0].addPlotLine({
+                                        value: min,
+                                        color: INCLUDE_COLOR,
+                                        width: 3
+                            });
+                        }
+                        break;
+                    case "exclude:exact":
+                        color = INCLUDE_COLOR;
+                        if (options.chart.zoomType !== ""){
+                            $range_form.detach();
+                            chart.destroy();
+                            options.chart.zoomType = "";
+                            options.plotOptions.line.animation = false;
+                            chart = new Highcharts.Chart(options);
+                            $chartDiv.append($range_form);
+                        }
+                        chart.xAxis[0].removePlotBand();
+                        
+                        if (min){
+                            chart.xAxis[0].addPlotLine({
+                                        value: min,
+                                        color: EXCLUDE_COLOR,
+                                        width: 3
+                            });
+                        }
+                        break;
                 }
+
+
                 chart.xAxis[0].isDirty=true;
                 chart.redraw();
             };

@@ -11,7 +11,9 @@ require.def('design/criteria', ['design/templates'], function(templates) {
         
         // Display the concept in the main area when the user clicks on the description
         element.find(".field-anchor").click(function(){ //TODO rename this class, its old
-           element.trigger("ShowConceptEvent"); 
+           var evt = $.Event("ShowConceptEvent");
+           evt.constraints = element.data("constraint");
+           element.trigger(evt); 
         });
         
         return(element);

@@ -27,10 +27,15 @@ require(['design/search', 'design/views', 'design/criterialist'], function(searc
         rootNode.bind("ShowConceptEvent", function(evt){
             
             var target = $(evt.target);
-            var existing_ds = target.data("constraint");
+            var existing_ds = evt.constraints;
+            
+            if (!existing_ds){
+                // Maybe the criteriaManager has the constrains?
+                existing_ds = criteriaManager.retrieveCriteriaDS(target.attr('data-concept-id'));
+            }
                      
             $.ajax({
-                url: target.attr('data-uri') || "/api/v1/criteria/"+target.data("constraint")["concept_id"], // Clean this UP!
+                url: target.attr('data-uri') || "/api/criteria/"+target.data("constraint")["concept_id"], // Clean this UP!
                 dataType:'json',
                 success: function(json) {
                         pluginPanel.fadeIn(100);
@@ -109,14 +114,14 @@ require(['design/search', 'design/views', 'design/criterialist'], function(searc
         $('[data-model=criterion]').live('click', function(evt) {
             evt.preventDefault();
             var target = $(this);
-            $.ajax({
-                url: target.attr('data-uri'),
-                dataType:'json',
-                success: function(json) {
-                    pluginPanel.fadeIn(100);
-                    viewManager.show(json);
-                }
-            });
+            //$.ajax({
+            //    url: target.attr('data-uri'),
+            //    dataType:'json',
+            //    success: function(json) {
+            //        pluginPanel.fadeIn(100);
+            //        target.trigger("ShowConceptEvent");
+            //    }
+            //});
 
             target.trigger('collapse_search');
             target.trigger('ShowConceptEvent');

@@ -33,7 +33,6 @@ require.def('design/criterialist', ['design/criteria', "design/templates","lib/j
                 server_query = {type: "and", children : all_constraints};
             }
             $.putJSON('/api/scope/session/', JSON.stringify(server_query));
-            console.log(all_constraints);
         });
         
         // Hook into the remove all criteria link
@@ -90,6 +89,15 @@ require.def('design/criterialist', ['design/criteria', "design/templates","lib/j
                if (!$.isEmptyObject(criteria_cache)){
                   $($criteria_div.children()[0]).trigger("ShowConceptEvent");
                 }
+            },
+            retrieveCriteriaDS: function(concept_id) {
+                var ds = null;
+                concept_id && $.each($criteria_div.children(), function(index,element){
+                    if ($(element).data("constraint").concept_id == concept_id){ // TODO cast to string for both
+                        ds = $(element).data("constraint");
+                    }
+                });
+                return ds;
             }
             
             

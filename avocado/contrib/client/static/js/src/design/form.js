@@ -29,10 +29,12 @@ require.def('design/form', [], {
                                             '<select id="<%=this.field_id%>_operator" name="<%=this.field_id%>_operator">',
                                                decOperatorsTmpl,
                                             '</select>',
+                                            '<span class="input_association" name="<%=this.field_id%>_input_assoc">',
                                             '<input data-validate="decimal" id="<%=this.field_id%>_input0" type="text" name="<%=this.field_id%>_input0" size="5">',
                                             '<label for="<%=this.field_id%>_input1">and</label>',
-                                            '<input data-validate="decimal" id="<%=this.field_id%>_input1" type="text" name="<%=this.field_id%>_input1" size="5">'];
-                                    break;
+                                            '<input data-validate="decimal" id="<%=this.field_id%>_input1" type="text" name="<%=this.field_id%>_input1" size="5">',
+                                            '</span>'];
+                                   break;
                  case 'choice'    : input = [ '<label for="<%=this.field_id%>"><%=this.label%></label>',
                                               '<select id="<%=this.field_id%>-operator" name="<%=this.field_id%>_operator">',
                                                  choiceOperatorsTmpl,
@@ -62,7 +64,6 @@ require.def('design/form', [], {
                
                $form.append($.jqote(input.join(""), {"choices":element.choices,"field_id":concept_pk+"_"+element.pk, "label":element.name}));
          });
-         
          // Trigger an event when anything changes
          $("input,select",$form).bind('change keyup', function(evt){
             switch (evt.target.type){
@@ -75,12 +76,17 @@ require.def('design/form', [], {
                                                  if  (opt.selected){
                                                      selected.push(opt.value);
                                                      // Do we need to show two inputs?
-                                                     if (opt.value.search("range") === -1){
+                                                     
+                                                     if (opt.value.search(/range/) === -1){
                                                          $("input[name="+opt.id+"_input1],",$form).hide().change();
                                                          $("label[for="+opt.id+"_input1]",$form).hide();
+                                                         // Trigger change on associated inputs because they need to work with a range operator now
+                                                         $("input[name="+opt.id+"_input0]",$form).change();
                                                      }else{
                                                          $("input[name="+opt.id+"_input1]",$form).show().change();
                                                          $("label[for="+opt.id+"_input1]",$form).show();
+                                                         // Trigger change on associated inputs because they need to work with a range operator now
+                                                         $("input[name="+opt.id+"_input0]",$form).change();
                                                      }
                                                  }
                                              });
@@ -91,15 +97,41 @@ require.def('design/form', [], {
                                              break;
                     default   : // This catches input boxes, if input boxes are not currently visible, send null for them
                                 // Input boxes require an extra validation step because of the free form input
+                                
+                                var associated_operator = $(evt.target).parent().parent().find('select').val();
+                                var name_prefix = evt.target.name.substr(0,evt.target.name.length-1);
+                                var $input1 = $("input[name="+name_prefix+"0]",$form);
+                                var $input2 = $("input[name="+name_prefix+"1]",$form);
+                                var value1 = parseFloat($input1.val());
+                                var value2 = parseFloat($input2.val());
+                                var $target = $(evt.target);
+                                // This one is a little tricky because it matters not just that the fields map to valid numbers
+                                // but that in the case of a range style operator, the two numbers are sequential, and finally
+                                // if fields have become hidden due to a change in operator, we no longer want to list that something
+                                // is wrong with the field even if there is (because it doesn't matter)
                                 switch ($(evt.target).attr('data-validate')){
-                                    case "decimal": if (isNaN(Number(evt.target.value))) {
+                                    case "decimal": if (($target.css("display") !== "none") && isNaN(Number(evt.target.value))) {
+                                                        // Field contains a non-number and is visible
                                                         var input_evt = $.Event("InvalidInputEvent");
                                                         $(evt.target).trigger(input_evt);
-                                                    } else if ($(evt.target).hasClass('invalid')){
-                                                        // Was invalid but has been corrected.
-                                                        var input_evt = $.Event("InputCorrectedEvent");
+                                                    }else if ($(evt.target).hasClass('invalid')){ //TODO Don't rely on this
+                                                        // Field either contains a number or is not visible
+                                                        // Either way it was previously invalid
+                                                        input_evt = $.Event("InputCorrectedEvent");
                                                         $(evt.target).trigger(input_evt);
-                                                    }
+                                                    } else if ((associated_operator.search(/range/) >= 0) && (value1 > value2) && ($input2.css("display") != "none")) {
+                                                        // A range operator is in use, both fields are visible, and their values are not sequential
+                                                        input_evt = $.Event("InvalidInputEvent");
+                                                        input_evt.reason = "badrange";
+                                                        input_evt.message = "First input must be less than second input.";
+                                                        $(evt.target).parent().trigger(input_evt);
+                                                    } else if ($(evt.target).parent().hasClass('invalid_badrange') && (($input2.css("display") === "none")||(value1 < value2))){ //TODO Don't really on this
+                                                        // A range operator is or was in use, and either a range operator is no longer in use, so we don't care, or 
+                                                        // its in use but the values are now sequential.
+                                                        input_evt = $.Event("InputCorrectedEvent");
+                                                        input_evt.reason = "badrange";
+                                                        $(evt.target).parent().trigger(input_evt);
+                                                    }   
                                                     break;
                                     default: break;
                                 }
@@ -115,7 +147,7 @@ require.def('design/form', [], {
                  var $element = $("[name="+element.name+"]", $form);
                  // Note: Just because we are here doesn't mean we contain the element
                  // to be updated
-                 if ($element.length == 0) return;
+                 if ($element.length === 0) return;
                  var type = $element.attr("type");
                  switch (type){
                      case "checkbox": $element.attr("checked",element.value);
@@ -128,9 +160,9 @@ require.def('design/form', [], {
                                                   }
                                               });
                                               break; 
-                     default   :    // inputs and singular selects 
-                                    $element.attr("value",element.value); 
-                                    break;
+                     default:   // inputs and singular selects 
+                                $element.attr("value",element.value); 
+                                break;
                  }
                  
          };

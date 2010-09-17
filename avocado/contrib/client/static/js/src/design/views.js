@@ -160,6 +160,7 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
                 $contentBox.append($view);
             }
             activeView.contents.css("display","block");
+            
             $(".chart", activeView.contents).css("display","block"); // Hack because of IE
             
 
@@ -192,7 +193,7 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
                 activeView.contents.children().trigger("LostFocusEvent");
                 // TODO: Use Modernizer here?
                 if ($("shape",activeView.contents).length === 0) {
-                    // SVG not VML
+                    //  not VML
                     activeView.contents.detach();
                 }
             }
@@ -429,9 +430,12 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
         */
         
         function badInputHandler(evt){
+            evt.reason = evt.reason ? "_"+ evt.reason : "";
             var invalid_fields = cache[activeConcept].invalid_fields;
+            var target_name = $(evt.target).attr("name");
             $.each(cache[activeConcept].views, function(index,view){
-                   view.contents && view.contents.find("[name="+evt.target.name+"]").addClass("invalid");
+                   view.contents && view.contents.find("[name="+target_name+"]").addClass("invalid"+evt.reason);
+                   view.contents && view.contents.find("[name="+target_name+"]").children().addClass("invalid"+evt.reason);
             });
             var message = evt.message ? evt.message : "This query contains invalid input, please correct any invalid fields.";
             var already_displayed = false;
@@ -444,21 +448,21 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
                     if (evt.ephemeral){
                         return;
                     }
-                    else if (invalid_fields[evt.target.name] === undefined){
+                    else if (invalid_fields[target_name+evt.reason] === undefined){
                         // This message has been displayed, but for another field, increase
                         // the reference count
-                        invalid_fields[evt.target.name] = warning;
+                        invalid_fields[target_name+evt.reason] = warning;
                         warning.data("ref_count", rc+1);
                         
-                    } else if (warning.text() !== invalid_fields[evt.target.name].text()){
+                    } else if (warning.text() !== invalid_fields[target_name+evt.reason].text()){
                         // This field already has an error message, but it's different,
                         // swap them
-                        var field_rc = invalid_fields[evt.target.name].data("ref_count");
-                        invalid_fields[evt.target.name].data("ref_count", field_rc-1);
-                        if (invalid_fields[evt.target.name].data("ref_count") === 0){
-                            invalid_fields[evt.target.name].remove();
+                        var field_rc = invalid_fields[target_name+evt.reason].data("ref_count");
+                        invalid_fields[target_name+evt.reason].data("ref_count", field_rc-1);
+                        if (invalid_fields[target_name+evt.reason].data("ref_count") === 0){
+                            invalid_fields[target_name+evt.reason].remove();
                         }
-                        invalid_fields[evt.target.name] = warning;
+                        invalid_fields[target_name+evt.reason] = warning;
                         warning.data("ref_count", rc+1);
                     }
                 }
@@ -469,7 +473,9 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
 
             var warning = $('<div class="warning">'+message+'</div>');
             warning.data('ref_count',1);
-            invalid_fields[evt.target.name] = warning;
+            if (!evt.ephemeral){
+                invalid_fields[target_name+evt.reason] = warning;
+            }
             $staticBox.prepend(warning);
             // if the warning is ephemeral (meaning its should be flashed on
             // screen, but not kept there until a specific thing is fixed)
@@ -486,25 +492,28 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
         
         
         /**
-                 This function notifies the framework that the user corrected an invalid field. 
-                 The framework will only show the same error message once, and it will only show
-                 one error message per invalid field (the last one to be sent). By default if no
-                 error message is sent on the event, then a generic error message is displayed.
-                 If there are any error messages, the submit button will be disabled.
-                 @private
+              This function notifies the framework that the user corrected an invalid field. 
+              The framework will only show the same error message once, and it will only show
+              one error message per invalid field (the last one to be sent). By default if no
+              error message is sent on the event, then a generic error message is displayed.
+              If there are any error messages, the submit button will be disabled.
+              @private
         */
         function fixedInputHandler(evt){
+            evt.reason = evt.reason ? "_"+ evt.reason : "";
             var invalid_fields = cache[activeConcept].invalid_fields;
+            var target_name = $(evt.target).attr("name");
             $.each(cache[activeConcept].views, function(index,view){
-                view.contents && view.contents.find("[name="+evt.target.name+"]").removeClass("invalid");
+                view.contents && view.contents.find("[name="+target_name+"]").removeClass("invalid"+evt.reason);
+                view.contents && view.contents.find("[name="+target_name+"]").children().removeClass("invalid"+evt.reason);
             });
-            var rc = invalid_fields[evt.target.name].data('ref_count') - 1;
+            var rc = invalid_fields[target_name+evt.reason].data('ref_count') - 1;
             if (rc === 0){
-                invalid_fields[evt.target.name].remove();
+                invalid_fields[target_name+evt.reason].remove();
             }else{
-                invalid_fields[evt.target.name].data('ref_count',rc);
+                invalid_fields[target_name+evt.reason].data('ref_count',rc);
             }
-            delete cache[activeConcept].invalid_fields[evt.target.name];
+            delete cache[activeConcept].invalid_fields[target_name+evt.reason];
             
             // Re-enable the button if there are not more errors.
             if ($.isEmptyObject(cache[activeConcept].invalid_fields)){
