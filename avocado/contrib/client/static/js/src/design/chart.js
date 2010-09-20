@@ -8,11 +8,6 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
         var MINIMUM_SLICE = 0.07;
         
         
-        
-        
-        
-        
-        
         var getPieChart = function(view, concept_id, $location){
             // HighCharts cannot handle boolean values in the coordinates
             var negated = false;
@@ -62,13 +57,16 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
             $chartDiv.bind("UpdateElementEvent", function(evt, element){
                 if (element.name === concept_id+"_"+view.data.pk){
                     selected = element.value;
+                }else { 
+                    if (element.name === concept_id+"_"+view.data.pk+"_operator" && element.value==="in"){
+                        negated = false;
+                    }else{
+                        negated = true;
+                    }
                 }
-                 if (element.name === concept_id+"_"+view.data.pk+"_operator" && element.value==="in"){
-                     negated = false;
-                 }else{
-                     negated = true;
-                 }
-                 //Gain focus will take care of updating graph
+                // Gain focus will take care of updating graph
+                // Tell embedded form
+                $range_form.triggerHandler(evt,[element]);
             });
             
             Highcharts.setOptions({colors: [UNSELECTED_COLOR, UNSELECTED_COLOR, UNSELECTED_COLOR]});
