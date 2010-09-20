@@ -64,8 +64,6 @@ class Field(models.Model):
         unique_together = ('app_name', 'model_name', 'field_name')
 
     def __unicode__(self):
-        if self.name:
-            return u'%s' % self.name
         name = '.'.join([self.app_name, self.model_name, self.field_name])
         return u'%s' % name
 

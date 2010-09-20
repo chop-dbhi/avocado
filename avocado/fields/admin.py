@@ -8,8 +8,9 @@ __all__ = ('FieldAdmin', 'EditorsFieldAdmin')
 
 class FieldAdmin(ConceptAdmin):
     form = FieldAdminForm
-    list_display = ('name', 'is_public')
-    list_filter = ('is_public',)
+    list_display = ('name', 'is_public', 'model_name', 'enable_choices')
+    list_filter = ('is_public', 'model_name')
+    list_editable = ('is_public', 'enable_choices')
 
 
 class EditorsFieldAdmin(EditorsConceptAdmin):
