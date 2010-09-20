@@ -1,5 +1,4 @@
-require.def('design/criterialist', ['design/criteria', "design/templates","lib/json2"], function(criteria, templates) {
-    
+require.def('design/criteriamanager', ['design/criteria', "design/templates","lib/json2"], function(criteria, templates) {
     
     var manager = function($panel){
         
@@ -93,6 +92,9 @@ require.def('design/criterialist', ['design/criteria', "design/templates","lib/j
             retrieveCriteriaDS: function(concept_id) {
                 var ds = null;
                 concept_id && $.each($criteria_div.children(), function(index,element){
+                    if (!$(element).data("constraint")){
+                        return; // could just be text nodes
+                    }
                     if ($(element).data("constraint").concept_id == concept_id){ // TODO cast to string for both
                         ds = $(element).data("constraint");
                     }

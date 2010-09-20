@@ -1,4 +1,4 @@
-require(['design/search', 'design/views', 'design/criterialist'], function(search, views, criterialist) {
+require(['design/search', 'design/views', 'design/criteriamanager'], function(search, views, criteriamanager) {
    
     $(function() {
         search.init();
@@ -17,7 +17,7 @@ require(['design/search', 'design/views', 'design/criterialist'], function(searc
         var viewManager = views.manager(pluginPanel, pluginTitle, pluginTabs, pluginDynamicContent,
             pluginStaticContent);
         
-        var criteriaManager = criterialist.Manager(criteriaPanel);
+        var criteriaManager = criteriamanager.Manager(criteriaPanel);
        
         rootNode.bind('UpdateQueryEvent', function(evt, criteria_constraint) {
             criteriaPanel.triggerHandler("UpdateQueryEvent", [criteria_constraint]);

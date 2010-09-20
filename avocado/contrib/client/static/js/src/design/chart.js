@@ -7,6 +7,12 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
         var ALTERNATE_GRID_COLOR = "#FDFFD5";
         var MINIMUM_SLICE = 0.07;
         
+        
+        
+        
+        
+        
+        
         var getPieChart = function(view, concept_id, $location){
             // HighCharts cannot handle boolean values in the coordinates
             var negated = false;
@@ -259,9 +265,9 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                                 }, function(event){
                                     $(this).css("cursor","");
                                 });
-                            
+
                                 $(col.dataLabel.element).click(function(c){
-              
+
                                     return (function(event){
                                            c.series.chart.hoverPoint = c;
                                            c.series.chart.isDirty = true;
@@ -349,7 +355,7 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                       formatter: function(){
                           // Make words appear on separate lines unless they are rotated
                           var value = this.value;
-                          if (view.data.coords.length > 6) { // If there are more 6 categories, they will be rotated
+                          if (view.data.coords.length > 6) { // If there are more than 6 categories, they will be rotated
                               if (value.length > 20){
                                   value = value.substr(0,18)+"..";
                               }
@@ -383,7 +389,6 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
             $chartDiv.prepend($range_form);
 
             $range_form.bind("ElementChangedEvent", function(evt, item){
-              
                if (item.value==="in"){
                    negated = false;
                }else{
@@ -415,7 +420,7 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                     chart.xAxis[0].isDirty = true;
                     chart.yAxis[0].isDirty = true;
                     chart.isDirty = true;
-                    chart.series[0].isDirty = true;                 
+                    chart.series[0].isDirty = true;
                     chart.redraw();
             });
             
@@ -425,7 +430,7 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                negated = ds[concept_id + "_"+view.data.pk + "_operator"] === "exclude:in";
                $range_form.triggerHandler(evt,[ds]);
             });
-            
+
             $chartDiv.bind("UpdateElementEvent", function(evt, element){
                   if (element.name === concept_id+"_"+view.data.pk){
                       selected = element.value;
@@ -462,21 +467,21 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                       selection: function(event){
                           var color = $range_form.find("select[name*=operator]").val() === "exclude:range" ? EXCLUDE_COLOR : INCLUDE_COLOR;
                           var extremes = this.xAxis[0].getExtremes();
-       
+
                           var min = event.xAxis[0].min;
                           var max = event.xAxis[0].max;
-             
+
                           min = min < extremes.min ? extremes.min : min;
                           max = max > extremes.max ? extremes.max : max;
                           min = parseFloat(min).toFixed(1);// TODO how are we going to handle this if they are fractions
                           max = parseFloat(max).toFixed(1);// TODO properly calculate extremes 
-                          
+
                           // Set the new values in the form and notify Avocado
                           $("input[name*=input0]", $range_form).val(min).change();
                           $("input[name*=input1]", $range_form).val(max).change();
-                          
+
                           // We want the graph to reflect the possible operators
-                          
+
                           this.xAxis[0].isDirty = true;
                           chart.isDirty = true;
                           this.xAxis[0].redraw();
@@ -502,8 +507,6 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                             this.xAxis[0].redraw();
                             chart.redraw();
                       }
-                      
-                      
                   }
                },
                tooltip:{
@@ -575,20 +578,22 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                    }
                }
             });
-            
-            // Make sure the form is in line with the chart
-            //range_form.css("margin-left", chart.plotLeft);
-            
+
             var extremes = chart.xAxis[0].getExtremes();     
-        
+
             // Create handler for updating graph whnen user changes min and max values
             // in the form
             var manual_field_handler = function(event){
-                var color;
-                // Depending on the value of the operator, clicking on the graph is going to do different things.
-                // For example, range and exclude:range will allow "select" of a box.
+                var color = null;
+                // Depending on the value of the operator, clicking on the graph
+                // will have a different behavior
+                // For example, range and exclude:range will allow 
+                // selecting a region of the graph.
                 // All other operators will insert a line on click.
-                // the lt,gt,lte,gte, will insert a box after the user clicks to indicate the region
+                // the lt,gt,lte,gte, will insert a box after the user 
+                // clicks to indicate the selected region.
+                // The exact operators will insert a line.
+                
                 var options = chart.options;
                 var min = parseFloat($("input[name*=input0]", $range_form).val()).toFixed(1);
                 var max = parseFloat($("input[name*=input1]", $range_form).val()).toFixed(1);
@@ -596,26 +601,8 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                 switch($range_form.find("select[name*=operator]").val()) {
                     case "range": 
                         color = INCLUDE_COLOR;
-                        if (options.chart.zoomType !== "x"){
-                            $range_form.detach();
-                            chart.destroy();
-                            options.chart.zoomType = "x";
-                            options.plotOptions.line.animation = false;
-                            chart = new Highcharts.Chart(options);
-                            $chartDiv.append($range_form);
-                         }
-                         chart.xAxis[0].removePlotBand();
-                         if (min && max){     
-                                chart.xAxis[0].addPlotBand({
-                                  from: min,
-                                  to: max,
-                                  color:color
-                                });
-                         }
-                        
-                        break;
                     case "exclude:range":
-                        color = EXCLUDE_COLOR;
+                        color =  color || EXCLUDE_COLOR; // did we drop through from range?
                         if (options.chart.zoomType !== "x"){
                                 $range_form.detach();
                                 chart.destroy();

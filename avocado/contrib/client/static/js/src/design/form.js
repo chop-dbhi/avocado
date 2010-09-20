@@ -109,44 +109,43 @@ require.def('design/form', [], {
                                 // but that in the case of a range style operator, the two numbers are sequential, and finally
                                 // if fields have become hidden due to a change in operator, we no longer want to list that something
                                 // is wrong with the field even if there is (because it doesn't matter)
-                                switch ($(evt.target).attr('data-validate')){
-                                    case "decimal": if (($target.css("display") !== "none") && isNaN(Number(evt.target.value))) {
+                                switch ($target.attr('data-validate')){
+                                    case "decimal": if ($target.is(":visible") && isNaN(Number($target.val()))) {
                                                         // Field contains a non-number and is visible
                                                         var input_evt = $.Event("InvalidInputEvent");
-                                                        $(evt.target).trigger(input_evt);
+                                                        $target.trigger(input_evt);
                                                     }else if ($(evt.target).hasClass('invalid')){ //TODO Don't rely on this
                                                         // Field either contains a number or is not visible
                                                         // Either way it was previously invalid
                                                         input_evt = $.Event("InputCorrectedEvent");
-                                                        $(evt.target).trigger(input_evt);
+                                                        $target.trigger(input_evt);
                                                     } else if ((associated_operator.search(/range/) >= 0) && (value1 > value2) && ($input2.css("display") != "none")) {
                                                         // A range operator is in use, both fields are visible, and their values are not sequential
                                                         input_evt = $.Event("InvalidInputEvent");
                                                         input_evt.reason = "badrange";
                                                         input_evt.message = "First input must be less than second input.";
-                                                        $(evt.target).parent().trigger(input_evt);
+                                                        $target.parent().trigger(input_evt);
                                                     } else if ($(evt.target).parent().hasClass('invalid_badrange') && (($input2.css("display") === "none")||(value1 < value2))){ //TODO Don't really on this
                                                         // A range operator is or was in use, and either a range operator is no longer in use, so we don't care, or 
                                                         // its in use but the values are now sequential.
                                                         input_evt = $.Event("InputCorrectedEvent");
                                                         input_evt.reason = "badrange";
-                                                        $(evt.target).parent().trigger(input_evt);
+                                                        $target.parent().trigger(input_evt);
                                                     }   
                                                     break;
                                     default: break;
                                 }
-                                var value = $(evt.target).css("display") !== "none" ? evt.target.value : null;
+                                var value = $target.is(":visible") ? $target.val() : null;
                                 $form.trigger("ElementChangedEvent", [{name:evt.target.name,value:value}]);
                                 break;
              }
              evt.stopPropagation();
          });
          
-         
          var updateElement = function(evt, element) {
                  var $element = $("[name="+element.name+"]", $form);
                  // Note: Just because we are here doesn't mean we contain the element
-                 // to be updated
+                 // to be updated, it may reside on another view within this concept
                  if ($element.length === 0) return;
                  var type = $element.attr("type");
                  switch (type){
@@ -178,7 +177,6 @@ require.def('design/form', [], {
          $form.bind("GainedFocusEvent", function(evt) {
              $("input,select", $form).change(); 
          });
-         
          return $form;
     }
 });
