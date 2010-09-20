@@ -28,12 +28,11 @@ require(['design/search', 'design/views', 'design/criteriamanager'], function(se
             
             var target = $(evt.target);
             var existing_ds = evt.constraints;
-            
+
             if (!existing_ds){
-                // Maybe the criteriaManager has the constrains?
+                // Maybe the criteriaManager has the constraints?
                 existing_ds = criteriaManager.retrieveCriteriaDS(target.attr('data-concept-id'));
             }
-                     
             $.ajax({
                 url: target.attr('data-uri') || "/api/criteria/"+target.data("constraint")["concept_id"], // Clean this UP!
                 dataType:'json',
@@ -48,7 +47,7 @@ require(['design/search', 'design/views', 'design/criteriamanager'], function(se
             if ((data.store === null) || ($.isEmptyObject(data.store))){
                 return;
             }
-            if (data.store.hasOwnProperty("type")){
+            if (!data.store.hasOwnProperty("concept_id")){ // Root node representing a list of concepts won't have this attribute
                 $.each(data.store.children, function(index, criteria_constraint){
                     criteriaPanel.triggerHandler("UpdateQueryEvent", [criteria_constraint]);
                 });
@@ -114,14 +113,6 @@ require(['design/search', 'design/views', 'design/criteriamanager'], function(se
         $('[data-model=criterion]').live('click', function(evt) {
             evt.preventDefault();
             var target = $(this);
-            //$.ajax({
-            //    url: target.attr('data-uri'),
-            //    dataType:'json',
-            //    success: function(json) {
-            //        pluginPanel.fadeIn(100);
-            //        target.trigger("ShowConceptEvent");
-            //    }
-            //});
 
             target.trigger('collapse_search');
             target.trigger('ShowConceptEvent');

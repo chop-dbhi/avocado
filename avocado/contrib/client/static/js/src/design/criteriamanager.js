@@ -25,7 +25,6 @@ require.def('design/criteriamanager', ['design/criteria', "design/templates","li
                  }
             }
             
-            
             if (all_constraints.length < 2){
                 server_query = all_constraints[0];
             }else{
@@ -66,8 +65,8 @@ require.def('design/criteriamanager', ['design/criteria', "design/templates","li
             }
             criteria_cache[pk] =  new_criteria;
         });
-        
-        
+
+
         // Listen for removed criteria
         $panel.bind("CriteriaRemovedEvent", function(evt){
             var $target = $(evt.target);
@@ -82,11 +81,11 @@ require.def('design/criteriamanager', ['design/criteria', "design/templates","li
                 $run_query.detach();
             }
         });
-        
+
         var that = {
             fireFirstCriteria: function(){
                if (!$.isEmptyObject(criteria_cache)){
-                  $($criteria_div.children()[0]).trigger("ShowConceptEvent");
+                  $($criteria_div.children()[0]).find(".field-anchor").click(); // TODO clean up
                 }
             },
             retrieveCriteriaDS: function(concept_id) {
@@ -101,11 +100,9 @@ require.def('design/criteriamanager', ['design/criteria', "design/templates","li
                 });
                 return ds;
             }
-            
-            
+
+
         };
-        
-        
         return that;
     };
     return {Manager:manager};

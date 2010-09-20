@@ -493,13 +493,12 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                               return; 
                           }
                           var extremes = this.xAxis[0].getExtremes();
-                          
+
                           var min = event.xAxis[0].value;
-   
+
                           min = min < extremes.min ? extremes.min : min;
-       
                           min = parseFloat(min).toFixed(1);// TODO how are we going to handle this if they are fractions
-                       
+
                           // Set the new values in the form and notify Avocado
                           $("input[name*=input0]", $range_form).val(min).change();
                             this.xAxis[0].isDirty = true;
@@ -752,8 +751,7 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                         break;
                 }
 
-
-                chart.xAxis[0].isDirty=true;
+                chart.xAxis[0].isDirty = true;
                 chart.redraw();
             };
             
