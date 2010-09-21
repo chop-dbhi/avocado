@@ -12,9 +12,21 @@ require.def('design/form', [], {
                                    '<option id="<%=this.field_id%>" value="exclude:exact">is not equal to</option>'].join('');
           var choiceOperatorsTmpl = ['<option value="in">is equal to</option>',
                                      '<option value="exclude:in">is not equal to</option>'].join('');
-
+          // For most cases we use the name attribute to constuct a unique id for all inputs (see field_id in the template context 
+          // object below). The format for it is <concept primary key>_<field primary key> with optional "_input[01]" to support datatypes that
+          // require ranges, and "_operator" to indicate the field represents an operator that can be changed by the users. With nothing appended to the 
+          // end of the name, this indicates a "choice" or "assertion" (which maps to a check box) datatype. There is one exception that complicates things:
+          // Some concepts include a field that is itself variable. That is to say that the user will supply some sort of value, for example, a decimal range,
+          // and then they will need to tell us which field in the database this range should be applied to. An example should clear this up. For Pure
+          // Tone Average (PTA), the user will select a range in the graph, and then below there will be a drop box that says "in the" and then a single choice
+          // dropdown. The choices in the dropdown ("both","better ear", "worse ear") will actually represent the fields that the PTA ranges are to be applied to.
+          // To indicate this type of a field, the concept description from the server will not contain a "pk" field for these types of fields. This will indicate 
+          // that the pk is determined by the user. Fields that whose database field id are "variable" will have their name attribute set like this 
+          // <concept id>_tbd
+          
           $.each(view.fields, function(index,element){
-              var input;
+              var input = []; // avoid odd exception if the server sends nothing
+              
               switch (element.datatype) {
                   case 'boolean':  input = ['<label for="<%=this.field_id%>"><%=this.label%></label>',
                                             '<select id ="<%=this.field_id%>" name="<%=this.field_id%>">',
@@ -45,24 +57,68 @@ require.def('design/form', [], {
                                                '<%}%>',
                                               '</select>'
                                             ];
+                                    break;
                }
+               
+               // Does this element contain a "pk" attribute? See large comment above for reason
+             
+               if (!element.hasOwnProperty("pk")){
+                   // Append additional dropdown for user to choose which field this applies to
+                    input = input.concat(['<p><label for="<%=this.pkchoice_id%>"><%=this.pkchoice_label%></label>',
+                                  '<select id="<%=this.pkchoice_id%>" name="<%=this.pkchoice_id%>">',
+                                  '<% for (index in this.pkchoices) { %>',
+                                          '<option value="<%=this.pkchoices[index][0]%>"><%=this.pkchoices[index][1]%></option>',
+                                  '<%}%>',
+                                  '</select></p>']);
+               }
+              
                // Wrap each discrete element in <p>
                input.unshift("<p>");
                input.push("</p>");
                
                
                // This should come out, the server should send us No Data instead of null
-               element.choices && $.each(element.choices, function(index, choice){
-                      // null needs to be "No Data"
-                      if (element.choices[index][0] === null){
-                          element.choices[index][0] = "No Data";
-                      }
-                      if (element.choices[index][1] === "None"){
-                           element.choices[index][1] = "No Data";
-                      }
+               $.each(['choices', 'pkchoices'], function(index, attr){
+                    element[attr] && $.each(element[attr], function(index, choice){
+                          // null needs to be "No Data"
+                          if ( element[attr][index][0] === null){
+                               element[attr][index][0] = "No Data";
+                          }          
+                          if ( element[attr][index][1] === "None"){
+                               element[attr][index][1] = "No Data";
+                          }           
+                    });
                 });
-               
-               $form.append($.jqote(input.join(""), {"choices":element.choices,"field_id":concept_pk+"_"+element.pk, "label":element.name}));
+                
+                // The following scheme for generating name attributes will be used:
+                // Elements that represent non-variable fields on the concept will have their name attribute constructed as follows:
+                // <concept_id>_<field_id>
+                // Elements that can be applied to a variable primary key will have their name attribute constructed as follows:
+                // <concept_id>_<sorted list of possible field_ids separated by 'OR'>
+                // Elements that represent the dropdown operator which will be used to determine the variable field ID will have their
+                // name attribute constructed as follows
+                // <sorted list of possible field_id choices contained within separated by 'OR'> 
+                // This should be the same string that comes after the <concept_id> in the element that is dependent on this one
+                
+                var name_attribute = null;
+                var pkchoice_name_attribute = null;
+                if (element.hasOwnProperty("pk")){
+                    name_attribute = concept_pk+"_"+element.pk;
+                }else{
+                    var int_ids = $.map(element.pkchoices, function(element, index){
+                        return parseInt(element[0]);
+                    });
+                    int_ids.sort();
+                    pkchoice_name_attribute = int_ids.join("OR");
+                    name_attribute = concept_pk + "_" + pkchoice_name_attribute;
+                }
+                
+                $form.append($.jqote(input.join(""), {"choices":element.choices,
+                                                      "field_id":name_attribute,
+                                                      "label":element.name,
+                                                      "pkchoices":element.pkchoices,
+                                                      "pkchoice_label":element.pkchoice_label,
+                                                      "pkchoice_id":pkchoice_name_attribute}));
          });
          // Trigger an event when anything changes
          $("input,select",$form).bind('change keyup', function(evt){

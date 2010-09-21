@@ -24,9 +24,10 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
     */
     var manager = function($container, $titleBar, $tabsBar, $contentBox, $staticBox) {
         
-        var binaryFieldRe = /^(\d*)_(\d*)_input([01])$/;
-        var fieldRe = /^(\d*)_(\d*)$/;
-        var opRe = /^(\d*)_(\d*)_operator$/;
+        var binaryFieldRe = /^(\d+)_(\d+(?:OR\d+)*)_input([01])$/;
+        var fieldRe = /^(\d*)_(\d+(?:OR\d+)*)$/;
+        var opRe = /^(\d*)_(\d+(?:OR\d+)*)_operator$/;
+        var pkChoiceRe = /^\d+(?:OR\d+)+$/;
         
         /**
           A hash with respect to criterion IDs of the objects fetched from
@@ -117,9 +118,20 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
          function createDSFromQuery(parameter, recurse_ds){
              var ds = recurse_ds || {};
              var field_prefix;
+             var field_portion;
              if (!parameter.hasOwnProperty("type")){
-                 
-                 field_prefix = parameter.concept_id+"_"+parameter.id;
+                 if (parameter.hasOwnProperty("id_choices")){
+                     // I don't like this because it tightly couples the 
+                     // implementation of forms and datasources, but its the most
+                     // elegant solution I have at the moment
+                     field_portion = parameter['id_choices'].join("OR");
+                     ds[field_portion] = parameter.id;
+                 }else{
+                     // If it just does this branch of the if, it would be a lot less
+                     // coupled
+                     field_portion = parameter.id;
+                 }
+                 field_prefix = parameter.concept_id+"_"+field_portion;
                  var choice = parameter.operator.match(/^(in|exclude:in)$/) !== null;
                  if ((parameter.value instanceof Array) && (!choice)) {
                      for (var index=0; index < parameter.value.length; index++){
@@ -353,6 +365,15 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
                         fields[m[2]] = {val0:null, val1:null, op:null};
                         fields[m[2]]['val'+m[3]] = ds[item];
                     }
+                    continue;
+                }
+                m = pkChoiceRe.exec(item); // field representing the field this concept needs to query against
+                if (m) {
+                    if (fields.hasOwnProperty(m[0])){
+                        fields[m[0]]['pk'] = ds[item];
+                    }else{
+                        fields[m[0]] = {val0:null, val1:null, op:null, pk:ds[item]};
+                    }
                 }
             }
             for (item in ds){
@@ -369,6 +390,15 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
             
             for (var field_id in fields) {
                 var field = fields[field_id];
+                // if field_id represents a pkChoiceRe, it means it holds the PK value for this field
+                var variable_pk = false;
+                var pkChoices = null;
+                if (pkChoiceRe.exec(field_id)) {
+                    pkChoices = field_id.split('OR');
+                    field_id = field.pk;
+                    variable_pk = true;
+                }
+                
                 if (field.val0 && field.val1 && field.op) { // Decimal Binary Op
                     nodes.push({
                                     'operator' : field.op,
@@ -376,7 +406,7 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
                                     'value' : [field.val0,field.val1],
                                     'concept_id': activeConcept
                                 });
-                } else if (field.val0 && field.op && !(field.val0 instanceof Array)){ // Decimal
+                } else if (field.val0 && field.op && !(field.val0 instanceof Array)){ // Decimal or assertion or boolean
                     nodes.push({
                                     'operator' : field.op,
                                     'id' : field_id,
@@ -393,7 +423,7 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
                                     'concept_id': activeConcept
                                 });
                 } else if (field.val0 !== null && !(field.val0 instanceof Array) &&
-                           field.op === null && field.val1 === null){ // assertion/or boolean
+                          field.val1 === null){ // assertion/or boolean when operator not specified
                      nodes.push({
                                         'operator' : "exact",
                                         'id' : field_id,
@@ -403,6 +433,13 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
                 } else {
                     // Unable to determine what this field is ?
                     throw "Unable to determine field " + field + " in concept " + cache[activeConcept];
+                }
+                
+                if (variable_pk){  
+                    // When we get this back from th server, we will need a way to tell
+                    // that the field pk was variable, and how to recreate the datastore
+                    // TODO would it be better to make the form responsible for this?
+                    nodes[nodes.length-1]['id_choices'] =  pkChoices;
                 }
             }
             

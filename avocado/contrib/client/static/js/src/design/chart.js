@@ -447,9 +447,7 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
         };    
     
         var getLineChart = function(view, concept_id, $location) {
-            var $range_form = form.Form({fields:[{ datatype: "decimal",
-                                                   name: view.data.name,
-                                                   pk: view.data.pk}]}, concept_id);
+            var $range_form = form.Form({fields:[view.data]}, concept_id);
         
             $range_form.find("input").css("margin","10px");
             var $chartDiv = $('<div class="chart"></div>');
