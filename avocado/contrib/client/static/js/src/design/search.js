@@ -11,19 +11,6 @@ require.def('design/search',
                 categories = $('#categories'),
                 search = $('#search');
 
-            body.bind('delegate_search_select', function(evt, term) {
-                var target, dterm;
-                $('[data-search-select]').each(function() {
-                    target = $(this);
-                    dterm = target.attr('data-search-term').toLowerCase();
-                    if (dterm == term.toLowerCase())
-                        target.addClass('active');
-                    else
-                        target.removeClass('active');
-                });
-                return false;
-            });
-
             /*
             ** Initialize renderers for the available criterion options
             ** and the categories.
@@ -43,7 +30,10 @@ require.def('design/search',
                 criteria: new datasource.ajax({
                     uri: criteria.attr('data-uri'),
                     callback: function(json) {
-                        rnd.criteria.render(json);
+                        if (json.length > 0)
+                            rnd.criteria.render(json);
+                        else
+                            rnd.criteria.target.html('<em class="ht mg">No results found</em');
                     }
                 }),
                 categories: new datasource.ajax({
@@ -59,8 +49,11 @@ require.def('design/search',
             src.categories.get();
             
             categories.delegate('[data-model=category]', 'click', function(evt) {
-                var value = $(this).attr('data-search-term');
+                var target = $(this),
+                    value = target.attr('data-search-term');
                 search.trigger('search', value);
+                target.siblings().removeClass('active');
+                target.addClass('active');
                 return false;
             });            
 
@@ -72,7 +65,10 @@ require.def('design/search',
 
             search.autocomplete({
                 success: function(value, json) {
-                    rnd.criteria.render(json);
+                    if (json.length > 0)
+                        rnd.criteria.render(json);
+                    else
+                        rnd.criteria.target.html('<em class="ca mg">No results found for term "'+ value +'"</em>');
                 }
             });
         };

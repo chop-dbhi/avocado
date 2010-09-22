@@ -34,12 +34,24 @@ html, body {
     font-size: 13px;
 }
 
+/*::-webkit-scrollbar {
+    height: 1ex;
+}
+
+::-webkit-scrollbar-thumn {
+    background: rgba(0, 0, 0, .2);
+}*/
+
 a {
     outline: none
 }
 
 a img {
     border: none
+}
+
+em {
+    font-style: italic;
 }
 
 form {
@@ -421,13 +433,6 @@ footer a:hover, footer a:active {
 	background: transparent url(../img/icons/edit.png) no-repeat 0;
 	padding: 2px 0 2px 21px;
 }
-
-/*input.search {
-    background: #fff url(../img/icons/search.png) no-repeat 2px;
-    padding: 2px 5px 2px 20px;
-    border: 1px solid #aaa;
-    -moz-border-radius: 10px;
-}*/
 
 .sys-message {
     font-size: 12px;

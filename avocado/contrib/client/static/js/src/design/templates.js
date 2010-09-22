@@ -4,8 +4,8 @@ require.def('design/templates', function() {
             list: [
                 '<div data-model="criterion" data-uri="<%= this.uri %>" data-concept-id="<%=this.id%>"',
                     'data-search-select data-search-term="<%= this.name.toLowerCase() %>">',
-                    '<strong><%= this.name %></strong>',
-                    '<p class="ht mg"><%= this.description %></p>',
+                    '<span><%= this.name %></span>',
+                    // '<p class="ht mg"><%= this.description %></p>',
                 '</div>'
             ].join('')
         },

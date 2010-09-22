@@ -113,9 +113,11 @@ require(['design/search', 'design/views', 'design/criteriamanager'], function(se
         $('[data-model=criterion]').live('click', function(evt) {
             evt.preventDefault();
             var target = $(this);
-
-            target.trigger('collapse_search');
+            target.siblings().removeClass('active');
+            target.addClass('active');
+            
             target.trigger('ShowConceptEvent');
+            
         });
     });
 });
