@@ -180,7 +180,7 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
             
              $chartDiv.bind("UpdateDSEvent", function(evt, ds){
                 selected = ds[concept_id+  "_"+view.data.pk] || [];
-                negated =  ds[concept_id + "_"+view.data.pk + "_operator"] === "exclude:in";
+                negated =  ds[concept_id + "_"+view.data.pk + "_operator"] === "-in";
                 $range_form.triggerHandler(evt,[ds]);
              });
             return $chartDiv;
@@ -425,7 +425,7 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
             $chartDiv.bind("UpdateDSEvent", function(evt, ds){
                selected =  ds[concept_id+"_"+view.data.pk] || [];
 
-               negated = ds[concept_id + "_"+view.data.pk + "_operator"] === "exclude:in";
+               negated = ds[concept_id + "_"+view.data.pk + "_operator"] === "-in";
                $range_form.triggerHandler(evt,[ds]);
             });
 
@@ -461,7 +461,7 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                   zoomType:'x',
                   events:{
                       selection: function(event){
-                          var color = $range_form.find("select[name*=operator]").val() === "exclude:range" ? EXCLUDE_COLOR : INCLUDE_COLOR;
+                          var color = $range_form.find("select[name*=operator]").val() === "-range" ? EXCLUDE_COLOR : INCLUDE_COLOR;
                           var extremes = this.xAxis[0].getExtremes();
 
                           var min = event.xAxis[0].min;
@@ -596,7 +596,7 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                 switch($range_form.find("select[name*=operator]").val()) {
                     case "range": 
                         color = INCLUDE_COLOR;
-                    case "exclude:range":
+                    case "-range":
                         color =  color || EXCLUDE_COLOR; // did we drop through from range?
                         if (options.chart.zoomType !== "x"){
                                 $range_form.detach();
@@ -725,7 +725,7 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                             });
                         }
                         break;
-                    case "exclude:exact":
+                    case "-exact":
                         color = INCLUDE_COLOR;
                         if (options.chart.zoomType !== ""){
                             $range_form.detach();

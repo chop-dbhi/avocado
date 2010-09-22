@@ -132,7 +132,7 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
                      field_portion = parameter.id;
                  }
                  field_prefix = parameter.concept_id+"_"+field_portion;
-                 var choice = parameter.operator.match(/^(in|exclude:in)$/) !== null;
+                 var choice = parameter.operator.match(/^(in|-in)$/) !== null;
                  if ((parameter.value instanceof Array) && (!choice)) {
                      for (var index=0; index < parameter.value.length; index++){
                          ds[field_prefix+"_input"+index] = parameter.value[index];

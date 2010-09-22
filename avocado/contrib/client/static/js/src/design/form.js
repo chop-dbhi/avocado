@@ -3,15 +3,15 @@ require.def('design/form', [], {
     Form : function(view, concept_pk){
           var $form = $('<form method="get" action=""></form>');
           var decOperatorsTmpl =  ['<option selected id="<%=this.field_id%>" value="range">is between</option>',
-                                   '<option id="<%=this.field_id%>" value="exclude:range">is not between</option>',
+                                   '<option id="<%=this.field_id%>" value="-range">is not between</option>',
                                    '<option id="<%=this.field_id%>" value="lt">is less than</option>',
                                    '<option id="<%=this.field_id%>" value="gt">is greater than</option>',
                                    '<option id="<%=this.field_id%>" value="lte">is less than or equal to</option>',
                                    '<option id="<%=this.field_id%>" value="gte">is greater than or equal to</option>',
                                    '<option id="<%=this.field_id%>" value="exact">is equal to</option>',
-                                   '<option id="<%=this.field_id%>" value="exclude:exact">is not equal to</option>'].join('');
+                                   '<option id="<%=this.field_id%>" value="-exact">is not equal to</option>'].join('');
           var choiceOperatorsTmpl = ['<option selected value="in">is equal to</option>',
-                                     '<option value="exclude:in">is not equal to</option>'].join('');
+                                     '<option value="-in">is not equal to</option>'].join('');
           // For most cases we use the name attribute to constuct a unique id for all inputs (see field_id in the template context 
           // object below). The format for it is <concept primary key>_<field primary key> with optional "_input[01]" to support datatypes that
           // require ranges, and "_operator" to indicate the field represents an operator that can be changed by the users. With nothing appended to the 
