@@ -1,3 +1,23 @@
+- model: auth.group
+  pk: 1
+  fields:
+    name: managers
+
+- model: auth.group
+  pk: 2
+  fields:
+    name: bloggers
+
+- model: auth.user
+  pk: 1
+  fields:
+    username: foo
+    email: foo@bar.org
+    password: sha1$cd538$30b8c723fda77cc57f6776863c8f18fb5eb36a4e
+    first_name: foo
+    last_name: bar
+    groups: [1]
+
 - model: avocado.category
   pk: 1
   fields:
@@ -14,6 +34,7 @@
       model_name: column
       field_name: name
       translator: null
+      group: 1
 
 - model: avocado.field
   pk: 2
@@ -26,6 +47,7 @@
       model_name: column
       field_name: keywords
       translator: null
+      group: 2
 
 - model: avocado.field
   pk: 3
@@ -38,6 +60,7 @@
       model_name: field
       field_name: name
       translator: null
+      group: null
 
 - model: avocado.field
   pk: 4
@@ -50,6 +73,7 @@
       model_name: field
       field_name: field_name
       translator: null
+      group: null
 
 - model: avocado.field
   pk: 5
@@ -62,6 +86,33 @@
       model_name: field
       field_name: translator
       translator: null
+      group: null
+
+- model: avocado.field
+  pk: 6
+  fields:
+      name: f6
+      description: null
+      keywords: null
+      is_public: true
+      app_name: auth
+      model_name: group
+      field_name: name
+      translator: null
+      group: null
+
+- model: avocado.field
+  pk: 7
+  fields:
+      name: f5
+      description: null
+      keywords: null
+      is_public: false
+      app_name: auth
+      model_name: user
+      field_name: first_name
+      translator: null
+      group: null
 
 - model: avocado.column
   pk: 1
@@ -83,6 +134,26 @@
     is_public: true
     order: 1
 
+- model: avocado.column
+  pk: 3
+  fields:
+    name: cc3
+    description: 'google has some cool search capabilites'
+    keywords: 'google search'
+    category: 1
+    is_public: true
+    order: 2
+
+- model: avocado.column
+  pk: 4
+  fields:
+    name: cc4
+    description: 'google has some cool search capabilites'
+    keywords: 'google search'
+    category: 1
+    is_public: false
+    order: 2
+
 - model: avocado.columnfield
   pk: 1
   fields:
@@ -107,6 +178,30 @@
       concept: 2
       field: 4
 
+- model: avocado.columnfield
+  pk: 5
+  fields:
+      concept: 3
+      field: 5
+
+- model: avocado.columnfield
+  pk: 6
+  fields:
+      concept: 3
+      field: 6
+
+- model: avocado.columnfield
+  pk: 7
+  fields:
+      concept: 4
+      field: 6
+
+- model: avocado.columnfield
+  pk: 8
+  fields:
+      concept: 4
+      field: 7
+
 - model: avocado.criterion
   pk: 1
   fields:
@@ -125,6 +220,26 @@
     keywords: 'google search'
     category: 1
     is_public: true
+    order: 1
+
+- model: avocado.criterion
+  pk: 3
+  fields:
+    name: cc3
+    description: 'a criterion concept that rocks'
+    keywords: 'food testing python'
+    category: 1
+    is_public: true
+    order: 0
+
+- model: avocado.criterion
+  pk: 4
+  fields:
+    name: cc4
+    description: 'google has some cool search capabilites'
+    keywords: 'google search'
+    category: 1
+    is_public: false
     order: 1
 
 - model: avocado.criterionfield
@@ -150,3 +265,28 @@
   fields:
       concept: 2
       field: 4
+
+- model: avocado.criterionfield
+  pk: 5
+  fields:
+      concept: 3
+      field: 5
+
+- model: avocado.criterionfield
+  pk: 6
+  fields:
+      concept: 3
+      field: 6
+
+- model: avocado.criterionfield
+  pk: 7
+  fields:
+      concept: 4
+      field: 6
+
+- model: avocado.criterionfield
+  pk: 8
+  fields:
+      concept: 4
+      field: 7
+

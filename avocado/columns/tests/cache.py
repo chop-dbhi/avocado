@@ -50,5 +50,3 @@ class ColumnCacheTestCase(TestCase):
 
         self.assertTrue(djcache.has_key(key))
         self.assertEqual(djcache.get(fkey), fields)
-
-        self.assertEqual(cache.get_fields(3, ret_val=False), False)

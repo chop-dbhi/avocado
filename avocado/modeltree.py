@@ -551,4 +551,4 @@ class LazyModelTree(object):
             self._modeltrees[alias] = ModelTree(**kwargs)
         return self._modeltrees[alias]
 
-mts = LazyModelTree(settings.MODELTREES)
+trees = LazyModelTree(settings.MODELTREES)

@@ -35,7 +35,7 @@ class Operator(object):
 
     def _get_uid(self):
         if self.negated:
-            return '~%s' % self.operator
+            return '-%s' % self.operator
         return '%s' % self.operator
     uid = property(_get_uid)
 
@@ -177,10 +177,10 @@ notnull = NotNull()
 
 CHAR_OPERATORS = (iexact, notiexact, contains, doesnotcontain, inlist,
     notinlist, null, notnull)
-    
+
 NUMERIC_OPERATORS = (exact, notexact, lt, lte, gt, gte, between,
     notbetween, null, notnull)
-    
+
 MODEL_FIELD_MAP = {
     'AutoField': (exact, inlist, notexact, notinlist),
     'CharField': CHAR_OPERATORS,

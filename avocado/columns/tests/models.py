@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.contrib.auth.models import User
 
 from avocado.columns.models import Column
 
@@ -15,12 +16,12 @@ class ColumnSearchTestCase(TestCase):
 
         queryset2 = Column.objects.fulltext_search('google< search *>')
         self.assertEqual(str(queryset2.values('id').query), 'SELECT "avocado_column"."id" FROM "avocado_column" WHERE "avocado_column"."search_tsv" @@ to_tsquery(google&search) ORDER BY "avocado_column"."name" ASC')
-        self.assertEqual(queryset2.count(), 1)
+        self.assertEqual(queryset2.count(), 3)
         self.assertEqual(queryset2[0].id, 2)
 
         queryset3 = Column.objects.fulltext_search('ca&$t1')
         self.assertEqual(str(queryset3.values('id').query), 'SELECT "avocado_column"."id" FROM "avocado_column" WHERE "avocado_column"."search_tsv" @@ to_tsquery(cat1) ORDER BY "avocado_column"."name" ASC')
-        self.assertEqual(queryset3.count(), 2)
+        self.assertEqual(queryset3.count(), 4)
 
     def test_icontains(self):
         queryset1 = Column.objects.icontains_search('pyt foo')
@@ -30,12 +31,21 @@ class ColumnSearchTestCase(TestCase):
 
         queryset2 = Column.objects.icontains_search('capab')
         self.assertEqual(str(queryset2.values('id').query), 'SELECT "avocado_column"."id" FROM "avocado_column" WHERE UPPER("avocado_column"."search_doc"::text) LIKE UPPER(%capab%)  ORDER BY "avocado_column"."name" ASC')
-        self.assertEqual(queryset2.count(), 1)
+        self.assertEqual(queryset2.count(), 3)
         self.assertEqual(queryset2[0].id, 2)
 
         queryset3 = Column.objects.icontains_search('cat')
         self.assertEqual(str(queryset3.values('id').query), 'SELECT "avocado_column"."id" FROM "avocado_column" WHERE UPPER("avocado_column"."search_doc"::text) LIKE UPPER(%cat%)  ORDER BY "avocado_column"."name" ASC')
-        self.assertEqual(queryset3.count(), 2)
+        self.assertEqual(queryset3.count(), 4)
 
+    def test_public(self):
+        public_objects = Column.objects.public()
+        self.assertEqual(public_objects.count(), 2)
+        self.assertEqual(list(public_objects.values_list('id', flat=True)), [2, 3])
 
+    def test_restricted(self):
+        user = User.objects.get(pk=1)
+        restricted_objects = Column.objects.restrict_by_group(user.groups.all())
+        self.assertEqual(restricted_objects.count(), 2)
+        self.assertEqual(list(restricted_objects.values_list('id', flat=True)), [2, 3])
 

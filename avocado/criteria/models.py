@@ -27,11 +27,11 @@ class Criterion(Concept):
                 def __init__(self, *args, **kwargs):
                     super(CriterionForm, self).__init__(*args, **kwargs)
                     self.fields.update(form_fields)
-            
+
             self._form = CriterionForm
         return self._form
     form = property(_get_form)
-    
+
     def view_responses(self):
         resps = library.get(self.viewset, self)
         return resps

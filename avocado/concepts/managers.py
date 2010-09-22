@@ -1,9 +1,9 @@
 import re
 
 from django.db import models
-from django.db.models import Q
 from django.utils import stopwords
 
+from avocado.fields.models import Field
 from avocado.conf import settings
 
 def _tokenize(search_str):
@@ -20,14 +20,50 @@ def _tokenize(search_str):
 class ConceptManager(models.Manager):
     use_for_related_fields = True
 
-    def public(self, *args, **kwargs):
-        return self.get_query_set().filter(*args, is_public=True, **kwargs)
+    def public(self):
+        """Translates to::
+
+            'return all concepts which are public, all fields associated with
+            them are public and all fields are not part of a group.'
+        """
+        ids = []
+        # allowed concepts
+        public_concepts = list(self.get_query_set().filter(is_public=True))
+        # allowed fields
+        public_fields = list(Field.objects.public().values_list('id', flat=True))
+
+        for c in public_concepts:
+            fids = list(c.fields.values_list('id', flat=True))
+            for x in fids:
+                if x not in public_fields:
+                    break
+            else:
+                ids.append(c.id)
+
+        return self.get_query_set().filter(id__in=ids)
 
     if settings.FIELD_GROUP_PERMISSIONS:
         def restrict_by_group(self, groups):
-            "Restrict by the associated fields' groups."
-            return self.public(Q(fields__groups__isnull=True) |
-                Q(fields__groups__in=groups)).distinct()
+            """Translates to::
+
+                'return all concepts which are public, all fields associated with
+                them are public and all fields per column are either not part of
+                a group or are within any of the groups specified by ``groups``.
+            """
+            ids = []
+            # allowed concepts
+            public_concepts = list(self.get_query_set().filter(is_public=True))
+            # allowed fields
+            public_fields = list(Field.objects.restrict_by_group(groups).values_list('id', flat=True))
+
+            for c in public_concepts:
+                fids = list(c.fields.values_list('id', flat=True))
+                for x in fids:
+                    if x not in public_fields:
+                        break
+                else:
+                    ids.append(c.id)
+            return self.get_query_set().filter(id__in=ids)
 
     def fulltext_search(self, search_str, base_queryset=None, use_icontains=False):
         """Performs a fulltext search provided the database backend supports

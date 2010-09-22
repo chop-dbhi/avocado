@@ -5,8 +5,9 @@ from django.contrib.auth.models import Group
 from django.db.models.fields import FieldDoesNotExist
 
 from avocado.conf import settings
-from avocado.modeltree import DEFAULT_MODELTREE_ALIAS, mts
+from avocado.modeltree import DEFAULT_MODELTREE_ALIAS, trees
 from avocado.fields.translate import library
+from avocado.fields.managers import FieldManager
 
 __all__ = ('Field',)
 
@@ -39,12 +40,12 @@ class Field(models.Model):
     keywords = models.CharField(max_length=100, null=True, blank=True)
 
     is_public = models.BooleanField(default=False)
-    
+
     # search optimizations
     search_doc = models.TextField(editable=False, null=True)
 
     if settings.FIELD_GROUP_PERMISSIONS:
-        groups = models.ManyToManyField(Group, blank=True)
+        group = models.ForeignKey(Group, null=True, blank=True)
 
     translator = models.CharField(max_length=100, choices=library.choices(),
         blank=True, null=True)
@@ -58,6 +59,8 @@ class Field(models.Model):
             2. a constant name on the model's module
             3. a string that can be evaluated
     """)
+
+    objects = FieldManager()
 
     class Meta:
         app_label = u'avocado'
@@ -225,7 +228,7 @@ class Field(models.Model):
 
     def query_string(self, operator=None, using=DEFAULT_MODELTREE_ALIAS):
         "Returns a django lookup string relative to the ``modeltree`` object."
-        modeltree = mts[using]
+        modeltree = trees[using]
         nodes = modeltree.path_to(self.model)
         return modeltree.query_string(nodes, self.field_name, operator)
 
@@ -242,7 +245,7 @@ class Field(models.Model):
         return trans(self, operator, value, using, **context)
 
     def query_by_value(self, operator, value, using=DEFAULT_MODELTREE_ALIAS):
-        modeltree = mts[using]
+        modeltree = trees[using]
         condition, annotations = self.translate(operator, value, using)
         queryset = modeltree.root_model.objects.all()
         if annotations:

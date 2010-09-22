@@ -1,4 +1,5 @@
-from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
+from django.core.exceptions import (ObjectDoesNotExist, MultipleObjectsReturned,
+    PermissionDenied)
 from piston.handler import BaseHandler
 from piston.utils import rc
 
@@ -33,7 +34,7 @@ class CriterionHandler(BaseHandler):
         if hasattr(self.model.objects, 'restrict_by_group'):
             groups = request.user.groups.all()
             return self.model.objects.restrict_by_group(groups)
-        return self.model.objects.all()
+        return self.model.objects.public()
 
     def read(self, request, *args, **kwargs):
         obj = super(CriterionHandler, self).read(request, *args, **kwargs)
@@ -57,18 +58,20 @@ class ScopeHandler(BaseHandler):
 
     def read(self, request, *args, **kwargs):
         """Modified to allow for requesting the session's current ``scope``.
-        
+
         The override specifies the kwarg ``id`` with a value "session" instead
         of the primary key.
         """
+
         if kwargs.get('id', None) != 'session':
             return super(ScopeHandler, self).read(request, *args, **kwargs)
-        return request.session.get('report').scope
+        return request.session['report'].scope
+
 
     def update(self, request, *args, **kwargs):
         """Modified to allow for updating the session's current ``scope``
         object.
-        
+
         If the session's current ``scope`` is not temporary, it will be
         copied and store off temporarily.
         """
@@ -79,16 +82,18 @@ class ScopeHandler(BaseHandler):
         # if the request is relative to the session and not to a specific id,
         # it cannot be assumed that if the session is using a saved scope
         # for it, iself, to be updated, but rather the session representation.
-        # therefore, if the session scope is not temporary, make it a 
+        # therefore, if the session scope is not temporary, make it a
         # temporary object with the new parameters.
-        json = convert2str(request.data)
         inst = request.session['report'].scope
-        # assume the PUT request is only the store
-        if kwargs['id'] == 'session':
-            inst.write(json)
 
-        # an object has been targeted via the ``id`` referenced in the url
-        else:
+        json = convert2str(request.data)
+
+        # see if the json object is only the ``store``
+        if 'children' in json or 'operator' in json:
+            json = {'store': json}
+
+        # assume the PUT request is only the store
+        if kwargs['id'] != 'session':
             if kwargs['id'] != inst.id:
                 try:
                     inst = self.queryset(request).get(pk=kwargs['id'])
@@ -97,21 +102,25 @@ class ScopeHandler(BaseHandler):
                 except MultipleObjectsReturned:
                     return rc.BAD_REQUEST
 
-            store = json.pop('store', None)
-            attrs = self.flatten_dict(json)
+        store = json.pop('store', None)
 
-            # special case
-            if store is not None:
-                inst.write(store)
+        if store is not None:
+            if not inst.is_valid(store) or inst.has_permission(store, request.user):
+                rc.BAD_REQUEST
+            inst.write(store)
 
-            for k, v in attrs.iteritems():
-                setattr(inst, k, v)
+        attrs = self.flatten_dict(json)
+        for k, v in attrs.iteritems():
+            setattr(inst, k, v)
 
+        # only save existing instances that have been saved.
+        # a POST is required to make the intial save
+        if inst.id is not None:
             inst.save()
 
         request.session['report'].scope = inst
         request.session.modified = True
-        
+
         return rc.ALL_OK
 
 
@@ -126,18 +135,18 @@ class PerspectiveHandler(BaseHandler):
     def read(self, request, *args, **kwargs):
         """Modified to allow for requesting the session's current
         ``perspective``.
-        
+
         The override specifies the kwarg ``id`` with a value "session" instead
         of the primary key.
         """
         if kwargs.get('id', None) != 'session':
             return super(PerspectiveHandler, self).read(request, *args, **kwargs)
         return request.session.get('report').perspective
-    
+
     def update(self, request, *args, **kwargs):
         """Modified to allow for updating the session's current ``perspective``
         object.
-        
+
         If the session's current ``perspective`` is not temporary, it will be
         copied and store off temporarily.
         """
@@ -148,11 +157,16 @@ class PerspectiveHandler(BaseHandler):
         # if the request is relative to the session and not to a specific id,
         # it cannot be assumed that if the session is using a saved perspective
         # for it, iself, to be updated, but rather the session representation.
-        # therefore, if the session perspective is not temporary, make it a 
+        # therefore, if the session perspective is not temporary, make it a
         # temporary object with the new parameters.
         json = convert2str(request.data)
         inst = request.session['report'].perspective
-        
+
+        try:
+            inst.has_permission(request.user, json)
+        except PermissionDenied:
+            return rc.FORBIDDEN
+
         # assume the PUT request is only the store
         if kwargs['id'] == 'session':
             inst.write(json)
@@ -181,7 +195,7 @@ class PerspectiveHandler(BaseHandler):
 
         request.session['report'].perspective = inst
         request.session.modified = True
-        
+
         return rc.ALL_OK
 
 
@@ -198,10 +212,10 @@ class ReportHandler(BaseHandler):
 
     def read(self, request, *args, **kwargs):
         """Modified to allow for requesting the session's current ``report``.
-        
+
         The override specifies the kwarg ``id`` with a value "session" instead
         of the primary key.
-        """        
+        """
         if kwargs.get('id', None) != 'session':
             return super(ReportHandler, self).read(request, *args, **kwargs)
         return request.session.get('report')
@@ -210,19 +224,21 @@ class ReportHandler(BaseHandler):
 class ReportResolverHandler(BaseHandler):
     allowed_methods = ('GET',)
     model = Report
-    
+
     def queryset(self, request):
         return self.model.objects.filter(user=request.user)
 
     def read(self, request, *args, **kwargs):
+        "The interface for resolving a report, i.e. running a query."
+
         if not kwargs.has_key('id'):
             return rc.BAD_REQUEST
-        
-        format = request.GET.get('format', 'html')
-        page = request.GET.get('page', None)
-        paginate_by = request.GET.get('paginate_by', None)
 
-        inst = request.session['report']    
+        format_type = request.GET.get('format', 'html')
+        page = request.GET.get('page', 1)
+        per_page = request.GET.get('per_page', 10)
+
+        inst = request.session['report']
 
         if kwargs.get('id') != 'session':
             if int(kwargs['id']) != inst.id:
@@ -232,5 +248,5 @@ class ReportResolverHandler(BaseHandler):
                     return rc.NOT_FOUND
                 except MultipleObjectsReturned:
                     return rc.BAD_REQUEST
-        
-        return inst.get_result(format)
+
+        return inst.resolve(request, format_type, page, per_page)

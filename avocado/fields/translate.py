@@ -1,10 +1,11 @@
 from django.db.models import Q
+from django.forms import FloatField
 
 from avocado.exceptions import ValidationError
 from avocado.conf import settings
 from avocado.concepts.library import Library
 from avocado.fields.operators import MODEL_FIELD_MAP
-from avocado.modeltree import DEFAULT_MODELTREE_ALIAS, mts
+from avocado.modeltree import DEFAULT_MODELTREE_ALIAS
 from avocado.utils.iter import ins
 
 class OperatorNotPermitted(Exception):
@@ -16,41 +17,43 @@ class AbstractTranslator(object):
     operators = None
     formfield = None
 
-    def __call__(self, field, operator=None, value=None, using=DEFAULT_MODELTREE_ALIAS, **context):
-        self._setup(field)
-        try:
-            return self.translate(field, operator, value, using, **context)
-        finally:
-            self._cleanup()
-    
-    def _setup(self, field):
-        operators = self.operators
-        formfield = field.formfield
+    formfield_overrides = {
+        'IntegerField': FloatField
+    }
 
-        if not operators:
+    def __call__(self, field, operator=None, value=None, using=DEFAULT_MODELTREE_ALIAS, **context):
+        return self.translate(field, operator, value, using=using, **context)
+
+    def _clean_operator(self, field, operator):
+        if self.operators:
+            operators = self.operators
+        else:
             operators = MODEL_FIELD_MAP.get(field.field.__class__.__name__)
 
-        self._operators = dict([(x.uid, x) for x in operators])
-        self._formfield = formfield
-    
-    def _cleanup(self):
-        hasattr(self, '_operators') and delattr(self, '_operators')
-        hasattr(self, '_formfield') and delattr(self, '_formfield')
+        operators = dict([(x.uid, x) for x in operators])
 
-    def _clean_operator(self, operator):
-        if not self._operators.has_key(operator):
+        if not operators.has_key(operator):
             raise OperatorNotPermitted, 'operator "%s" cannot be used for this translator' % operator
-        return self._operators[operator]
+        return operators[operator]
 
-    def _clean_value(self, value, **kwargs):
-        field = self._formfield(**kwargs)
+    def _clean_value(self, field, value, **kwargs):
+        formfield = None
+        if self.formfield:
+            formfield = self.formfield
+        else:
+            name = field.formfield().__class__.__name__
+            if self.formfield_overrides.has_key(name):
+                formfield = self.formfield_overrides[name]
+
+        ff = field.formfield(formfield=formfield, **kwargs)
+
         if ins(value):
-            return map(field.clean, value)
-        return field.clean(value)
+            return map(ff.clean, value)
+        return ff.clean(value)
 
-    def validate(self, operator, value):
-        clean_op = self._clean_operator(operator)
-        clean_val = self._clean_value(value)
+    def validate(self, field, operator, value):
+        clean_op = self._clean_operator(field, operator)
+        clean_val = self._clean_value(field, value)
         if not clean_op.check(clean_val):
             raise ValidationError, '"%s" is not valid for the operator "%s"' % (clean_val, clean_op)
         return clean_op, clean_val
@@ -59,24 +62,22 @@ class AbstractTranslator(object):
         """Returns two types of queryset modifiers including:
             - a Q object applied via the `filter()' method
             - a dict of annotations
-            
+
         It should be noted that no checks are performed to prevent the same
         name being used for annotations.
         """
-        raise NotImplementedError
-
-
-class DefaultTranslator(AbstractTranslator):
-    "Provides the default behavior of creating a simple lookup."    
-    def translate(self, field, operator, value, using, **context):
-        modeltree = mts[using]
-        operator, value = self.validate(operator, value)
+        operator, value = self.validate(field, operator, value)
         key = field.query_string(operator.operator, using=using)
         kwarg = {key: value}
-        
+
         if operator.negated:
             return ~Q(**kwarg), {}
         return Q(**kwarg), {}
+
+
+class DefaultTranslator(AbstractTranslator):
+    "Provides the default behavior of creating a simple lookup."
+    pass
 
 
 class TranslatorLibrary(Library):

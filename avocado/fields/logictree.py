@@ -42,10 +42,18 @@ from avocado.modeltree import DEFAULT_MODELTREE_ALIAS
 from avocado.models import Field
 
 class Node(object):
+    condition = None
+    annotations = None
+
+    def get_field_ids(self):
+        return []
+
     def apply(self, queryset):
         if self.annotations:
             queryset = queryset.values('pk').annotate(**self.annotations)
-        return queryset.filter(self.condition)
+        if self.condition:
+            queryset = queryset.filter(self.condition)
+        return queryset
 
 
 class Condition(Node):
@@ -81,6 +89,9 @@ class Condition(Node):
         return self._annotations
     annotations = property(_get_annotations)
 
+    def get_field_ids(self):
+        return [self.id]
+
 
 class LogicalOperator(Node):
     "Provides a logical relationship between it's children."
@@ -114,13 +125,22 @@ class LogicalOperator(Node):
         return self._annotations
     annotations = property(_get_annotations)
 
+    def get_field_ids(self):
+        ids = []
+        for node in self.children:
+            ids.extend(node.get_field_ids())
+        return ids
+
 
 def transform(rnode, pnode=None, using=DEFAULT_MODELTREE_ALIAS, **context):
     "Takes the raw data structure and converts it into the node tree."
+    if not rnode:
+        return Node()
+
     if rnode.has_key('children'):
         # ensure the logic makes sense
         if len(rnode['children']) < 2:
-            raise RuntimeError, 'a logical operator must apply to 2 or more ' \
+            raise TypeError, 'a logical operator must apply to 2 or more ' \
                 'conditions'
         node = LogicalOperator(rnode['type'], using=using)
         for child in rnode['children']:

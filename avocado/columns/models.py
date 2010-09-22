@@ -10,7 +10,7 @@ fields for the Column class to use.
 from django.db import models
 
 from avocado.conf import settings
-from avocado.modeltree import DEFAULT_MODELTREE_ALIAS, mts
+from avocado.modeltree import DEFAULT_MODELTREE_ALIAS, trees
 from avocado.concepts.models import Concept, ConceptField
 from avocado.fields.models import Field
 from avocado.columns.mixins import ColumnMixin
@@ -36,7 +36,7 @@ class Column(Concept, ColumnMixin):
         return self._rules[ftype]
 
     def add_fields_to_queryset(self, queryset, using=DEFAULT_MODELTREE_ALIAS):
-        modeltree = mts[using]
+        modeltree = trees[using]
 
         fields = self.fields.all()
         aliases = []
