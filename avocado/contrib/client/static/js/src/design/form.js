@@ -2,7 +2,7 @@ require.def('design/form', [], {
     
     Form : function(view, concept_pk){
           var $form = $('<form method="get" action=""></form>');
-          var decOperatorsTmpl =  ['<option id="<%=this.field_id%>" value="range">is between</option>',
+          var decOperatorsTmpl =  ['<option selected id="<%=this.field_id%>" value="range">is between</option>',
                                    '<option id="<%=this.field_id%>" value="exclude:range">is not between</option>',
                                    '<option id="<%=this.field_id%>" value="lt">is less than</option>',
                                    '<option id="<%=this.field_id%>" value="gt">is greater than</option>',
@@ -10,7 +10,7 @@ require.def('design/form', [], {
                                    '<option id="<%=this.field_id%>" value="gte">is greater than or equal to</option>',
                                    '<option id="<%=this.field_id%>" value="exact">is equal to</option>',
                                    '<option id="<%=this.field_id%>" value="exclude:exact">is not equal to</option>'].join('');
-          var choiceOperatorsTmpl = ['<option value="in">is equal to</option>',
+          var choiceOperatorsTmpl = ['<option selected value="in">is equal to</option>',
                                      '<option value="exclude:in">is not equal to</option>'].join('');
           // For most cases we use the name attribute to constuct a unique id for all inputs (see field_id in the template context 
           // object below). The format for it is <concept primary key>_<field primary key> with optional "_input[01]" to support datatypes that
@@ -34,7 +34,7 @@ require.def('design/form', [], {
                                                 '<option value="No">No</option>',
                                             '</select>'];
                                    break;
-                  case 'assertion':input = ['<input type="checkbox" name="<%=this.field_id%>" value="<%=this.field_id%>"/><%=this.label%>',
+                  case 'assertion':input = ['<input type="checkbox" name="<%=this.field_id%>" value="<%=this.field_id%>" <%= this["default"] ? "checked":""%>/><%=this.label%>',
                                             '</select>'];
                                    break;
                   case 'decimal'  :input = ['<label for="<%=this.field_id%>"><%=this.label%></label>',
@@ -47,11 +47,11 @@ require.def('design/form', [], {
                                             '<input data-validate="decimal" id="<%=this.field_id%>_input1" type="text" name="<%=this.field_id%>_input1" size="5">',
                                             '</span>'];
                                    break;
-                 case 'choice'    : input = [ '<label for="<%=this.field_id%>"><%=this.label%></label>',
+                 case 'choice'    : input = [ '<label for="<%=this.field_id%>"><%=this.label%></label>', // No defaults for this type, doesn't make sense
                                               '<select id="<%=this.field_id%>-operator" name="<%=this.field_id%>_operator">',
                                                  choiceOperatorsTmpl,
                                               '</select>',
-                                              '<select multiple="multiple" id="<%=this.field_id%>-value" name="<%=this.field_id%>" size="7">',
+                                              '<select multiple="multiple" id="<%=this.field_id%>-value" name="<%=this.field_id%>" size="7" data-optional="<%=this.optional%>" >',
                                               '<% for (index in this.choices) { %>',
                                                     '<option value="<%=this.choices[index][0]%>"><%=this.choices[index][1]%></option>',
                                                '<%}%>',
@@ -61,13 +61,12 @@ require.def('design/form', [], {
                }
                
                // Does this element contain a "pk" attribute? See large comment above for reason
-             
                if (!element.hasOwnProperty("pk")){
                    // Append additional dropdown for user to choose which field this applies to
                     input = input.concat(['<p><label for="<%=this.pkchoice_id%>"><%=this.pkchoice_label%></label>',
                                   '<select id="<%=this.pkchoice_id%>" name="<%=this.pkchoice_id%>">',
-                                  '<% for (index in this.pkchoices) { %>',
-                                          '<option value="<%=this.pkchoices[index][0]%>"><%=this.pkchoices[index][1]%></option>',
+                                  '<% for (index in this.pkchoices) { %>',     
+                                          '<option value="<%=this.pkchoices[index][0]%>" <%=this.pkchoices[index][0]==this.pkchoice_default ? "selected":""%>><%=this.pkchoices[index][1]%></option>',
                                   '<%}%>',
                                   '</select></p>']);
                }
@@ -118,10 +117,14 @@ require.def('design/form', [], {
                                                       "label":element.name,
                                                       "pkchoices":element.pkchoices,
                                                       "pkchoice_label":element.pkchoice_label,
-                                                      "pkchoice_id":pkchoice_name_attribute}));
+                                                      "pkchoice_id":pkchoice_name_attribute,
+                                                      "optional": element.hasOwnProperty('optional') ? element.optional : false,
+                                                      "default": element.hasOwnProperty('default') ? element["default"]: 0,
+                                                      "pkchoice_default": element.hasOwnProperty('pkchoice_default') ? element["pkchoice_default"]: 0}));
          });
          // Trigger an event when anything changes
          $("input,select",$form).bind('change keyup', function(evt){
+            var $target = $(evt.target); 
             switch (evt.target.type){
                     case "checkbox": $form.trigger("ElementChangedEvent", [{name:evt.target.name,value:evt.target.checked}]);
                                      break;
@@ -148,7 +151,20 @@ require.def('design/form', [], {
                                              });
                                              // Since this code executes for select choices boxes as well as operators (which should
                                              // never be plural), we make sure to send the correct type array, or single item
-                                             var sendValue = evt.target.type === "select-multiple" ? selected : selected[0]; // JMM I am concerned selected[0] could sometimes be undefined?
+                                             var sendValue;
+                                             if (evt.target.type === "select-multiple"){
+                                                 // If a select-multiple box is optional, and nothing is selected, send null so that it doesn't appear as empty in 
+                                                 // the datasource, eitherwise, we will throw an error if nothing is supplied;
+                                                 if ($target.is('[data-optional=true]')) {
+                                                    sendValue = selected.length ? selected : null;
+                                                 } else {
+                                                    sendValue = selected; 
+                                                 }
+                                             } else { 
+                                                 sendValue = selected[0]; // JMM I am concerned selected[0] could sometimes be undefined?
+                                             }
+                                            
+                                             
                                              $form.trigger("ElementChangedEvent", [{name:evt.target.name, value:sendValue}]);
                                              break;
                     default   : // This catches input boxes, if input boxes are not currently visible, send null for them
@@ -160,7 +176,7 @@ require.def('design/form', [], {
                                 var $input2 = $("input[name="+name_prefix+"1]",$form);
                                 var value1 = parseFloat($input1.val());
                                 var value2 = parseFloat($input2.val());
-                                var $target = $(evt.target);
+                                
                                 // This one is a little tricky because it matters not just that the fields map to valid numbers
                                 // but that in the case of a range style operator, the two numbers are sequential, and finally
                                 // if fields have become hidden due to a change in operator, we no longer want to list that something

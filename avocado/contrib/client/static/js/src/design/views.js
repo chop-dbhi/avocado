@@ -379,7 +379,7 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
             for (item in ds){
                  if (!ds.hasOwnProperty(item)) continue;
                  m = opRe.exec(item);
-                 if (m){
+                 if ((m) && fields[m[2]]) { // For optional fields, we may have an operator, but the value may not exist, so don't use it
                      fields[m[2]]['op'] = ds[item];
                  }
             }
@@ -432,6 +432,7 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
                                 });
                 } else {
                     // Unable to determine what this field is ?
+                    console.log(field);
                     throw "Unable to determine field " + field + " in concept " + cache[activeConcept];
                 }
                 
