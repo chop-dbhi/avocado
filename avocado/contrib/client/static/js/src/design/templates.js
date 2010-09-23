@@ -10,7 +10,7 @@ require.def('design/templates', function() {
             ].join('')
         },
         categories: {
-            list: '<span data-model="category" data-search-select ' +
+            list: '<span id="tab-<%= this.name.toLowerCase() %>" data-model="category" ' +
                 'data-search-term="<%= this.name.toLowerCase() %>"><%= this.name %></span>'
         },
         scope_element: ['<div id="<%= this.pk %>" class="criterion clearfix">',

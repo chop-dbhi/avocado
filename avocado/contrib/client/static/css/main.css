@@ -108,7 +108,7 @@ input[type=button], input[type=submit], button {
     color: #000;
     border: 1px solid #aaa;
     background: #ddd;
-    background: -moz-linear-gradient(100% 100% 90deg, #ddd, #bbb);
+    background: -moz-linear-gradient(100% 100% 0deg, #ddd, #bbb);
     background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ddd), to(#bbb));
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#dddddd', endColorstr='#bbbbbb');    
     text-shadow: #eee 1px 1px 0;
@@ -130,20 +130,20 @@ input[type=button]:active, input[type=submit]:active, button:active, button.sele
     color: #fff;
     text-shadow: #222 -1px -1px 0;
     background: #666;
-    background: -moz-linear-gradient(100% 100% 90deg, #666, #888);
+    background: -moz-linear-gradient(100% 100% 0deg, #666, #888);
     background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#666), to(#888));
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#666666', endColorstr='#888888');
 }
 
-input[type=search] {
-    font-size: 16px;
-}
-
-input[type=search].search {
-    background: #fff url(../img/icons/search.png) no-repeat 2px;
-    padding: 2px 5px 2px 20px;
-    border: 1px solid #aaa;
-    width: 85%; /* HACK */
+input.search {
+    background: #fff url(../img/icons/search.png) no-repeat 3px;
+    padding: 2px 5px 2px 21px;
+    border: 1px solid #999;
+    border-radius: 15px;
+    -moz-border-radius: 15px;
+    -webkit-border-radius: 15px;
+    -webkit-box-shadow: inset 2px 2px 3px #ddd;
+    -moz-box-shadow: inset 2px 2px 3px #ddd;  
 }
 
 strong {
@@ -334,7 +334,7 @@ footer a:hover, footer a:active {
     cursor: pointer;
     text-shadow: #fff 1px 1px 0;
     background-color: #eee;
-    background-image: -moz-linear-gradient(100% 100% 90deg, #eee, #ddd);
+    background-image: -moz-linear-gradient(100% 100% 0deg, #eee, #ddd);
     background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#eee), to(#ddd));
     padding: 3px 5px;
     border: 1px solid #aaa;
@@ -503,7 +503,7 @@ footer a:hover, footer a:active {
     color: #eee;
     padding: 4px 10px;
     background-color: #29537D;
-    background-image: -moz-linear-gradient(100% 100% 90deg, #29537d, #22466b);
+    background-image: -moz-linear-gradient(100% 100% -0deg, #29537d, #22466b);
     background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#29537d), to(#22466b));    
 	text-shadow: #172E46 1px 1px 0;
 
@@ -538,7 +538,7 @@ footer a:hover, footer a:active {
     font-size: 11px;
     color: #002D46;
     background-color: #D5E2F2;
-    background-image: -moz-linear-gradient(100% 100% 90deg, #D5E2F2, #C8D8F2);
+    background-image: -moz-linear-gradient(100% 100% 0deg, #D5E2F2, #C8D8F2);
     background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#D5E2F2), to(#C8D8F2));
     padding: 0 10px;
     text-shadow: #fff 1px 1px 0;
@@ -792,7 +792,7 @@ footer a:hover, footer a:active {
     padding: 4px 10px;
     border: none;
     background-color: #D5E2F2;
-    background-image: -moz-linear-gradient(100% 100% 90deg, #D5E2F2, #C8D8F2);
+    background-image: -moz-linear-gradient(100% 100% 0deg, #D5E2F2, #C8D8F2);
     background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#D5E2F2), to(#C8D8F2));     
 	text-shadow: 0 1px 1px #172E46;
 	-moz-border-radius: 0;
@@ -821,7 +821,7 @@ footer a:hover, footer a:active {
     border: 1px solid #aaa;
     font-weight: bold;
     background-color: #eee;
-    background-image: -moz-linear-gradient(100% 100% 90deg, #eee, #ddd);
+    background-image: -moz-linear-gradient(100% 100% 0deg, #eee, #ddd);
     background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#eee), to(#ddd));
     text-shadow: #fff 1px 1px 0;
     cursor: pointer;
@@ -840,7 +840,7 @@ footer a:hover, footer a:active {
 
 .ui-dialog .ui-dialog-buttonpane button:active {
     background-color: #ddd;
-    background-image: -moz-linear-gradient(100% 100% 90deg, #ddd, #eee);
+    background-image: -moz-linear-gradient(100% 100% 0deg, #ddd, #eee);
     background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ddd), to(#eee));     
 }
 

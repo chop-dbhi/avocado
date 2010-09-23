@@ -18,37 +18,37 @@
 {% endblock %}
 
 {% block tools %}
-    <button id="patient-set" data-for='#patient-set-menu'>Patient Cohorts</button>
-    <button id="scope" data-for='#scope-menu'>Questions</button>
+    {# <button id="patient-set" data-for='#patient-set-menu'>Patient Cohorts</button> #}
+    {# <button id="scope" data-for='#scope-menu'>Questions</button> #}
 {% endblock %}
 
 {% block tool_menus %}
-    <div id="patient-set-menu">
-        <ul>
-            <li>Patient Set 1</li>
-            <li>Patient Set 2</li>
-        </ul>
-    </div>
-
-    <div id="scope-menu">
-        <form method="get" action="{% url api:scope:read %}">
-            <input type="search" results="0" placeholder="Search questions...">
-        </form>
-        <a class="ht" href="#">Save current question</a>
-    </div>
+    {# <div id="patient-set-menu"> #}
+    {#     <ul> #}
+    {#         <li>Patient Set 1</li> #}
+    {#         <li>Patient Set 2</li> #}
+    {#     </ul> #}
+    {# </div> #}
+    {#  #}
+    {# <div id="scope-menu"> #}
+    {#     <form method="get" action="{% url api:scope:read %}"> #}
+    {#         <input type="search" results="0" placeholder="Search questions..."> #}
+    {#     </form> #}
+    {#     <a class="ht" href="#">Save current question</a> #}
+    {# </div> #}
 {% endblock %}
 
 {% block content %}
 
     <div id="left-pane">
 
-        <div id="search-panel" class="clearfix">
+        <div id="search-panel">
+            <div id="categories" data-uri="{% url api:categories:read %}"></div>         
             {# This form is used for searching available query options, it makes an async #}
             {# request and returns the results in the #browse-all element. #}
-            <form class="box fr" method="get" action="{% url api:criteria:read %}">
-                <input id="search" type="search" name="q" results="0" placeholder="I want to find out about..." autofocus="true">
-            </form>            
-            <div id="categories" class="box" data-uri="{% url api:categories:read %}"></div>
+            <form method="get" action="{% url api:criteria:read %}">
+                <input id="search" class="search" type="input" name="q" results="0" placeholder="Search..." autofocus="true">
+            </form>
         </div>
         
         <div id="center-pane" class="box clearfix">
