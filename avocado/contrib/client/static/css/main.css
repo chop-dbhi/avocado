@@ -135,9 +135,9 @@ input[type=button]:active, input[type=submit]:active, button:active, button.sele
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#666666', endColorstr='#888888');
 }
 
-/*input[type=search] {
-    width: 100%;
-}*/
+input[type=search] {
+    font-size: 16px;
+}
 
 input[type=search].search {
     background: #fff url(../img/icons/search.png) no-repeat 2px;
