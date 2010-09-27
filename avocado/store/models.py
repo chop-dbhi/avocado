@@ -2,16 +2,18 @@ try:
     import cPickle as pickle
 except ImportError:
     import pickle
+from hashlib import md5
 from datetime import datetime
 from functools import partial
 
 from django.db import models, transaction, connections, DEFAULT_DB_ALIAS
-from django.core.exceptions import PermissionDenied
 from django.db.models.sql import RawQuery
+from django.core.exceptions import PermissionDenied
 from django.contrib.auth.models import User
+from django.core.cache import cache as mcache
 
 from avocado.conf import settings
-from avocado.models import Field, Column
+from avocado.models import Field
 from avocado.db_fields import PickledObjectField
 from avocado.modeltree import DEFAULT_MODELTREE_ALIAS, trees
 from avocado.fields import logictree
@@ -44,7 +46,7 @@ class Context(Descriptor):
     """
     store = PickledObjectField(default={})
     definition = models.TextField(editable=False, null=True)
-    timestamp = models.DateTimeField(editable=False)
+    timestamp = models.DateTimeField(editable=False, default=datetime.now())
 
     class Meta:
         abstract = True
@@ -88,7 +90,7 @@ class Context(Descriptor):
     def has_permission(self, obj=None, user=None):
         obj = obj or self.store or {}
 
-        field_ids = set(self._get_contents(obj))
+        field_ids = set([int(i) for i in self._get_contents(obj)])
         # if not requesting to see anything, early exit
         if not field_ids:
             return True
@@ -148,8 +150,8 @@ class Perspective(Context):
             flat=True)
 
     def _parse_contents(self, obj, *args, **kwargs):
-        columns = obj.get('columns', None)
-        ordering = obj.get('ordering', None)
+        columns = obj.get('columns', [])
+        ordering = obj.get('ordering', [])
 
         def func(queryset, columns=[], ordering=[], *args, **kwargs):
             queryset = utils.add_columns(queryset, columns, *args, **kwargs)
@@ -158,10 +160,13 @@ class Perspective(Context):
 
         return partial(func, columns=columns, ordering=ordering)
 
-    def format(self, obj, iterable, format_type):
-        columns = obj.get('column', None)
-        if columns:
-            rules = utils.column_format_rules(columns, format_type)
+    def format(self, iterable, format_type):
+        store = self.read()
+        if store is None:
+            return iterable
+
+        if store.has_key('columns'):
+            rules = utils.column_format_rules(store['columns'], format_type)
             return format.library.format(iterable, rules, format_type)
         return iterable
 
@@ -173,7 +178,14 @@ class Report(Descriptor):
     scope = models.ForeignKey(Scope)
     perspective = models.ForeignKey(Perspective)
 
-    def _center_cache_offset(count, offset, buf_size=CACHE_CHUNK_SIZE):
+    def _cache_is_valid(self, timestamp=None):
+        if timestamp:
+            if timestamp > self.scope.timestamp and \
+                timestamp > self.perspective.timestamp:
+                return True
+        return False
+
+    def _center_cache_offset(self, count, offset, buf_size=CACHE_CHUNK_SIZE):
         """The ``offset`` will be relative to the next requested row. To ensure
         a true 'sliding window' of data, the offset must be adjusted to be::
 
@@ -196,6 +208,11 @@ class Report(Descriptor):
 
         return offset
 
+    def _set_queryset_offset_limit(self, queryset, offset, limit):
+        lower = offset
+        upper = offset + limit
+        return queryset[lower:upper]
+
     def _execute_raw_query(self, queryset):
         """Take a ``QuerySet`` object and executes it. No customization or
         processing of the query should take place here.
@@ -207,133 +224,175 @@ class Report(Descriptor):
 
     # in it's current implementation, this will try to get the requested
     # page from cache, or re-execute the query and store off the new cache
-    def _get_from_cache(self, request, page_num, per_page, buf_size=CACHE_CHUNK_SIZE,
-        using=DEFAULT_MODELTREE_ALIAS):
-
-        """
+    def _get_page_from_cache(self, cache, page_num, per_page, buf_size=CACHE_CHUNK_SIZE):
+        """Attempts
         The cache datastructure:
 
             cache = {
                 'count': 10000,
                 'unique': 2000,
                 'offset': 100,
-                'rows': (...),
-                'timestamps': {...},
+                'datakey': some_md5_hash,
+                'timestamp': datetime object,
             }
         """
-        user = request.user
-        cache = request.session.get(self.REPORT_CACHE_KEY, {})
-        timestamps = cache.get('timestamps', {})
+        count = cache['count']
+        offset = cache['offset']
+        datakey = cache['datakey']
 
-        queryset, unique, count = self._get_queryset(timestamps, user, using=using)
-
-        # implies cache is invalid
-        if count is not None:
-            # reset to first page, since the number of rows may have changed
-            offset = 0
-            rows = []
-        # cache is still valid, so let's try to use it
-        else:
-            unique = cache['unique']
-            count = cache['count']
-            offset = cache['offset']
-            rows = pickle.loads(cache['rows'])
-
-        # create a paginator of the current ``rows`` which is relative to
-        # ``offset``. 
+        # create a theoretical paginator representing the rows stored off.
+        # since it is still unknown whether the cache contains the requested
+        # data, the data is not yet fetched so to reduce the overhead
         paginator = BufferedPaginator(count=count, offset=offset,
-            buf_size=buf_size, object_list=rows, per_page=per_page)
+            buf_size=buf_size, per_page=per_page)
 
         # get the requested page. note, this is relative to the ``count``
         page = paginator.page(page_num)
 
+        # now we can fetch the data
         if page.in_cache():
-            return page.get_list()
+            data = mcache.get(datakey, None)
+            if data is not None:
+                return page.get_list(pickle.loads(data))
+
+    def _update_cache(self, cache, queryset, page_num, per_page, buf_size=CACHE_CHUNK_SIZE):
+        count = cache['count']
+        offset = cache.get('offset', 0)
+
+        paginator = BufferedPaginator(count=count, offset=offset,
+            buf_size=buf_size, per_page=per_page)
+
+        page = paginator.page(page_num)
 
         # since the page is not in cache new data must be requested, therefore
         # the offset should be re-centered relative to the page offset
         offset = self._center_cache_offset(count, page.offset, buf_size)
 
-        # determine any overlap between what we have with ``cached_rows`` and
-        # what the ``page`` requires.
-        has_overlap, start_term, end_term = paginator.get_overlap(offset)
+        # only test for overlap is there is existing data
+        if cache.has_key('datakey'):
+            # determine any overlap between what we have with ``cached_rows`` and
+            # what the ``page`` requires.
+            has_overlap, start_term, end_term = paginator.get_overlap(offset)
 
-        # we can run a partial query and use some of the existing rows for our
-        # updated cache
-        if has_overlap is False:
-            queryset = queryset[start_term[0]:start_term[1]]
-            rows = self._execute_query(queryset)
+            # we can run a partial query and use some of the existing rows for our
+            # updated cache
+            if has_overlap is False:
+                queryset = self._set_queryset_offset_limit(queryset, *start_term)
+                rows = self._execute_raw_query(queryset)
+            else:
+                data = mcache.get(cache['datakey'], None)
+                if data is None:
+                    raise RuntimeError
+                rows = pickle.loads(data)
+                # check to see if there is partial data to be prepended
+                if start_term[0] is not None:
+                    tmp = self._set_queryset_offset_limit(queryset, *start_term)
+                    partial_rows = self._execute_raw_query(tmp)
+                    rows = partial_rows + rows[:-start_term[1]]
+
+                # check to see if there is partial data to be appended
+                if end_term[0] is not None:
+                    tmp = self._set_queryset_offset_limit(queryset, *end_term)
+                    partial_rows = self._execute_raw_query(tmp)
+                    rows = rows[end_term[1]:] + partial_rows
         else:
-            # check to see if there is partial data to be prepended
-            if start_term[0] is not None:
-                partial_rows = self._execute_query(queryset[start_term[0]:start_term[1]])
-                rows = partial_rows + rows[:-start_term[1]]
-            if end_term[0] is not None:
-                partial_rows = self._execute_query(queryset[end_term[0]:end_term[1]])
-                rows = rows[end_term[1]:] + partial_rows
-
-        cache = {
-            'unique': unique,
-            'count': count,
-            'offset': offset,
-            'rows': pickle.dumps(rows),
-        }
-
-        request.session[self.REPORT_CACHE_KEY] = cache
-        request.session.modified = True
+            queryset = self._set_queryset_offset_limit(queryset, offset, buf_size)
+            rows = self._execute_raw_query(queryset)
 
         # update paginator to reflect new ``offset`` and ``rows``
         paginator.offset = offset
         paginator.object_list = rows
 
         page = paginator.page(page_num)
-
         assert page.in_cache()
-        return page.get_list()
 
+        cache['offset'] = offset
 
-    def _get_queryset(self, timestamps, user=None, using=DEFAULT_MODELTREE_ALIAS):
+        return cache, rows, page.get_list()
+
+    def get_queryset(self, run_counts=False, using=DEFAULT_MODELTREE_ALIAS, **context):
         """Returns a ``QuerySet`` object that is generated from the ``scope``
         and ``perspective`` objects bound to this report. This should not be
         used directly when requesting data since it does not utlize the cache
         layer.
         """
         unique = count = None
-
-        if timestamps:
-            scope_cached = self.scope.cached(timestamps['scope'])
-            perspective_cached = self.perspective.cached(timestamps['perspective'])
-        else:
-            scope_cached = False
-            perspective_cached = False
-
         queryset = trees[using].get_queryset()
 
-        # TODO the flexibility of defining this ``context`` is lacking, since
-        # it is hardcoded here, but the need for additional kwargs is unknown
-        # to me at the moment. if eventually needed, it may be necessary to
-        # make this a setting that then dynamically is generated.
-        context = {'user': user}
-
-        # if the ``scope`` is not cached, the unique count must be re-run
-        # this is not dependent on the ``perspective``
-        queryset = self.scope.get_queryset(queryset, user=user,
-            use_cache=scope_cached, using=using, context=context)
-
-        if not scope_cached:
+        # first argument is ``None`` since we want to use the session objects
+        queryset = self.scope.get_queryset(None, queryset, using=using, **context)
+        if run_counts:
             unique = queryset.values('id').count()
 
-        queryset = self.perspective.get_queryset(queryset, user=user,
-            use_cache=perspective_cached, using=using)
-
-        if not scope_cached or not perspective_cached:
+        queryset = self.perspective.get_queryset(None, queryset, using=using)
+        if run_counts:
             count = queryset.count()
 
         return queryset, unique, count
 
-    def resolve(self, request, format_type, page, per_page, using=DEFAULT_MODELTREE_ALIAS):
-        rows = self._get_from_cache(request, page, per_page, using=using)
-        return self._format_rows(rows, format_type)
+    def resolve(self, request, format_type, page_num=1, per_page=10, using=DEFAULT_MODELTREE_ALIAS):
+        """Generates a report based on the ``scope`` and ``perspective``
+        objects associated with this object.
+
+        There are a few methods of trying to create the report::
+
+            - *fetch from the session cache* - this is firstly dependent on the
+            ``scope`` and ``perspective`` objects, such that the cache
+            timestamps must be at a later time than the objects last write. if
+            this is determined to be true, the session cache is deemed valid.
+            the secondary piece is to determine if the requested data exists in
+            cache. this is dependent on the ``page`` and ``per_page`` values.
+
+            - *fetch from the global cache* (not implemented) - this is
+            dependent on the unique combination of ``scope`` and ``perspective``
+            requirements. if a hash is found representing this combination,
+            then the data is fetched. the second step is to determine if the
+            requested data exists in cache. this is dependent on the ``page``
+            and ``per_page`` values.
+
+            - *generate a new query* -
+
+        """
+        user = request.user
+
+        if not self.scope.has_permission(user=user) or \
+            not self.perspective.has_permission(user=user):
+            raise PermissionDenied
+
+        context = {'user': user}
+        cache = request.session.get(self.REPORT_CACHE_KEY, None)
+
+        # try fetching data from the session cache if still valid
+        if cache and self._cache_is_valid(cache['timestamp']):
+            print 'trying cache'
+            rows = self._get_page_from_cache(cache, page_num, per_page)
+
+            if rows is not None:
+                print 'found in cache'
+                return self.perspective.format(rows, format_type)
+            print 'trying partial'
+            queryset, unique, count = self.get_queryset(**context)
+        else:
+            print 'trying new'
+            queryset, unique, count = self.get_queryset(run_counts=True, **context)
+            cache = {
+                'unique': unique,
+                'count': count,
+            }
+
+        cache['timestamp'] = datetime.now()
+
+        cache, data, rows = self._update_cache(cache, queryset, page_num, per_page)
+
+        if not cache.has_key('datakey'):
+            cache['datakey'] = md5(request.session._session_key + 'data').hexdigest()
+
+        key = cache['datakey']
+        mcache.set(key, pickle.dumps(data))
+
+        request.session[self.REPORT_CACHE_KEY] = cache
+
+        return self.perspective.format(rows, format_type)
 
 
 class ObjectSet(Descriptor):

@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.core.cache import cache as mcache
 from django.contrib.auth.models import User
 
 from avocado.store.models import Scope, Perspective, Report
@@ -104,17 +105,37 @@ class ReportTestCase(TestCase):
     fixtures = ['test_data.yaml']
 
     def setUp(self):
+        mcache.clear()
+
         self.user = User.objects.get(id=1)
+        self.client.login(username='foo', password='foo')
+
         self.request = Object()
         self.request.user = self.user
-        self.request.session = {
-            Report.REPORT_CACHE_KEY: {}
-        }
+        self.request.session = self.client.session
 
         self.report = Report()
         self.report.scope = Scope()
         self.report.perspective = Perspective()
 
     def test_resolve(self):
-        pass
-        #print self.report.resolve(self.request, 'html', 1, 10)
+        session = self.request.session
+
+        # make inital request, so cache exists yet
+        self.assertFalse(session.has_key(Report.REPORT_CACHE_KEY))
+        out1 = self.report.resolve(self.request, 'html')
+
+        self.assertTrue(session.has_key(Report.REPORT_CACHE_KEY))
+        cache = session[Report.REPORT_CACHE_KEY]
+
+        self.assertTrue(self.report._cache_is_valid(cache['timestamp']))
+
+        # ensure cache pool has record of the key
+        self.assertTrue(mcache.has_key(cache['datakey']))
+
+        out2 = self.report.resolve(self.request, 'html')
+
+
+        out3 = self.report.resolve(self.request, 'html')
+
+        self.assertEqual(out1, out2)

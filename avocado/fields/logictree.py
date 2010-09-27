@@ -48,7 +48,7 @@ class Node(object):
     def get_field_ids(self):
         return []
 
-    def apply(self, queryset):
+    def apply(self, queryset, *args, **kwargs):
         if self.annotations:
             queryset = queryset.values('pk').annotate(**self.annotations)
         if self.condition:
