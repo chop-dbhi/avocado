@@ -37,8 +37,8 @@ require.def('design/form', [], {
                                                 '<option value="No">No</option>',
                                             '</select>'];
                                    break;
-                  case 'assertion':input = ['<input type="checkbox" name="<%=this.field_id%>" value="<%=this.field_id%>" <%= this["default"] ? "checked":""%>/><%=this.label%>',
-                                            '</select>'];
+                  case 'assertion':input = ['<input type="checkbox" name="<%=this.field_id%>" value="<%=this.field_id%>" <%= this["default"] ? "checked":""%>/>',
+                                            '<label for="<%=this.field_id%>"><%=this.label%></label>'];
                                    break;
                   case 'decimal'  :input = ['<label for="<%=this.field_id%>"><%=this.label%></label>',
                                             '<select id="<%=this.field_id%>_operator" name="<%=this.field_id%>_operator">',
@@ -63,6 +63,10 @@ require.def('design/form', [], {
                                     break;
                }
                
+               
+               // Wrap each discrete element in <p>
+               input.unshift("<p>");
+               input.push("</p>");
                // Does this element contain a "pk" attribute? See large comment above for reason
                if (!element.hasOwnProperty("pk")){
                    // Append additional dropdown for user to choose which field this applies to
@@ -74,9 +78,7 @@ require.def('design/form', [], {
                                   '</select></p>']);
                }
               
-               // Wrap each discrete element in <p>
-               input.unshift("<p>");
-               input.push("</p>");
+         
                
                
                // This should come out, the server should send us No Data instead of null
@@ -125,6 +127,15 @@ require.def('design/form', [], {
                                                       "default": element.hasOwnProperty('default') ? element["default"]: 0,
                                                       "pkchoice_default": element.hasOwnProperty('pkchoice_default') ? element["pkchoice_default"]: 0}));
          });
+         
+         // Make form into a table
+         
+         $form.children().wrapAll("<table/>");
+         $("label,select,input,span", $form).not("span *").wrap("<td/>");
+         $("p", $form).wrap("<tr/>");
+         $("p",$form).children().unwrap();
+         
+         
          // Trigger an event when anything changes
          $("input,select",$form).bind('change keyup', function(evt){
             var $target = $(evt.target); 
@@ -179,7 +190,7 @@ require.def('design/form', [], {
                     default   : // This catches input boxes, if input boxes are not currently visible, send null for them
                                 // Input boxes require an extra validation step because of the free form input
                                 
-                                var associated_operator = $(evt.target).parent().parent().find('select').val();
+                                var associated_operator = $(evt.target).closest("tr").find("select").val();
                                 var name_prefix = evt.target.name.substr(0,evt.target.name.length-1);
                                 var $input1 = $("input[name="+name_prefix+"0]",$form);
                                 var $input2 = $("input[name="+name_prefix+"1]",$form);
