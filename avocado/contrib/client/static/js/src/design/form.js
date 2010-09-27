@@ -9,7 +9,10 @@ require.def('design/form', [], {
                                    '<option id="<%=this.field_id%>" value="lte">is less than or equal to</option>',
                                    '<option id="<%=this.field_id%>" value="gte">is greater than or equal to</option>',
                                    '<option id="<%=this.field_id%>" value="exact">is equal to</option>',
-                                   '<option id="<%=this.field_id%>" value="-exact">is not equal to</option>'].join('');
+                                   '<option id="<%=this.field_id%>" value="-exact">is not equal to</option>',
+                                   '<option id="<%=this.field_id%>" value="isnull">is null</option>',
+                                   '<option id="<%=this.field_id%>" value="-isnull">is not null</option>'].join('');
+                                   
           var choiceOperatorsTmpl = ['<option selected value="in">is equal to</option>',
                                      '<option value="-in">is not equal to</option>'].join('');
           // For most cases we use the name attribute to constuct a unique id for all inputs (see field_id in the template context 
@@ -134,18 +137,24 @@ require.def('design/form', [], {
                                               $("option", $(evt.target)).each(function(index,opt){
                                                  if  (opt.selected){
                                                      selected.push(opt.value);
-                                                     // Do we need to show two inputs?
+                                                     // Do we need to show 1, 2, or no inputs?
                                                      
-                                                     if (opt.value.search(/range/) === -1){
-                                                         $("input[name="+opt.id+"_input1],",$form).hide().change();
-                                                         $("label[for="+opt.id+"_input1]",$form).hide();
-                                                         // Trigger change on associated inputs because they need to work with a range operator now
-                                                         $("input[name="+opt.id+"_input0]",$form).change();
-                                                     }else{
+                                                    if (opt.value.search(/range/) >= 0){
                                                          $("input[name="+opt.id+"_input1]",$form).show().change();
                                                          $("label[for="+opt.id+"_input1]",$form).show();
                                                          // Trigger change on associated inputs because they need to work with a range operator now
-                                                         $("input[name="+opt.id+"_input0]",$form).change();
+                                                         $("input[name="+opt.id+"_input0]",$form).show().change();
+                                                     } else if (opt.value.search(/null/) >= 0){
+                                                         $("input[name="+opt.id+"_input1],",$form).hide().change();
+                                                         $("label[for="+opt.id+"_input1]",$form).hide();
+                                                         // Trigger change on associated inputs because they need to work with a range operator now
+                                                         $("input[name="+opt.id+"_input0]",$form).hide().change();
+                                                             
+                                                     } else {
+                                                         $("input[name="+opt.id+"_input1],",$form).hide().change();
+                                                         $("label[for="+opt.id+"_input1]",$form).hide();
+                                                         // Trigger change on associated inputs because they need to work with a range operator now
+                                                         $("input[name="+opt.id+"_input0]",$form).show().change();
                                                      }
                                                  }
                                              });
@@ -191,13 +200,13 @@ require.def('design/form', [], {
                                                         // Either way it was previously invalid
                                                         input_evt = $.Event("InputCorrectedEvent");
                                                         $target.trigger(input_evt);
-                                                    } else if ((associated_operator.search(/range/) >= 0) && (value1 > value2) && ($input2.css("display") != "none")) {
+                                                    } else if ((associated_operator.search(/range/) >= 0) && (value1 > value2)) { // && ($input2.is(":visible"))) {
                                                         // A range operator is in use, both fields are visible, and their values are not sequential
                                                         input_evt = $.Event("InvalidInputEvent");
                                                         input_evt.reason = "badrange";
                                                         input_evt.message = "First input must be less than second input.";
                                                         $target.parent().trigger(input_evt);
-                                                    } else if ($(evt.target).parent().hasClass('invalid_badrange') && (($input2.css("display") === "none")||(value1 < value2))){ //TODO Don't really on this
+                                                    } else if ($(evt.target).parent().hasClass('invalid_badrange') && (($input2.css("display") === "none")||(value1 < value2))){ //TODO Don't rely on this
                                                         // A range operator is or was in use, and either a range operator is no longer in use, so we don't care, or 
                                                         // its in use but the values are now sequential.
                                                         input_evt = $.Event("InputCorrectedEvent");

@@ -137,7 +137,7 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
                      for (var index=0; index < parameter.value.length; index++){
                          ds[field_prefix+"_input"+index] = parameter.value[index];
                      }
-                 }else{
+                 }else if (parameter.value){
                      ds[field_prefix] = parameter.value;
                  }
                  ds[field_prefix+"_"+"operator"] = parameter.operator;
@@ -390,6 +390,7 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
             
             for (var field_id in fields) {
                 var field = fields[field_id];
+                
                 // if field_id represents a pkChoiceRe, it means it holds the PK value for this field
                 var variable_pk = false;
                 var pkChoices = null;
@@ -399,7 +400,14 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
                     variable_pk = true;
                 }
                 
-                if (field.val0 && field.val1 && field.op) { // Decimal Binary Op
+                if (!field.val0 && !field.val1 && field.op){  // either "is null" or "is not null"
+                     nodes.push({
+                                     'operator' : field.op,
+                                     'id' : field_id,
+                                     'concept_id': activeConcept
+                                });
+                }
+                else if (field.val0 && field.val1 && field.op) { // Decimal Binary Op
                     nodes.push({
                                     'operator' : field.op,
                                     'id' : field_id,

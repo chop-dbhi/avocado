@@ -745,6 +745,34 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                             });
                         }
                         break;
+                    case "isnull":
+                        color = EXCLUDE_COLOR;
+                        if (options.chart.zoomType !== ""){
+                            $range_form.detach();
+                            chart.destroy();
+                            options.chart.zoomType = "";
+                            options.plotOptions.line.animation = false;
+                            chart = new Highcharts.Chart(options);
+                            $chartDiv.append($range_form);
+                        }
+                        chart.xAxis[0].removePlotBand();
+                        chart.xAxis[0].addPlotLine({
+                                   from: extremes.min,
+                                   to: extremes.max,
+                                   color:color
+                        });
+                        break
+                    case "-isnull":
+                        if (options.chart.zoomType !== ""){
+                            $range_form.detach();
+                            chart.destroy();
+                            options.chart.zoomType = "";
+                            options.plotOptions.line.animation = false;
+                            chart = new Highcharts.Chart(options);
+                            $chartDiv.append($range_form);
+                        }
+                        chart.xAxis[0].removePlotBand();
+                        break;
                 }
 
                 chart.xAxis[0].isDirty = true;
