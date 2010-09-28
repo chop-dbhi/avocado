@@ -12,7 +12,7 @@ class SessionReportMiddleware(object):
         ``Scope`` and ``Perspective`` bound to it.
         """
         modified = False
-        
+
         # initial setup
         if not request.session.has_key('report'):
             modified = True
@@ -21,7 +21,7 @@ class SessionReportMiddleware(object):
 
         # safe fallback
         else:
-            report = request.session['report']        
+            report = request.session['report']
 
             if report._scope_cache is None:
                 modified = True
@@ -29,7 +29,7 @@ class SessionReportMiddleware(object):
             if report._perspective_cache is None:
                 modified = True
                 report.perspective = Perspective()
-        
+
         request.session.modified = modified
 
 # dumb regex to extract the referer's path
@@ -61,7 +61,7 @@ class AuthNotRequiredMiddleware(BaseAuthMiddleware):
 
     def process_request(self, request):
         if request.user.is_authenticated():
-            return        
+            return
 
         path = request.path.lstrip('/')
         for url in self.urls:

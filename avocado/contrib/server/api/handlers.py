@@ -235,8 +235,8 @@ class ReportResolverHandler(BaseHandler):
             return rc.BAD_REQUEST
 
         format_type = request.GET.get('format', 'html')
-        page = request.GET.get('page', 1)
-        per_page = request.GET.get('per_page', 10)
+        page_num = int(request.GET.get('page', 1))
+        per_page = int(request.GET.get('per_page', 10))
 
         inst = request.session['report']
 
@@ -249,4 +249,4 @@ class ReportResolverHandler(BaseHandler):
                 except MultipleObjectsReturned:
                     return rc.BAD_REQUEST
 
-        return inst.resolve(request, format_type, page, per_page)
+        return inst.resolve(request, format_type, page_num, per_page)

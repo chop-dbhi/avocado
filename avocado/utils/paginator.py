@@ -25,7 +25,9 @@ class BufferedPaginator(Paginator):
     ``buf_size`` represents the size of the buffer, i.e. number of rows that will
     be available at any given time.
     """
-    def __init__(self, count, object_list, offset=0, buf_size=None, *args, **kwargs):
+    def __init__(self, count, object_list=None, offset=0, buf_size=None, *args, **kwargs):
+        if not object_list and not buf_size:
+            raise ValueError, 'and "object_list" or a "buf_size" must be defined'
         if offset > count:
             raise ValueError, '"offset" cannot be greater than the "count"'
 
@@ -57,7 +59,7 @@ class BufferedPaginator(Paginator):
 
             object_list = self.object_list[bottom:top]
         else:
-            object_list = []
+            object_list = None
 
         return BufferedPage(number, self, object_list)
 
@@ -129,12 +131,10 @@ class BufferedPage(Page):
     determine if this page is in cache. The determination is with respect to
     the `paginator' `offset' and `buf_size' attributes.
     """
-    def __init__(self, number, paginator, object_list=[]):
+    def __init__(self, number, paginator, object_list=None):
         self.number = number
         self.paginator = paginator
         self.object_list = object_list
-        if self.start_index():
-            self.offset = self.start_index() - 1
 
     def in_cache(self):
         first, last = self.paginator.cached_page_indices()
@@ -150,7 +150,9 @@ class BufferedPage(Page):
             return None
         return super(BufferedPage, self).end_index()
 
-    def get_list(self):
-        if self.object_list:
+    def get_list(self, object_list=None):
+        if object_list is not None:
+            return object_list[self.start_index():self.end_index()]
+        if self.object_list is not None:
             return self.object_list
-        return self.paginator.object_list[self.start_index():self.end_index()]
+        return None

@@ -1,4 +1,5 @@
 from django.conf.urls.defaults import *
+from django.views.decorators.cache import never_cache
 from piston.resource import Resource
 
 from avocado.contrib.server.api.handlers import (CriterionHandler,
@@ -9,10 +10,10 @@ criterion =  Resource(CriterionHandler)
 category =  Resource(CategoryHandler)
 
 # not yet exposed...
-scope =  Resource(ScopeHandler)
-perspective = Resource(PerspectiveHandler)
-report = Resource(ReportHandler)
-report_resolver = Resource(ReportResolverHandler)
+scope =  never_cache(Resource(ScopeHandler))
+perspective = never_cache(Resource(PerspectiveHandler))
+report = never_cache(Resource(ReportHandler))
+report_resolver = never_cache(Resource(ReportResolverHandler))
 
 category_patterns = patterns('',
     url(r'^$', category, name='read'),
@@ -33,7 +34,7 @@ report_patterns = patterns('',
         url(r'^$', report, name='data'),
         url(r'^resolve/$', report_resolver, name='resolve'),
     ), namespace='stored')),
-    
+
     # patterns relative to a temporary instance on the session
     url(r'^session/', include(patterns('',
         url(r'^$', report, {'id': 'session'}, name='data'),
@@ -58,5 +59,5 @@ urlpatterns = patterns('',
     url(r'^categories/', include(category_patterns, namespace='categories')),
     url(r'^reports/', include(report_patterns, namespace='reports')),
     url(r'^scope/', include(scope_patterns, namespace='scope')),
-    url(r'^perspectives/', include(perspective_patterns, namespace='perspectives')),    
+    url(r'^perspectives/', include(perspective_patterns, namespace='perspectives')),
 )
