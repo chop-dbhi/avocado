@@ -1,7 +1,7 @@
 require.def('design/form', [], {
     
     Form : function(view, concept_pk){
-          var $form = $('<table></table>');
+          var $form = $('<span class="form_container"></span>');
           var decOperatorsTmpl =  ['<option selected id="<%=this.field_id%>" value="range">is between</option>',
                                    '<option id="<%=this.field_id%>" value="-range">is not between</option>',
                                    '<option id="<%=this.field_id%>" value="lt">is less than</option>',
@@ -66,17 +66,18 @@ require.def('design/form', [], {
                
                
                // Wrap each discrete element in <p>
-               input.unshift("<p>");
-               input.push("</p>");
+               input.unshift("<span><p>");
+               
+               input.push("</p></span>");
                // Does this element contain a "pk" attribute? See large comment above for reason
                if (!element.hasOwnProperty("pk")){
                    // Append additional dropdown for user to choose which field this applies to
-                    input = input.concat(['<p><label for="<%=this.pkchoice_id%>"><%=this.pkchoice_label%></label>',
+                    input = input.concat(['<span><p><label for="<%=this.pkchoice_id%>"><%=this.pkchoice_label%></label>',
                                   '<select id="<%=this.pkchoice_id%>" name="<%=this.pkchoice_id%>">',
                                   '<% for (index in this.pkchoices) { %>',     
                                           '<option value="<%=this.pkchoices[index][0]%>" <%=this.pkchoices[index][0]==this.pkchoice_default ? "selected":""%>><%=this.pkchoices[index][1]%></option>',
                                   '<%}%>',
-                                  '</select></p>']);
+                                  '</select></p></span>']);
                }
                
                // This should come out, the server should send us No Data instead of null
@@ -127,9 +128,9 @@ require.def('design/form', [], {
          });
          
          // Make form into a table
-         $("label,select,input,span", $form).not("span *").wrap("<td/>");
-         $("p", $form).wrap("<tr/>");
-         $("p",$form).children().unwrap();
+         //$("label,select,input,span", $form).not("span *").wrap("<td/>");
+         //$("p", $form).wrap("<tr/>");
+         //$("p",$form).children().unwrap();
          
          // Trigger an event when anything changes
          $("input,select",$form).bind('change keyup', function(evt){
@@ -185,7 +186,7 @@ require.def('design/form', [], {
                     default   : // This catches input boxes, if input boxes are not currently visible, send null for them
                                 // Input boxes require an extra validation step because of the free form input
                                 
-                                var associated_operator = $(evt.target).closest("tr").find("select").val();
+                                var associated_operator = $(evt.target).parent().prev("select").val();
                                 var name_prefix = evt.target.name.substr(0,evt.target.name.length-1);
                                 var $input1 = $("input[name="+name_prefix+"0]",$form);
                                 var $input2 = $("input[name="+name_prefix+"1]",$form);

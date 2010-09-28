@@ -68,9 +68,6 @@ require.def('design/conceptmanager',['design/views'], function(views) {
         var opRe = /^(\d*)_(\d+(?:OR\d+)*)_operator$/;
         var pkChoiceRe = /^\d+(?:OR\d+)+$/;
  
-
-
-
         /**
               This function is a utility function, currently called by the AddQueryButtonHandler,
               for concepts made of builtin views, the function will be responsible
