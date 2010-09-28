@@ -66,18 +66,18 @@ require.def('design/form', [], {
                
                
                // Wrap each discrete element in <p>
-               input.unshift("<span><p>");
+               input.unshift("<p>");
                
-               input.push("</p></span>");
+               input.push("</p>");
                // Does this element contain a "pk" attribute? See large comment above for reason
                if (!element.hasOwnProperty("pk")){
                    // Append additional dropdown for user to choose which field this applies to
-                    input = input.concat(['<span><p><label for="<%=this.pkchoice_id%>"><%=this.pkchoice_label%></label>',
+                    input = input.concat(['<p><label for="<%=this.pkchoice_id%>"><%=this.pkchoice_label%></label>',
                                   '<select id="<%=this.pkchoice_id%>" name="<%=this.pkchoice_id%>">',
                                   '<% for (index in this.pkchoices) { %>',     
                                           '<option value="<%=this.pkchoices[index][0]%>" <%=this.pkchoices[index][0]==this.pkchoice_default ? "selected":""%>><%=this.pkchoices[index][1]%></option>',
                                   '<%}%>',
-                                  '</select></p></span>']);
+                                  '</select></p>']);
                }
                
                // This should come out, the server should send us No Data instead of null
@@ -116,7 +116,7 @@ require.def('design/form', [], {
                     name_attribute = concept_pk + "_" + pkchoice_name_attribute;
                 }
                 
-                $form.append($.jqote(input.join(""), {"choices":element.choices,
+                var $row = $($.jqote(input.join(""), {"choices":element.choices,
                                                       "field_id":name_attribute,
                                                       "label":element.name,
                                                       "pkchoices":element.pkchoices,
@@ -125,6 +125,8 @@ require.def('design/form', [], {
                                                       "optional": element.hasOwnProperty('optional') ? element.optional : false,
                                                       "default": element.hasOwnProperty('default') ? element["default"]: 0,
                                                       "pkchoice_default": element.hasOwnProperty('pkchoice_default') ? element["pkchoice_default"]: 0}));
+                $row.children().not("span").wrap("<span/>");
+                $form.append($row);
          });
          
          // Make form into a table
@@ -186,7 +188,7 @@ require.def('design/form', [], {
                     default   : // This catches input boxes, if input boxes are not currently visible, send null for them
                                 // Input boxes require an extra validation step because of the free form input
                                 
-                                var associated_operator = $(evt.target).parent().prev("select").val();
+                                var associated_operator = $(evt.target).closest("p").find("select").val();
                                 var name_prefix = evt.target.name.substr(0,evt.target.name.length-1);
                                 var $input1 = $("input[name="+name_prefix+"0]",$form);
                                 var $input2 = $("input[name="+name_prefix+"1]",$form);
