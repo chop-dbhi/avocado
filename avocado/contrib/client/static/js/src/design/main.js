@@ -12,7 +12,6 @@ require(['design/search', 'design/conceptmanager', 'design/criteriamanager'], fu
             pluginDynamicContent = $('#plugin-dynamic-content');
             
             
-    
         // Create an instance of the conceptManager object. Only do this once.
         var conceptManager = conceptmanager.manager(pluginPanel, pluginTitle, pluginTabs, pluginDynamicContent,
             pluginStaticContent);

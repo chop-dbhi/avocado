@@ -262,7 +262,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
             activeView.contents.css("display","block");
             
             $(".chart", activeView.contents).css("display","block"); // Hack because of IE
-            
+
 
             if (!activeView.loaded){
                 // Give the view its datasource
@@ -276,7 +276,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
 
             activeView.loaded = true;
          };
-    
+
 
         /** 
           The handler for the 'ShowViewEvent' event
@@ -305,13 +305,15 @@ require.def('design/conceptmanager',['design/views'], function(views) {
             } else {
                 // We have to look at the type of view here, custom views are responsible
                 // for triggering the viewReadyHandler once their code is executed,
-                // built-in views (which should not have css or js defined on their views, but
-                // we will allow it for consistency) will need to be taken care of code here
+                // built-in views will need to be taken care of code here
                 var callback = null;
                 activeView.concept_id = activeConcept;
-                if (activeView.type !== 'custom')
-                    callback = views.createView;
-                loadDependencies(activeView, callback);
+                if (activeView.type !== 'custom'){// Show the view
+                    $container.trigger('ViewReadyEvent', [views.createView(activeView)]);
+                }else{
+                    // Load the custom view
+                    loadDependencies(activeView, callback);
+                }
             }
         };    
         /**
@@ -567,7 +569,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
         }
         
         /**
-          This function loads dependencies for the conept and for the any views.
+          This function loads dependencies for the concept and for the any views.
           A callback does not have to be specified if the view is custom because
           the view code is responsible for firing the ViewReadyEvent.
           @private
@@ -584,7 +586,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                      cb(deps);
                  });
             } else {
-                cb(deps, $container);
+                cb(deps);
             }
         };
         
