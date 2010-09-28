@@ -138,4 +138,4 @@ class ReportTestCase(TestCase):
 
         out3 = self.report.resolve(self.request, 'html')
 
-        self.assertEqual(out1, out2)
+        self.assertEqual(list(out1), list(out2))

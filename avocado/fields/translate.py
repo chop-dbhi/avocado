@@ -88,3 +88,4 @@ class TranslatorLibrary(Library):
 
 
 library = TranslatorLibrary()
+library.autodiscover()
