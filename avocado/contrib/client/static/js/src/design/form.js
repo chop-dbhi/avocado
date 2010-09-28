@@ -1,7 +1,7 @@
 require.def('design/form', [], {
     
     Form : function(view, concept_pk){
-          var $form = $('<form method="get" action=""></form>');
+          var $form = $('<table></table>');
           var decOperatorsTmpl =  ['<option selected id="<%=this.field_id%>" value="range">is between</option>',
                                    '<option id="<%=this.field_id%>" value="-range">is not between</option>',
                                    '<option id="<%=this.field_id%>" value="lt">is less than</option>',
@@ -15,6 +15,7 @@ require.def('design/form', [], {
                                    
           var choiceOperatorsTmpl = ['<option selected value="in">is equal to</option>',
                                      '<option value="-in">is not equal to</option>'].join('');
+                                     
           // For most cases we use the name attribute to constuct a unique id for all inputs (see field_id in the template context 
           // object below). The format for it is <concept primary key>_<field primary key> with optional "_input[01]" to support datatypes that
           // require ranges, and "_operator" to indicate the field represents an operator that can be changed by the users. With nothing appended to the 
@@ -77,9 +78,6 @@ require.def('design/form', [], {
                                   '<%}%>',
                                   '</select></p>']);
                }
-              
-         
-               
                
                // This should come out, the server should send us No Data instead of null
                $.each(['choices', 'pkchoices'], function(index, attr){
@@ -129,12 +127,9 @@ require.def('design/form', [], {
          });
          
          // Make form into a table
-         
-         $form.children().wrapAll("<table/>");
          $("label,select,input,span", $form).not("span *").wrap("<td/>");
          $("p", $form).wrap("<tr/>");
          $("p",$form).children().unwrap();
-         
          
          // Trigger an event when anything changes
          $("input,select",$form).bind('change keyup', function(evt){

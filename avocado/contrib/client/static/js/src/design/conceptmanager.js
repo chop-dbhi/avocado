@@ -1,4 +1,4 @@
-require.def('design/views', ['design/chart','design/form'], function(chart,form) {
+require.def('design/conceptmanager', ['design/chart','design/form'], function(chart,form) {
     
     /**
       Sets up and manages the view sets for each criterion option.
@@ -51,7 +51,7 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
           @private
           @type string
         */
-        var add_query_tmpl = '<input id="add_to_query" type="button" value="Add To Query"/>';
+        var add_query_tmpl = '<input id="add_to_query" style="float:right" type="button" value="Add To Query"/>';
         /**
           Holds the currently viewable/active concept/criterionconcept    
       
@@ -343,7 +343,7 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
               perform.
         
               @private
-         */
+        */
         
         function createQueryDataStructure(ds) {
             var fields={};
@@ -440,7 +440,6 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
                                 });
                 } else {
                     // Unable to determine what this field is ?
-                    console.log(field);
                     throw "Unable to determine field " + field + " in concept " + cache[activeConcept];
                 }
                 
@@ -464,7 +463,6 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
             }
             return (server_query);
         }
-        
         
        /**
              This function notifies the framework that the user has entered invalid input. 
@@ -561,7 +559,7 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
             }
             delete cache[activeConcept].invalid_fields[target_name+evt.reason];
             
-            // Re-enable the button if there are not more errors.
+            // Re-enable the button if there are no more errors.
             if ($.isEmptyObject(cache[activeConcept].invalid_fields)){
                 $staticBox.find("#add_to_query").attr("disabled","");
             }
@@ -580,13 +578,12 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
         });
         
         
-     
         /**
           A callback does not have to be specified if the view is custom because
           the view code is responsible for firing the ViewReadyEvent
-      
           @private
         */
+        
         function loadDependencies(deps, cb) {
             cb = cb || function(){};
         
@@ -609,13 +606,12 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
             activeConcept = concept.pk;
             // Mark this concept as having its global dependencies loaded
             concept.globalsLoaded = true; 
+            
             // Setup tabs objects and trigger viewing of the first one
             if (concept.views.length < 2) {
                 $tabsBar.css('display','none');
-                $container.find('.content').removeClass('content').attr('id','removedContent');
             } else {
                 $tabsBar.css('display','block');
-                $container.find('#removedContent').addClass('content');
             }
         
             var tabs = $.jqote(tab_tmpl, concept.views);
@@ -636,7 +632,7 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
                 $staticBox.append(concept['static']);
             }else{
                 // Prepare the static concept box
-                var $addQueryButton = $('<input id="add_to_query" type="button" value="Add To Query"/>');
+                var $addQueryButton = $(add_query_tmpl);
                 $addQueryButton.click(function(){
                      var event = $.Event("UpdateQueryButtonClicked");
                      $(this).trigger(event); // TODO send current Concept Here to verify its correct
@@ -671,9 +667,7 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
         });
         
         
-        
         // PUBLIC METHODS
-   
         /**
           Registers a concept
           @public
@@ -682,7 +676,6 @@ require.def('design/views', ['design/chart','design/form'], function(chart,form)
             if (cache[concept.pk] === undefined){
                 cache[concept.pk] = concept;
             }
-            //concept = cache[concept.pk];
             // Create a datasource for this concept if we don't have one
             if (!concept.ds){
                 // If this concept already has a query associated with it, 

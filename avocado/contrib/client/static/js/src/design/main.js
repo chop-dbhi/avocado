@@ -1,4 +1,4 @@
-require(['design/search', 'design/views', 'design/criteriamanager'], function(search, views, criteriamanager) {
+require(['design/search', 'design/conceptmanager', 'design/criteriamanager'], function(search, conceptmanager, criteriamanager) {
    
     $(function() {
         search.init();
@@ -13,8 +13,8 @@ require(['design/search', 'design/views', 'design/criteriamanager'], function(se
             
             
     
-        // Create an instance of the viewManager object. Only do this once.
-        var viewManager = views.manager(pluginPanel, pluginTitle, pluginTabs, pluginDynamicContent,
+        // Create an instance of the conceptManager object. Only do this once.
+        var conceptManager = conceptmanager.manager(pluginPanel, pluginTitle, pluginTabs, pluginDynamicContent,
             pluginStaticContent);
         
         var criteriaManager = criteriamanager.Manager(criteriaPanel);
@@ -38,7 +38,7 @@ require(['design/search', 'design/views', 'design/criteriamanager'], function(se
                 dataType:'json',
                 success: function(json) {
                         pluginPanel.fadeIn(100);
-                        viewManager.show(json, existing_ds);
+                        conceptManager.show(json, existing_ds);
                     }
                 });    
         });
