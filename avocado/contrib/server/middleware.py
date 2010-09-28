@@ -11,12 +11,17 @@ class SessionReportMiddleware(object):
         """Ensures a ``Report`` object is on the session, with associated
         ``Scope`` and ``Perspective`` bound to it.
         """
+        user = request.user
+
+        if not user.is_authenticated():
+            return
+
         modified = False
 
         # initial setup
         if not request.session.has_key('report'):
             modified = True
-            report = Report(scope=Scope(), perspective=Perspective())
+            report = Report(user=user, scope=Scope(), perspective=Perspective())
             request.session['report'] = report
 
         # safe fallback
@@ -31,6 +36,7 @@ class SessionReportMiddleware(object):
                 report.perspective = Perspective()
 
         request.session.modified = modified
+
 
 # dumb regex to extract the referer's path
 extract_path = re.compile(r'^https?:\/\/[^\/]*(.*)$')

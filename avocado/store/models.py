@@ -17,6 +17,7 @@ from avocado.models import Field
 from avocado.db_fields import PickledObjectField
 from avocado.modeltree import DEFAULT_MODELTREE_ALIAS, trees
 from avocado.fields import logictree
+from avocado.columns.cache import cache as column_cache
 from avocado.columns import utils, format
 from avocado.utils.paginator import BufferedPaginator
 
@@ -25,6 +26,8 @@ __all__ = ('Scope', 'Perspective', 'Report')
 PAGE = 1
 PAGINATE_BY = 10
 CACHE_CHUNK_SIZE = 500
+DEFAULT_COLUMNS = getattr(settings, 'COLUMNS', ())
+DEFAULT_ORDERING = getattr(settings, 'COLUMN_ORDERING', ())
 
 class Descriptor(models.Model):
     user = models.ForeignKey(User, blank=True, null=True)
@@ -56,6 +59,11 @@ class Context(Descriptor):
         "Interprets the stored data structure."
         raise NotImplementedError
 
+    def _get_obj(self, obj=None):
+        if obj is None:
+            obj = self.store or {}
+        return obj
+
     def _get_contents(self, obj):
         """A ``Context`` is driven by the abstraction layer of the ``Field``,
         ``Criterion`` and ``Column`` classes. Each ``obj`` will be empty or
@@ -81,14 +89,16 @@ class Context(Descriptor):
         return False
 
     def read(self):
-        return self.store
+        return self._get_obj(self.store or {})
 
     def write(self, obj, *args, **kwargs):
+        obj = self._get_obj(obj)
+        print obj
         self.store = obj
         self.timestamp = datetime.now()
 
     def has_permission(self, obj=None, user=None):
-        obj = obj or self.store or {}
+        obj = self._get_obj(obj)
 
         field_ids = set([int(i) for i in self._get_contents(obj)])
         # if not requesting to see anything, early exit
@@ -110,7 +120,7 @@ class Context(Descriptor):
         return True
 
     def get_queryset(self, obj=None, queryset=None, using=DEFAULT_MODELTREE_ALIAS, *args, **kwargs):
-        obj = obj or self.store or {}
+        obj = self._get_obj(obj)
 
         if queryset is None:
             queryset = trees[using].get_queryset()
@@ -131,15 +141,16 @@ class Scope(Context):
 
 
 class Perspective(Context):
-    def _get_contents(self, obj):
-        ids = []
-        columns = obj.get('columns', None)
-        ordering = obj.get('ordering', None)
+    def _get_obj(self, obj=None):
+        obj = super(Perspective, self)._get_obj(obj)
+        if not obj.has_key('columns'):
+            obj['columns'] = list(DEFAULT_COLUMNS)
+        if not obj.has_key('ordering'):
+            obj['ordering'] = list(DEFAULT_ORDERING)
+        return obj
 
-        if columns:
-            ids += columns
-        if ordering:
-            ids += [x for x,y in ordering]
+    def _get_contents(self, obj):
+        ids = obj['columns'] + [x for x,y in obj['ordering']]
 
         # saves a query
         if not ids:
@@ -150,25 +161,32 @@ class Perspective(Context):
             flat=True)
 
     def _parse_contents(self, obj, *args, **kwargs):
-        columns = obj.get('columns', [])
-        ordering = obj.get('ordering', [])
-
         def func(queryset, columns=[], ordering=[], *args, **kwargs):
             queryset = utils.add_columns(queryset, columns, *args, **kwargs)
             queryset = utils.add_ordering(queryset, ordering, *args, **kwargs)
             return queryset
 
-        return partial(func, columns=columns, ordering=ordering)
+        return partial(func, columns=obj['columns'], ordering=obj['ordering'])
+
+    def header_row(self):
+        store = self.read()
+        header = []
+
+        for x in store['columns']:
+            c = column_cache.get(x)
+            for y, z in store['ordering']:
+                if x == y:
+                    header.append((c.name, z))
+                    break
+            else:
+                header.append((c.name, ''))
+        return header
 
     def format(self, iterable, format_type):
         store = self.read()
-        if store is None:
-            return iterable
 
-        if store.has_key('columns'):
-            rules = utils.column_format_rules(store['columns'], format_type)
-            return format.library.format(iterable, rules, format_type)
-        return iterable
+        rules = utils.column_format_rules(store['columns'], format_type)
+        return format.library.format(iterable, rules, format_type)
 
 
 class Report(Descriptor):
@@ -266,7 +284,7 @@ class Report(Descriptor):
 
         # since the page is not in cache new data must be requested, therefore
         # the offset should be re-centered relative to the page offset
-        offset = self._center_cache_offset(count, page.offset, buf_size)
+        offset = self._center_cache_offset(count, page.offset(), buf_size)
 
         # only test for overlap is there is existing data
         if cache.has_key('datakey'):
@@ -369,7 +387,7 @@ class Report(Descriptor):
 
             if rows is not None:
                 print 'found in cache'
-                return self.perspective.format(rows, format_type)
+                return list(self.perspective.format(rows, format_type))
             print 'trying partial'
             queryset, unique, count = self.get_queryset(**context)
         else:
@@ -392,7 +410,7 @@ class Report(Descriptor):
 
         request.session[self.REPORT_CACHE_KEY] = cache
 
-        return self.perspective.format(rows, format_type)
+        return list(self.perspective.format(rows, format_type))
 
 
 class ObjectSet(Descriptor):

@@ -3,13 +3,14 @@ import math
 from django.core.paginator import Paginator, Page
 
 class BufferedPaginator(Paginator):
-    """A subclass of the django Paginator class that allows for explicitly
+    """A subclass of the Django Paginator class that allows for explicitly
     setting the ``_count`` attribute i.e. the theoretical size of
     ``object_list``. This removes the need for the Paginator to do determine
     the size of the ``object_list`` which improves performance especially for
-    complex queries.
+    complex queries (and removes the need to actually pass in the
+    ``objec_list``).
 
-    The ``object_list`` that is passed in as an argument represents the
+    The ``object_list`` that is passed in as an argument should represent the
     *buffered* part of the whole ``object_list``. This works in conjunction
     with the ``BufferedPage`` which can test whether or not a particular page
     is actually stored in the ``BufferedPaginator`` object.
@@ -23,17 +24,18 @@ class BufferedPaginator(Paginator):
     Overriding ``_count`` allows for the methods to still be used.
 
     ``buf_size`` represents the size of the buffer, i.e. number of rows that will
-    be available at any given time.
+    be available at any given time and in most cases the size of ``object_list``
+    assuming ``_count`` is greater than ``buf_size``..
     """
     def __init__(self, count, object_list=None, offset=0, buf_size=None, *args, **kwargs):
         if not object_list and not buf_size:
-            raise ValueError, 'and "object_list" or a "buf_size" must be defined'
+            raise ValueError, 'an "object_list" or a "buf_size" must be defined'
         if offset > count:
             raise ValueError, '"offset" cannot be greater than the "count"'
 
         super(BufferedPaginator, self).__init__(object_list, *args, **kwargs)
 
-        self._count = int(count)
+        self._count = count
         # negative offsets are relative to to ``count``
         if offset < 0:
             offset = count + offset
@@ -140,19 +142,14 @@ class BufferedPage(Page):
         first, last = self.paginator.cached_page_indices()
         return first <= self.number < last
 
-    def start_index(self):
-        if not self.in_cache():
-            return None
-        return super(BufferedPage, self).start_index()
-
-    def end_index(self):
-        if not self.in_cache():
-            return None
-        return super(BufferedPage, self).end_index()
+    def offset(self):
+        return max(self.start_index(), 1) - 1
 
     def get_list(self, object_list=None):
         if object_list is not None:
-            return object_list[self.start_index():self.end_index()]
+            s = self.offset()
+            e = self.end_index()
+            return object_list[s:e]
         if self.object_list is not None:
             return self.object_list
         return None

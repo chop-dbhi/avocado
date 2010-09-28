@@ -59,3 +59,4 @@ class ViewSetLibrary(Library):
 
 
 library = ViewSetLibrary()
+library.autodiscover()

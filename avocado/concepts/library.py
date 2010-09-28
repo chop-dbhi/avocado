@@ -26,7 +26,7 @@ class Library(object):
         if hasattr(klass, 'name'):
             return klass.name
         return self._clean_name(klass.__name__)
-    
+
     def add_object(self, class_name, obj, errmsg=''):
         store = self.get_store()
         # if already registered under the same name, test if the classes are
@@ -36,7 +36,7 @@ class Library(object):
             if obj.__class__ is not robj.__class__:
                 raise AlreadyRegisteredError, errmsg
         store.update({class_name: obj})
-    
+
     def remove_object(self, class_name):
         store = self.get_store()
         if store.has_key(class_name):
@@ -49,7 +49,7 @@ class Library(object):
 
     def register_object(self, class_name, obj):
         self.add_object(class_name, obj)
-    
+
     def unregister_object(self, class_name):
         self.remove_object(class_name)
 
@@ -63,7 +63,7 @@ class Library(object):
 
         self.register_object(class_name, obj)
         return klass
-    
+
     def unregister(self, klass):
         class_name = self._get_class_name(klass)
         self.unregister_object(class_name)

@@ -163,7 +163,7 @@ class PerspectiveHandler(BaseHandler):
         inst = request.session['report'].perspective
 
         try:
-            inst.has_permission(request.user, json)
+            inst.has_permission(json, request.user)
         except PermissionDenied:
             return rc.FORBIDDEN
 

@@ -12,22 +12,22 @@ class FormatError(Exception):
 class AbstractFormatter(object):
     """The AbstractFormatter defines the base behavior for formatting a set of
     objects.
-    
+
     Each ``AbstractFormatter`` subclass will be registered with each output
     type if it has an applicable method. For example, if I have defined two
     output types 'json' and 'csv', then the following class will only be
     registered with the 'json' output type::
-    
+
         class MyFormatter(AbstractFormatter):
             def json(self, *args, **args):
                 # ...
-        
+
     The requirement is that a method on the formatter subclass with the same
     name as the output type is defined. To override this behavior and apply
     a formatter to all output types, set ``apply_to_all`` to true.
-    
+
     .. note::
-        
+
         Note that when the formatters are registered, a single object is
         instantiated and registered with each output type. The objects should
         be stateless since the object can be shared.
@@ -120,7 +120,7 @@ class FormatterLibrary(Library):
             robj = store.get(class_name)
             if obj.__class__ is not robj.__class__:
                 raise AlreadyRegisteredError, errmsg
-        store.update({class_name: obj})            
+        store.update({class_name: obj})
 
     def register_object(self, klass_name, obj):
         for key in self.format_types:
@@ -138,7 +138,7 @@ class FormatterLibrary(Library):
         return choices
 
     def format_seq(self, seq, rules, ftype, formatters, error, null):
-        n, toks = 0, []
+        n, toks = 1, []
 
         for fname, nargs in rules:
             args = seq[n:n+nargs]
@@ -209,3 +209,5 @@ library = FormatterLibrary()
 
 library.register(RemoveFormatter)
 library.register(PassFormatter)
+
+library.autodiscover()

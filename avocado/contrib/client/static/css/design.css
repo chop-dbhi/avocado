@@ -33,35 +33,41 @@
  * Panels - components within the panes
  */
 
+#search-panel {
+    margin-bottom: 10px;
+}
+
 #search-panel form {
     background-color: #D5E2F2;
+    border: 1px solid #B6D0EB;
     background-image: -moz-linear-gradient(100% 100% 90deg, #D5E2F2, #C8D8F2);
     background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#D5E2F2), to(#C8D8F2));
     display: inline-block;
-    height: 16px;
-    width: 150px;
-    padding: 13px 10px;
+    width: 163px;
+    padding: 0 10px;
     font-size: 12px;
-    -moz-box-shadow: 0 4px 4px #999;
-    -webkit-box-shadow: 0 4px 4px #999;
-    vertical-align: bottom;
+    vertical-align: top;
+    height: 42px;    
 }
 
 #search-panel input {
-    width: 120px;  
+    height: 16px;
+    width: 134px;
+    position: relative;
+    top: 10px;
 }
 
 #categories {
     text-shadow: #fff 1px 1px 0;
     display: inline-block;
     height: 42px;
-    -moz-box-shadow: 0 4px 4px #999;
-    -webkit-box-shadow: 0 4px 4px #999;
 }
 
 #categories > * {
     height: 16px;
-    padding: 13px 10px;
+    padding: 13px 13px;
+    border-top: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
     border-right: 1px solid #ccc;    
     display: inline-block;
     background-color: #eee;
@@ -69,8 +75,8 @@
     -moz-box-shadow: inset 0 -3px 8px #ddd;    
 }
 
-#categories > :last-child {
-    border-right: none;
+#categories > :first-child {
+    border-left: 1px solid #ccc;
 }
 
 #categories > :hover {
@@ -85,6 +91,7 @@
 #categories > .active {
     color: #000;
     background-color: #fff;
+    border-bottom-color: #fff;
     text-shadow: none;
     cursor: default;
     -webkit-box-shadow: none;
@@ -117,8 +124,8 @@
     border-bottom: none;
     cursor: pointer;
     background-color: #eee;
-    -webkit-box-shadow: inset 0 0 15px #ddd;    
-    -moz-box-shadow: inset 0 0 15px #ddd;
+    -webkit-box-shadow: inset 0 0 8px #ddd;
+    -moz-box-shadow: inset 0 0 8px #ddd;
 }
 
 #criteria > div:first-child {
@@ -142,7 +149,8 @@
     background-color: #666;
     text-shadow: #000 -1px 1px 0;
     border-color: transparent;    
-    -webkit-box-shadow: inset 0 0 10px #333;     
+    -webkit-box-shadow: inset 0 0 10px #333;
+    -moz-box-shadow: inset 0 0 10px #333;         
 }
 
 #plugin-panel {
@@ -159,52 +167,71 @@
     font-size: 13px;
 }
 
+.view p {
+    padding: 3px 5px;
+    border: 1px solid #EDE9CE;
+    background-color: #FFFBD7;
+    vertical-align: middle;
+    margin-bottom: 5px;
+}
+
+.view p > span {
+    display: inline-block;
+    margin-left: 20px;
+    vertical-align: middle;    
+}
+
+.view p > span:first-child {
+    width: 60px;
+    margin-left: 0;
+}
+
 .chart {
-    width: 485px;
+    width: 480px;
 }
 
 .criterion {
     font-size: 12px;
     margin-bottom: 10px;
     color: #333;
+    background-color: #FFFEE0;
+    border: 1px solid #ECE670;
+    padding: 4px 5px;
+    text-shadow: #fff 1px 1px 0;
+    -moz-box-shadow: 2px 2px 1px #eee;
+    -webkit-box-shadow: 2px 2px 1px #eee;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;    
+    
+}
+
+.criterion:hover {
+    background-color: #FFFBB3;    
 }
 
 .criterion a {
-    text-decoration: none;
+    color: #333;
+    text-decoration: none;    
 }
 
-.remove-criterion:link, .remove-criterion:visited {
-    color: #666;
+.criterion:hover a {
+    color: #000;
+}
+
+.remove-criterion {
     font-weight: bold;
     float: right;
 }
 
-.remove-criterion:hover, .remove-criterion:active {
-    color: #333;
+.criterion .remove-criterion:hover {
+    color: #D40202;
 }
 
-.criterion .field-anchor:link, .criterion .field-anchor:visited {
-    color: #000;
-    float: left;
-    background-color: #FFFEE0;
-    border: 1px solid #ECE670;
-    padding: 4px 5px;
-    width: 135px;
-    -moz-box-shadow: 2px 2px 1px #eee;
-    -webkit-box-shadow: 2px 2px 1px #eee;
-    -moz-border-radius: 3px;
-    -webkit-border-radius: 3px;
-}
 
-.criterion .field-anchor:hover, .criterion .field-anchor:active {
-    background-color: #FFFBB3;
-}
 /*
  *  Validation
  */
  
 input[class*=invalid] {
-     border-width:2px;
-     border-color:red;
-     border-style:solid;
+     border: 2px solid #F00;
 }

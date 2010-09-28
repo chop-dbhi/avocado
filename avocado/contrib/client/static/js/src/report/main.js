@@ -1,25 +1,28 @@
-require.def('report/main', function() {
+require.def('report/main', ['report/templates', 'lib/jquery.jqote2'], function(templates) {
     $(function() {
         var report = $('#report'),
-            paginate_by = $('.paginate-by');
-        
+            table = $('#table'),
+            per_page = $('.per-page');
+ 
         // default state for page
         var state = {
             page: 1,
-            paginate_by: paginate_by.val()
+            per_page: per_page.val(),
+            columns: [],
+            ordering: []
         };
         
         /*
          * Hook up the elements that change the number of rows per page.
          */
         var pb;
-        report.delegate('.paginate-by', 'change', function(evt) {
+        report.delegate('.per-page', 'change', function(evt) {
             pb = this.value;
-            if (state.paginate_by == pb)
+            if (state.per_page == pb)
                 return false;
-            paginate_by.val(pb);
-            state.paginate_by = pb;
-            report.trigger('update.report', {'paginate_by': pb});
+            per_page.val(pb);
+            state.per_page = pb;
+            report.trigger('update.report', {'per_page': pb});
             return false;
         });
         
@@ -42,7 +45,12 @@ require.def('report/main', function() {
         var uri = report.attr('data-uri');
         report.bind('update.report', function(evt, data) {
             $.getJSON(uri, data, function(json) {
-                console.log(json);
+                /*
+                 * the header will not be present if the columns have not changed
+                 */
+                if (json.header)
+                    table.jqotesub(templates.header, json.header);
+                table.jqotesub(templates.row, json.data);
             });
         });
     });
