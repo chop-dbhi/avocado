@@ -18,7 +18,7 @@ require(['design/search', 'design/conceptmanager', 'design/criteriamanager'], fu
             pluginStaticContent);
         
         var criteriaManager = criteriamanager.Manager(criteriaPanel);
-       
+        
         rootNode.bind('UpdateQueryEvent', function(evt, criteria_constraint) {
             criteriaPanel.triggerHandler("UpdateQueryEvent", [criteria_constraint]);
         });
@@ -44,7 +44,7 @@ require(['design/search', 'design/conceptmanager', 'design/criteriamanager'], fu
         });
         
         $.getJSON("/api/scope/session/", function(data){
-            if ((data.store === null) || ($.isEmptyObject(data.store))){
+            if ((data.store === null) || $.isEmptyObject(data.store)){
                 return;
             }
             if (!data.store.hasOwnProperty("concept_id")){ // Root node representing a list of concepts won't have this attribute

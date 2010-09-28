@@ -1,4 +1,4 @@
-require.def('design/conceptmanager', ['design/chart','design/form'], function(chart,form) {
+require.def('design/conceptmanager',['design/views'], function(views) {
     
     /**
       Sets up and manages the view sets for each criterion option.
@@ -22,13 +22,7 @@ require.def('design/conceptmanager', ['design/chart','design/form'], function(ch
       @param {jQuery} $contentBox Represents the content area within the
       container that the active view is displayed
     */
-    var manager = function($container, $titleBar, $tabsBar, $contentBox, $staticBox) {
-        
-        var binaryFieldRe = /^(\d+)_(\d+(?:OR\d+)*)_input([01])$/;
-        var fieldRe = /^(\d*)_(\d+(?:OR\d+)*)$/;
-        var opRe = /^(\d*)_(\d+(?:OR\d+)*)_operator$/;
-        var pkChoiceRe = /^\d+(?:OR\d+)+$/;
-        
+    var manager = function($container, $titleBar, $tabsBar, $contentBox, $staticBox) {  
         /**
           A hash with respect to criterion IDs of the objects fetched from
           the server to build the views.
@@ -68,47 +62,144 @@ require.def('design/conceptmanager', ['design/chart','design/form'], function(ch
           @type object
         */
         var activeView = null;
- 
-        /**
-          Certain types of concept are built-into the framework.
-
-          We do not have to make external calls to retrieve their code. 
-          Control will be passed to the built-in concept code from
-          this function
-      
-          @private 
-        */
-        function builtinViewCreator(view) {        
-            var result = $('<div class="view"></div>');
-            $.each(view.elements, function(index, element) {
-                switch (element.type) {
-                    case 'form':
-                        result.append(form.Form(element,view.concept_id)); 
-                        break;
-                    case 'chart':
-                        var datatype = element.data.datatype;
-                        var location = undefined; //Modernizr.svg ? undefined : $contentBox;
-                        if (datatype === 'decimal') {
-                            result.append(chart.getLineChart(element, view.concept_id, location)); 
-                        } else if (datatype === 'choice') {
-                            var len = element.data.coords.length;
-                            if (len <= 3) {
-                                result.append(chart.getPieChart(element,  view.concept_id, location));
-                            } else {
-                                result.append(chart.getBarChart(element,  view.concept_id, location));
-                            }
-                        }
-                        break;
-                    default:
-                        result.append($('<p>Undefined View!</p>'));                
-                }
-            });
-            
-
-            // Show the view
-            $container.trigger('ViewReadyEvent', [result]);
-        };
         
+        var binaryFieldRe = /^(\d+)_(\d+(?:OR\d+)*)_input([01])$/;
+        var fieldRe = /^(\d*)_(\d+(?:OR\d+)*)$/;
+        var opRe = /^(\d*)_(\d+(?:OR\d+)*)_operator$/;
+        var pkChoiceRe = /^\d+(?:OR\d+)+$/;
+ 
+
+
+
+        /**
+              This function is a utility function, currently called by the AddQueryButtonHandler,
+              for concepts made of builtin views, the function will be responsible
+              for analyzing the current concept's datasource and creating the 
+              datastructure reprsenting the proper query for the server to 
+              perform.
+
+              @private
+        */
+
+        function buildQuery(ds) {
+            var fields={};
+            // We need to analyze the current concept and the datasource and construct
+            // the proper datastructure to represent this query on the server
+            // Find all the different fields and their values in this concept
+            for (var item in ds){
+                if (!ds.hasOwnProperty(item)) continue;
+                var m = fieldRe.exec(item); // Either a choice, assertion, or boolean
+                if (m){
+                    fields[m[2]] = { val0:ds[item], val1:null, op:null};
+                    continue;
+                }
+                m = binaryFieldRe.exec(item); // decimal
+                if (m) {
+                    if (fields.hasOwnProperty(m[2])) {
+                        fields[m[2]]['val'+m[3]] = ds[item];
+                    }else{
+                        fields[m[2]] = {val0:null, val1:null, op:null};
+                        fields[m[2]]['val'+m[3]] = ds[item];
+                    }
+                    continue;
+                }
+                m = pkChoiceRe.exec(item); // field representing the field this concept needs to query against
+                if (m) {
+                    if (fields.hasOwnProperty(m[0])){
+                        fields[m[0]]['pk'] = ds[item];
+                    }else{
+                        fields[m[0]] = {val0:null, val1:null, op:null, pk:ds[item]};
+                    }
+                }
+            }
+            for (item in ds){
+                 if (!ds.hasOwnProperty(item)) continue;
+                 m = opRe.exec(item);
+                 if ((m) && fields[m[2]]) { // For optional fields, we may have an operator, but the value may not exist, so don't use it
+                     fields[m[2]]['op'] = ds[item];
+                 }
+            }
+            // We now have the ds sorted into a sensible datastructure
+            // based on the fields in the concept. Construct the server
+            // required datastructure
+            var nodes = [];
+
+            for (var field_id in fields) {
+                var field = fields[field_id];
+
+                // if field_id represents a pkChoiceRe, it means it holds the PK value for this field
+                var variable_pk = false;
+                var pkChoices = null;
+                if (pkChoiceRe.exec(field_id)) {
+                    pkChoices = field_id.split('OR');
+                    field_id = field.pk;
+                    variable_pk = true;
+                }
+
+                if (!field.val0 && !field.val1 && field.op){  // either "is null" or "is not null"
+                     nodes.push({
+                                     'operator' : field.op,
+                                     'id' : field_id,
+                                     'concept_id': activeConcept
+                                });
+                }
+                else if (field.val0 && field.val1 && field.op) { // Decimal Binary Op
+                    nodes.push({
+                                    'operator' : field.op,
+                                    'id' : field_id,
+                                    'value' : [field.val0,field.val1],
+                                    'concept_id': activeConcept
+                                });
+                } else if (field.val0 && field.op && !(field.val0 instanceof Array)){ // Decimal or assertion or boolean
+                    nodes.push({
+                                    'operator' : field.op,
+                                    'id' : field_id,
+                                    'value' : field.val0,
+                                    'concept_id': activeConcept
+                                });
+                } else if (field.val0 && field.val0 instanceof Array){ // Choice Same as obove ...
+                    // if field.op is null, assume the query was the default, which is "in"
+                    field.op = field.op !== null ? field.op : "in";
+                    nodes.push({
+                                    'operator' : field.op,
+                                    'id' : field_id,
+                                    'value' : field.val0,
+                                    'concept_id': activeConcept
+                                });
+                } else if (field.val0 !== null && !(field.val0 instanceof Array) &&
+                          field.val1 === null){ // assertion/or boolean when operator not specified
+                     nodes.push({
+                                        'operator' : "exact",
+                                        'id' : field_id,
+                                        'value' : field.val0,
+                                        'concept_id': activeConcept
+                                });
+                } else {
+                    // Unable to determine what this field is ?
+                    throw "Unable to determine field " + field + " in concept " + activeConcept;
+                }
+
+                if (variable_pk){  
+                    // When we get this back from th server, we will need a way to tell
+                    // that the field pk was variable, and how to recreate the datastore
+                    // TODO would it be better to make the form responsible for this?
+                    nodes[nodes.length-1]['id_choices'] =  pkChoices;
+                }
+            }
+
+            var server_query;
+            if (nodes.length === 1){
+                server_query = nodes[0];
+            }else{
+                server_query = {
+                                     'type': 'and',
+                                     'children': nodes,
+                                     'concept_id':activeConcept
+                               };
+            }
+            return (server_query);
+        }
+
          /**
               This function takes an avocado query datastructure and 
               returns a datasource object for a concept. This is recursive.
@@ -187,7 +278,7 @@ require.def('design/conceptmanager', ['design/chart','design/form'], function(ch
             $view.children().trigger("GainedFocusEvent");
 
             activeView.loaded = true;
-        };
+         };
     
 
         /** 
@@ -222,25 +313,10 @@ require.def('design/conceptmanager', ['design/chart','design/form'], function(ch
                 var callback = null;
                 activeView.concept_id = activeConcept;
                 if (activeView.type !== 'custom')
-                    callback = builtinViewCreator;
+                    callback = views.createView;
                 loadDependencies(activeView, callback);
             }
         };    
-
-        /**
-          The handler for the 'UpdateQueryEvent' event
-      
-          This is fired by a concept when the user clicks
-          the concepts 'add to query/update query' button
-          This will send off the grammar to the back-end to be
-          evaluated and then added to the user's query elements
-      
-          @private
-        */
-        function updateQueryHandler(evt, query) {
-            // Not currently used
-        };
-
         /**
           The handler for the 'ViewErrorEvent' event
       
@@ -299,7 +375,6 @@ require.def('design/conceptmanager', ['design/chart','design/form'], function(ch
             if ($.isEmptyObject(ds)) {
                 return false;
             }
-            
             for (var key in ds){
                 if (!ds.hasOwnProperty(key)) continue;
                 
@@ -311,158 +386,43 @@ require.def('design/conceptmanager', ['design/chart','design/form'], function(ch
                 }
             }
             return true;
-        }    
+        }
+        
         /**
-               This function is the handler for the "add to query" button for builtin concepts
-               It scans the datasource to verify it is not empty, calls a utility function to
-               create the server query datastructure, and then passes the structure to the 
-               framework.
+             Scan datasource, make sure it's populated and contruct the query.
+             Once complete, pass query structure up using UpdateQueryEvent
+             @private
+        */
+        function constructQueryHandler(event){
+            var ds = cache[activeConcept].ds;
+            // Does this datasource contain valid values?
+            if (!postViewErrorCheck(ds)){
+                var evt = $.Event("InvalidInputEvent");
+                evt.ephemeral = true;
+                evt.message = "No value has been specified.";
+                $(event.target).trigger(evt);
+                return;
+            }
+            var server_query =  buildQuery(ds);
+            
+            $(event.target).trigger("UpdateQueryEvent", [server_query]);
+        }
+        
+        /**
+               This function is the handler for the "add to query" button.
+               This button appears in the static content area for all concepts,
+               builtin or not. This event passes the event to the current view.
+               Builtin-views will be default listen for this event and call the 
+               ConstructQueryEvent, which will prepare pass it along with an "UpdateQueryEvent"
+               Custom plugins can either use this default behavior (which analyzes the datasource)
+               to constuct the query, or they may listen for the UpdateQueryButton clicked and
+               construct the query themselves and trigger UpdateQueryEvent.
                @private
         */
-
         function addQueryButtonHandler(event){
-             var ds = cache[activeConcept].ds;
-             
-             // Does this datasource contain valid values?
-             if (!postViewErrorCheck(ds)){
-                 var evt = $.Event("InvalidInputEvent");
-                 evt.ephemeral = true;
-                 evt.message = "No value has been specified.";
-                 $(event.target).trigger(evt);
-                 return;
-             }
-             var server_query = createQueryDataStructure(ds); 
-             $(event.target).trigger("UpdateQueryEvent", [server_query]); 
-        }
+            activeView.contents.triggerHandler("UpdateQueryButtonClicked"); // This would be better if every view didn't need to handle this
+        }                                                                   // it should be concept level thing.
         
-        /**
-              This function is a utility function, currently called by the AddQueryButtonHandler,
-              for concepts made of builtin views, the function will be responsible
-              for analyzing the current concept's datasource and creating the 
-              datastructure reprsenting the proper query for the server to 
-              perform.
-        
-              @private
-        */
-        
-        function createQueryDataStructure(ds) {
-            var fields={};
-            // We need to analyze the current concept and the datasource and construct
-            // the proper datastructure to represent this query on the server
-            // Find all the different fields and their values in this concept
-            for (var item in ds){
-                if (!ds.hasOwnProperty(item)) continue;
-                var m = fieldRe.exec(item); // Either a choice, assertion, or boolean
-                if (m){
-                    fields[m[2]] = { val0:ds[item], val1:null, op:null};
-                    continue;
-                }
-                m = binaryFieldRe.exec(item); // decimal
-                if (m) {
-                    if (fields.hasOwnProperty(m[2])) {
-                        fields[m[2]]['val'+m[3]] = ds[item];
-                    }else{
-                        fields[m[2]] = {val0:null, val1:null, op:null};
-                        fields[m[2]]['val'+m[3]] = ds[item];
-                    }
-                    continue;
-                }
-                m = pkChoiceRe.exec(item); // field representing the field this concept needs to query against
-                if (m) {
-                    if (fields.hasOwnProperty(m[0])){
-                        fields[m[0]]['pk'] = ds[item];
-                    }else{
-                        fields[m[0]] = {val0:null, val1:null, op:null, pk:ds[item]};
-                    }
-                }
-            }
-            for (item in ds){
-                 if (!ds.hasOwnProperty(item)) continue;
-                 m = opRe.exec(item);
-                 if ((m) && fields[m[2]]) { // For optional fields, we may have an operator, but the value may not exist, so don't use it
-                     fields[m[2]]['op'] = ds[item];
-                 }
-            }
-            // We now have the ds sorted into a sensible datastructure
-            // based on the fields in the concept. Construct the server
-            // required datastructure
-            var nodes = [];
-            
-            for (var field_id in fields) {
-                var field = fields[field_id];
-                
-                // if field_id represents a pkChoiceRe, it means it holds the PK value for this field
-                var variable_pk = false;
-                var pkChoices = null;
-                if (pkChoiceRe.exec(field_id)) {
-                    pkChoices = field_id.split('OR');
-                    field_id = field.pk;
-                    variable_pk = true;
-                }
-                
-                if (!field.val0 && !field.val1 && field.op){  // either "is null" or "is not null"
-                     nodes.push({
-                                     'operator' : field.op,
-                                     'id' : field_id,
-                                     'concept_id': activeConcept
-                                });
-                }
-                else if (field.val0 && field.val1 && field.op) { // Decimal Binary Op
-                    nodes.push({
-                                    'operator' : field.op,
-                                    'id' : field_id,
-                                    'value' : [field.val0,field.val1],
-                                    'concept_id': activeConcept
-                                });
-                } else if (field.val0 && field.op && !(field.val0 instanceof Array)){ // Decimal or assertion or boolean
-                    nodes.push({
-                                    'operator' : field.op,
-                                    'id' : field_id,
-                                    'value' : field.val0,
-                                    'concept_id': activeConcept
-                                });
-                } else if (field.val0 && field.val0 instanceof Array){ // Choice Same as obove ...
-                    // if field.op is null, assume the query was the default, which is "in"
-                    field.op = field.op !== null ? field.op : "in";
-                    nodes.push({
-                                    'operator' : field.op,
-                                    'id' : field_id,
-                                    'value' : field.val0,
-                                    'concept_id': activeConcept
-                                });
-                } else if (field.val0 !== null && !(field.val0 instanceof Array) &&
-                          field.val1 === null){ // assertion/or boolean when operator not specified
-                     nodes.push({
-                                        'operator' : "exact",
-                                        'id' : field_id,
-                                        'value' : field.val0,
-                                        'concept_id': activeConcept
-                                });
-                } else {
-                    // Unable to determine what this field is ?
-                    throw "Unable to determine field " + field + " in concept " + cache[activeConcept];
-                }
-                
-                if (variable_pk){  
-                    // When we get this back from th server, we will need a way to tell
-                    // that the field pk was variable, and how to recreate the datastore
-                    // TODO would it be better to make the form responsible for this?
-                    nodes[nodes.length-1]['id_choices'] =  pkChoices;
-                }
-            }
-            
-            var server_query;
-            if (nodes.length === 1){
-                server_query = nodes[0];
-            }else{
-                server_query = {
-                                     'type': 'and',
-                                     'children': nodes,
-                                     'concept_id':activeConcept
-                               };
-            }
-            return (server_query);
-        }
         
        /**
              This function notifies the framework that the user has entered invalid input. 
@@ -534,7 +494,6 @@ require.def('design/conceptmanager', ['design/chart','design/form'], function(ch
             }
         }
         
-        
         /**
               This function notifies the framework that the user corrected an invalid field. 
               The framework will only show the same error message once, and it will only show
@@ -574,7 +533,7 @@ require.def('design/conceptmanager', ['design/chart','design/form'], function(ch
             'UpdateQueryButtonClicked' : addQueryButtonHandler,
             'InvalidInputEvent' : badInputHandler,
             'InputCorrectedEvent': fixedInputHandler,
-            'UpdateQueryEvent': updateQueryHandler
+            'ConstructQueryEvent': constructQueryHandler
         });
         
         
@@ -595,10 +554,10 @@ require.def('design/conceptmanager', ['design/chart','design/form'], function(ch
                      cb(deps);
                  });
             } else {
-                cb(deps);
+                cb(deps, $container);
             }
         };
-    
+        
         function loadConcept(concept){
             // If we got here, the globals for the current concept have been loaded
             // We will register it in our cache
@@ -616,18 +575,17 @@ require.def('design/conceptmanager', ['design/chart','design/form'], function(ch
         
             var tabs = $.jqote(tab_tmpl, concept.views);
             $tabsBar.html(tabs); 
-
+        
             // If all of the views are builtin, we are going to let the framework
             // handle the add to query button, otherwise the plugin needs to do it
             // (The plugin would raise the UpdateQueryEvent itself)
-            var builtin = true;
-            $.each(concept.views, function(index, element){
-                if (element.type !== "builtin"){
-                    builtin = false;
-                }
-            });
+            // var builtin = true;
+            //             $.each(concept.views, function(index, element){
+            //                 if (element.type !== "builtin"){
+            //                     builtin = false;
+            //                 }
+            //             });
             
-            $staticBox.hide();
             if (concept['static']){
                 $staticBox.append(concept['static']);
             }else{
@@ -635,14 +593,14 @@ require.def('design/conceptmanager', ['design/chart','design/form'], function(ch
                 var $addQueryButton = $(add_query_tmpl);
                 $addQueryButton.click(function(){
                      var event = $.Event("UpdateQueryButtonClicked");
-                     $(this).trigger(event); // TODO send current Concept Here to verify its correct
+                     $(this).trigger(event); 
                 });
                 $staticBox.append($addQueryButton);
             }
             
-            if (builtin){
-                $staticBox.show();
-            }
+            // if (builtin){
+            //                 $addQueryButton.show();
+            //             }
             // Regardless of whether the tabs are visible, load the first view
             $tabsBar.children(':first').click();
         };
@@ -667,10 +625,10 @@ require.def('design/conceptmanager', ['design/chart','design/form'], function(ch
         });
         
         
-        // PUBLIC METHODS
+
         /**
           Registers a concept
-          @public
+          @private
         */
         function register(concept) {
             if (cache[concept.pk] === undefined){
@@ -693,6 +651,7 @@ require.def('design/conceptmanager', ['design/chart','design/form'], function(ch
             }
         };  
 
+        // PUBLIC METHODS
         /**
           Loads and makes a particular concept active and in view
           @public
@@ -724,7 +683,6 @@ require.def('design/conceptmanager', ['design/chart','design/form'], function(ch
        };
         
        return {
-            register: register,
             show: show
         };
     };
