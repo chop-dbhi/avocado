@@ -63,6 +63,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
         */
         var activeView = null;
         
+        // RegEx used by buildQuery
         var binaryFieldRe = /^(\d+)_(\d+(?:OR\d+)*)_input([01])$/;
         var fieldRe = /^(\d*)_(\d+(?:OR\d+)*)$/;
         var opRe = /^(\d*)_(\d+(?:OR\d+)*)_operator$/;
@@ -77,7 +78,6 @@ require.def('design/conceptmanager',['design/views'], function(views) {
 
               @private
         */
-
         function buildQuery(ds) {
             var fields={};
             // We need to analyze the current concept and the datasource and construct
@@ -341,18 +341,37 @@ require.def('design/conceptmanager',['design/views'], function(views) {
         function elementChangedHandler(evt, element){
             // Update the concept datastore
             var ds = cache[activeConcept].ds;
+            var missing_item = false;
             // Did anything actually change?
-            // if (ds[element.name] === element.value) return;
+            console.log(element);
             
+             
+            if (!(element.value instanceof Array) && ds[element.name] === element.value) 
+            {
+                // item is not an array and the values are equal to each other
+                return;
+            }else if (element.value instanceof Array && ds[element.name] instanceof Array){
+                for (var index = 0; index < element.value.length; index++){
+                    if ($.inArray(element.value[index],ds[element.name])==-1){
+                        // Element in one is not in the other
+                        missing_item = true;
+                        break;
+                    }
+                }
+                if ((missing_item == false)&&(element.value.length == ds[element.name].length)){
+                    // All elements in one are in the other, and the lists are same length
+                    return;
+                }
+            }
             
-            // A field is no longe in use, most likely a field was hidden due to 
+            // A field is no longer in use, most likely a field was hidden due to 
             // an operator change
             if (element.value == null){
                 // Clear out this value in the datasource
                 delete cache[activeConcept].ds[element.name];
             }else{
                 // Update the datasource
-                cache[activeConcept].ds[element.name] = element.value;
+                cache[activeConcept].ds[element.name] = element.value instanceof Array ? element.value.slice(0) : element.value;
             }
             // If other views on this concept are already instantiated
             // notify them of the change
@@ -533,6 +552,16 @@ require.def('design/conceptmanager',['design/views'], function(views) {
             'ConstructQueryEvent': constructQueryHandler
         });
         
+        /**
+           Simple Load CSS function (taken from http://requirejs.org/docs/faq-advanced.html#css)
+        */
+        function loadCss(url) {
+            var link = document.createElement("link");
+            link.type = "text/css";
+            link.rel = "stylesheet";
+            link.href = url;
+            document.getElementsByTagName("head")[0].appendChild(link);
+        }
         
         /**
           A callback does not have to be specified if the view is custom because
@@ -543,11 +572,12 @@ require.def('design/conceptmanager',['design/views'], function(views) {
         function loadDependencies(deps, cb) {
             cb = cb || function(){};
         
-            if (deps.css)
-                LazyLoad.css(deps.css);
+            if (deps.css){
+                loadCss(deps.css);
+            }
 
             if (deps.js) {
-                 LazyLoad.js(deps.js, function () {
+                 require([deps.js], function () {
                      cb(deps);
                  });
             } else {
