@@ -3,12 +3,12 @@ require.def('design/views',  ['design/chart','design/form'], function(chart, for
     
 
      /**
-      Certain types of concept are built-into the framework.
-
-      We do not have to make external calls to retrieve their code. 
-      Control will be passed to the built-in concept code from
-      this function
-  
+        Certain types of views are built-into the framework.
+        
+        We do not have to make external calls to retrieve their code. 
+        Control will be passed to the built-in concept code from
+        this function
+        
       @private 
     */
     function createView(view, $container) {        
@@ -44,9 +44,5 @@ require.def('design/views',  ['design/chart','design/form'], function(chart, for
         // Show the view
         $container.trigger('ViewReadyEvent', [result]);
     }
-
-    return { createView: createView,
-           };
-
-
+    return { createView: createView};
 });

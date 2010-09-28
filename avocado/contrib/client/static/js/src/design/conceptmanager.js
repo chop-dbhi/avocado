@@ -63,20 +63,20 @@ require.def('design/conceptmanager',['design/views'], function(views) {
         */
         var activeView = null;
         
-        // RegEx used by buildQuery
+        // RegExes used by buildQuery
         var binaryFieldRe = /^(\d+)_(\d+(?:OR\d+)*)_input([01])$/;
         var fieldRe = /^(\d*)_(\d+(?:OR\d+)*)$/;
         var opRe = /^(\d*)_(\d+(?:OR\d+)*)_operator$/;
         var pkChoiceRe = /^\d+(?:OR\d+)+$/;
  
         /**
-              This function is a utility function, currently called by the AddQueryButtonHandler,
-              for concepts made of builtin views, the function will be responsible
-              for analyzing the current concept's datasource and creating the 
-              datastructure reprsenting the proper query for the server to 
-              perform.
-
-              @private
+          This function is a utility function, currently called by the AddQueryButtonHandler,
+          for concepts made of builtin views, the function will be responsible
+          for analyzing the current concept's datasource and creating the 
+          datastructure representing the proper query for the server to 
+          perform.
+          
+          @private
         */
         function buildQuery(ds) {
             var fields={};
@@ -198,11 +198,11 @@ require.def('design/conceptmanager',['design/views'], function(views) {
         }
 
          /**
-              This function takes an avocado query datastructure and 
-              returns a datasource object for a concept. This is recursive.
-              
-              @private
-         */
+           This function takes an avocado query datastructure and 
+           returns a datasource object for a concept. This is recursive.
+           
+           @private
+         */ 
          function createDSFromQuery(parameter, recurse_ds){
              var ds = recurse_ds || {};
              var field_prefix;
@@ -239,11 +239,11 @@ require.def('design/conceptmanager',['design/views'], function(views) {
     
         /**
           The handler for the 'ViewReadyEvent' event
-      
+          
           This event is fired by a concept plugin when it is ready 
           to be inserted into the DOM. $concept here should be a 
           jQuery wrapped set, ready to be placed into the DOM
-      
+          
           @private
         */
         function viewReadyHandler(evt, $view) {
@@ -280,11 +280,11 @@ require.def('design/conceptmanager',['design/views'], function(views) {
 
         /** 
           The handler for the 'ShowViewEvent' event
-      
+          
           This event is fired by the tab bar when a new view
           is to be displayed. tabIndex correlates to the view in the 
           activeConcept's views array that needs to be shown.
-      
+          
           @private
         */
         function showViewHandler(evt, tabIndex) {
@@ -315,11 +315,11 @@ require.def('design/conceptmanager',['design/views'], function(views) {
             }
         };    
         /**
-          The handler for the 'ViewErrorEvent' event
+             The handler for the 'ViewErrorEvent' event
       
-          This event is fired by a concept/concept plugin when
-          an unrecoveralble error has been received. The framework
-          can choose to show the 'Report Error' Panel
+             This event is fired by a concept/concept plugin when
+             an unrecoveralble error has been received. The framework
+             can choose to show the 'Report Error' Panel
       
           @private
         */    
@@ -330,22 +330,19 @@ require.def('design/conceptmanager',['design/views'], function(views) {
         
         
         /**
-            The handler for the 'ElementChangedEvent' event
-        
-            This event is used by concepts to notify that the user
-            has changed the value of an input
-        
-            @private
-       */
+          The handler for the 'ElementChangedEvent' event
+          
+          This event is used by concepts to notify that the user
+          has changed the value of an input
+          
+          @private
+       */  
         
         function elementChangedHandler(evt, element){
             // Update the concept datastore
             var ds = cache[activeConcept].ds;
             var missing_item = false;
             // Did anything actually change?
-            console.log(element);
-            
-             
             if (!(element.value instanceof Array) && ds[element.name] === element.value) 
             {
                 // item is not an array and the values are equal to each other
@@ -382,11 +379,16 @@ require.def('design/conceptmanager',['design/views'], function(views) {
             });
         };
         
+        /**
+          This function is used by the constructQueryHandler to scan
+          the concept's datasource and verify is not empty and does
+          not contain empty, undefined, or null objects. If using 
+          the built-in query contructor, the datasource must contain
+          only properly named attributes.
+          @private
+        */
         
         function postViewErrorCheck(ds){
-            // verify that an fields in the datsource are not null, empty strings, undefined, or empty arrays
-            // and that the ds is not itself empty
-            
             // Is the datasource an empty object?
             if ($.isEmptyObject(ds)) {
                 return false;
@@ -405,10 +407,12 @@ require.def('design/conceptmanager',['design/views'], function(views) {
         }
         
         /**
-             Scan datasource, make sure it's populated and contruct the query.
-             Once complete, pass query structure up using UpdateQueryEvent
-             @private
-        */
+          This is the main control function for built-in and custom views
+          that will use the default query constructor. It calls the function 
+          to verify the datasource, then calls the query contructor, and then
+          finally triggers the UpdateQueryEvent up the DOM
+          @private
+        */ 
         function constructQueryHandler(event){
             var ds = cache[activeConcept].ds;
             // Does this datasource contain valid values?
@@ -425,15 +429,15 @@ require.def('design/conceptmanager',['design/views'], function(views) {
         }
         
         /**
-               This function is the handler for the "add to query" button.
-               This button appears in the static content area for all concepts,
-               builtin or not. This event passes the event to the current view.
-               Builtin-views will be default listen for this event and call the 
-               ConstructQueryEvent, which will prepare pass it along with an "UpdateQueryEvent"
-               Custom plugins can either use this default behavior (which analyzes the datasource)
-               to constuct the query, or they may listen for the UpdateQueryButton clicked and
-               construct the query themselves and trigger UpdateQueryEvent.
-               @private
+          This function is the handler for the "add to query" button.
+          This button appears in the static content area for all concepts,
+          builtin or not. This event passes the event to the current view.
+          Builtin-views will be default listen for this event and call the 
+          ConstructQueryEvent, which will prepare pass it along with an "UpdateQueryEvent"
+          Custom plugins can either use this default behavior (which analyzes the datasource)
+          to constuct the query, or they may listen for the UpdateQueryButton clicked and
+          construct the query themselves and trigger UpdateQueryEvent.
+          @private
         */
         function addQueryButtonHandler(event){
             activeView.contents.triggerHandler("UpdateQueryButtonClicked"); // This would be better if every view didn't need to handle this
@@ -441,13 +445,13 @@ require.def('design/conceptmanager',['design/views'], function(views) {
         
         
        /**
-             This function notifies the framework that the user has entered invalid input. 
-             The framework will only show the same error message once, and it will only show
-             one error message per invalid field (the last one to be sent). By default if no
-             error message is sent on the event, then a generic error message is displayed.
-             If there are any error messages, the submit button will be disabled.
-             @private
-        */
+         This function notifies the framework that the user has entered invalid input. 
+         The framework will only show the same error message once, and it will only show
+         one error message per invalid field (the last one to be sent). By default if no
+         error message is sent on the event, then a generic error message is displayed.
+         If there are any error messages, the submit button will be disabled.
+         @private
+       */
         
         function badInputHandler(evt){
             evt.reason = evt.reason ? "_"+ evt.reason : "";
@@ -511,13 +515,13 @@ require.def('design/conceptmanager',['design/views'], function(views) {
         }
         
         /**
-              This function notifies the framework that the user corrected an invalid field. 
-              The framework will only show the same error message once, and it will only show
-              one error message per invalid field (the last one to be sent). By default if no
-              error message is sent on the event, then a generic error message is displayed.
-              If there are any error messages, the submit button will be disabled.
-              @private
-        */
+          This function notifies the framework that the user corrected an invalid field. 
+          The framework will only show the same error message once, and it will only show
+          one error message per invalid field (the last one to be sent). By default if no
+          error message is sent on the event, then a generic error message is displayed.
+          If there are any error messages, the submit button will be disabled.
+          @private
+        */ 
         function fixedInputHandler(evt){
             evt.reason = evt.reason ? "_"+ evt.reason : "";
             var invalid_fields = cache[activeConcept].invalid_fields;
@@ -539,8 +543,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                 $staticBox.find("#add_to_query").attr("disabled","");
             }
         }
-        
-        
+        // Bind all framework events to their handler
         $container.bind({
             'ViewReadyEvent': viewReadyHandler,
             'ViewErrorEvent': viewErrorHandler,
@@ -553,7 +556,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
         });
         
         /**
-           Simple Load CSS function (taken from http://requirejs.org/docs/faq-advanced.html#css)
+          Simple dynamic coad CSS function (taken from http://requirejs.org/docs/faq-advanced.html#css)
         */
         function loadCss(url) {
             var link = document.createElement("link");
@@ -564,11 +567,11 @@ require.def('design/conceptmanager',['design/views'], function(views) {
         }
         
         /**
+          This function loads dependencies for the conept and for the any views.
           A callback does not have to be specified if the view is custom because
-          the view code is responsible for firing the ViewReadyEvent
+          the view code is responsible for firing the ViewReadyEvent.
           @private
         */
-        
         function loadDependencies(deps, cb) {
             cb = cb || function(){};
         
@@ -585,6 +588,13 @@ require.def('design/conceptmanager',['design/views'], function(views) {
             }
         };
         
+        /**
+          This function handles all the administration of laoding a new concept.
+          It registers with the fraemwork, sets some flags, prepares the 
+          "add to query" button and displays the first view
+          @private
+        */
+        
         function loadConcept(concept){
             // If we got here, the globals for the current concept have been loaded
             // We will register it in our cache
@@ -595,23 +605,13 @@ require.def('design/conceptmanager',['design/views'], function(views) {
             
             // Setup tabs objects and trigger viewing of the first one
             if (concept.views.length < 2) {
-                $tabsBar.css('display','none');
+                $tabsBar.hide();
             } else {
-                $tabsBar.css('display','block');
+                $tabsBar.show();
             }
         
             var tabs = $.jqote(tab_tmpl, concept.views);
             $tabsBar.html(tabs); 
-        
-            // If all of the views are builtin, we are going to let the framework
-            // handle the add to query button, otherwise the plugin needs to do it
-            // (The plugin would raise the UpdateQueryEvent itself)
-            // var builtin = true;
-            //             $.each(concept.views, function(index, element){
-            //                 if (element.type !== "builtin"){
-            //                     builtin = false;
-            //                 }
-            //             });
             
             if (concept['static']){
                 $staticBox.append(concept['static']);
@@ -625,9 +625,6 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                 $staticBox.append($addQueryButton);
             }
             
-            // if (builtin){
-            //                 $addQueryButton.show();
-            //             }
             // Regardless of whether the tabs are visible, load the first view
             $tabsBar.children(':first').click();
         };
@@ -637,7 +634,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
           create tabs for any <a> elements put into the target area.
           Clicking a tab, will fire a ConceptTabClickEvent, which will be caught by 
           tabClickedHandler. This will fire a 'ShowViewEvent' up the DOM to our listener
-      
+          
           @private
         */
         function tabClickedHandler(evt, tab){
@@ -654,7 +651,8 @@ require.def('design/conceptmanager',['design/views'], function(views) {
         
 
         /**
-          Registers a concept
+          Registers a concept. This creates the concept object in the 
+          framework cache and verifies it has all necessary properties.
           @private
         */
         function register(concept) {
@@ -680,8 +678,8 @@ require.def('design/conceptmanager',['design/views'], function(views) {
 
         // PUBLIC METHODS
         /**
-          Loads and makes a particular concept active and in view
-          @public
+           Loads and makes a particular concept active and viewable
+           @public
         */
         function show(concept, existing_query, index, target) {
 
