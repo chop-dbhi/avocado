@@ -1,3 +1,5 @@
+import re
+
 from django import forms
 from django.db import models
 from django.db.models import Count
@@ -10,6 +12,11 @@ from avocado.fields.translate import library
 from avocado.fields.managers import FieldManager
 
 __all__ = ('Field',)
+
+COERCED_DATATYPES = (
+    (re.compile(r'^integer|float|decimal|big|positive|small|auto'), 'number'),
+    (re.compile(r'^char|text|file|ipaddress|slug'), 'string'),
+)
 
 class Field(models.Model):
     """The `Field' class stores off meta data about a "field of
@@ -96,6 +103,20 @@ class Field(models.Model):
                 self._field = None
         return self._field
     field = property(_get_field)
+    
+    def _get_datatype(self):
+        if not hasattr(self, '_datatype'):
+            internal = self.field.get_internal_type().lower()
+            for p, t in COERCED_DATATYPES:
+                if p.match(internal):
+                    self._datatype = t
+                    break
+            else:
+                if internal.endswith('field'):
+                    internal = internal[:-5]
+                self._datatype = internal
+        return self._datatype
+    datatype = property(_get_datatype)
 
     def _get_choices(self, choices_handler=None):
         """Returns a distinct set of choices for this field.
@@ -108,7 +129,15 @@ class Field(models.Model):
         """
         if not hasattr(self, '_choices') or choices_handler:
             choices = None
-            if self.enable_choices:
+
+            # override boolean type fields
+            if self.datatype in ('boolean', 'nullboolean'):
+                choices = [(True, 'Yes'), (False, 'No')]
+                if self.datatype == 'nullboolean':
+                    choices.append((None, 'No Data'))
+                choices = tuple(choices)
+
+            elif self.enable_choices:
                 choices_handler = choices_handler or self.choices_handler
 
                 # use introspection
@@ -116,12 +145,12 @@ class Field(models.Model):
                     name = self.field_name
                     choices = list(self.model.objects.values_list(name,
                         flat=True).order_by(name).distinct())
-                    choices = zip(choices, map(lambda x: str(x).title(), choices))
+                    choices = zip(choices, map(lambda x: x is None and 'No Data' or str(x), choices))
 
                 # attempt to evaluate custom handler
                 else:
                     from avocado.fields import evaluators
-                    choices = evaluators.evaluate(self)
+                    choices = evaluators.evaluate(self)                
 
             self._choices = choices
         return self._choices
@@ -141,7 +170,7 @@ class Field(models.Model):
             delattr(self, '_choices')
 
     def distribution(self, exclude=[], min_count=None, max_points=30,
-        order_by='field', **filters):
+        order_by='field', smooth=0.05, **filters):
 
         """Builds a GROUP BY queryset for use as a value distribution.
 
@@ -204,17 +233,29 @@ class Field(models.Model):
             dist = dist.order_by('count')
         elif order_by == 'field':
             dist = dist.order_by(name)
+        
+        dist = list(dist)
+        
+        if self.datatype == 'number' and smooth > 0:
+            maxy = dist[0][1]
+            for x, y in dist[1:]:
+                maxy = max(y, maxy)
+            maxy = float(maxy)
+            smooth_dist  = []
+            for x, y in dist:
+                if y / maxy >= smooth:
+                    smooth_dist.append((x, y))
+            dist = smooth_dist
 
         if max_points is not None:
             # TODO faster to do count or len?
-            dist_len = dist.count()
+            dist_len = len(dist)
             step = int(dist_len/max_points)
 
             if step > 1:
                 # we can safely assume that this is NOT categorical data when
                 # ``max_points`` is set and/or the condition where the count will
                 # be greater than max_points will usually never be true
-                dist = list(dist)
 
                 # sample by step value
                 sampled_dist = dist[::step]
