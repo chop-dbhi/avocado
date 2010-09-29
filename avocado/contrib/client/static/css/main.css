@@ -34,14 +34,6 @@ html, body {
     font-size: 13px;
 }
 
-/*::-webkit-scrollbar {
-    height: 1ex;
-}
-
-::-webkit-scrollbar-thumn {
-    background: rgba(0, 0, 0, .2);
-}*/
-
 a {
     outline: none
 }
@@ -124,7 +116,7 @@ input[type=button]:active, input[type=submit]:active, button:active {
     border-color: #666;
 }
 
-input[type=button]:active, input[type=submit]:active, button:active, button.selected {
+input[type=button]:active, input[type=submit]:active, button:active {
     border-color: #666;
     color: #fff;
     text-shadow: #222 -1px -1px 0;
@@ -132,6 +124,17 @@ input[type=button]:active, input[type=submit]:active, button:active, button.sele
     background: -moz-linear-gradient(-90deg, #555, #888);
     background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#555), to(#888));
     filter: progid:DXImageTransform.Microsoft.Gradient(startColorstr='#555555', endColorstr='#888888');
+}
+
+input[type=button]:disabled, input[type=submit]:disabled, button:disabled {
+    color: #999;
+    border-color: #aaa;
+    background: #ddd;
+    background: -moz-linear-gradient(-90deg, #ddd, #bbb);
+    background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ddd), to(#bbb));
+    filter: progid:DXImageTransform.Microsoft.Gradient(startColorstr='#dddddd', endColorstr='#bbbbbb');    
+    text-shadow: #eee 1px 1px 0;
+    cursor: auto;    
 }
 
 input.search {
@@ -153,8 +156,8 @@ header {
     position: absolute;
     left: 0;
     top: 0;
+    height: 28px;
     width: 100%;
-    height: 26px;
     background: #ccc;
     border-bottom: 1px solid #777;
 }
@@ -182,9 +185,9 @@ header a:hover, header a:active {
 }
 
 nav {
-    position: absolute;
+    position: relative;
     width: 100%;
-    top: 26px;
+    top: 28px;
     left: 0;
 }
 
@@ -193,7 +196,10 @@ nav ul {
     margin: 0;
     padding: 5px 10px;
     list-style: none;
-    background-color: #ccc;
+    background-color: #ddd;
+    background-image: -moz-linear-gradient(-90deg, #eee, #ccc);
+    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#eee), to(#ccc));
+    filter: progid:DXImageTransform.Microsoft.Gradient(startColorstr='#29537d', endColorstr='#22466b');    
     font-size: 12px;
     text-shadow: #eee 1px 1px 0;
     border-top: 1px dotted #999;
@@ -453,8 +459,8 @@ footer a:hover, footer a:active {
 .container > .title {
     color: #eee;
     padding: 5px 10px;
-    background-color: #29537D;
-    background-image: -moz-linear-gradient(-90deg, #29537d, #22466b);
+    background-color: #444;
+    background-image: -moz-linear-gradient(-90deg, #555, #666 50%, #333 55%, #444);
     background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#555),
         color-stop(50%, #666),
         color-stop(55%, #333),
@@ -468,6 +474,37 @@ footer a:hover, footer a:active {
 	-moz-border-radius-topright: 4px;
 	-webkit-border-top-left-radius: 4px;
 	-webkit-border-top-right-radius: 4px;
+}
+
+.container > .title button {
+    color: #ddd;
+    text-shadow: none;
+    float: right;
+    margin-top: -1px;
+    font-size: 10px;
+    padding: 2px 3px;
+    background-color: #444;
+    background-image: -moz-linear-gradient(-90deg, #555, #666 50%, #333 55%, #444);
+    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#555),
+        color-stop(50%, #666),
+        color-stop(55%, #333),
+        to(#444));
+    border-color: #000;
+    -webkit-box-shadow: #fff 0 0 1px;    
+}
+
+.container > .title button:hover {
+    color: #fff;
+    -webkit-box-shadow: #fff 0 0 2px;    
+}
+
+.container > .title button:active {
+    background-color: #444;
+    background-image: -moz-linear-gradient(-90deg, #444, #333 50%, #666 55%, #555);
+    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#444),
+        color-stop(50%, #333),
+        color-stop(55%, #666),
+        to(#555));    
 }
 
 .container > .no-title {

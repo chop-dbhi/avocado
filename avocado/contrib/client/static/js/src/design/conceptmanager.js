@@ -45,7 +45,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
           @private
           @type string
         */
-        var add_query_tmpl = '<input id="add_to_query" style="float:right" type="button" value="Add To Query"/>';
+        var add_query_tmpl = '<input id="add_to_query" style="float:right" type="button" value="Add To Query">';
         /**
           Holds the currently viewable/active concept/criterionconcept    
       

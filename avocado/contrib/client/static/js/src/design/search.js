@@ -5,11 +5,12 @@ require.def('design/search',
 
         function init() {
 
-            var body = $('body'),
-                panel = $('#search-panel'),
-                criteria = $('#criteria'),
+            var panel = $('#search-panel'),
                 categories = $('#categories'),
-                search = $('#search');
+                searchInput = $('#search'),
+                searchForm = $('form', panel),
+
+                criteria = $('#criteria');
 
             /*
             ** Initialize renderers for the available criterion options
@@ -27,6 +28,10 @@ require.def('design/search',
                 })
             };
 
+            /*
+            ** Initialize data sources for the available criterion options
+            ** and the categories.
+            */
             var src = {
                 criteria: new datasource.ajax({
                     uri: criteria.attr('data-uri'),
@@ -49,22 +54,38 @@ require.def('design/search',
             src.criteria.get();
             src.categories.get();
             
+            panel.bind('activate.tabs', function(evt) {
+                // remove ``active`` class from all *tabs*
+                $('[data-model=category]', categories).removeClass('active');
+                searchForm.removeClass('active');
+
+                // activate the target
+                $(evt.target).addClass('active');
+                
+            });
+            
             categories.delegate('[data-model=category]', 'click', function(evt) {
                 var target = $(this),
                     value = target.attr('data-search-term');
-                search.trigger('search', value);
-                target.siblings().removeClass('active');
-                target.addClass('active');
+
+                // trigger events
+                searchInput.trigger('search', value);
+                target.trigger('activate');
                 return false;
             });            
-
-            // manual delegation, since there is a specific
-            panel.bind('search', function(evt, value) {
-                search.trigger('search', value);
+            
+            searchInput.bind('focus', function() {
+                searchForm.trigger('activate');
                 return false;
             });
 
-            search.autocomplete({
+            // manual delegation, since there is a specific
+            panel.bind('search', function(evt, value) {
+                searchInput.trigger('search', value);
+                return false;
+            });
+
+            searchInput.autocomplete({
                 success: function(value, json) {
                     if (json.length > 0)
                         rnd.criteria.render(json);
@@ -72,6 +93,8 @@ require.def('design/search',
                         rnd.criteria.target.html('<em class="ca mg">No results found for term "'+ value +'"</em>');
                 }
             });
+            
+
         };
 
         return {init: init};
