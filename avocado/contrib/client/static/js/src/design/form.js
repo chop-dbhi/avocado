@@ -55,7 +55,7 @@ require.def('design/form', [], {
                                               '<select id="<%=this.field_id%>-operator" name="<%=this.field_id%>_operator">',
                                                  choiceOperatorsTmpl,
                                               '</select>',
-                                              '<select multiple="multiple" id="<%=this.field_id%>-value" name="<%=this.field_id%>" size="7" data-optional="<%=this.optional%>" >',
+                                              '<select multiple="multiple" id="<%=this.field_id%>-value" name="<%=this.field_id%>" size="3" data-optional="<%=this.optional%>" >',
                                               '<% for (index in this.choices) { %>',
                                                     '<option value="<%=this.choices[index][0]%>"><%=this.choices[index][1]%></option>',
                                                '<%}%>',
