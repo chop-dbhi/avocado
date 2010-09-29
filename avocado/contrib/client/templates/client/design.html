@@ -43,16 +43,17 @@
     <div id="left-pane" class="container">
         <div class="title">{% block search_panel_title %}{% endblock %}</div>
 
-        <div id="search-panel">
-            <div id="categories" data-uri="{% url api:categories:read %}"></div>         
-            {# This form is used for searching available query options, it makes an async #}
-            {# request and returns the results in the #browse-all element. #}
-            <form method="get" action="{% url api:criteria:read %}">
-                <input id="search" class="search" type="input" name="q" results="0" placeholder="Search..." autofocus="true">
-            </form>
-        </div>
-
         <div class="content">
+            <div id="search-panel">
+                {% spaceless %}
+                <div id="categories" data-uri="{% url api:categories:read %}"></div>         
+                {# This form is used for searching available query options, it makes an async #}
+                {# request and returns the results in the #browse-all element. #}
+                <form method="get" action="{% url api:criteria:read %}">
+                    <input id="search" class="search" type="input" name="q" results="0" placeholder="Search..." autofocus="true">
+                </form>
+                {% endspaceless %}
+            </div>
         
             <div id="center-pane" class="clearfix">
                 <div id="criteria" data-uri="{% url api:criteria:read %}"></div>

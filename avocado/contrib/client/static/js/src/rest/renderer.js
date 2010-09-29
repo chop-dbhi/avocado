@@ -64,25 +64,36 @@ require.def('rest/renderer', ['lib/base', 'lib/jquery.jqote2'], function() {
     });
 
     var TemplateRenderer = Renderer.extend({
-        render: function(data, append) {
-            append = typeof append == 'boolean' ? append : this.append;
+        render: function(data, replace) {
+            if (!replace)
+                replace = this.replace;
 
             // implied replace
-            if (!append)
+            if (replace === true)
                 this.target.html('');
 
+            var els = [];
             for (var d, e, i = 0; i < data.length; i++) {
                 d = data[i];
                 e = $.jqoteobj(this.template, d);
                 e = this._bindata(e, d);
-                this.target.append(e);
+                els.push(e);
             }
+            
+            var tgt = this.target;
+            if (replace === 'prepend') {
+                els.reverse();
+                $.each(els, function() { tgt.prepend(this); });
+            } else {
+                $.each(els, function() { tgt.append(this); });
+            }
+
             return this.target;
         }
     }, {
         defargs: {
             template: null,
-            append: false
+            replace: true
         }
     });
 
