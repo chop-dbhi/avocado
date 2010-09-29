@@ -39,14 +39,11 @@
 
 #search-panel {
     font-size: 11px;
-}
-
-#search-panel form {
-    width: 172px;
+    text-shadow: #fff 1px 1px 0;
 }
 
 #search-panel input {
-    width: 145px;
+    width: 126px;
 }
 
 #categories {
@@ -63,6 +60,10 @@
     border-left: 1px dotted #aaa;
     display: inline-block;
     background-color: #fff;
+    
+    box-shadow: inset #eee 0 -5px 10px;    
+    -webkit-box-shadow: inset #eee 0 -5px 10px;
+    -moz-box-shadow: inset #eee 0 -5px 10px;    
 }
 
 #search-panel form {
@@ -80,7 +81,7 @@
 }
 
 #categories > .active {
-    color: blue;
+    color: #005DAA;
     border-bottom-color: #fff;
     text-shadow: none;
     cursor: default;
@@ -148,17 +149,23 @@
 #plugin-panel {
     display: none;
     float: right;
-    width: 450px;
+    width: 498px;
     -webkit-box-shadow: none;
     -moz-box-shadow: none;
 }
 
+#plugin-panel .content {
+    padding: 0;
+}
+
+#plugin-static-content {
+    margin-top: 10px;
+}
+
 .view p {
-    padding: 3px 5px;
-    border: 1px solid #EDE9CE;
-    background-color: #FFFBD7;
+    padding: 10px 5px;
+    border-bottom: 1px dotted #999;
     vertical-align: middle;
-    margin-bottom: 5px;
 }
 
 .view p > span {
@@ -168,13 +175,17 @@
 }
 
 .view p > span:first-child {
-    width: 60px;
+    width: 70px;
     margin-left: 0;
 }
 
 .chart {
-    width: 480px;
+    width: 498px;
 }
+
+/*
+ * User-defined criteria
+ */
 
 .criterion {
     font-size: 12px;
@@ -211,6 +222,23 @@
 
 .criterion .remove-criterion:hover {
     color: #D40202;
+}
+
+#remove-criteria {
+    color: #eee;
+    text-shadow: none;
+    float: right;
+    margin-top: -1px;
+    font-size: 10px;
+    padding: 2px 3px;
+    background-color: #555;
+    background-image: none;
+    border-color: #000;
+    -webkit-box-shadow: #fff 0 0 1px;
+}
+
+#remove-criteria:hover {
+    background-color: #777;
 }
 
 

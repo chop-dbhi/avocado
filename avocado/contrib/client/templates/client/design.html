@@ -3,13 +3,13 @@
 {% block title %}{{ block.super }} : Design{% endblock %}
 
 {% block styles %}
+    {{ block.super }}
     <link rel="stylesheet" href="{{ CLIENT_MEDIA_URL }}css/design.css">
     <link rel="stylesheet" href="{{ CLIENT_MEDIA_URL }}css/design-ie7fix.css">
 {% endblock %}
 
 {% block scripts %}
     {{ block.super }}
-    {# <script src="{{ CLIENT_MEDIA_URL }}js/min/design.js"></script> #}
     <script>require(['extensions', 'design/main']);</script>
 {% endblock %}
 
@@ -89,18 +89,16 @@
         {# current query #}
         <div id="user-criteria" class="container">
 
-             <div class="title">Your Question</div>
+            <div class="title">
+                 <button id="remove-criteria" href="#">Clear All</button>
+                 Your Question
+             </div>
 
             <div class="content">
                 <div id="criteria-list">
                     <strong>No criteria defined</strong><br>
                     <span class="ht mg">Click on a query option icon and specify some conditions</span>
                 </div>
-            </div>
-            
-            {# The tools to act on the user-defined criteria #}
-            <div class="toolbar footer">
-                <a id="remove-criteria" href="#">Remove All</a>
             </div>
 
         </div>

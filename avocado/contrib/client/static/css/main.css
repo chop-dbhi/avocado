@@ -155,13 +155,8 @@ header {
     top: 0;
     width: 100%;
     height: 26px;
-    background: #333 url(../img/logo_drop.png) no-repeat 8px 2px;
-    border-bottom: 1px solid #111;
-    z-index: 1000; /* ensure it is above the nav */
-    -webkit-box-shadow: #555 0 1px 2px;
-    /*-moz-box-shadow: #555 0 1px 2px;
-        has an overflow issue that creates a horizontal scroll bar
-    */
+    background: #ccc;
+    border-bottom: 1px solid #777;
 }
 
 header ul {
@@ -170,8 +165,8 @@ header ul {
     top: 7px;
     right: 10px;
     font-size: 11px;
-    color: #999;
-    text-shadow: #000 -1px -1px 0;
+    color: #333;
+    text-shadow: #eee 1px 1px 0;
 }
 
 header li {
@@ -179,11 +174,11 @@ header li {
 }
 
 header a:link, header a:visited {
-    color: #999;
+    color: #333;
 }
 
 header a:hover, header a:active {
-    color: #ddd;
+    color: #000;
 }
 
 nav {
@@ -194,24 +189,19 @@ nav {
 }
 
 nav ul {
-    color: #ddd;
-    display: inline-block;
+    color: #333;
     margin: 0;
     padding: 5px 10px;
     list-style: none;
-    background-color: #666;
+    background-color: #ccc;
     font-size: 12px;
-    text-shadow: #555 -1px -1px 0;
-    border-bottom: 1px solid #555;
-    border-right: 1px solid #555;
+    text-shadow: #eee 1px 1px 0;
+    border-top: 1px dotted #999;
+    border-bottom: 1px solid #999;
 
     box-shadow: #eee 1px 1px 0;
     -webkit-box-shadow: #eee 1px 1px 0;
     -moz-box-shadow: #eee 1px 1px 0;
-    
-    border-radius-bottomright: 3px;
-    -webkit-border-bottom-right-radius: 3px;    
-    -moz-border-radius-bottomright: 3px; 
 }
 
 nav ul li {
@@ -462,10 +452,13 @@ footer a:hover, footer a:active {
 
 .container > .title {
     color: #eee;
-    padding: 4px 10px;
+    padding: 5px 10px;
     background-color: #29537D;
     background-image: -moz-linear-gradient(-90deg, #29537d, #22466b);
-    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#29537d), to(#22466b));
+    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#555),
+        color-stop(50%, #666),
+        color-stop(55%, #333),
+        to(#444));
     filter: progid:DXImageTransform.Microsoft.Gradient(startColorstr='#29537d', endColorstr='#22466b');
 	text-shadow: #172E46 1px 1px 0;
 
