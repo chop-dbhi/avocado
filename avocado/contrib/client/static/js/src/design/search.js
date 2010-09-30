@@ -35,7 +35,7 @@ require.def('design/search',
             var src = {
                 criteria: new datasource.ajax({
                     uri: criteria.attr('data-uri'),
-                    callback: function(json) {
+                    success: function(json) {
                         if (json.length > 0)
                             rnd.criteria.render(json);
                         else
@@ -44,7 +44,7 @@ require.def('design/search',
                 }),
                 categories: new datasource.ajax({
                     uri: categories.attr('data-uri'),
-                    callback: function(json) {
+                    success: function(json) {
                         rnd.categories.render(json);
                     }
                 })

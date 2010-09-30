@@ -30,7 +30,6 @@ html{color:#000;background:#FFF;}body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pr
 
 html, body {
     font-family: "helvetica neue", helvetica, sans-serif;
-	background-color: #ddd;
     font-size: 13px;
 }
 
@@ -158,8 +157,6 @@ header {
     top: 0;
     height: 28px;
     width: 100%;
-    background: #ccc;
-    border-bottom: 1px solid #777;
 }
 
 header ul {
@@ -169,7 +166,6 @@ header ul {
     right: 10px;
     font-size: 11px;
     color: #333;
-    text-shadow: #eee 1px 1px 0;
 }
 
 header li {
@@ -196,18 +192,8 @@ nav ul {
     margin: 0;
     padding: 5px 10px;
     list-style: none;
-    background-color: #ddd;
-    background-image: -moz-linear-gradient(-90deg, #eee, #ccc);
-    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#eee), to(#ccc));
-    filter: progid:DXImageTransform.Microsoft.Gradient(startColorstr='#29537d', endColorstr='#22466b');    
     font-size: 12px;
-    text-shadow: #eee 1px 1px 0;
-    border-top: 1px dotted #999;
-    border-bottom: 1px solid #999;
-
-    box-shadow: #eee 1px 1px 0;
-    -webkit-box-shadow: #eee 1px 1px 0;
-    -moz-box-shadow: #eee 1px 1px 0;
+    text-shadow: #fff 1px 1px 0;
 }
 
 nav ul li {

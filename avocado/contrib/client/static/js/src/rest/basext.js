@@ -17,7 +17,7 @@ require.def('rest/basext', ['lib/base'], function() {
 
             // populate ancestor args first
             if (constr.ancestor)
-                argslist = this._defargslist(constr.ancestor, argslist);
+                argslist = this.__defargslist(constr.ancestor, argslist);
 
             if (constr.defargs && typeof constr.defargs == 'object')
                 argslist.push(constr.defargs);
@@ -61,5 +61,5 @@ require.def('rest/basext', ['lib/base'], function() {
         defargs: {}
     });
 
-    return { BaseExt: BaseExt };
+    return BaseExt;
 });

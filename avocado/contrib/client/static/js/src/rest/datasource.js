@@ -10,8 +10,8 @@ require.def('rest/datasource', ['rest/basext'], function(BaseExt) {
             this.xhr = $.ajax({
                 url: self.uri,
                 data: params,
-                success: self.success(resp, status, xhr),
-                error: self.error(xhr, status, error)
+                success: self.success,
+                error: self.error
             });
             return this;
         }
