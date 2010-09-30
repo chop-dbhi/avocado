@@ -154,18 +154,19 @@ strong {
 header {
     position: absolute;
     left: 0;
-    top: 0;
-    height: 28px;
+    top: 10px;
+    height: 30px;
     width: 100%;
 }
 
 header ul {
-    list-style: none;
     position: absolute;
     top: 7px;
     right: 10px;
     font-size: 11px;
-    color: #333;
+    color: #666;
+    list-style: none;
+    text-shadow: #fff 1px 1px 0;
 }
 
 header li {
@@ -173,24 +174,24 @@ header li {
 }
 
 header a:link, header a:visited {
-    color: #333;
+    color: #666;
 }
 
 header a:hover, header a:active {
-    color: #000;
+    color: #333;
 }
 
 nav {
-    position: relative;
+    position: absolute;
     width: 100%;
-    top: 28px;
+    top: 40px;
     left: 0;
 }
 
 nav ul {
-    color: #333;
+    color: #666;
     margin: 0;
-    padding: 5px 10px;
+    padding: 10px;
     list-style: none;
     font-size: 12px;
     text-shadow: #fff 1px 1px 0;
