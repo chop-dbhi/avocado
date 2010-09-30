@@ -24,7 +24,6 @@ require(['design/search', 'design/conceptmanager', 'design/criteriamanager'], fu
         
         // Listen for the user clicking on criteria in the right hand panel
         rootNode.bind("ShowConceptEvent", function(evt){
-            
             var target = $(evt.target);
             var existing_ds = evt.constraints;
 

@@ -605,7 +605,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
             // If we got here, the globals for the current concept have been loaded
             // We will register it in our cache
             register(concept);
-            activeConcept = concept.pk;
+            activeConcept = concept.id;
             // Mark this concept as having its global dependencies loaded
             concept.globalsLoaded = true; 
             
@@ -662,8 +662,8 @@ require.def('design/conceptmanager',['design/views'], function(views) {
           @private
         */
         function register(concept) {
-            if (cache[concept.pk] === undefined){
-                cache[concept.pk] = concept;
+            if (cache[concept.id] === undefined){
+                cache[concept.id] = concept;
             }
             // Create a datasource for this concept if we don't have one
             if (!concept.ds){
@@ -690,7 +690,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
         function show(concept, existing_query, index, target) {
 
            // Verify that we need to do anything.
-           if (concept.pk === activeConcept)
+           if (concept.id === activeConcept)
                return;
            
            // If we already have a query for this concept, set it 
@@ -706,7 +706,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
            }
            // Set the name of the concept in the title bar
            $titleBar.text(concept.name);
-           if (cache[concept.pk] && cache[concept.pk].globalsLoaded){
+           if (cache[concept.id] && cache[concept.id].globalsLoaded){
                 loadConcept(concept);
            } else {
                 loadDependencies(concept, loadConcept);

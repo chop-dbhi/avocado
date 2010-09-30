@@ -32,19 +32,14 @@ require.def('design/form', [], {
               var input = []; // avoid odd exception if the server sends nothing
               
               switch (element.datatype) {
-                  case 'boolean':  input = ['<label for="<%=this.field_id%>"><%=this.label%></label>',
-                                            '<select id ="<%=this.field_id%>" name="<%=this.field_id%>">',
-                                                '<option value="Yes">Yes</option>',
-                                                '<option value="No">No</option>',
-                                            '</select>'];
-                                   break;
                   case 'nullboolean': input = ['<label for="<%=this.field_id%>"><%=this.label%></label>',
                                                '<select id ="<%=this.field_id%>" name="<%=this.field_id%>">',
-                                                  '<option value="Yes">Yes</option>',
-                                                  '<option value="No">No</option>',
+                                                  '<option value="True">Yes</option>',
+                                                  '<option value="False">No</option>',
+                                                  '<option value="Null">No Data</option>',
                                                '</select>'];
                                       break;
-                  case 'assertion':input = ['<input type="checkbox" name="<%=this.field_id%>" value="<%=this.field_id%>" <%= this["default"] ? "checked":""%>/>',
+                  case 'boolean':input = ['<input type="checkbox" name="<%=this.field_id%>" value="<%=this.field_id%>" <%= this["default"] ? "checked":""%>/>',
                                             '<label for="<%=this.field_id%>"><%=this.label%></label>'];
                                    break;
                   case 'number'  :input = ['<label for="<%=this.field_id%>"><%=this.label%></label>',
