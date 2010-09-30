@@ -1,14 +1,15 @@
 <header>
-    <ul>
+    {% block logo %}{% endblock %}
+    <span>
         {% if user.is_authenticated %}
-            <li>{% firstof user.get_full_name user %} &middot;</li>
+            <span>{% firstof user.get_full_name user %} &middot;</span>
             {% if user.is_superuser %}
-                <li><a href="{% url admin:index %}">Admin</a> &middot;</li>
+                <a href="{% url admin:index %}">Admin</a> &middot;
             {% endif %}
-            <li><a id="email-support" href="#">Support</a> &middot;</li>
-            <li><a href="{% url logout %}">Logout</a></li>
+            <a id="email-support" href="#">Support</a> &middot;
+            <a href="{% url logout %}">Logout</a>
         {% else %}
-            <li><a href="{% url login %}">Login</a></li>
+            <a href="{% url login %}">Login</a>
         {% endif %}
-    </ul>
+    </span>
 </header>

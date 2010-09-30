@@ -235,8 +235,8 @@ class ReportResolverHandler(BaseHandler):
             return rc.BAD_REQUEST
 
         format_type = request.GET.get('format', 'html')
-        page_num = int(request.GET.get('page', 1))
-        per_page = int(request.GET.get('per_page', 10))
+        page_num = request.GET.get('page', None)
+        per_page = request.GET.get('per_page', None)
 
         inst = request.session['report']
 

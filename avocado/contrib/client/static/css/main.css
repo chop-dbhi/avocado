@@ -6,7 +6,7 @@
 ** version: 3.1.1
 ** build: 47
 */
-html{color:#000;background-color:#fff;}body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,code,form,fieldset,legend,input,textarea,p,blockquote,th,td{margin:0;padding:0;}table{border-collapse:collapse;border-spacing:0;}fieldset,img{border:0;}address,caption,cite,code,dfn,em,strong,th,var{font-style:normal;font-weight:normal;}li{list-style:none;}caption,th{text-align:left;}h1,h2,h3,h4,h5,h6{font-size:100%;font-weight:normal;}q:before,q:after{content:'';}abbr,acronym{border:0;font-variant:normal;}sup{vertical-align:text-top;}sub{vertical-align:text-bottom;}input,textarea,select{font-family:inherit;font-size:inherit;font-weight:inherit;}input,textarea,select{*font-size:100%;}legend{color:#000;}
+html{color:#000}body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,code,form,fieldset,legend,input,textarea,p,blockquote,th,td{margin:0;padding:0;}table{border-collapse:collapse;border-spacing:0;}fieldset,img{border:0;}address,caption,cite,code,dfn,em,strong,th,var{font-style:normal;font-weight:normal;}li{list-style:none;}caption,th{text-align:left;}h1,h2,h3,h4,h5,h6{font-size:100%;font-weight:normal;}q:before,q:after{content:'';}abbr,acronym{border:0;font-variant:normal;}sup{vertical-align:text-top;}sub{vertical-align:text-bottom;}input,textarea,select{font-family:inherit;font-size:inherit;font-weight:inherit;}input,textarea,select{*font-size:100%;}legend{color:#000;}
 
 
 /*
@@ -28,10 +28,18 @@ html{color:#000;background-color:#fff;}body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5
 ** site. HTML tags, structural items and common classes only.
 */
 
-html, body {
+body {
     font-family: "helvetica neue", helvetica, sans-serif;
     font-size: 13px;
-}
+/*    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;*/
+    background: #EEEDEA url(../img/tile.png);
+/*    background: -moz-linear-gradient(-90deg, #fff, #ddd);
+    background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#eee), to(#ccc));    
+*/}
 
 a {
     outline: none
@@ -43,10 +51,6 @@ a img {
 
 em {
     font-style: italic;
-}
-
-form {
-    display: inline-block;
 }
 
 h1, h2, h3 {
@@ -152,32 +156,30 @@ strong {
 }
 
 header {
-    position: absolute;
-    left: 0;
-    top: 10px;
-    height: 30px;
-    width: 100%;
-}
-
-header ul {
-    position: absolute;
-    top: 7px;
-    right: 10px;
-    font-size: 11px;
+    background-color: #fff;
+    margin-top: 10px;
+    padding: 2px 10px;
+    border-top: 1px dotted #ccc;
+    border-bottom: 1px dotted #ccc;
+    font-size: 10px;
     color: #666;
-    list-style: none;
     text-shadow: #fff 1px 1px 0;
 }
 
-header li {
-    display: inline;
+header > * {
+    vertical-align: middle;
 }
 
-header a:link, header a:visited {
+header > span {
+    float: right;
+    margin-top: 6px;
+}
+
+header a:link, header a:visited, nav a:link, a:visited {
     color: #666;
 }
 
-header a:hover, header a:active {
+header a:hover, header a:active, nav a:hover, nav a:active {
     color: #333;
 }
 
@@ -204,18 +206,6 @@ nav ul li {
     background-image: url(../img/bc.gif);
     background-repeat: no-repeat;
     background-position: center left;
-}
-
-nav a:link, a:visited {
-    color: #fff;
-}
-
-nav a:hover, nav a:active {
-    color: #FFE100;
-}
-
-nav ul li:last-child {
-    margin-right: 0;
 }
 
 #tools {
@@ -253,17 +243,22 @@ nav ul li:last-child {
 }
 
 #content {
-    margin: 75px auto 20px auto;
+    position: absolute;
+    top: 90px;
+    left: 50%;
+    margin-left: -480px;
     width: 960px;
 }
 
 footer {
-    display: block;
-    position: relative;
+    position: absolute;
+    bottom: 10px;
+    left: 0;
     width: 100%;
+
     text-align: center;
     font-size: 11px;
-    color: #666;
+    color: #999;
     text-shadow: #fff 1px 1px 0;
 }
 
@@ -273,10 +268,6 @@ footer a:link, footer a:visited {
 
 footer a:hover, footer a:active {
     color: #666;
-}
-
-#email-support-dialog {
-    display: none;
 }
 
 /*
@@ -299,7 +290,7 @@ footer a:hover, footer a:active {
 .ib {display: inline-block}
 
 .form-controls {
-    border-top: 1px solid #ddd;
+    border-top: 1px dotted #aaa;
     margin-top: 10px;
     padding-top: 5px;
     text-align: right;
@@ -432,7 +423,8 @@ footer a:hover, footer a:active {
 	background-color: #fff;
 	margin-bottom: 20px;
 
-	border-radius: 4px;
+	border-top-left-radius: 4px;
+    border-top-right-radius: 4px;	
     -moz-border-radius-topleft: 4px;
     -moz-border-radius-topright: 4px;
     -webkit-border-top-left-radius: 4px;
@@ -446,14 +438,14 @@ footer a:hover, footer a:active {
 .container > .title {
     color: #eee;
     padding: 5px 10px;
-    background-color: #444;
-    background-image: -moz-linear-gradient(-90deg, #555, #666 50%, #333 55%, #444);
-    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#555),
+    background: #444;
+    background: -moz-linear-gradient(-90deg, #555, #666 50%, #333 55%, #444);
+    background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#555),
         color-stop(50%, #666),
         color-stop(55%, #333),
         to(#444));
-    filter: progid:DXImageTransform.Microsoft.Gradient(startColorstr='#29537d', endColorstr='#22466b');
-	text-shadow: #172E46 1px 1px 0;
+    filter: progid:DXImageTransform.Microsoft.Gradient(startColorstr='#555555', endColorstr='#444444');
+	text-shadow: #000 -1px -1px 0;
 
 	border-top-left-radius: 4px;
     border-top-right-radius: 4px;	
@@ -516,10 +508,7 @@ footer a:hover, footer a:active {
 .container > .toolbar {
     font-size: 11px;
     color: #002D46;
-    background-color: #D5E2F2;
-    background-image: -moz-linear-gradient(-90deg, #D5E2F2, #C8D8F2);
-    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#D5E2F2), to(#C8D8F2));
-    filter: progid:DXImageTransform.Microsoft.Gradient(startColorstr='#D5E2F2', endColorstr='#C8D8F2');
+    background-color: #fff; 
     padding: 0 10px;
     text-shadow: #fff 1px 1px 0;
 }
@@ -540,15 +529,23 @@ footer a:hover, footer a:active {
 }
 
 .container > .header {
-    border-bottom: 1px solid #B2BDC9;
+    border-bottom: 1px dotted #999;
     padding-top: 5px;
     padding-bottom: 4px;
+    box-shadow: inset #eee 0 -5px 10px;
+    -webkit-box-shadow: inset #eee 0 -5px 10px;
+    -moz-box-shadow: inset #eee 0 -5px 10px;
+
 }
 
 .container > .footer {
-    border-top: 1px solid #B2BDC9;
+    border-top: 1px dotted #999;
     padding-top: 4px;
     padding-bottom: 5px;
+    box-shadow: inset #eee 0 5px 10px;
+    -webkit-box-shadow: inset #eee 0 5px 10px;
+    -moz-box-shadow: inset #eee 0 5px 10px;
+
 }
 
 /*

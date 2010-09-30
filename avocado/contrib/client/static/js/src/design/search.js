@@ -23,8 +23,7 @@ require.def('design/search',
                 }),
                 categories: new renderer.template({
                     target: categories,
-                    template: templates.categories.list,
-                    replace: 'prepend'
+                    template: templates.categories.list
                 })
             };
 
@@ -98,5 +97,4 @@ require.def('design/search',
         };
 
         return {init: init};
-    }
-);
+    });

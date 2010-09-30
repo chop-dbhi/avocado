@@ -4,7 +4,8 @@ require.def('report/templates', ['lib/jquery.jqote2'], function() {
         row: $.jqotec([
             '<tr>',
                 '<td><input type="checkbox">',
-                '<% for(var i=0;i<this.length;i++){ %><td>this[i]</td><% } %>',
+                '<td><%= this %></td>',
+//                '<% for(var i=0;i<this.length;i++){ %><td><%= this %></td><% } %>',
             '</tr>'
         ].join(''))
     };

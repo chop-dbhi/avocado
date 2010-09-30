@@ -9,6 +9,7 @@ from functools import partial
 from django.db import models, transaction, connections, DEFAULT_DB_ALIAS
 from django.db.models.sql import RawQuery
 from django.core.exceptions import PermissionDenied
+from django.core.paginator import EmptyPage, InvalidPage
 from django.contrib.auth.models import User
 from django.core.cache import cache as mcache
 
@@ -242,7 +243,7 @@ class Report(Descriptor):
 
     # in it's current implementation, this will try to get the requested
     # page from cache, or re-execute the query and store off the new cache
-    def _get_page_from_cache(self, cache, page_num, per_page, buf_size=CACHE_CHUNK_SIZE):
+    def _get_page_from_cache(self, cache, buf_size=CACHE_CHUNK_SIZE):
         """Attempts
         The cache datastructure:
 
@@ -257,6 +258,8 @@ class Report(Descriptor):
         count = cache['count']
         offset = cache['offset']
         datakey = cache['datakey']
+        per_page = cache['per_page']
+        page_num = cache['page_num']
 
         # create a theoretical paginator representing the rows stored off.
         # since it is still unknown whether the cache contains the requested
@@ -265,22 +268,31 @@ class Report(Descriptor):
             buf_size=buf_size, per_page=per_page)
 
         # get the requested page. note, this is relative to the ``count``
-        page = paginator.page(page_num)
+        try:
+            page = paginator.page(page_num)
+        except (EmptyPage, InvalidPage):
+            page = paginator.page(paginator.num_pages)
 
         # now we can fetch the data
         if page.in_cache():
             data = mcache.get(datakey, None)
+            print '_get_page', data is not None
             if data is not None:
                 return page.get_list(pickle.loads(data))
 
-    def _update_cache(self, cache, queryset, page_num, per_page, buf_size=CACHE_CHUNK_SIZE):
+    def _update_cache(self, cache, queryset, buf_size=CACHE_CHUNK_SIZE):
         count = cache['count']
-        offset = cache.get('offset', 0)
+        offset = cache['offset']
+        per_page = cache['per_page']
+        page_num = cache['page_num']
 
         paginator = BufferedPaginator(count=count, offset=offset,
             buf_size=buf_size, per_page=per_page)
 
-        page = paginator.page(page_num)
+        try:
+            page = paginator.page(page_num)
+        except (EmptyPage, InvalidPage):
+            page = paginator.page(paginator.num_pages)
 
         # since the page is not in cache new data must be requested, therefore
         # the offset should be re-centered relative to the page offset
@@ -291,6 +303,8 @@ class Report(Descriptor):
             # determine any overlap between what we have with ``cached_rows`` and
             # what the ``page`` requires.
             has_overlap, start_term, end_term = paginator.get_overlap(offset)
+
+            print has_overlap, start_term, end_term
 
             # we can run a partial query and use some of the existing rows for our
             # updated cache
@@ -326,7 +340,7 @@ class Report(Descriptor):
 
         cache['offset'] = offset
 
-        return cache, rows, page.get_list()
+        return rows, page.get_list()
 
     def get_queryset(self, run_counts=False, using=DEFAULT_MODELTREE_ALIAS, **context):
         """Returns a ``QuerySet`` object that is generated from the ``scope``
@@ -348,7 +362,7 @@ class Report(Descriptor):
 
         return queryset, unique, count
 
-    def resolve(self, request, format_type, page_num=1, per_page=10, using=DEFAULT_MODELTREE_ALIAS):
+    def resolve(self, request, format_type, page_num=None, per_page=None, using=DEFAULT_MODELTREE_ALIAS):
         """Generates a report based on the ``scope`` and ``perspective``
         objects associated with this object.
 
@@ -372,41 +386,65 @@ class Report(Descriptor):
 
         """
         user = request.user
-
+        request.session.modified = True
+        # ensure the requesting user has permission to view the contents of
+        # both the ``scope`` and ``perspective`` objects
+        # TODO add per-user caching for report objects
         if not self.scope.has_permission(user=user) or \
             not self.perspective.has_permission(user=user):
             raise PermissionDenied
 
+        # define the default context for use by ``get_queryset``
+        # TODO can this be defined elsewhere? only scope depends on this, but
+        # the user object has to propagate down from the view
         context = {'user': user}
-        cache = request.session.get(self.REPORT_CACHE_KEY, None)
 
-        # try fetching data from the session cache if still valid
-        if cache and self._cache_is_valid(cache['timestamp']):
-            print 'trying cache'
-            rows = self._get_page_from_cache(cache, page_num, per_page)
+        # fetch the report cache from the session, default to a new dict with
+        # a few defaults. if a new dict is used, this implies that this a
+        # report has not been resolved yet this session.
+        cache = request.session.get(self.REPORT_CACHE_KEY, {
+            'offset': 0,
+            'page_num': 1,
+            'per_page': 10,
+            'timestamp': None,
+        })
 
+        # only update the cache if there are values specified for either arg
+        if page_num:
+            cache['page_num'] = int(page_num)
+        if per_page:
+            cache['per_page'] = int(per_page)
+
+        # test if the cache is still valid, then attempt to fetch the requested
+        # page from cache
+        if self._cache_is_valid(cache['timestamp']):
+            rows = self._get_page_from_cache(cache)
+
+            # ``rows`` will only be None if no cache was found
             if rows is not None:
-                print 'found in cache'
                 return list(self.perspective.format(rows, format_type))
-            print 'trying partial'
-            queryset, unique, count = self.get_queryset(**context)
+
+            # since the cache is not invalid, the counts do not have to be run
+            queryset, unique, count = self.get_queryset(run_counts=False, **context)
+
         else:
-            print 'trying new'
             queryset, unique, count = self.get_queryset(run_counts=True, **context)
-            cache = {
+            cache.update({
                 'unique': unique,
                 'count': count,
-            }
+            })
 
+        # this timestamp must be set right after the queryset was generated
+        # since it relies on other objects
         cache['timestamp'] = datetime.now()
 
-        cache, data, rows = self._update_cache(cache, queryset, page_num, per_page)
+        data, rows = self._update_cache(cache, queryset)
 
         if not cache.has_key('datakey'):
             cache['datakey'] = md5(request.session._session_key + 'data').hexdigest()
 
         key = cache['datakey']
-        mcache.set(key, pickle.dumps(data))
+        mcache.set(key, pickle.dumps(data), None)
 
         request.session[self.REPORT_CACHE_KEY] = cache
 

@@ -17,38 +17,40 @@
     <li>Report</li>
 {% endblock %}
 
-{% block tools %}
-    <button id="perspectives" data-for='#perspectives-menu'>Perspectives</button>
-    <button id="reports" data-for="#reports-menu">Reports</button>
-    <button id="patient-sets" data-for='#patient-sets-menu'>Patient Cohorts</button>
-{% endblock %}
-
-{% block tool_menus %}
-    <div id="perspectives-menu"></div>
-
-    <div id="reports-menu">
-        <form method="get" action="{# {% url api:scope:read %} #}">
-            <input type="search" results="0" placeholder="Search reports...">
-        </form>
-        <a class="ht" href="#">Save current report</a>
-    </div>
-    
-    <div id="patient-sets-menu">
-        <ul>
-            <li>Patient Set 1</li>
-            <li>Patient Set 2</li>
-        </ul>
-    </div>
-{% endblock %}
+{# {% block tools %} #}
+{#     <button id="perspectives" data-for='#perspectives-menu'>Perspectives</button> #}
+{#     <button id="reports" data-for="#reports-menu">Reports</button> #}
+{#     <button id="patient-sets" data-for='#patient-sets-menu'>Patient Cohorts</button> #}
+{# {% endblock %} #}
+{#  #}
+{# {% block tool_menus %} #}
+{#     <div id="perspectives-menu"></div> #}
+{#  #}
+{#     <div id="reports-menu"> #}
+{#         <form method="get" action="{% url api:scope:read %}"> #}
+{#             <input type="search" results="0" placeholder="Search reports..."> #}
+{#         </form> #}
+{#         <a class="ht" href="#">Save current report</a> #}
+{#     </div> #}
+{#      #}
+{#     <div id="patient-sets-menu"> #}
+{#         <ul> #}
+{#             <li>Patient Set 1</li> #}
+{#             <li>Patient Set 2</li> #}
+{#         </ul> #}
+{#     </div> #}
+{# {% endblock %} #}
 
 {% block content %}
     
     <div id="report" class="container" data-uri="{% url api:reports:session:resolve %}">
         <div class="title">Your Report</div>
         <div class="toolbar header">
-            <span class="pagination"></span>
+            <span class="pagination">
+                <a class="page" href="#">30</a>
+            </span>
             Rows per page:
-            <select class="paginate-by">
+            <select class="per-page">
                 <option value="10">10</option>
                 <option value="25">25</option>
                 <option value="50">50</option>
@@ -64,7 +66,7 @@
         <div class="toolbar footer">
             <span class="pagination"></span>
             Rows per page:
-            <select class="paginate-by">
+            <select class="per-page">
                 <option value="10">10</option>
                 <option value="25">25</option>
                 <option value="50">50</option>
