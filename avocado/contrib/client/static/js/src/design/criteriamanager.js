@@ -30,7 +30,9 @@ require.def('design/criteriamanager', ['design/criteria', "design/templates","li
             }else{
                 server_query = {type: "and", children : all_constraints};
             }
-            $.putJSON('/api/scope/session/', JSON.stringify(server_query));
+            $.putJSON('/api/scope/session/', JSON.stringify(server_query), function(){
+                window.location='/report';
+            });
         });
         
         // Hook into the remove all criteria link
