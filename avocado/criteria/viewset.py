@@ -10,10 +10,10 @@ class AbstractViewSet(object):
     css = ''
 
     def __call__(self, concept, *args, **kwargs):
-        fields = concept.fields.order_by('criterionfield__order')
-        return self._get_responses(concept, fields, *args, **kwargs)
+        cfs = concept.criterionfield_set.all()
+        return self._get_responses(concept, cfs, *args, **kwargs)
 
-    def _get_responses(self, concept, fields, *args, **kwargs):
+    def _get_responses(self, concept, cfs, *args, **kwargs):
         views = []
         resps = {}
 
@@ -23,7 +23,7 @@ class AbstractViewSet(object):
 
             method = getattr(self, name)
             if inspect.ismethod(method):
-                resp = method(concept, fields, *args, **kwargs)
+                resp = method(concept, cfs, *args, **kwargs)
                 if not resp.has_key('tabname'):
                     resp['tabname'] = name.replace('_', ' ').title()
                 resps[name] = resp
@@ -35,10 +35,8 @@ class AbstractViewSet(object):
         # add rest of un-ordered views
         views.extend(resps.values())
 
-        # TODO add caching mechanism to try and fetch this before
-        # rebuilding it
         resp = {
-            'pk': concept.id,
+            'id': concept.id,
             'name': concept.name,
             'js': self.js or None,
             'css': self.css or None,
