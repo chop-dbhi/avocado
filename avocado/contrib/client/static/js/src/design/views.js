@@ -17,6 +17,10 @@ require.def('design/views',  ['design/chart','design/form'], function(chart, for
         $view.bind("UpdateQueryButtonClicked", function(event){
             $(this).trigger("ConstructQueryEvent");
         });
+        $view.bind("UpdateElementEvent", function(evt, element){
+            $view.children().trigger("UpdateElementEvent",[element]);
+            evt.stopPropagation();
+        });
         
         $.each(view.elements, function(index, element) {
             switch (element.type) {
@@ -26,9 +30,9 @@ require.def('design/views',  ['design/chart','design/form'], function(chart, for
                 case 'chart':
                     var datatype = element.data.datatype;
                     var location = undefined; //Modernizr.svg ? undefined : $contentBox;
-                    if (datatype === 'decimal') {
+                    if (datatype === 'number') {
                         $view.append(chart.getLineChart(element, view.concept_id, location)); 
-                    } else if (datatype === 'choice') {
+                    } else {
                         var len = element.data.coords.length;
                         if (len <= 3) {
                             $view.append(chart.getPieChart(element,  view.concept_id, location));

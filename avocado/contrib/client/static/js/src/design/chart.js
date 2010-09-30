@@ -9,7 +9,7 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
      var getPieChart = function(view, concept_id, $location){
          // HighCharts cannot handle boolean values in the coordinates
          var negated = false;
-         var $range_form = form.Form({fields:[{ datatype: "choice",
+         var $range_form = form.Form({fields:[{ datatype: "string",
                                                 name: view.data.name,
                                                 pk: view.data.pk}]}, concept_id);
          
@@ -186,7 +186,7 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
  
      var getBarChart = function(view, concept_id, $location) {
          var negated = false;
-         var $range_form = form.Form({fields:[{ datatype: "choice",
+         var $range_form = form.Form({fields:[{ datatype: "string",
                                                 name: view.data.name,
                                                 pk: view.data.pk}]}, concept_id);
          
