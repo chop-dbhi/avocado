@@ -1,38 +1,26 @@
-require.def('rest/datasource', ['lib/base'], function() {
+require.def('rest/datasource', ['rest/basext'], function(BaseExt) {
     
-    var DataSource = Base.extend({});
+    var DataSource = BaseExt.extend({});
 
     var AjaxDataSource = DataSource.extend({
-        constructor: function(args) {
-            // defaults
-            var _args = {
-                uri: window.location,
-                params: {},
-                callback: function() {}
-            };
+        get: function(params) {
+            params = params || this.params;
 
-            // copy
-            args = $.extend({}, _args, args);
-
-            for (var key in args)
-                this[key] = args[key];
-                
-            this.get = function(callback, params, uri) {
-                callback = callback || this.callback;
-                params = params || this.params;
-                uri = uri || this.uri;
-
-                $.get(uri, params, callback);
-            }
+            var self = this;
+            this.xhr = $.ajax({
+                url: self.uri,
+                data: params,
+                success: self.success(resp, status, xhr),
+                error: self.error(xhr, status, error)
+            });
+            return this;
         }
     }, {
         defargs: {
             uri: window.location,
             params: {},
-            start: function() {},
             success: function() {},
-            error: function() {},
-            stop: function() {}
+            error: function() {}
         }
     });
 

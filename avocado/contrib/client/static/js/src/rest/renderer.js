@@ -1,92 +1,48 @@
-require.def('rest/renderer', ['lib/base', 'lib/jquery.jqote2'], function() {
+require.def('rest/renderer', ['rest/basext', 'lib/jquery.jqote2'], function(BaseExt) {
     /*
      * The base renderer class. A renderer takes data and uses it to act
      * on other objects, whether be DOM elements or other JS objects.
      *
      * @class
      */
-    var Renderer = Base.extend({
-        /*
-         * @param <jQuery object> target The target object that will be acted
-         * on with the data.
-         */
-        _datamethod: function(data) {
-            return function(key, value) {
-                if (key === undefined)
-                    return data;
-                if (value === undefined)
-                    return data[key];
-                data[key] = value;
-            };
-        },
-
-        _bindata: function(e, d) {
-            if (e.jquery !== undefined)
-                e.data(d);
-            else if (typeof e == 'object')
-                e.data = this._datamethod(d); 
-            return e;
-        },
-
-        _defargslist: function(constr, argslist) {
-            constr = constr || this.constructor;
-            argslist = argslist || [];
-
-            // populate ancestor args first
-            if (constr.ancestor)
-                argslist = this._defargslist(constr.ancestor, argslist);
-
-            if (constr.defargs && typeof constr.defargs == 'object')
-                argslist.push(constr.defargs);
-
-            return argslist;
-        },
-        
-        _defargs: function() {
-            var defargslist = this._defargslist();
-            return $.extend.apply(this, [{}].concat(defargslist));
-        },
-
-        constructor: function(args) {
-            var defargs = this._defargs(),
-                cpargs = $.extend({}, defargs, args);
-
-            // only set attributes that are defined in `defargs'
-            for (var key in cpargs) {
-                if (defargs.hasOwnProperty(key))
-                    this[key] = cpargs[key];
-            }
-        }
-    }, {
+    var Renderer = BaseExt.extend({}, {
         defargs: {
             target: null
         }
     });
 
     var TemplateRenderer = Renderer.extend({
+        /*
+         * Takes an object or array, `data`, and creates an new DOM element that
+         * will be inserted into the `target` object. The DOM element is created
+         * from the `template` attribute.
+         *
+         * @params <string|boolean> replace - can be one of three values
+         * including: `true`, 'append' or 'prepend'. This defines the means
+         * of insertion into the DOM.
+         */
         render: function(data, replace) {
+            if ($.isPlainObject(data))
+                data = [data];
+
             if (!replace)
                 replace = this.replace;
 
-            // implied replace
             if (replace === true)
                 this.target.html('');
 
-            var els = [];
+            var l = [];
             for (var d, e, i = 0; i < data.length; i++) {
                 d = data[i];
-                e = $.jqoteobj(this.template, d);
-                e = this._bindata(e, d);
-                els.push(e);
+                e = $.jqoteobj(this.template, d).data(d);
+                l.push(e);
             }
             
             var tgt = this.target;
-            if (replace === 'prepend') {
-                els.reverse();
-                $.each(els, function() { tgt.prepend(this); });
-            } else {
-                $.each(els, function() { tgt.append(this); });
-            }
+            if (replace === 'prepend')
+                $.each(l.reverse(), function() { tgt.prepend(this); });
+            else
+                $.each(l, function() { tgt.append(this); });
 
             return this.target;
         }
