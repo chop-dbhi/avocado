@@ -47,7 +47,6 @@ class AbstractViewSet(object):
 
         return resp
 
-
 class ViewSetLibrary(Library):
     superclass = AbstractViewSet
     module_name = settings.VIEWSET_MODULE_NAME

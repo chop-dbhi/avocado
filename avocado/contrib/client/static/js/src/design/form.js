@@ -38,10 +38,16 @@ require.def('design/form', [], {
                                                 '<option value="No">No</option>',
                                             '</select>'];
                                    break;
+                  case 'nullboolean': input = ['<label for="<%=this.field_id%>"><%=this.label%></label>',
+                                               '<select id ="<%=this.field_id%>" name="<%=this.field_id%>">',
+                                                  '<option value="Yes">Yes</option>',
+                                                  '<option value="No">No</option>',
+                                               '</select>'];
+                                      break;
                   case 'assertion':input = ['<input type="checkbox" name="<%=this.field_id%>" value="<%=this.field_id%>" <%= this["default"] ? "checked":""%>/>',
                                             '<label for="<%=this.field_id%>"><%=this.label%></label>'];
                                    break;
-                  case 'decimal'  :input = ['<label for="<%=this.field_id%>"><%=this.label%></label>',
+                  case 'number'  :input = ['<label for="<%=this.field_id%>"><%=this.label%></label>',
                                             '<select id="<%=this.field_id%>_operator" name="<%=this.field_id%>_operator">',
                                                decOperatorsTmpl,
                                             '</select>',
@@ -51,7 +57,7 @@ require.def('design/form', [], {
                                             '<input data-validate="decimal" id="<%=this.field_id%>_input1" type="text" name="<%=this.field_id%>_input1" size="5">',
                                             '</span>'];
                                    break;
-                 case 'choice'    : input = [ '<label for="<%=this.field_id%>"><%=this.label%></label>', // No defaults for this type, doesn't make sense
+                 case 'string'    : input = [ '<label for="<%=this.field_id%>"><%=this.label%></label>', // No defaults for this type, doesn't make sense
                                               '<select id="<%=this.field_id%>-operator" name="<%=this.field_id%>_operator">',
                                                  choiceOperatorsTmpl,
                                               '</select>',

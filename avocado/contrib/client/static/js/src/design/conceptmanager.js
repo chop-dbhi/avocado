@@ -154,7 +154,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                                     'value' : field.val0,
                                     'concept_id': activeConcept
                                 });
-                } else if (field.val0 && field.val0 instanceof Array){ // Choice Same as obove ...
+                } else if (field.val0 && field.val0 instanceof Array){ 
                     // if field.op is null, assume the query was the default, which is "in"
                     field.op = field.op !== null ? field.op : "in";
                     nodes.push({
@@ -376,7 +376,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
             // notify them of the change
             $.each(cache[activeConcept].views, function(index,view) {
                 if (activeView !== view && view.contents) {
-                    view.contents.children().trigger("UpdateElementEvent",[element]);
+                    view.contents.trigger("UpdateElementEvent",[element]);
                 }
             });
         };
@@ -451,7 +451,11 @@ require.def('design/conceptmanager',['design/views'], function(views) {
          The framework will only show the same error message once, and it will only show
          one error message per invalid field (the last one to be sent). By default if no
          error message is sent on the event, then a generic error message is displayed.
-         If there are any error messages, the submit button will be disabled.
+         If there are any error messages, the submit button will be disabled. 
+         If the event object has a true ephemeral property however, the error will be
+         displayed for 3 seconds, and faded-out, and the button will not be disabled
+         (it is expected that ephemeral events are more notifications, and that the 
+         code that sent it will prevent the action the error forbids.)
          @private
        */
         
