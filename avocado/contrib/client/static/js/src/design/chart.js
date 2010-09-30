@@ -1,7 +1,7 @@
 require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
      var UNSELECTED_COLOR     = "#8E8F93";
      var SELECTED_COLOR       = "#99BDF1";
-     var EXCLUDE_COLOR        = "#FF7373";
+     var EXCLUDE_COLOR        = "#EE3A43";
      var INCLUDE_COLOR        = "#99BDF1";
      var ALTERNATE_GRID_COLOR = "#FDFFD5";
      var MINIMUM_SLICE = 0.07;
@@ -66,8 +66,6 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
              // Tell embedded form
              $range_form.triggerHandler(evt,[element]);
          });
-         
-         Highcharts.setOptions({colors: [UNSELECTED_COLOR, UNSELECTED_COLOR, UNSELECTED_COLOR]});
          
          var chart = new Highcharts.Chart({
              chart: {
