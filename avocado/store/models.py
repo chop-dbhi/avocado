@@ -94,7 +94,6 @@ class Context(Descriptor):
 
     def write(self, obj, *args, **kwargs):
         obj = self._get_obj(obj)
-        print obj
         self.store = obj
         self.timestamp = datetime.now()
 
@@ -197,6 +196,9 @@ class Report(Descriptor):
     scope = models.ForeignKey(Scope)
     perspective = models.ForeignKey(Perspective)
 
+    def _get_datakey(self, request):
+        return md5(request.session._session_key + 'data').hexdigest()
+
     def _cache_is_valid(self, timestamp=None):
         if timestamp:
             if timestamp > self.scope.timestamp and \
@@ -276,71 +278,85 @@ class Report(Descriptor):
         # now we can fetch the data
         if page.in_cache():
             data = mcache.get(datakey, None)
-            print '_get_page', data is not None
             if data is not None:
                 return page.get_list(pickle.loads(data))
 
-    def _update_cache(self, cache, queryset, buf_size=CACHE_CHUNK_SIZE):
-        count = cache['count']
-        offset = cache['offset']
-        per_page = cache['per_page']
-        page_num = cache['page_num']
-
-        paginator = BufferedPaginator(count=count, offset=offset,
-            buf_size=buf_size, per_page=per_page)
+    def _get_paginator_and_page(self, cache, buf_size=CACHE_CHUNK_SIZE):
+        paginator = BufferedPaginator(count=cache['count'], offset=cache['offset'],
+            buf_size=buf_size, per_page=cache['per_page'])
 
         try:
-            page = paginator.page(page_num)
+            page = paginator.page(cache['page_num'])
         except (EmptyPage, InvalidPage):
             page = paginator.page(paginator.num_pages)
 
         # since the page is not in cache new data must be requested, therefore
         # the offset should be re-centered relative to the page offset
-        offset = self._center_cache_offset(count, page.offset(), buf_size)
+        cache['offset'] = self._center_cache_offset(cache['count'], page.offset(), buf_size)
 
-        # only test for overlap is there is existing data
-        if cache.has_key('datakey'):
-            # determine any overlap between what we have with ``cached_rows`` and
-            # what the ``page`` requires.
-            has_overlap, start_term, end_term = paginator.get_overlap(offset)
+        return paginator, page
 
-            print has_overlap, start_term, end_term
+    def _refresh_cache(self, cache, queryset, buf_size=CACHE_CHUNK_SIZE):
+        """Does not utilize existing cache if it exists. This is an implied
+        cache invalidation mechanism.
+        """
+        paginator, page = self._get_paginator_and_page(cache, buf_size)
 
-            # we can run a partial query and use some of the existing rows for our
-            # updated cache
-            if has_overlap is False:
-                queryset = self._set_queryset_offset_limit(queryset, *start_term)
-                rows = self._execute_raw_query(queryset)
-            else:
-                data = mcache.get(cache['datakey'], None)
-                if data is None:
-                    raise RuntimeError
-                rows = pickle.loads(data)
-                # check to see if there is partial data to be prepended
-                if start_term[0] is not None:
-                    tmp = self._set_queryset_offset_limit(queryset, *start_term)
-                    partial_rows = self._execute_raw_query(tmp)
-                    rows = partial_rows + rows[:-start_term[1]]
+        queryset = self._set_queryset_offset_limit(queryset, cache['offset'], buf_size)
 
-                # check to see if there is partial data to be appended
-                if end_term[0] is not None:
-                    tmp = self._set_queryset_offset_limit(queryset, *end_term)
-                    partial_rows = self._execute_raw_query(tmp)
-                    rows = rows[end_term[1]:] + partial_rows
-        else:
-            queryset = self._set_queryset_offset_limit(queryset, offset, buf_size)
-            rows = self._execute_raw_query(queryset)
+        data = self._execute_raw_query(queryset)
+        mcache.set(cache['datakey'], pickle.dumps(data))
 
-        # update paginator to reflect new ``offset`` and ``rows``
-        paginator.offset = offset
-        paginator.object_list = rows
+        paginator.offset = cache['offset']
+        paginator.object_list = data
 
-        page = paginator.page(page_num)
+        page = paginator.page(cache['page_num'])
         assert page.in_cache()
 
-        cache['offset'] = offset
+        return page.get_list()
 
-        return rows, page.get_list()
+    def _update_cache(self, cache, queryset, buf_size=CACHE_CHUNK_SIZE):
+        """Tries to use cache if it exists, this implies that the cache is still
+        valid and a page that is not in cache has been requested.
+        """
+        paginator, page = self._get_paginator_and_page(cache, buf_size)
+
+        # determine any overlap between what we have with ``cached_rows`` and
+        # what the ``page`` requires.
+        has_overlap, start_term, end_term = paginator.get_overlap(cache['offset'])
+
+        # we can run a partial query and use some of the existing rows for our
+        # updated cache
+        if has_overlap is False:
+            queryset = self._set_queryset_offset_limit(queryset, *start_term)
+            data = self._execute_raw_query(queryset)
+        else:
+            rdata = mcache.get(cache['datakey'], None)
+            if rdata is None:
+                return self._refresh_cache(cache, queryset, buf_size)
+
+            data = pickle.loads(rdata)
+            # check to see if there is partial data to be prepended
+            if start_term[0] is not None:
+                tmp = self._set_queryset_offset_limit(queryset, *start_term)
+                partial_data = self._execute_raw_query(tmp)
+                data = partial_data + data[:-start_term[1]]
+
+            # check to see if there is partial data to be appended
+            if end_term[0] is not None:
+                tmp = self._set_queryset_offset_limit(queryset, *end_term)
+                partial_data = self._execute_raw_query(tmp)
+                data = data[end_term[1]:] + partial_data
+
+        mcache.set(cache['datakey'], pickle.dumps(data))
+
+        paginator.offset = cache['offset']
+        paginator.object_list = data
+
+        page = paginator.page(cache['page_num'])
+        assert page.in_cache()
+
+        return page.get_list()
 
     def get_queryset(self, run_counts=False, using=DEFAULT_MODELTREE_ALIAS, **context):
         """Returns a ``QuerySet`` object that is generated from the ``scope``
@@ -349,7 +365,7 @@ class Report(Descriptor):
         layer.
         """
         unique = count = None
-        queryset = trees[using].get_queryset()
+        queryset = trees[using].get_queryset().distinct()
 
         # first argument is ``None`` since we want to use the session objects
         queryset = self.scope.get_queryset(None, queryset, using=using, **context)
@@ -360,7 +376,9 @@ class Report(Descriptor):
         if run_counts:
             count = queryset.count()
 
-        return queryset, unique, count
+        if run_counts:
+            return queryset, unique, count
+        return queryset
 
     def resolve(self, request, format_type, page_num=None, per_page=None, using=DEFAULT_MODELTREE_ALIAS):
         """Generates a report based on the ``scope`` and ``perspective``
@@ -407,47 +425,47 @@ class Report(Descriptor):
             'page_num': 1,
             'per_page': 10,
             'timestamp': None,
+            'datakey': self._get_datakey(request),
         })
 
-        # only update the cache if there are values specified for either arg
-        if page_num:
-            cache['page_num'] = int(page_num)
-        if per_page:
-            cache['per_page'] = int(per_page)
+        print 'before', cache
 
         # test if the cache is still valid, then attempt to fetch the requested
         # page from cache
         if self._cache_is_valid(cache['timestamp']):
+            # only update the cache if there are values specified for either arg
+            if page_num:
+                cache['page_num'] = int(page_num)
+            if per_page:
+                cache['per_page'] = int(per_page)
+
             rows = self._get_page_from_cache(cache)
 
-            # ``rows`` will only be None if no cache was found
-            if rows is not None:
-                return list(self.perspective.format(rows, format_type))
+            # ``rows`` will only be None if no cache was found. attempt to
+            # update the cache by running a partial query
+            if rows is None:
+                # since the cache is not invalid, the counts do not have to be run
+                queryset = self.get_queryset(run_counts=False, **context)
+                cache['timestamp'] = datetime.now()
 
-            # since the cache is not invalid, the counts do not have to be run
-            queryset, unique, count = self.get_queryset(run_counts=False, **context)
+                rows = self._update_cache(cache, queryset);
 
+        # when the cache becomes invalid, the cache must be refreshed
         else:
             queryset, unique, count = self.get_queryset(run_counts=True, **context)
+
             cache.update({
+                'page_num': 1,
+                'timestamp': datetime.now(),
+                'offset': 0,
                 'unique': unique,
                 'count': count,
             })
 
-        # this timestamp must be set right after the queryset was generated
-        # since it relies on other objects
-        cache['timestamp'] = datetime.now()
+            rows = self._refresh_cache(cache, queryset)
 
-        data, rows = self._update_cache(cache, queryset)
-
-        if not cache.has_key('datakey'):
-            cache['datakey'] = md5(request.session._session_key + 'data').hexdigest()
-
-        key = cache['datakey']
-        mcache.set(key, pickle.dumps(data), None)
-
+        print 'after', cache
         request.session[self.REPORT_CACHE_KEY] = cache
-
         return list(self.perspective.format(rows, format_type))
 
 
