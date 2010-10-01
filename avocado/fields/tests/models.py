@@ -39,8 +39,8 @@ class FieldTestCase(TestCase):
         del fc._choices
 
         # no callback specified 
-        self.assertEqual(fc.choices, [(u'f1', 'F1'), (u'f2', 'F2'), (u'f3', 'F3'),
-            (u'f4', 'F4'), (u'f5', 'F5'), (u'f6', 'F6')])
+        self.assertEqual(fc.choices, [(u'f1', 'f1'), (u'f2', 'f2'), (u'f3', 'f3'),
+            (u'f4', 'f4'), (u'f5', 'f5'), (u'f6', 'f6')])
 
         # evaluation
         del fc._choices
