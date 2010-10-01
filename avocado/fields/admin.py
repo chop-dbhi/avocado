@@ -16,12 +16,12 @@ class FieldAdmin(ConceptAdmin):
 class EditorsFieldAdmin(EditorsConceptAdmin):
     list_display = ('name', 'is_public')
     list_filter = ('is_public',)
-    
+
     fieldsets = (
         (None, {
             'fields': ('name', 'description', 'keywords', 'is_public')
         }),
-    )    
+    )
 
 
 admin.site.register(Field, FieldAdmin)

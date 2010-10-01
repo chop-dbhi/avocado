@@ -10,10 +10,10 @@ class AbstractViewSet(object):
     css = ''
 
     def __call__(self, concept, *args, **kwargs):
-        cfs = concept.criterionfield_set.all()
-        return self._get_responses(concept, cfs, *args, **kwargs)
+        cfields = list(concept.criterionfield_set.all())
+        return self._get_responses(concept, cfields, *args, **kwargs)
 
-    def _get_responses(self, concept, cfs, *args, **kwargs):
+    def _get_responses(self, concept, cfields, *args, **kwargs):
         views = []
         resps = {}
 
@@ -23,7 +23,7 @@ class AbstractViewSet(object):
 
             method = getattr(self, name)
             if inspect.ismethod(method):
-                resp = method(concept, cfs, *args, **kwargs)
+                resp = method(concept, cfields, *args, **kwargs)
                 if not resp.has_key('tabname'):
                     resp['tabname'] = name.replace('_', ' ').title()
                 resps[name] = resp
