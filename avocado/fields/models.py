@@ -67,6 +67,12 @@ class Field(models.Model):
             3. a string that can be evaluated
     """)
 
+    # TODO chart specific fields, remove these from the core and create an
+    # extension
+    chart_title = models.CharField(max_length=100, null=True, blank=True)
+    chart_yaxis = models.CharField(max_length=100, null=True, blank=True)
+    chart_xaxis = models.CharField(max_length=100, null=True, blank=True)
+
     objects = FieldManager()
 
     class Meta:
