@@ -24,7 +24,7 @@ class AbstractTranslator(object):
     def __call__(self, field, operator=None, value=None, using=DEFAULT_MODELTREE_ALIAS, **context):
         return self.translate(field, operator, value, using=using, **context)
 
-    def _clean_operator(self, field, operator):
+    def _clean_operator(self, field, operator, **kwargs):
         if self.operators:
             operators = self.operators
         else:
@@ -51,7 +51,7 @@ class AbstractTranslator(object):
             return map(ff.clean, value)
         return ff.clean(value)
 
-    def validate(self, field, operator, value):
+    def validate(self, field, operator, value, **kwargs):
         clean_op = self._clean_operator(field, operator)
         clean_val = self._clean_value(field, value)
         if not clean_op.check(clean_val):
@@ -66,7 +66,7 @@ class AbstractTranslator(object):
         It should be noted that no checks are performed to prevent the same
         name being used for annotations.
         """
-        operator, value = self.validate(field, operator, value)
+        operator, value = self.validate(field, operator, value, **context)
         key = field.query_string(operator.operator, using=using)
         kwarg = {key: value}
 
