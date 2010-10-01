@@ -62,7 +62,6 @@ require.def('report/main',
             var uri = report.attr('data-uri');
             report.bind('update.report', function(evt, params) {
                 src.tablerows.get(params);
-                console.log(state);
                 return false;
             });
         });

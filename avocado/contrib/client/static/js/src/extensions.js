@@ -69,7 +69,8 @@ if (!Array.prototype.map) {
             /*
             ** Wraps the default $.jqote result in a jQuery object.
             */
-            return $($.jqote(template, data, tag));
+            out = $.jqote(template, data, tag);
+            return $(out);
         }
     });
 

@@ -31,13 +31,17 @@ require.def('rest/renderer', ['rest/basext', 'lib/jquery.jqote2'], function(Base
             if (replace === true)
                 this.target.html('');
 
-            var l = [];
-            for (var d, e, i = 0; i < data.length; i++) {
-                d = data[i];
-                e = $.jqoteobj(this.template, d).data(d);
-                l.push(e);
+            var l;
+            if (this.bindData === false) {
+                l = [$.jqoteobj(this.template, data)];
+            } else {
+                l = [];
+                for (var d, e, i = 0; i < data.length; i++) {
+                    e = $.jqoteobj(this.template, d).data(d);
+                    l.push(e);
+                }
             }
-            
+     
             var tgt = this.target;
             if (replace === 'prepend')
                 $.each(l.reverse(), function() { tgt.prepend(this); });
@@ -49,7 +53,8 @@ require.def('rest/renderer', ['rest/basext', 'lib/jquery.jqote2'], function(Base
     }, {
         defargs: {
             template: null,
-            replace: true
+            replace: true,
+            bindData: false
         }
     });
 
