@@ -28,7 +28,7 @@ require(['design/search', 'design/conceptmanager', 'design/criteriamanager'], fu
             var existing_ds = evt.constraints;
 
             if (!existing_ds){
-                // Maybe the criteriaManager has the constraints?
+                // Criteria manager will have constraints if this is already in the question
                 existing_ds = criteriaManager.retrieveCriteriaDS(target.attr('data-concept-id'));
             }
             $.ajax({

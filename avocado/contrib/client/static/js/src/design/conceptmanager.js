@@ -2,17 +2,16 @@ require.def('design/conceptmanager',['design/views'], function(views) {
     
     /**
       Sets up and manages the view sets for each criterion option.
-  
+
       On each request for a criterion option, the response returns an array
       of hashes that contain the information necessary to construct the
-      content of the view. For common cases such as simple HTML injection
-      or Chart display, the plugin developer does not need to provide
-      any special logic for handling those type of views. Custom views
+      content of the view. HTML forms and Charts (provided by the HighCharts
+      library are considered built-in views. Custom views (for example if one
+      wanted to some sort of tree-view to be selected from)
       must be handled using view-specific JS or the view-set JS.
-  
+
       @class
       @author <a href="mailto:millerjm1@email.chop.edu">Jeff Miller</a>
-  
       @param {jQuery} $container Represents the containing element which
       encapulates all loaded views
       @param {jQuery} $titleBar Represents the title bar to which the title of
@@ -21,12 +20,14 @@ require.def('design/conceptmanager',['design/views'], function(views) {
       associated with all currently loaded views
       @param {jQuery} $contentBox Represents the content area within the
       container that the active view is displayed
+      @param {jQuery} $staticBox Represents the content area within the container
+      that is common to all views (displays errors and the query button)
     */
     var manager = function($container, $titleBar, $tabsBar, $contentBox, $staticBox) {  
         /**
           A hash with respect to criterion IDs of the objects fetched from
           the server to build the views.
-      
+
           @private
           @type object
         */
@@ -34,21 +35,21 @@ require.def('design/conceptmanager',['design/views'], function(views) {
         
         /**
           The standard template for the tab DOM elements
-      
+
           @private
           @type string
         */
         var tab_tmpl = '<a class="tab" href="#"><%= this.tabname %></a> ';
         /**
           The standard template for the "Add To Query Button"
-      
+
           @private
           @type string
         */
         var add_query_tmpl = '<input id="add_to_query" style="float:right" type="button" value="Add To Query">';
         /**
           Holds the currently viewable/active concept/criterionconcept    
-      
+
           @private
           @type int
         */
@@ -57,7 +58,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
         /**
           Holds the currently viewable view of the currently active 
           concept/criterionconcept
-      
+
           @private
           @type object
         */
@@ -147,7 +148,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                                     'value' : [field.val0,field.val1],
                                     'concept_id': activeConcept
                                 });
-                } else if (field.val0 && field.op && !(field.val0 instanceof Array)){ // Decimal or assertion or boolean
+                } else if (field.val0 && field.op && !(field.val0 instanceof Array)){ // Decimal or nullboolean or boolean or free text
                     nodes.push({
                                     'operator' : field.op,
                                     'id' : field_id,
@@ -236,7 +237,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
              }
              return ds;
          }
-    
+
         /**
           The handler for the 'ViewReadyEvent' event
           
@@ -318,13 +319,13 @@ require.def('design/conceptmanager',['design/views'], function(views) {
         };    
         /**
              The handler for the 'ViewErrorEvent' event
-      
+
              This event is fired by a concept/concept plugin when
              an unrecoveralble error has been received. The framework
              can choose to show the 'Report Error' Panel
-      
+
           @private
-        */    
+        */
 
         function viewErrorHandler(evt, details) {
 
@@ -389,7 +390,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
           only properly named attributes.
           @private
         */
-        
+
         function postViewErrorCheck(ds){
             // Is the datasource an empty object?
             if ($.isEmptyObject(ds)) {
@@ -407,7 +408,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
             }
             return true;
         }
-        
+
         /**
           This is the main control function for built-in and custom views
           that will use the default query constructor. It calls the function 
@@ -429,7 +430,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
             
             $(event.target).trigger("UpdateQueryEvent", [server_query]);
         }
-        
+
         /**
           This function is the handler for the "add to query" button.
           This button appears in the static content area for all concepts,
@@ -444,8 +445,8 @@ require.def('design/conceptmanager',['design/views'], function(views) {
         function addQueryButtonHandler(event){
             activeView.contents.triggerHandler("UpdateQueryButtonClicked"); // This would be better if every view didn't need to handle this
         }                                                                   // it should be concept level thing.
-        
-        
+
+
        /**
          This function notifies the framework that the user has entered invalid input. 
          The framework will only show the same error message once, and it will only show
@@ -458,7 +459,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
          code that sent it will prevent the action the error forbids.)
          @private
        */
-        
+
         function badInputHandler(evt){
             evt.reason = evt.reason ? "_"+ evt.reason : "";
             var invalid_fields = cache[activeConcept].invalid_fields;
@@ -519,7 +520,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                 $staticBox.find("#add_to_query").attr("disabled","true"); // TODO this is not visibly disabled to the user
             }
         }
-        
+
         /**
           This function notifies the framework that the user corrected an invalid field. 
           The framework will only show the same error message once, and it will only show
@@ -580,7 +581,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
         */
         function loadDependencies(deps, cb) {
             cb = cb || function(){};
-        
+
             if (deps.css){
                 loadCss(deps.css);
             }
@@ -600,7 +601,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
           "add to query" button and displays the first view
           @private
         */
-        
+
         function loadConcept(concept){
             // If we got here, the globals for the current concept have been loaded
             // We will register it in our cache
@@ -615,7 +616,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
             } else {
                 $tabsBar.show();
             }
-        
+
             var tabs = $.jqote(tab_tmpl, concept.views);
             $tabsBar.html(tabs); 
             
@@ -634,7 +635,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
             // Regardless of whether the tabs are visible, load the first view
             $tabsBar.children(':first').click();
         };
-    
+
         /**
           Set up the tabs bar for the plugin, we are using the live events to automatically
           create tabs for any <a> elements put into the target area.

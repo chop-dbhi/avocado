@@ -102,8 +102,6 @@ require.def('design/criteriamanager', ['design/criteria', "design/templates","li
                 });
                 return ds;
             }
-
-
         };
         return that;
     };
