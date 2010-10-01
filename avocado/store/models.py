@@ -310,7 +310,11 @@ class Report(Descriptor):
         paginator.offset = cache['offset']
         paginator.object_list = data
 
-        page = paginator.page(cache['page_num'])
+        try:
+            page = paginator.page(cache['page_num'])
+        except (EmptyPage, InvalidPage):
+            page = paginator.page(paginator.num_pages)
+
         assert page.in_cache()
 
         return page.get_list()
@@ -358,6 +362,11 @@ class Report(Descriptor):
 
         return page.get_list()
 
+    def _get_count(self, queryset):
+        tmp = queryset.all()
+        tmp.query.clear_ordering(True)
+        return tmp.count()
+
     def get_queryset(self, run_counts=False, using=DEFAULT_MODELTREE_ALIAS, **context):
         """Returns a ``QuerySet`` object that is generated from the ``scope``
         and ``perspective`` objects bound to this report. This should not be
@@ -365,19 +374,22 @@ class Report(Descriptor):
         layer.
         """
         unique = count = None
-        queryset = trees[using].get_queryset().distinct()
+        queryset = trees[using].get_queryset().values('id').distinct()
 
         # first argument is ``None`` since we want to use the session objects
         queryset = self.scope.get_queryset(None, queryset, using=using, **context)
+
         if run_counts:
-            unique = queryset.values('id').count()
+            unqiue = self._get_count(queryset)
 
         queryset = self.perspective.get_queryset(None, queryset, using=using)
+
         if run_counts:
-            count = queryset.count()
+            count = self._get_count(queryset)
 
         if run_counts:
             return queryset, unique, count
+
         return queryset
 
     def resolve(self, request, format_type, page_num=None, per_page=None, using=DEFAULT_MODELTREE_ALIAS):
@@ -428,8 +440,6 @@ class Report(Descriptor):
             'datakey': self._get_datakey(request),
         })
 
-        print 'before', cache
-
         # test if the cache is still valid, then attempt to fetch the requested
         # page from cache
         if self._cache_is_valid(cache['timestamp']):
@@ -464,7 +474,6 @@ class Report(Descriptor):
 
             rows = self._refresh_cache(cache, queryset)
 
-        print 'after', cache
         request.session[self.REPORT_CACHE_KEY] = cache
         return list(self.perspective.format(rows, format_type))
 

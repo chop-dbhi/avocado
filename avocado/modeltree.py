@@ -533,7 +533,7 @@ class ModelTree(object):
 
     def get_queryset(self):
         "Returns a QuerySet relative to the ``root_model``."
-        return self.root_model.objects.values('id')
+        return self.root_model.objects.all()
 
 
 class LazyModelTree(object):

@@ -140,7 +140,7 @@ class BufferedPage(Page):
 
     def in_cache(self):
         first, last = self.paginator.cached_page_indices()
-        return first <= self.number <= last
+        return first <= self.number < last
 
     def offset(self):
         return max(self.start_index(), 1) - 1

@@ -121,21 +121,20 @@ class ReportTestCase(TestCase):
     def test_resolve(self):
         session = self.request.session
 
-        # make inital request, so cache exists yet
-        self.assertFalse(session.has_key(Report.REPORT_CACHE_KEY))
         out1 = self.report.resolve(self.request, 'html')
-
-        self.assertTrue(session.has_key(Report.REPORT_CACHE_KEY))
         cache = session[Report.REPORT_CACHE_KEY]
+        ts1 = cache['timestamp']
 
-        self.assertTrue(self.report._cache_is_valid(cache['timestamp']))
+        self.assertTrue(self.report._cache_is_valid(ts1))
 
         # ensure cache pool has record of the key
         self.assertTrue(mcache.has_key(cache['datakey']))
 
         out2 = self.report.resolve(self.request, 'html')
-
+        ts2 = cache['timestamp']
 
         out3 = self.report.resolve(self.request, 'html')
+        ts3 = cache['timestamp']
 
-        self.assertEqual(list(out1), list(out2))
+        self.assertEqual(ts1, ts2, ts3)
+        self.assertEqual(out1, out2, out3)

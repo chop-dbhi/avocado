@@ -123,6 +123,7 @@
     category: 1
     is_public: true
     order: 0
+    html_fmtr: 'Pass'
 
 - model: avocado.column
   pk: 2
@@ -133,6 +134,7 @@
     category: 1
     is_public: true
     order: 1
+    html_fmtr: 'Pass'
 
 - model: avocado.column
   pk: 3
@@ -143,6 +145,7 @@
     category: 1
     is_public: true
     order: 2
+    html_fmtr: 'Pass'
 
 - model: avocado.column
   pk: 4
@@ -153,6 +156,7 @@
     category: 1
     is_public: false
     order: 2
+    html_fmtr: 'Pass'
 
 - model: avocado.columnfield
   pk: 1

@@ -36,6 +36,7 @@ class FormatterLibraryTestCase(TestCase):
 
     def test_bad_register(self):
         library = FormatterLibrary()
+
         class BadConcatFormatter(object):
             def csv(self, arg1, arg2):
                 return ' '.join([str(arg1), str(arg2)])

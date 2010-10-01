@@ -2,8 +2,12 @@ from avocado.columns.models import Column
 from avocado.columns.cache import cache
 from avocado.modeltree import DEFAULT_MODELTREE_ALIAS
 
-def column_format_rules(columns, format_type):
-    rules = []
+def column_format_rules(columns, format_type, pk_pass=True):
+    if pk_pass:
+        rules = [('Pass', 1)]
+    else:
+        rules = []
+
     for column in columns:
         if not isinstance(column, Column):
             column = cache.get(column)
@@ -31,12 +35,11 @@ def add_ordering(queryset, order_rules, using=DEFAULT_MODELTREE_ALIAS):
     """Applies column ordering to a queryset. Resolves a Column's
     fields and generates the `order_by' paths.
     """
-    # this will ensure the default ordering is not stripped (specified on the
-    # model's Meta class)
+    queryset.query.clear_ordering(True)
+
     if not order_rules:
         return queryset
 
-    queryset.query.clear_ordering()
     orders = []
 
     for column, direction in order_rules:

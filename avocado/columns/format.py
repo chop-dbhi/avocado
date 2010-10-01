@@ -138,7 +138,7 @@ class FormatterLibrary(Library):
         return choices
 
     def format_seq(self, seq, rules, ftype, formatters, error, null):
-        n, toks = 1, []
+        n, toks = 0, []
 
         for fname, nargs in rules:
             args = seq[n:n+nargs]
