@@ -30,7 +30,6 @@ require.def('design/form', [], {
           
           $.each(view.fields, function(index,element){
               var input = []; // avoid odd exception if the server sends nothing
-              
               switch (element.datatype) {
                   case 'nullboolean': input = ['<label for="<%=this.field_id%>"><%=this.label%></label>',
                                                '<select id ="<%=this.field_id%>" name="<%=this.field_id%>">',
@@ -56,11 +55,15 @@ require.def('design/form', [], {
                                               '<select id="<%=this.field_id%>-operator" name="<%=this.field_id%>_operator">',
                                                  choiceOperatorsTmpl,
                                               '</select>',
-                                              '<select multiple="multiple" id="<%=this.field_id%>-value" name="<%=this.field_id%>" size="3" data-optional="<%=this.optional%>" >',
-                                              '<% for (index in this.choices) { %>',
-                                                    '<option value="<%=this.choices[index][0]%>"><%=this.choices[index][1]%></option>',
-                                               '<%}%>',
-                                              '</select>'
+                                              '<% if (this.choices) {%>',
+                                                 '<select multiple="multiple" id="<%=this.field_id%>-value" name="<%=this.field_id%>" size="3" data-optional="<%=this.optional%>" >',
+                                                  '<% for (index in this.choices) { %>',
+                                                        '<option value="<%=this.choices[index][0]%>"><%=this.choices[index][1]%></option>',
+                                                  '<%}%>',
+                                                  '</select>',
+                                              '<%} else {%>',
+                                                  '<input type="text" id="<%=this.field_id%>_text" name="<%=this.field_id%>" size = "10">',
+                                              '<%}%>'
                                             ];
                                     break;
                }

@@ -444,7 +444,7 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
  
      var getLineChart = function(view, concept_id, $location) {
          var $range_form = form.Form({fields:[view.data]}, concept_id);
-     
+
          $range_form.find("input").css("margin","10px");
          var $chartDiv = $('<div class="chart"></div>');
          $chartDiv.css("display","none");
@@ -542,6 +542,9 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                 data: view.data.coords
             }],
             plotOptions: {
+                line:{
+                    animation: true
+                },
                 series:{
                     point:{
                         events:{
@@ -570,7 +573,7 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
             }
          });
 
-         var extremes = chart.xAxis[0].getExtremes();     
+         var extremes = chart.xAxis[0].getExtremes();
 
          // Create handler for updating graph whnen user changes min and max values
          // in the form
@@ -584,7 +587,7 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
              // the lt,gt,lte,gte, will insert a box after the user 
              // clicks to indicate the selected region.
              // The exact operators will insert a line.
-             
+
              var options = chart.options;
              var min = parseFloat($("input[name*=input0]", $range_form).val()).toFixed(1);
              var max = parseFloat($("input[name*=input1]", $range_form).val()).toFixed(1);
