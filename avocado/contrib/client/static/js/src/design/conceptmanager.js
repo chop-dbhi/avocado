@@ -69,6 +69,44 @@ require.def('design/conceptmanager',['design/views'], function(views) {
         var fieldRe = /^(\d*)_(\d+(?:OR\d+)*)$/;
         var opRe = /^(\d*)_(\d+(?:OR\d+)*)_operator$/;
         var pkChoiceRe = /^\d+(?:OR\d+)+$/;
+        var negateRe = /-/;
+        
+        
+        // Map used to convert array operators for the null boolean type;
+        var nb_plural_to_singular_map = {"in":"exact", "-in":"-exact"};
+        var nb_singular_to_plural_map = {"exact":"in", "-exact":"-in"};
+        
+        /**
+           This is a utility function that looks on the current view to find the
+           datatype of a given field primary k. In the future it might use the server, 
+           or search all cached concepts, but for now it only uses the activeView because
+           it is only called from buildQuery, where the activeView is all that matters.
+           
+           @private
+        */
+        function getDataType(field_pk){
+            var elements = activeView.elements;
+            var datatype = null;
+            $.each(elements, function(index,element){
+               if (element.data){
+                   if (element.data.pk == field_pk){
+                       datatype = element.data.datatype;
+                       return false;
+                   }
+               } else {
+                   $.each(element.fields, function(index, field){
+                       if (field.pk == field_pk){
+                           datatype = field.datatype;
+                           return false;
+                       }
+                   });
+                   if (datatype !== null){
+                       return false;
+                   }
+               }
+            });
+            return datatype;
+        }
  
         /**
           This function is a utility function, currently called by the AddQueryButtonHandler,
@@ -148,24 +186,51 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                                     'value' : [field.val0,field.val1],
                                     'concept_id': activeConcept
                                 });
-                } else if (field.val0 && field.op && !(field.val0 instanceof Array)){ // Decimal or nullboolean or boolean or free text
-                    nodes.push({
-                                    'operator' : field.op,
-                                    'id' : field_id,
+                } else if (field.val0 && field.op && !(field.val0 instanceof Array)){ // Decimal or boolean or free text
+                    nodes.push({                                                      // probably not boolean though because
+                                    'operator' : field.op,                            // a specific operator has been 
+                                    'id' : field_id,                                  // specified
                                     'value' : field.val0,
                                     'concept_id': activeConcept
                                 });
-                } else if (field.val0 && field.val0 instanceof Array){ 
+                } else if (field.val0 && field.val0 instanceof Array){ // String choice, or nullboolean
                     // if field.op is null, assume the query was the default, which is "in"
+                    // this one is a bit special, there is no avoiding that in this situation
+                    // we could be dealing with a string "choice" option, or a nullbullean
+                    // nullbooleans need to have an OR'd query specifically construct for them
+                    // because they cannot use the IN operator.
                     field.op = field.op !== null ? field.op : "in";
-                    nodes.push({
-                                    'operator' : field.op,
-                                    'id' : field_id,
-                                    'value' : field.val0,
-                                    'concept_id': activeConcept
-                                });
+                    switch (getDataType(field_id)) {
+                        case "nullboolean" : var bool_list = [];
+                                             var op = nb_plural_to_singular_map[field.op];
+                                             $.each(field.val0, function(index,item){
+                                                    bool_list.push( {
+                                                         'operator':op,
+                                                         'id' : field_id,
+                                                         'value' : item,
+                                                         'concept_id': activeConcept
+                                                    });
+                                             });
+                                             if (bool_list.length > 1){
+                                             nodes.push({
+                                                 'type': negateRe.test(field.op) ? "and" : "or",
+                                                 'children' : bool_list,
+                                                 'concept_id': activeConcept
+                                             });
+                                            }else{
+                                                nodes.push(bool_list[0]);
+                                            }
+                                            break;
+                                 default  :  nodes.push({
+                                                'operator' : field.op,
+                                                'id' : field_id,
+                                                'value' : field.val0,
+                                                'concept_id': activeConcept
+                                             });
+                                             break;
+                    }
                 } else if (field.val0 !== null && !(field.val0 instanceof Array) &&
-                          field.val1 === null){ // assertion/or boolean when operator not specified
+                          field.val1 === null){ // boolean when operator not specified
                      nodes.push({
                                         'operator' : "exact",
                                         'id' : field_id,
@@ -226,10 +291,25 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                      for (var index=0; index < parameter.value.length; index++){
                          ds[field_prefix+"_input"+index] = parameter.value[index];
                      }
-                 }else if (parameter.value){
-                     ds[field_prefix] = parameter.value;
+                 }else if (parameter.value !== undefined){
+                     if (ds.hasOwnProperty(field_prefix)){
+                        if (ds[field_prefix] instanceof Array) {
+                            ds[field_prefix].push(parameter.value);
+                        }else{
+                            ds[field_prefix] = [ds[field_prefix]];
+                            ds[field_prefix].push(parameter.value);
+                        }
+                     }else if ($.inArray(parameter.value, [null, true, false]) >= 0){
+                        ds[field_prefix] = [parameter.value];
+                     }else {
+                        ds[field_prefix] = parameter.value;
+                     }
                  }
-                 ds[field_prefix+"_"+"operator"] = parameter.operator;
+                 
+                 ds[field_prefix+"_"+"operator"] = ds[field_prefix] instanceof Array ? 
+                                                   nb_singular_to_plural_map[parameter.operator] : parameter.operator;
+                                                   
+                 
              } else {
                 $.each(parameter.children, function(index, child){
                     createDSFromQuery(child, ds);
@@ -671,7 +751,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                 // If this concept already has a query associated with it, 
                 // populate the datasource
                 if (concept.query) {
-                    concept.ds = createDSFromQuery(concept.query); 
+                    concept.ds = createDSFromQuery(concept.query);
                 }else{
                     // create empty datasource
                     concept.ds = {};
@@ -712,7 +792,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
            } else {
                 loadDependencies(concept, loadConcept);
            }
-       };
+       }
         
        return {
             show: show

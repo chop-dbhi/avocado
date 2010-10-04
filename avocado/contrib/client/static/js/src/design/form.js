@@ -28,19 +28,39 @@ require.def('design/form', [], {
           // that the pk is determined by the user. Fields that whose database field id are "variable" will have their name attribute set like this 
           // <concept id>_tbd
           
+          // A little bit about nullboolean vs boolean:
+          // boolean's can be represented two ways (and neither way can be charted)
+          // Optional booleans have to be single select dropdowns with a blank option so 
+          // the user can in fact not select it.
+          // Required booleans are a checkbox.
+          // nullbooleans can be charted as pie charts, or they can be displayed as a multi-select boxes,
+          // however they have an additional caveat. While they appear to be a "CHOICE" , in sql you cannot
+          // actually use booleans with the IN operator, so for this datatype, we have to generate a more complex query
+          // where it would be ITEM = TRUE or ITEM = null, etc.
+          
           $.each(view.fields, function(index,element){
               var input = []; // avoid odd exception if the server sends nothing
               switch (element.datatype) {
                   case 'nullboolean': input = ['<label for="<%=this.field_id%>"><%=this.label%></label>',
-                                               '<select id ="<%=this.field_id%>" name="<%=this.field_id%>">',
+                                               '<select multiple id ="<%=this.field_id%>" name="<%=this.field_id%>">',
                                                   '<option value="True">Yes</option>',
                                                   '<option value="False">No</option>',
                                                   '<option value="Null">No Data</option>',
                                                '</select>'];
                                       break;
-                  case 'boolean':input = ['<input type="checkbox" name="<%=this.field_id%>" value="<%=this.field_id%>" <%= this["default"] ? "checked":""%>/>',
-                                            '<label for="<%=this.field_id%>"><%=this.label%></label>'];
-                                   break;
+                  case 'boolean':
+                                 if (element.optional) {
+                                     input ['<label for="<%=this.field_id%>"><%=this.label%></label>',
+                                            '<select id ="<%=this.field_id%>" name="<%=this.field_id%>">',
+                                                 '<option value=""></option>',
+                                                 '<option value="True">Yes</option>',
+                                                 '<option value="False">No</option>',
+                                            '</select>'];
+                                 }else{
+                                     input = ['<input type="checkbox" name="<%=this.field_id%>" value="<%=this.field_id%>" <%= this["default"] ? "checked":""%>/>',
+                                              '<label for="<%=this.field_id%>"><%=this.label%></label>'];
+                                 }
+                                 break;
                   case 'number'  :input = ['<label for="<%=this.field_id%>"><%=this.label%></label>',
                                             '<select id="<%=this.field_id%>_operator" name="<%=this.field_id%>_operator">',
                                                decOperatorsTmpl,

@@ -6,21 +6,44 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
      var ALTERNATE_GRID_COLOR = "#FDFFD5";
      var MINIMUM_SLICE = 0.07;
      
+    var map_data_to_display = function(choices){
+        var map = {};
+        $.each(choices, function(index,element){
+            map[element[0]]=element[1];
+        });
+        return map;
+    };
+    
+    var map_display_to_data = function(choices){
+        var map = {};
+        $.each(choices, function(index,element){
+            map[element[1]]=element[0];
+        });
+        return map;
+    };
+    
+    // Map used to convert array operators for the null boolean type;
+    var nb_plural_to_singular_map = {"in":"exact", "-in":"-exact"};
+    var nb_singular_to_plural_map = {"exact":"in", "-exact":"-in"}; 
+     
+     
      var getPieChart = function(view, concept_id, $location){
          // HighCharts cannot handle boolean values in the coordinates
+         var map = map_data_to_display(view.data.choices);
+         var unmap = map_display_to_data(view.data.choices);
+         
          var negated = false;
          var $range_form = form.Form({fields:[{ datatype: "string",
                                                 name: view.data.name,
+                                                choices:view.data.choices,
                                                 pk: view.data.pk}]}, concept_id);
          
          // The graph serves the purpose of multiple selector.
          $range_form.find('select[multiple]').hide();
          
+         // Highcharts does not less us pass in null and true and false for coords
          $.each(view.data.coords, function(index,element){
-            view.data.coords[index][0] = String(view.data.coords[index][0]);
-            if (view.data.coords[index][0] === "null") {
-                view.data.coords[index][0] = "No Data";
-            }
+                         view.data.coords[index][0] = map[view.data.coords[index][0]];
          });
          
          // We only use pie charts for series with <= 3 choices.
@@ -84,14 +107,14 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                      events: {
                          click : function(event) {
                              var category = event.point.category || event.point.name;               
-                             var index = $.inArray(category,selected);
+                             var index = $.inArray(unmap[category],selected);
                              if (index === -1) {
                                  if (negated){
                                      event.point.update({color:EXCLUDE_COLOR});
                                  }else{
                                      event.point.update({color:SELECTED_COLOR});
                                  }
-                                 selected.push(category);
+                                 selected.push(unmap[category]);
                              }else{
                                  event.point.update({color:UNSELECTED_COLOR});
                                  selected.splice(index,1);
@@ -154,7 +177,7 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                 // ie 8 and ie 7
                 $.map(chart.series[0].data, function(element,index){
                        var category = element.name || element.category;
-                       if ($.inArray(category, selected) !==-1){
+                       if ($.inArray(unmap[category], selected) !==-1){
                            if (negated){
                                element.update({color:EXCLUDE_COLOR});
                            }else{
@@ -176,16 +199,21 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
          
           $chartDiv.bind("UpdateDSEvent", function(evt, ds){
              selected = ds[concept_id+  "_"+view.data.pk] || [];
-             negated =  ds[concept_id + "_"+view.data.pk + "_operator"] === "-in";
+             negated = ds[concept_id + "_"+view.data.pk + "_operator"] === "-in";
              $range_form.triggerHandler(evt,[ds]);
           });
          return $chartDiv;
      };
  
      var getBarChart = function(view, concept_id, $location) {
+         // HighCharts cannot handle boolean values in the coordinates
+         var map = map_data_to_display(view.data.choices);
+         var unmap = map_display_to_data(view.data.choices);
+   
          var negated = false;
          var $range_form = form.Form({fields:[{ datatype: "string",
                                                 name: view.data.name,
+                                                choices:view.data.choices,
                                                 pk: view.data.pk}]}, concept_id);
          
          // The graph serves the purpose of multiple selector.
@@ -202,10 +230,7 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
          };
 
          $.each(view.data.coords, function(index,element){
-                view.data.coords[index][0] = String(view.data.coords[index][0]);
-                if (view.data.coords[index][0] === "null") {
-                    view.data.coords[index][0] = "No Data";
-                }
+        //     view.data.coords[index][0] = map[view.data.coords[index][0]];
          });
          
          var chart = new Highcharts.Chart({
@@ -234,14 +259,14 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                                  return (function(event){
                                           c.series.chart.hoverPoint = c;
                                           c.series.chart.isDirty = true;
-                                          var index = $.inArray(c.category, selected);
+                                          var index = $.inArray(unmap[c.category], selected);
                                           if (index === -1) {
                                               if (negated){
                                                   c.update({color:EXCLUDE_COLOR});
                                               }else{
                                                   c.update({color:SELECTED_COLOR});
                                               }
-                                              selected.push(c.category);
+                                              selected.push(unmap[c.category]);
                                           }else{
                                               c.update({color:UNSELECTED_COLOR});
                                               selected.splice(index,1);
@@ -265,7 +290,7 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                                  return (function(event){
                                         c.series.chart.hoverPoint = c;
                                         c.series.chart.isDirty = true;
-                                        var index = $.inArray(c.category, selected);
+                                        var index = $.inArray(unmap[c.category], selected);
                                         if (index === -1) {
                                             
                                             if (negated){
@@ -275,7 +300,7 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                                                  $(c.dataLabel.element).css("color", SELECTED_COLOR);
                                                 c.update({color:SELECTED_COLOR});
                                             }
-                                            selected.push(c.category);
+                                            selected.push(unmap[c.category]);
                                         }else{
                                             $(c.dataLabel.element).css("color", UNSELECTED_COLOR);
                                             c.update({color:UNSELECTED_COLOR});
@@ -292,14 +317,14 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                     events: {
                         click : function(event) {                
                              var category = event.point.category || event.point.name;               
-                             var index = $.inArray(category,selected);
+                             var index = $.inArray(unmap[category],selected);
                              if (index === -1) {
                                  if (negated){
                                        event.point.update({color:EXCLUDE_COLOR});
                                  }else{
                                        event.point.update({color:SELECTED_COLOR});
                                  }
-                                 selected.push(category);
+                                 selected.push(unmap[category]);
                              }else{
                                  event.point.update({color:UNSELECTED_COLOR});
                                  selected.splice(index,1);
@@ -336,7 +361,7 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
             },
             xAxis: {
                categories: $.map(view.data.coords, function(element, index){
-                  return element[0]; 
+                  return map[element[0]]; 
                }),
                title: {
                    text: view.data.xaxis,
@@ -375,8 +400,8 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
             series: [{
                name: view.data.title,
                data: $.map(view.data.coords, function(element, index){
-                                                 return element[1]; 
-                                             })
+                         return element[1]; 
+                     })
              }]
          });
          
@@ -394,7 +419,7 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
          // AvocadoClient event listners
          $chartDiv.bind("GainedFocusEvent", function(evt){
                 $.map(chart.series[0].data, function(element,index){
-                    if ($.inArray(element.category, selected) !==-1){
+                    if ($.inArray(unmap[element.category], selected) !==-1){
                         if (negated){
                             element.update({color:EXCLUDE_COLOR});
                         }else{
