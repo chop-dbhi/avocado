@@ -208,7 +208,8 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                                                          'operator':op,
                                                          'id' : field_id,
                                                          'value' : item,
-                                                         'concept_id': activeConcept
+                                                         'concept_id': activeConcept,
+                                                         'datatype':'nullboolean'
                                                     });
                                              });
                                              if (bool_list.length > 1){
@@ -243,7 +244,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                 }
 
                 if (variable_pk){  
-                    // When we get this back from th server, we will need a way to tell
+                    // When we get this back from the server, we will need a way to tell
                     // that the field pk was variable, and how to recreate the datastore
                     // TODO would it be better to make the form responsible for this?
                     nodes[nodes.length-1]['id_choices'] =  pkChoices;
@@ -299,7 +300,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                             ds[field_prefix] = [ds[field_prefix]];
                             ds[field_prefix].push(parameter.value);
                         }
-                     }else if ($.inArray(parameter.value, [null, true, false]) >= 0){
+                     }else if (parameter.datatype==="nullboolean"){
                         ds[field_prefix] = [parameter.value];
                      }else {
                         ds[field_prefix] = parameter.value;
@@ -643,7 +644,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
         });
         
         /**
-          Simple dynamic coad CSS function (taken from http://requirejs.org/docs/faq-advanced.html#css)
+          Simple dynamic load CSS function (taken from http://requirejs.org/docs/faq-advanced.html#css)
         */
         function loadCss(url) {
             var link = document.createElement("link");
