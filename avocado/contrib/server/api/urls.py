@@ -2,11 +2,12 @@ from django.conf.urls.defaults import *
 from django.views.decorators.cache import never_cache
 from piston.resource import Resource
 
-from avocado.contrib.server.api.handlers import (CriterionHandler,
+from avocado.contrib.server.api.handlers import (CriterionHandler, ColumnHandler,
     CategoryHandler, ScopeHandler, PerspectiveHandler, ReportHandler,
     ReportResolverHandler)
 
 criterion =  Resource(CriterionHandler)
+column = Resource(ColumnHandler)
 category =  Resource(CategoryHandler)
 
 # not yet exposed...
@@ -23,6 +24,10 @@ category_patterns = patterns('',
 criterion_patterns = patterns('',
     url(r'^$', criterion, name='read'),
     url(r'^(?P<id>\d+)/$', criterion, name='read'),
+)
+
+column_patterns = patterns('',
+    url(r'^$', column, name='read'),
 )
 
 # represents all of the `report` url patterns including
@@ -56,6 +61,7 @@ perspective_patterns = patterns('',
 
 urlpatterns = patterns('',
     url(r'^criteria/', include(criterion_patterns, namespace='criteria')),
+    url(r'^columns/', include(column_patterns, namespace='columns')),
     url(r'^categories/', include(category_patterns, namespace='categories')),
     url(r'^reports/', include(report_patterns, namespace='reports')),
     url(r'^scope/', include(scope_patterns, namespace='scope')),

@@ -6,62 +6,82 @@ require.def('report/main',
         $(function() {
             var report = $('#report'),
                 table = $('#table'),
-                per_page = $('.per-page');
-     
-            // default state for page
-            var state = {
-                page: 1,
-                per_page: per_page.val(),
-                columns: [],
-                ordering: []
-            };
+                header = $('thead tr', table),
+                body = $('tbody', table),
+                per_page = $('.per-page'),
+                pages = $('.page-links'),
+                unique = $('.unique-count'),
+                count = $('.count');
 
+            var search = $('#search'),
+                columns = $('#columns'),
+                active_columns = $('#active-columns');
+     
             var rnd = {
-                tablerows: new renderer.template({
-                    target: table,
+                table_header: new renderer.template({
+                    target: header,
+                    template: templates.header,
+                    replace: 'append'
+                }),
+                table_rows: new renderer.template({
+                    target: body,
                     template: templates.row
-                })
+                }),
+                pages: new renderer.template({
+                    target: pages,
+                    template: templates.pages
+                }),
             };
 
             var src = {
-                tablerows: new datasource.ajax({
+                table_rows: new datasource.ajax({
                     uri: report.attr('data-uri'),
                     success: function(json) {
-                        rnd.tablerows.render(json);
+                        rnd.table_rows.render(json.rows);
+                        rnd.table_header.target.html('<th><input type="checkbox"></th>');
+                        rnd.table_header.render(json.header);
+
+                        /*
+                         * update the counts reflecting the rows
+                         */
+                        unique.html(json.unique);
+                        count.html(json.count);
+
+                        /*
+                         * handle a few optional variables
+                         */
+                        if (json.pages)
+                            rnd.pages.render(json.pages);
+
+                        if (json.per_page)
+                            per_page.val(json.per_page);
                     }
                 })
             };
 
-            src.tablerows.get();
+            src.table_rows.get();
             
             /*
              * Hook up the elements that change the number of rows per page.
              */
-            var pb;
             report.delegate('.per-page', 'change', function(evt) {
-                pb = this.value;
-                state.per_page = pb;
-                report.trigger('update.report', {'per_page': pb});
+                report.trigger('update.report', {'per_page': this.value});
                 return false;
             });
             
             /*
              * Hook up the elements that change the page.
              */
-            var p;
-            report.delegate('.page', 'click', function(evt) {
-                p = this.innerHTML;
-                state.page = p;
-                report.trigger('update.report', {'page': this.innerHTML});
+            pages.delegate('a', 'click', function(evt) {
+                report.trigger('update.report', {'page': this.hash.substr(1)});
                 return false;
             });
             
             /*
              * Define primary event that handles fetching data.
              */
-            var uri = report.attr('data-uri');
             report.bind('update.report', function(evt, params) {
-                src.tablerows.get(params);
+                src.table_rows.get(params);
                 return false;
             });
         });

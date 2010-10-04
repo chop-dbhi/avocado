@@ -15,7 +15,7 @@ class CriterionProxy(Criterion):
             'description': self.description,
             'icon': None
         }
-        
+
         if self.category:
             json['icon'] = self.category.icon
         return json

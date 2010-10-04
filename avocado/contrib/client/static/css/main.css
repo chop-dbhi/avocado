@@ -31,15 +31,8 @@ html{color:#000}body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,code,form,field
 body {
     font-family: "helvetica neue", helvetica, sans-serif;
     font-size: 13px;
-/*    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 100%;*/
     background: #EEEDEA url(../img/tile.png);
-/*    background: -moz-linear-gradient(-90deg, #fff, #ddd);
-    background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#eee), to(#ccc));    
-*/}
+}
 
 a {
     outline: none

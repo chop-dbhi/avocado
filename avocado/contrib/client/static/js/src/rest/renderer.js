@@ -22,11 +22,7 @@ require.def('rest/renderer', ['rest/basext', 'lib/jquery.jqote2'], function(Base
          * of insertion into the DOM.
          */
         render: function(data, replace) {
-            if ($.isPlainObject(data))
-                data = [data];
-
-            if (!replace)
-                replace = this.replace;
+            replace = !!replace ? replace : this.replace;
 
             if (replace === true)
                 this.target.html('');
@@ -37,7 +33,9 @@ require.def('rest/renderer', ['rest/basext', 'lib/jquery.jqote2'], function(Base
             } else {
                 l = [];
                 for (var d, e, i = 0; i < data.length; i++) {
-                    e = $.jqoteobj(this.template, d).data(d);
+                    d = data[i];
+                    e = $.jqoteobj(this.template, d);
+                    e.data(d);
                     l.push(e);
                 }
             }

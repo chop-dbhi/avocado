@@ -11,7 +11,7 @@ from django.db.models.sql import RawQuery
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import EmptyPage, InvalidPage
 from django.contrib.auth.models import User
-from django.core.cache import cache as mcache
+from django.core.cache import cache as dcache
 
 from avocado.conf import settings
 from avocado.models import Field
@@ -168,18 +168,18 @@ class Perspective(Context):
 
         return partial(func, columns=obj['columns'], ordering=obj['ordering'])
 
-    def header_row(self):
+    def header(self):
         store = self.read()
         header = []
 
         for x in store['columns']:
             c = column_cache.get(x)
+            o = {'id': x, 'name': c.name, 'direction': ''}
             for y, z in store['ordering']:
                 if x == y:
-                    header.append((c.name, z))
+                    o['direction'] = z
                     break
-            else:
-                header.append((c.name, ''))
+            header.append(o)
         return header
 
     def format(self, iterable, format_type):
@@ -195,16 +195,6 @@ class Report(Descriptor):
 
     scope = models.ForeignKey(Scope)
     perspective = models.ForeignKey(Perspective)
-
-    def _get_datakey(self, request):
-        return md5(request.session._session_key + 'data').hexdigest()
-
-    def _cache_is_valid(self, timestamp=None):
-        if timestamp:
-            if timestamp > self.scope.timestamp and \
-                timestamp > self.perspective.timestamp:
-                return True
-        return False
 
     def _center_cache_offset(self, count, offset, buf_size=CACHE_CHUNK_SIZE):
         """The ``offset`` will be relative to the next requested row. To ensure
@@ -243,7 +233,7 @@ class Report(Descriptor):
         raw._execute_query()
         return raw.cursor.fetchall()
 
-    def _get_paginator_and_page(self, cache, buf_size=CACHE_CHUNK_SIZE):
+    def paginator_and_page(self, cache, buf_size=CACHE_CHUNK_SIZE):
         paginator = BufferedPaginator(count=cache['count'], offset=cache['offset'],
             buf_size=buf_size, per_page=cache['per_page'])
 
@@ -254,25 +244,35 @@ class Report(Descriptor):
 
         return paginator, page
 
+    def get_datakey(self, request):
+        return md5(request.session._session_key + 'data').hexdigest()
+
+    def cache_is_valid(self, timestamp=None):
+        if timestamp:
+            if timestamp > self.scope.timestamp and \
+                timestamp > self.perspective.timestamp:
+                return True
+        return False
+
     # in it's current implementation, this will try to get the requested
     # page from cache, or re-execute the query and store off the new cache
-    def _get_page_from_cache(self, cache, buf_size=CACHE_CHUNK_SIZE):
+    def get_page_from_cache(self, cache, buf_size=CACHE_CHUNK_SIZE):
         print 'getting page from cache'
-        paginator, page = self._get_paginator_and_page(cache, buf_size)
+        paginator, page = self.paginator_and_page(cache, buf_size)
 
         # now we can fetch the data
         if page.in_cache():
-            data = mcache.get(cache['datakey'])
+            data = dcache.get(cache['datakey'])
             print 'page data exists:', data is not None
             if data is not None:
                 return page.get_list(pickle.loads(data))
 
-    def _refresh_cache(self, cache, queryset, adjust_offset=True, buf_size=CACHE_CHUNK_SIZE):
+    def refresh_cache(self, cache, queryset, adjust_offset=True, buf_size=CACHE_CHUNK_SIZE):
         """Does not utilize existing cache if it exists. This is an implied
         cache invalidation mechanism.
         """
         print 'refreshing cache'
-        paginator, page = self._get_paginator_and_page(cache, buf_size)
+        paginator, page = self.paginator_and_page(cache, buf_size)
 
         queryset = self._set_queryset_offset_limit(queryset, cache['offset'], buf_size)
 
@@ -282,7 +282,7 @@ class Report(Descriptor):
             cache['offset'] = self._center_cache_offset(cache['count'], page.offset(), buf_size)
 
         data = self._execute_raw_query(queryset)
-        mcache.set(cache['datakey'], pickle.dumps(data))
+        dcache.set(cache['datakey'], pickle.dumps(data))
 
         paginator.offset = cache['offset']
         paginator.object_list = data
@@ -296,12 +296,12 @@ class Report(Descriptor):
 
         return page.get_list()
 
-    def _update_cache(self, cache, queryset, buf_size=CACHE_CHUNK_SIZE):
+    def update_cache(self, cache, queryset, buf_size=CACHE_CHUNK_SIZE):
         """Tries to use cache if it exists, this implies that the cache is still
         valid and a page that is not in cache has been requested.
         """
         print 'updating cache'
-        paginator, page = self._get_paginator_and_page(cache, buf_size)
+        paginator, page = self.paginator_and_page(cache, buf_size)
 
         # since the page is not in cache new data must be requested, therefore
         # the offset should be re-centered relative to the page offset
@@ -317,10 +317,10 @@ class Report(Descriptor):
             queryset = self._set_queryset_offset_limit(queryset, *start_term)
             data = self._execute_raw_query(queryset)
         else:
-            rdata = mcache.get(cache['datakey'])
+            rdata = dcache.get(cache['datakey'])
             print 'partial data exists:', rdata is not None
             if rdata is None:
-                return self._refresh_cache(cache, queryset, adjust_offset=False,
+                return self.refresh_cache(cache, queryset, adjust_offset=False,
                     buf_size=buf_size)
 
             data = pickle.loads(rdata)
@@ -336,7 +336,7 @@ class Report(Descriptor):
                 partial_data = self._execute_raw_query(tmp)
                 data = data[end_term[1]:] + partial_data
 
-        mcache.set(cache['datakey'], pickle.dumps(data))
+        dcache.set(cache['datakey'], pickle.dumps(data))
 
         paginator.offset = cache['offset']
         paginator.object_list = data
@@ -383,93 +383,6 @@ class Report(Descriptor):
         if self.scope.has_permission(user=user) and self.perspective.has_permission(user=user):
             return True
         return False
-
-    def resolve(self, request, format_type, page_num=None, per_page=None, using=DEFAULT_MODELTREE_ALIAS):
-        """Generates a report based on the ``scope`` and ``perspective``
-        objects associated with this object.
-
-        There are a few methods of trying to create the report::
-
-            - *fetch from the session cache* - this is firstly dependent on the
-            ``scope`` and ``perspective`` objects, such that the cache
-            timestamps must be at a later time than the objects last write. if
-            this is determined to be true, the session cache is deemed valid.
-            the secondary piece is to determine if the requested data exists in
-            cache. this is dependent on the ``page`` and ``per_page`` values.
-
-            - *fetch from the global cache* (not implemented) - this is
-            dependent on the unique combination of ``scope`` and ``perspective``
-            requirements. if a hash is found representing this combination,
-            then the data is fetched. the second step is to determine if the
-            requested data exists in cache. this is dependent on the ``page``
-            and ``per_page`` values.
-
-            - *generate a new query* -
-
-        """
-        user = request.user
-        request.session.modified = True
-
-        if not self.has_permission(user):
-            raise PermissionDenied
-
-        # define the default context for use by ``get_queryset``
-        # TODO can this be defined elsewhere? only scope depends on this, but
-        # the user object has to propagate down from the view
-        context = {'user': user}
-
-        # fetch the report cache from the session, default to a new dict with
-        # a few defaults. if a new dict is used, this implies that this a
-        # report has not been resolved yet this session.
-        cache = request.session.get(self.REPORT_CACHE_KEY, {
-            'offset': 0,
-            'page_num': 1,
-            'per_page': 10,
-            'timestamp': None,
-            'datakey': self._get_datakey(request),
-        })
-
-        print 'before', cache
-
-        # test if the cache is still valid, then attempt to fetch the requested
-        # page from cache
-        if self._cache_is_valid(cache['timestamp']):
-            # only update the cache if there are values specified for either arg
-            if page_num:
-                cache['page_num'] = int(page_num)
-            if per_page:
-                cache['per_page'] = int(per_page)
-
-            rows = self._get_page_from_cache(cache)
-
-            # ``rows`` will only be None if no cache was found. attempt to
-            # update the cache by running a partial query
-            if rows is None:
-                # since the cache is not invalid, the counts do not have to be run
-                queryset = self.get_queryset(run_counts=False, **context)
-                cache['timestamp'] = datetime.now()
-
-                rows = self._update_cache(cache, queryset);
-
-        # when the cache becomes invalid, the cache must be refreshed
-        else:
-            queryset, unique, count = self.get_queryset(run_counts=True, **context)
-
-            cache.update({
-                'page_num': 1,
-                'timestamp': datetime.now(),
-                'offset': 0,
-                'unique': unique,
-                'count': count,
-            })
-
-            rows = self._refresh_cache(cache, queryset)
-
-        print 'after', cache
-        assert mcache.has_key(cache['datakey'])
-
-        request.session[self.REPORT_CACHE_KEY] = cache
-        return list(self.perspective.format(rows, format_type))
 
 
 class ObjectSet(Descriptor):

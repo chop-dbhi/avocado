@@ -44,38 +44,56 @@
 {% block content %}
     
     <div id="report" class="container" data-uri="{% url api:reports:session:resolve %}">
-        <div class="title">Your Report</div>
+        <div class="title">Report</div>
+
         <div class="toolbar header">
-            <span class="pagination">
-                <a class="page" href="#">30</a>
-            </span>
-            Rows per page:
+            <span><span class="count"></span> / <span class="unique-count"></span></span>
+            <span class="page-links"></span>
+            Per page:
             <select class="per-page">
                 <option value="10">10</option>
                 <option value="25">25</option>
                 <option value="50">50</option>
                 <option value="100">100</option>
             </select>
-            {# {% if PATIENT_SET_ENABLED %} #}
-                <span class="patient-set-actions"></span>
-            {# {% endif %} #}
         </div>
+
         <div class="content">
-            <table id="table"><thead><tr></tr></thead><tbody></tbody></table>
+            <table id="table">
+                <thead><tr></tr></thead>
+                <tbody></tbody></table>
         </div>
+
         <div class="toolbar footer">
-            <span class="pagination"></span>
-            Rows per page:
+            <span><span class="count"></span> / <span class="unique-count"></span></span>
+            <span class="page-links"></span>
+            Per page:
             <select class="per-page">
                 <option value="10">10</option>
                 <option value="25">25</option>
                 <option value="50">50</option>
                 <option value="100">100</option>
             </select>
-            {# {% if PATIENT_SET_ENABLED %} #}
-                <span class="patient-set-actions"></span>
-            {# {% endif %} #}
         </div>
     </div>
 
+    <div id="search-panel">
+        <div>
+            <h3>Available Columns</h3>
+            <form method="get" action="{% url api:columns:read %}">
+                <input id="search" class="search" type="input" name="q" placeholder="Search...">
+            </form>
+
+            <div id="columns"></div>
+        </div>
+
+        <div>
+            <h3>Your Columns</h3>
+            <p class="ht mg">The order below (top-bottom) defines the order they will be
+            displayed (left-right). To change the order simply click and drag any of the
+            columns to the desired location and release in the visible drop zone.</p>
+
+            <div id="active-columns"></div>
+        </div>
+    </div>
 {% endblock %}

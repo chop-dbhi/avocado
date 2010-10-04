@@ -1,0 +1,18 @@
+#report .toolbar > * {
+    margin-right: 20px;
+}
+
+#report .page-links > *, #report .page-links .pages > * {
+    margin-right: 10px;
+}
+
+#report .page-links .pages {
+    background-color: #eee;
+    display: inline-block;
+    text-align: center;
+    width: 200px;
+}
+
+#report .page-links .inactive {
+    color: #666;
+}

@@ -1,10 +1,13 @@
+from datetime import datetime
+
 from django.core.exceptions import (ObjectDoesNotExist, MultipleObjectsReturned,
     PermissionDenied)
 from piston.handler import BaseHandler
 from piston.utils import rc
 
-from avocado.models import Category, Scope, Perspective, Report
+from avocado.models import Category, Scope, Perspective, Report, Column
 from avocado.contrib.server.api.models import CriterionProxy
+from avocado.conf import settings
 
 def convert2str(data):
     if isinstance(data, unicode):
@@ -16,11 +19,10 @@ def convert2str(data):
     else:
         return data
 
-
 class CategoryHandler(BaseHandler):
     allowed_methods = ('GET',)
     model = Category
-    fields = ('id', 'name', 'icon')
+    fields = ('id', 'name')
 
 
 class CriterionHandler(BaseHandler):
@@ -31,7 +33,7 @@ class CriterionHandler(BaseHandler):
         "Overriden to allow for user specificity."
         # restrict_by_group only in effect when FIELD_GROUP_PERMISSIONS is
         # enabled
-        if hasattr(self.model.objects, 'restrict_by_group'):
+        if settings.FIELD_GROUP_PERMISSIONS:
             groups = request.user.groups.all()
             return self.model.objects.restrict_by_group(groups)
         return self.model.objects.public()
@@ -48,10 +50,33 @@ class CriterionHandler(BaseHandler):
         return map(lambda x: x.json(), obj)
 
 
+class ColumnHandler(BaseHandler):
+    allowed_methods = ('GET',)
+    model = Column
+    fields = ('id', 'name', 'description')
+
+    def queryset(self, request):
+        "Overriden to allow for user specificity."
+        # restrict_by_group only in effect when FIELD_GROUP_PERMISSIONS is
+        # enabled
+        if settings.FIELD_GROUP_PERMISSIONS:
+            groups = request.user.groups.all()
+            return self.model.objects.restrict_by_group(groups)
+        return self.model.objects.public()
+
+    def read(self, request, *args, **kwargs):
+        obj = super(ColumnHandler, self).read(request, *args, **kwargs)
+
+        # apply fulltext if the 'q' GET param exists
+        if request.GET.has_key('q'):
+            obj = self.model.objects.fulltext_search(request.GET.get('q'), obj, True)
+        return obj
+
+
 class ScopeHandler(BaseHandler):
     allowed_methods = ('GET', 'PUT')
     model = Scope
-    fields = ('id', 'name', 'description', 'keywords', 'definition', 'store')
+    fields = ('store',)
 
     def queryset(self, request):
         return self.model.objects.filter(user=request.user)
@@ -127,7 +152,7 @@ class ScopeHandler(BaseHandler):
 class PerspectiveHandler(BaseHandler):
     allowed_methods = ('GET', 'PUT')
     model = Perspective
-    fields = ('id', 'name', 'description', 'keywords', 'definition', 'store')
+    fields = ('store',)
 
     def queryset(self, request):
         return self.model.objects.filter(user=request.user)
@@ -202,10 +227,11 @@ class PerspectiveHandler(BaseHandler):
 class ReportHandler(BaseHandler):
     allowed_methods = ('GET',)
     model = Report
-    fields = ('id', 'name',
+    fields = (
         ('scope', ScopeHandler.fields),
         ('perspective', PerspectiveHandler.fields)
     )
+#    exclude = ('user',)
 
     def queryset(self, request):
         return self.model.objects.filter(user=request.user)
@@ -249,4 +275,77 @@ class ReportResolverHandler(BaseHandler):
                 except MultipleObjectsReturned:
                     return rc.BAD_REQUEST
 
-        return inst.resolve(request, format_type, page_num, per_page)
+        user = request.user
+
+        if not inst.has_permission(user):
+            raise rc.FORBIDDEN
+
+        # define the default context for use by ``get_queryset``
+        # TODO can this be defined elsewhere? only scope depends on this, but
+        # the user object has to propagate down from the view
+        context = {'user': user}
+
+        # fetch the report cache from the session, default to a new dict with
+        # a few defaults. if a new dict is used, this implies that this a
+        # report has not been resolved yet this session.
+        cache = request.session.get(inst.REPORT_CACHE_KEY, {
+            'offset': 0,
+            'page_num': 1,
+            'per_page': 10,
+            'datakey': inst.get_datakey(request)
+        })
+
+        print 'before', cache
+
+        # test if the cache is still valid, then attempt to fetch the requested
+        # page from cache
+        if inst.cache_is_valid(cache.get('timestamp', None)):
+            # only update the cache if there are values specified for either arg
+            if page_num:
+                cache['page_num'] = int(page_num)
+            if per_page:
+                cache['per_page'] = int(per_page)
+
+            rows = inst.get_page_from_cache(cache)
+
+            # ``rows`` will only be None if no cache was found. attempt to
+            # update the cache by running a partial query
+            if rows is None:
+                # since the cache is not invalid, the counts do not have to be run
+                queryset = inst.get_queryset(run_counts=False, **context)
+                cache['timestamp'] = datetime.now()
+
+                rows = inst.update_cache(cache, queryset);
+
+        # when the cache becomes invalid, the cache must be refreshed
+        else:
+            queryset, unique, count = inst.get_queryset(run_counts=True, **context)
+
+            cache.update({
+                'page_num': 1,
+                'timestamp': datetime.now(),
+                'offset': 0,
+                'unique': unique,
+                'count': count,
+            })
+
+            rows = inst.refresh_cache(cache, queryset)
+
+        print 'after', cache
+
+        request.session[inst.REPORT_CACHE_KEY] = cache
+
+        paginator, page = inst.paginator_and_page(cache)
+
+        return {
+            'header': inst.perspective.header(),
+            'unique': cache['unique'],
+            'count': cache['count'],
+            'pages': {
+                'page': page.number,
+                'pages': page.page_links(),
+                'num_pages': paginator.num_pages,
+            },
+            'per_page': per_page,
+            'rows': list(inst.perspective.format(rows, format_type)),
+        }

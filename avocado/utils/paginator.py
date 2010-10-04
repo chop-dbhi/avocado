@@ -153,3 +153,37 @@ class BufferedPage(Page):
         if self.object_list is not None:
             return self.object_list
         return None
+
+    def page_links(self, before_after_count=2, first_last_count=0):
+        pages = []
+        # only process if the current page number is greater than the number of
+        # required links.
+        if self.number > (first_last_count + before_after_count + 1):
+            # append first pages, e.g. [1, 2] if `first_last_count' is 2
+            for i in range(1, first_last_count + 1):
+                pages.append(i)
+
+            pages.append(None)
+            # append the leading pages relative to the current page, e.g.
+            # [10, 11] if `before_after_count' is 2 and current page is 12
+            for i in range(self.number - before_after_count, self.number):
+                pages.append(i)
+
+        else:
+            for i in range(1, self.number):
+                pages.append(i)
+
+        # if there is still a gap until `self.paginator.num_pages' is reached, add trailing pages
+        if (self.number + first_last_count + before_after_count + 1) < self.paginator.num_pages:
+            for i in range(self.number, self.number + before_after_count + 1):
+                pages.append(i)
+
+            pages.append(None)
+            for i in range(self.paginator.num_pages + 1 - first_last_count, self.paginator.num_pages + 1):
+                pages.append(i)
+
+        else:
+            for i in range(self.number, self.paginator.num_pages + 1):
+                pages.append(i)
+
+        return pages
