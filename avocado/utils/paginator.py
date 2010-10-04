@@ -99,7 +99,7 @@ class BufferedPaginator(Paginator):
         overlap = True
         start_offset = start_limit = end_offset = end_limit = None
 
-        # if the start termainl is within the current range, then there will be
+        # if the start terminal is within the current range, then there will be
         # a slice of data to be appended
         if self.offset <= offset <= (self.offset + self.buf_size):
             end_offset = (self.offset + self.buf_size) + 1

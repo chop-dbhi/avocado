@@ -156,7 +156,7 @@ class Field(models.Model):
                 # attempt to evaluate custom handler
                 else:
                     from avocado.fields import evaluators
-                    choices = evaluators.evaluate(self)                
+                    choices = evaluators.evaluate(self)
 
             self._choices = choices
         return self._choices

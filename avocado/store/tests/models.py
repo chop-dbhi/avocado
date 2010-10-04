@@ -118,23 +118,21 @@ class ReportTestCase(TestCase):
         self.report.scope = Scope()
         self.report.perspective = Perspective()
 
-    def test_resolve(self):
+    def test_resolve_caching(self):
         session = self.request.session
 
-        out1 = self.report.resolve(self.request, 'html')
+        self.report.resolve(self.request, 'html')
         cache = session[Report.REPORT_CACHE_KEY]
         ts1 = cache['timestamp']
 
-        self.assertTrue(self.report._cache_is_valid(ts1))
-
-        # ensure cache pool has record of the key
-        self.assertTrue(mcache.has_key(cache['datakey']))
-
-        out2 = self.report.resolve(self.request, 'html')
+        self.report.resolve(self.request, 'html')
         ts2 = cache['timestamp']
 
-        out3 = self.report.resolve(self.request, 'html')
+        self.report.resolve(self.request, 'html', page_num=100)
         ts3 = cache['timestamp']
 
-        self.assertEqual(ts1, ts2, ts3)
-        self.assertEqual(out1, out2, out3)
+        self.report.resolve(self.request, 'html', per_page=1)
+        ts4 = cache['timestamp']
+
+        self.report.resolve(self.request, 'html', per_page=1, page_num=1)
+        ts5 = cache['timestamp']

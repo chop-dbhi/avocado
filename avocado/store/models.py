@@ -215,7 +215,7 @@ class Report(Descriptor):
         The edge cases will be relative to the min (0) and max number of rows
         that exist.
         """
-        mid = int(buf_size / 2)
+        mid = int(buf_size / 2.0)
 
         # lower bound
         if (offset - mid) < 0:
@@ -243,44 +243,6 @@ class Report(Descriptor):
         raw._execute_query()
         return raw.cursor.fetchall()
 
-    # in it's current implementation, this will try to get the requested
-    # page from cache, or re-execute the query and store off the new cache
-    def _get_page_from_cache(self, cache, buf_size=CACHE_CHUNK_SIZE):
-        """Attempts
-        The cache datastructure:
-
-            cache = {
-                'count': 10000,
-                'unique': 2000,
-                'offset': 100,
-                'datakey': some_md5_hash,
-                'timestamp': datetime object,
-            }
-        """
-        count = cache['count']
-        offset = cache['offset']
-        datakey = cache['datakey']
-        per_page = cache['per_page']
-        page_num = cache['page_num']
-
-        # create a theoretical paginator representing the rows stored off.
-        # since it is still unknown whether the cache contains the requested
-        # data, the data is not yet fetched so to reduce the overhead
-        paginator = BufferedPaginator(count=count, offset=offset,
-            buf_size=buf_size, per_page=per_page)
-
-        # get the requested page. note, this is relative to the ``count``
-        try:
-            page = paginator.page(page_num)
-        except (EmptyPage, InvalidPage):
-            page = paginator.page(paginator.num_pages)
-
-        # now we can fetch the data
-        if page.in_cache():
-            data = mcache.get(datakey, None)
-            if data is not None:
-                return page.get_list(pickle.loads(data))
-
     def _get_paginator_and_page(self, cache, buf_size=CACHE_CHUNK_SIZE):
         paginator = BufferedPaginator(count=cache['count'], offset=cache['offset'],
             buf_size=buf_size, per_page=cache['per_page'])
@@ -290,19 +252,34 @@ class Report(Descriptor):
         except (EmptyPage, InvalidPage):
             page = paginator.page(paginator.num_pages)
 
-        # since the page is not in cache new data must be requested, therefore
-        # the offset should be re-centered relative to the page offset
-        cache['offset'] = self._center_cache_offset(cache['count'], page.offset(), buf_size)
-
         return paginator, page
 
-    def _refresh_cache(self, cache, queryset, buf_size=CACHE_CHUNK_SIZE):
+    # in it's current implementation, this will try to get the requested
+    # page from cache, or re-execute the query and store off the new cache
+    def _get_page_from_cache(self, cache, buf_size=CACHE_CHUNK_SIZE):
+        print 'getting page from cache'
+        paginator, page = self._get_paginator_and_page(cache, buf_size)
+
+        # now we can fetch the data
+        if page.in_cache():
+            data = mcache.get(cache['datakey'])
+            print 'page data exists:', data is not None
+            if data is not None:
+                return page.get_list(pickle.loads(data))
+
+    def _refresh_cache(self, cache, queryset, adjust_offset=True, buf_size=CACHE_CHUNK_SIZE):
         """Does not utilize existing cache if it exists. This is an implied
         cache invalidation mechanism.
         """
+        print 'refreshing cache'
         paginator, page = self._get_paginator_and_page(cache, buf_size)
 
         queryset = self._set_queryset_offset_limit(queryset, cache['offset'], buf_size)
+
+        # since the page is not in cache new data must be requested, therefore
+        # the offset should be re-centered relative to the page offset
+        if adjust_offset:
+            cache['offset'] = self._center_cache_offset(cache['count'], page.offset(), buf_size)
 
         data = self._execute_raw_query(queryset)
         mcache.set(cache['datakey'], pickle.dumps(data))
@@ -323,7 +300,12 @@ class Report(Descriptor):
         """Tries to use cache if it exists, this implies that the cache is still
         valid and a page that is not in cache has been requested.
         """
+        print 'updating cache'
         paginator, page = self._get_paginator_and_page(cache, buf_size)
+
+        # since the page is not in cache new data must be requested, therefore
+        # the offset should be re-centered relative to the page offset
+        cache['offset'] = self._center_cache_offset(cache['count'], page.offset(), buf_size)
 
         # determine any overlap between what we have with ``cached_rows`` and
         # what the ``page`` requires.
@@ -335,9 +317,11 @@ class Report(Descriptor):
             queryset = self._set_queryset_offset_limit(queryset, *start_term)
             data = self._execute_raw_query(queryset)
         else:
-            rdata = mcache.get(cache['datakey'], None)
+            rdata = mcache.get(cache['datakey'])
+            print 'partial data exists:', rdata is not None
             if rdata is None:
-                return self._refresh_cache(cache, queryset, buf_size)
+                return self._refresh_cache(cache, queryset, adjust_offset=False,
+                    buf_size=buf_size)
 
             data = pickle.loads(rdata)
             # check to see if there is partial data to be prepended
@@ -380,7 +364,7 @@ class Report(Descriptor):
         queryset = self.scope.get_queryset(None, queryset, using=using, **context)
 
         if run_counts:
-            unqiue = self._get_count(queryset)
+            unique = self._get_count(queryset)
 
         queryset = self.perspective.get_queryset(None, queryset, using=using)
 
@@ -391,6 +375,14 @@ class Report(Descriptor):
             return queryset, unique, count
 
         return queryset
+
+    def has_permission(self, user):
+        # ensure the requesting user has permission to view the contents of
+        # both the ``scope`` and ``perspective`` objects
+        # TODO add per-user caching for report objects
+        if self.scope.has_permission(user=user) and self.perspective.has_permission(user=user):
+            return True
+        return False
 
     def resolve(self, request, format_type, page_num=None, per_page=None, using=DEFAULT_MODELTREE_ALIAS):
         """Generates a report based on the ``scope`` and ``perspective``
@@ -417,11 +409,8 @@ class Report(Descriptor):
         """
         user = request.user
         request.session.modified = True
-        # ensure the requesting user has permission to view the contents of
-        # both the ``scope`` and ``perspective`` objects
-        # TODO add per-user caching for report objects
-        if not self.scope.has_permission(user=user) or \
-            not self.perspective.has_permission(user=user):
+
+        if not self.has_permission(user):
             raise PermissionDenied
 
         # define the default context for use by ``get_queryset``
@@ -439,6 +428,8 @@ class Report(Descriptor):
             'timestamp': None,
             'datakey': self._get_datakey(request),
         })
+
+        print 'before', cache
 
         # test if the cache is still valid, then attempt to fetch the requested
         # page from cache
@@ -473,6 +464,9 @@ class Report(Descriptor):
             })
 
             rows = self._refresh_cache(cache, queryset)
+
+        print 'after', cache
+        assert mcache.has_key(cache['datakey'])
 
         request.session[self.REPORT_CACHE_KEY] = cache
         return list(self.perspective.format(rows, format_type))
