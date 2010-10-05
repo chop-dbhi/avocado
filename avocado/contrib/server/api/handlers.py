@@ -1,3 +1,4 @@
+from itertools import groupby
 from datetime import datetime
 
 from django.core.exceptions import (ObjectDoesNotExist, MultipleObjectsReturned,
@@ -73,7 +74,10 @@ class ColumnHandler(BaseHandler):
         if request.GET.has_key('q'):
             obj = self.model.objects.fulltext_search(request.GET.get('q'), obj, True)
             return obj.values_list('id', flat=True)
-        return obj
+
+        obj = list(obj)
+        return [{'name': k.name, 'id': k.id, 'columns': list(v)}
+            for k, v in groupby(obj, lambda x: x.category)]
 
 
 class ScopeHandler(BaseHandler):

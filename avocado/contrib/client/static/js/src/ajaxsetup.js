@@ -1,11 +1,7 @@
 /*
-** Define the default functions to be used with any AJAX requrest.
-** Setup the defaults for all AJAX requests.
-*/
-
-/*
-** Handles HTTP redirects.
-*/
+ * Sets the default behavior of detecting a temporary redirect and updating the
+ * window location. This is mainly useful for session timeouts.
+ */
 $.ajaxSetup({
     complete: function(xhr) {
         if (xhr.status === 302) {
@@ -15,7 +11,3 @@ $.ajaxSetup({
         }
     }
 });
-
-// $.blockUI.defaults.message = null;
-// $.blockUI.defaults.css = {};
-// $.blockUI.defaults.overlayCSS = {};

@@ -1,5 +1,21 @@
 require.def('report/templates', ['lib/jquery.jqote2'], function() {
     return {
+        columns: $.jqotec([
+            '<div class="category">',
+                '<h4><%= this.name %> <a class="ht add-category" href="#<%= this.id %>">Add all</a></h4>',
+                '<ul id="cat<%= this.id %>" class="column-section">',
+                    '<% for (var e,k=0; k<this.columns.length; k++) { %>',
+                        '<% e = this.columns[k]; %>',
+                        '<li class="col<%= e.id %>">',
+                            '<a class="fr ht add-column" href="#">Add</a>',
+                            '<%= e.name %>',
+                            '<% if (e.description) { %><p class="ht"><%= e.description %></p><% } %>',
+                        '</li>',
+                    '<% } %>',
+                '</ul>',
+            '</div>'
+        ].join('')), 
+
         header: $.jqotec('<th class="header <%= this.direction %>"><span><%= this.name %></span></th>'),
 
         row: $.jqotec([

@@ -16,3 +16,55 @@
 #report .page-links .inactive {
     color: #666;
 }
+
+#search-dialog {
+    display: none; /* for jquery ui dialog */
+}
+
+#search-dialog > div {
+    border: 1px dotted #aaa;
+    padding: 10px;
+    display: inline-block;
+    vertical-align: top;
+    width: 306px;
+}
+
+#search-dialog > :first-child {
+    margin-right: 20px;
+}
+
+#search-dialog h3 {
+    margin-bottom: 10px;
+}
+
+#search-dialog h4 {
+    font-weight: bold;
+}
+
+#search-dialog input {
+    width: 250px;
+}
+
+#search-dialog ul {
+    margin: 0;
+    list-style: none;
+}
+
+#search-dialog li {
+    margin: 3px 0;
+    padding: 5px 8px;
+}
+
+#columns {
+    margin-top: 10px;
+}
+
+#columns li {
+    background-color: #eee;
+    border: 1px solid #ddd;
+}
+
+#active-columns li {
+    background-color: #fcdb6a;
+    border: 1px solid #fcba21;
+}

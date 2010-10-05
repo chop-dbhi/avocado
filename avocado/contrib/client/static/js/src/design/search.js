@@ -91,9 +91,9 @@ require.def('design/search',
              */
             searchInput.autocomplete({
                 success: function(value, json) {
-                    var foo = $('[data-model=criterion]', criteria).removeClass('inview');
+                    var objs = $('[data-model=criterion]', criteria).removeClass('inview');
                     for (var i = 0; i < json.length; i++) {
-                        foo.jdata('id', json[i]).addClass('inview');
+                        objs.jdata('id', json[i]).addClass('inview');
                     }
                 }
             });

@@ -91,7 +91,7 @@ input[type=text], input[type=password], textarea {
     border: 1px solid #999;
 }
 
-input[type=button], input[type=submit], button {
+input[type=button], input[type=submit], button, .ui-dialog .ui-dialog-buttonpane button {
     font-size: 12px;
     color: #000;
     border: 1px solid #aaa;
@@ -107,12 +107,11 @@ input[type=button], input[type=submit], button {
     -webkit-border-radius: 3px;
 }
 
-input[type=button]:hover, input[type=submit]:hover, button:hover,
-input[type=button]:active, input[type=submit]:active, button:active {
+input[type=button]:hover, input[type=submit]:hover, button:hover, .ui-dialog .ui-dialog-buttonpane button:hover {
     border-color: #666;
 }
 
-input[type=button]:active, input[type=submit]:active, button:active {
+input[type=button]:active, input[type=submit]:active, button:active, .ui-dialog .ui-dialog-buttonpane button:active  {
     border-color: #666;
     color: #fff;
     text-shadow: #222 -1px -1px 0;
@@ -122,7 +121,7 @@ input[type=button]:active, input[type=submit]:active, button:active {
     filter: progid:DXImageTransform.Microsoft.Gradient(startColorstr='#555555', endColorstr='#888888');
 }
 
-input[type=button]:disabled, input[type=submit]:disabled, button:disabled {
+input[type=button]:disabled, input[type=submit]:disabled, button:disabled, .ui-dialog .ui-dialog-buttonpane button:disabled {
     color: #999;
     border-color: #aaa;
     background: #ddd;
@@ -408,7 +407,7 @@ footer a:hover, footer a:active {
 	-webkit-box-shadow: #999 0 4px 4px;    
 }
 
-.container {
+.container, .ui-dialog {
     clear: both;
     font-family: "helvetica neue", helvetica, sans-serif;
     font-size: 14px;
@@ -428,7 +427,7 @@ footer a:hover, footer a:active {
 	-webkit-box-shadow: #999 0 4px 4px;
 }
 
-.container > .title {
+.container > .title, .ui-dialog .ui-dialog-titlebar {
     color: #eee;
     padding: 5px 10px;
     background: #444;
@@ -488,16 +487,6 @@ footer a:hover, footer a:active {
 	-webkit-border-top-right-radius: 4px;            
 }
 
-.container > .help {
-    padding: 4px 10px;
-    font-size: 11px;
-	color: #653400;    
-    background-color: #F8F7A9;
-    text-shadow: #fff 1px 1px 0;
-    border-bottom: 1px solid #DED67E;
-    color: ;
-}
-
 .container > .toolbar {
     font-size: 11px;
     color: #002D46;
@@ -506,19 +495,8 @@ footer a:hover, footer a:active {
     text-shadow: #fff 1px 1px 0;
 }
 
-.container > .toolbar .right {
-    float: right;
-    margin-left: 7px;
-    margin-top: 2px;
-}
-
-.container > .toolbar a {
-    color: #332800;
-}
-
-.container > .toolbar input[type=text].right,
-.container > .toolbar input[type=search].right {
-    margin-top: -5px;
+.container > .toolbar button {
+    font-size: 11px;
 }
 
 .container > .header {
@@ -738,98 +716,25 @@ footer a:hover, footer a:active {
 }
 
 /*
-** jQuery UI
-*/
+ * jQuery UI
+ */
+
 .ui-dialog {
-    padding: 0;
-    border: none;
-    clear: both;
-    font-family: "helvetica neue", helvetica, sans-serif;
-    font-size: 13px;
-    color: #222;
-	background-color: #fff;
-	margin-bottom: 20px;
-    -moz-border-radius-topleft: 4px;
-    -moz-border-radius-topright: 4px;
-    -webkit-border-top-left-radius: 4px;
-    -webkit-border-top-right-radius: 4px;   
-	-moz-box-shadow: 0 4px 10px #666;
-	-webkit-box-shadow: 0 4px 10px #666;
+    position: absolute;
+	box-shadow: #999 0 4px 20px;
+	-moz-box-shadow: #999 0 4px 20px;
+	-webkit-box-shadow: #666 0 4px 20px;
 }
 
-.ui-dialog .ui-dialog-titlebar {	
-	color: #eee;
-    padding: 4px 10px;
-    border: none;
-    background-color: #D5E2F2;
-    background-image: -moz-linear-gradient(100% 100% 0deg, #D5E2F2, #C8D8F2);
-    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#D5E2F2), to(#C8D8F2));     
-	text-shadow: 0 1px 1px #172E46;
-	-moz-border-radius: 0;
-	-moz-border-radius-topleft: 4px;
-	-moz-border-radius-topright: 4px;
-	-webkit-border-radius: 0;
-	-webkit-border-top-left-radius: 4px;
-	-webkit-border-top-right-radius: 4px;
+.ui-dialog .ui-dialog-content {
+    padding: 10px;
+}
+
+.ui-dialog .ui-dialog-buttonpane {
+    padding: 10px;
+    text-align: right;
 }
 
 .ui-dialog .ui-dialog-titlebar .ui-dialog-titlebar-close {
     display: none;
-}
-
-.ui-dialog .ui-dialog-titlebar .ui-dialog-title {
-    font-size: 14px;
-    font-weight: 400;
-	text-shadow: #172E46 1px 1px 0;
-	color: #eee;
-    margin: 0;
-}
-
-.ui-dialog .ui-dialog-buttonpane button {
-    font-size: 1em;
-    color: #000;
-    border: 1px solid #aaa;
-    font-weight: bold;
-    background-color: #eee;
-    background-image: -moz-linear-gradient(100% 100% 0deg, #eee, #ddd);
-    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#eee), to(#ddd));
-    text-shadow: #fff 1px 1px 0;
-    cursor: pointer;
-    font-size: 12px;
-    padding: 2px 8px;
-    -moz-border-radius: 3px;
-    -webkit-border-radius: 3px;
-    -moz-box-shadow: 2px 2px 2px #eee;
-    -webkit-box-shadow: 2px 2px 2px #eee;    
-}
-
-.ui-dialog .ui-dialog-buttonpane button:hover,
-.ui-dialog .ui-dialog-buttonpane button:active {
-    color: #005087;    
-}
-
-.ui-dialog .ui-dialog-buttonpane button:active {
-    background-color: #ddd;
-    background-image: -moz-linear-gradient(100% 100% 0deg, #ddd, #eee);
-    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ddd), to(#eee));     
-}
-
-.ui-dialog input, .ui-dialog textarea {
-    font-size: 11px;
-}
-
-/*
-** jQuery BlockUI
-*/
-
-.blockOverlay {
-    -moz-border-radius-topleft: 3px;
-    -moz-border-radius-topright: 3px;
-    -webkit-border-top-left-radius: 3px;
-    -webkit-border-top-right-radius: 3px;    
-    background: #fff url(../img/ajax-loader-m16.gif) no-repeat center;
-    filter: progid:DXImageTransform.Microsoft.Alpha(opacity=80);
-    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(opacity=80)";
-    -moz-opacity: 0.8;
-    opacity: 0.8;
 }
