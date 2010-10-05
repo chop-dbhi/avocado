@@ -22,6 +22,11 @@ require(['design/search', 'design/conceptmanager', 'design/criteriamanager'], fu
             criteriaPanel.triggerHandler("UpdateQueryEvent", [criteria_constraint]);
         });
         
+        
+        rootNode.bind("ConceptAddedEvent ConceptDeletedEvent", function(evt){
+            pluginPanel.trigger(evt);
+        });
+        
         // Listen for the user clicking on criteria in the right hand panel
         rootNode.bind("ShowConceptEvent", function(evt){
             var target = $(evt.target);

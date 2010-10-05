@@ -46,7 +46,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
           @private
           @type string
         */
-        var add_query_tmpl = '<input id="add_to_query" style="float:right" type="button" value="Add To Query">';
+        var add_query_tmpl = '<input id="add_to_query" style="float:right" type="button" value="">';
         /**
           Holds the currently viewable/active concept/criterionconcept    
 
@@ -64,6 +64,21 @@ require.def('design/conceptmanager',['design/views'], function(views) {
         */
         var activeView = null;
         
+        /**
+          Holds a reference to the addQueryButton for the activeConcept.
+        
+         @private
+         @type jquery object
+        */
+        var $addQueryButton = null;
+        
+        /**
+          List of concepts currently in the users active query
+          @private
+          @type array
+        */
+        var concepts_in_query = [];
+        
         // RegExes used by buildQuery
         var binaryFieldRe = /^(\d+)_(\d+(?:OR\d+)*)_input([01])$/;
         var fieldRe = /^(\d*)_(\d+(?:OR\d+)*)$/;
@@ -76,13 +91,41 @@ require.def('design/conceptmanager',['design/views'], function(views) {
         var nb_plural_to_singular_map = {"in":"exact", "-in":"-exact"};
         var nb_singular_to_plural_map = {"exact":"in", "-exact":"-in"};
         
-        /**
-           This is a utility function that looks on the current view to find the
-           datatype of a given field primary k. In the future it might use the server, 
-           or search all cached concepts, but for now it only uses the activeView because
-           it is only called from buildQuery, where the activeView is all that matters.
-           
+         /**
+           Event listener for concepts added to the users query
            @private
+        */
+        $container.bind("ConceptAddedEvent", function(evt){
+            if ($.inArray(evt.concept_id, concepts_in_query) < 0 ){
+                concepts_in_query.push(evt.concept_id);
+                if (activeConcept === evt.concept_id){
+                    $addQueryButton.val("Update Query");
+                }
+            }
+            evt.stopPropagation();
+        });
+        
+        /**
+           Event listener for concepts removed from the users query
+           @private
+        */
+        $container.bind("ConceptDeletedEvent", function(evt){
+            var index = $.inArray(evt.concept_id, concepts_in_query);
+            if (index >= 0 ){
+                concepts_in_query.splice(index,1);
+                if (activeConcept === evt.concept_id){
+                    $addQueryButton.val("Add to Query");
+                }
+            }
+            evt.stopPropagation();
+        });
+        /**
+          This is a utility function that looks on the current view to find the
+          datatype of a given field primary k. In the future it might use the server, 
+          or search all cached concepts, but for now it only uses the activeView because
+          it is only called from buildQuery, where the activeView is all that matters.
+          
+          @private
         */
         function getDataType(field_pk){
             var elements = activeView.elements;
@@ -701,11 +744,15 @@ require.def('design/conceptmanager',['design/views'], function(views) {
             var tabs = $.jqote(tab_tmpl, concept.views);
             $tabsBar.html(tabs); 
             
+            
+            
             if (concept['static']){
                 $staticBox.append(concept['static']);
+                $addQueryButton = $staticBox.find("#add_to_query");
+                
             }else{
                 // Prepare the static concept box
-                var $addQueryButton = $(add_query_tmpl);
+                $addQueryButton = $(add_query_tmpl);
                 $addQueryButton.click(function(){
                      var event = $.Event("UpdateQueryButtonClicked");
                      $(this).trigger(event); 
@@ -713,6 +760,12 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                 $staticBox.append($addQueryButton);
             }
             
+            // Make sure the button for this concept has the correct label
+            if ($.inArray(activeConcept, concepts_in_query) >=0 ) {
+                $addQueryButton.val("Update Query");
+            }else{
+                $addQueryButton.val("Add to Query");
+            }
             // Regardless of whether the tabs are visible, load the first view
             $tabsBar.children(':first').click();
         };
