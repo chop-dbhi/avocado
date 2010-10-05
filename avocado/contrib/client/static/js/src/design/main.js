@@ -22,13 +22,18 @@ require(['design/search', 'design/conceptmanager', 'design/criteriamanager'], fu
             criteriaPanel.triggerHandler("UpdateQueryEvent", [criteria_constraint]);
         });
         
+        
+        rootNode.bind("ConceptAddedEvent ConceptDeletedEvent", function(evt){
+            pluginPanel.trigger(evt);
+        });
+        
         // Listen for the user clicking on criteria in the right hand panel
         rootNode.bind("ShowConceptEvent", function(evt){
             var target = $(evt.target);
             var existing_ds = evt.constraints;
 
             if (!existing_ds){
-                // Maybe the criteriaManager has the constraints?
+                // Criteria manager will have constraints if this is already in the question
                 existing_ds = criteriaManager.retrieveCriteriaDS(target.attr('data-concept-id'));
             }
             $.ajax({

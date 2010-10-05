@@ -2,17 +2,16 @@ require.def('design/conceptmanager',['design/views'], function(views) {
     
     /**
       Sets up and manages the view sets for each criterion option.
-  
+
       On each request for a criterion option, the response returns an array
       of hashes that contain the information necessary to construct the
-      content of the view. For common cases such as simple HTML injection
-      or Chart display, the plugin developer does not need to provide
-      any special logic for handling those type of views. Custom views
+      content of the view. HTML forms and Charts (provided by the HighCharts
+      library are considered built-in views. Custom views (for example if one
+      wanted to some sort of tree-view to be selected from)
       must be handled using view-specific JS or the view-set JS.
-  
+
       @class
       @author <a href="mailto:millerjm1@email.chop.edu">Jeff Miller</a>
-  
       @param {jQuery} $container Represents the containing element which
       encapulates all loaded views
       @param {jQuery} $titleBar Represents the title bar to which the title of
@@ -21,12 +20,14 @@ require.def('design/conceptmanager',['design/views'], function(views) {
       associated with all currently loaded views
       @param {jQuery} $contentBox Represents the content area within the
       container that the active view is displayed
+      @param {jQuery} $staticBox Represents the content area within the container
+      that is common to all views (displays errors and the query button)
     */
     var manager = function($container, $titleBar, $tabsBar, $contentBox, $staticBox) {  
         /**
           A hash with respect to criterion IDs of the objects fetched from
           the server to build the views.
-      
+
           @private
           @type object
         */
@@ -34,21 +35,21 @@ require.def('design/conceptmanager',['design/views'], function(views) {
         
         /**
           The standard template for the tab DOM elements
-      
+
           @private
           @type string
         */
         var tab_tmpl = '<a class="tab" href="#"><%= this.tabname %></a> ';
         /**
           The standard template for the "Add To Query Button"
-      
+
           @private
           @type string
         */
-        var add_query_tmpl = '<input id="add_to_query" style="float:right" type="button" value="Add To Query">';
+        var add_query_tmpl = '<input id="add_to_query" style="float:right" type="button" value="">';
         /**
           Holds the currently viewable/active concept/criterionconcept    
-      
+
           @private
           @type int
         */
@@ -57,17 +58,100 @@ require.def('design/conceptmanager',['design/views'], function(views) {
         /**
           Holds the currently viewable view of the currently active 
           concept/criterionconcept
-      
+
           @private
           @type object
         */
         var activeView = null;
+        
+        /**
+          Holds a reference to the addQueryButton for the activeConcept.
+        
+         @private
+         @type jquery object
+        */
+        var $addQueryButton = null;
+        
+        /**
+          List of concepts currently in the users active query
+          @private
+          @type array
+        */
+        var concepts_in_query = [];
         
         // RegExes used by buildQuery
         var binaryFieldRe = /^(\d+)_(\d+(?:OR\d+)*)_input([01])$/;
         var fieldRe = /^(\d*)_(\d+(?:OR\d+)*)$/;
         var opRe = /^(\d*)_(\d+(?:OR\d+)*)_operator$/;
         var pkChoiceRe = /^\d+(?:OR\d+)+$/;
+        var negateRe = /-/;
+        
+        
+        // Map used to convert array operators for the null boolean type;
+        var nb_plural_to_singular_map = {"in":"exact", "-in":"-exact"};
+        var nb_singular_to_plural_map = {"exact":"in", "-exact":"-in"};
+        
+        var s_to_primative_map = {"true":true, "false":false, "null":null};
+        
+         /**
+           Event listener for concepts added to the users query
+           @private
+        */
+        $container.bind("ConceptAddedEvent", function(evt){
+            if ($.inArray(evt.concept_id, concepts_in_query) < 0 ){
+                concepts_in_query.push(evt.concept_id);
+                if (activeConcept === evt.concept_id){
+                    $addQueryButton.val("Update Query");
+                }
+            }
+            evt.stopPropagation();
+        });
+        
+        /**
+           Event listener for concepts removed from the users query
+           @private
+        */
+        $container.bind("ConceptDeletedEvent", function(evt){
+            var index = $.inArray(evt.concept_id, concepts_in_query);
+            if (index >= 0 ){
+                concepts_in_query.splice(index,1);
+                if (activeConcept === evt.concept_id){
+                    $addQueryButton.val("Add to Query");
+                }
+            }
+            evt.stopPropagation();
+        });
+        /**
+          This is a utility function that looks on the current view to find the
+          datatype of a given field primary k. In the future it might use the server, 
+          or search all cached concepts, but for now it only uses the activeView because
+          it is only called from buildQuery, where the activeView is all that matters.
+          
+          @private
+        */
+        function getDataType(field_pk){
+            var elements = activeView.elements;
+            var datatype = null;
+            $.each(elements, function(index,element){
+               if (element.data){
+                   if (element.data.pk == field_pk){
+                       datatype = element.data.datatype;
+                       return false;
+                   }
+               } else {
+                   $.each(element.fields, function(index, field){
+                       if (field.pk == field_pk){
+                           datatype = field.datatype;
+                           return false;
+                       }
+                   });
+                   if (datatype !== null){
+                       return false;
+                   }
+               }
+            });
+            return datatype;
+        }
  
         /**
           This function is a utility function, currently called by the AddQueryButtonHandler,
@@ -147,24 +231,52 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                                     'value' : [field.val0,field.val1],
                                     'concept_id': activeConcept
                                 });
-                } else if (field.val0 && field.op && !(field.val0 instanceof Array)){ // Decimal or assertion or boolean
-                    nodes.push({
-                                    'operator' : field.op,
-                                    'id' : field_id,
+                } else if (field.val0 && field.op && !(field.val0 instanceof Array)){ // Decimal or boolean or free text
+                    nodes.push({                                                      // probably not boolean though because
+                                    'operator' : field.op,                            // a specific operator has been 
+                                    'id' : field_id,                                  // specified
                                     'value' : field.val0,
                                     'concept_id': activeConcept
                                 });
-                } else if (field.val0 && field.val0 instanceof Array){ 
+                } else if (field.val0 && field.val0 instanceof Array){ // String choice, or nullboolean
                     // if field.op is null, assume the query was the default, which is "in"
+                    // this one is a bit special, there is no avoiding that in this situation
+                    // we could be dealing with a string "choice" option, or a nullbullean
+                    // nullbooleans need to have an OR'd query specifically construct for them
+                    // because they cannot use the IN operator.
                     field.op = field.op !== null ? field.op : "in";
-                    nodes.push({
-                                    'operator' : field.op,
-                                    'id' : field_id,
-                                    'value' : field.val0,
-                                    'concept_id': activeConcept
-                                });
+                    switch (getDataType(field_id)) {
+                        case "nullboolean" : var bool_list = [];
+                                             var op = nb_plural_to_singular_map[field.op];
+                                             $.each(field.val0, function(index,item){
+                                                    bool_list.push( {
+                                                         'operator':op,
+                                                         'id' : field_id,
+                                                         'value' : s_to_primative_map[item] !== undefined? s_to_primative_map[item]:item,
+                                                         'concept_id': activeConcept,
+                                                         'datatype':'nullboolean'
+                                                    });
+                                             });
+                                             if (bool_list.length > 1){
+                                             nodes.push({
+                                                 'type': negateRe.test(field.op) ? "and" : "or",
+                                                 'children' : bool_list,
+                                                 'concept_id': activeConcept
+                                             });
+                                            }else{
+                                                nodes.push(bool_list[0]);
+                                            }
+                                            break;
+                                 default  :  nodes.push({
+                                                'operator' : field.op,
+                                                'id' : field_id,
+                                                'value' : field.val0,
+                                                'concept_id': activeConcept
+                                             });
+                                             break;
+                    }
                 } else if (field.val0 !== null && !(field.val0 instanceof Array) &&
-                          field.val1 === null){ // assertion/or boolean when operator not specified
+                          field.val1 === null){ // boolean when operator not specified
                      nodes.push({
                                         'operator' : "exact",
                                         'id' : field_id,
@@ -177,7 +289,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                 }
 
                 if (variable_pk){  
-                    // When we get this back from th server, we will need a way to tell
+                    // When we get this back from the server, we will need a way to tell
                     // that the field pk was variable, and how to recreate the datastore
                     // TODO would it be better to make the form responsible for this?
                     nodes[nodes.length-1]['id_choices'] =  pkChoices;
@@ -225,10 +337,25 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                      for (var index=0; index < parameter.value.length; index++){
                          ds[field_prefix+"_input"+index] = parameter.value[index];
                      }
-                 }else if (parameter.value){
-                     ds[field_prefix] = parameter.value;
+                 }else if (parameter.value !== undefined){
+                     if (ds.hasOwnProperty(field_prefix)){
+                        if (ds[field_prefix] instanceof Array) {
+                            ds[field_prefix].push(parameter.value);
+                        }else{
+                            ds[field_prefix] = [ds[field_prefix]];
+                            ds[field_prefix].push(parameter.value);
+                        }
+                     }else if (parameter.datatype==="nullboolean"){
+                        ds[field_prefix] = [parameter.value];
+                     }else {
+                        ds[field_prefix] = parameter.value;
+                     }
                  }
-                 ds[field_prefix+"_"+"operator"] = parameter.operator;
+                 
+                 ds[field_prefix+"_"+"operator"] = ds[field_prefix] instanceof Array ? 
+                                                   nb_singular_to_plural_map[parameter.operator] : parameter.operator;
+                                                   
+                 
              } else {
                 $.each(parameter.children, function(index, child){
                     createDSFromQuery(child, ds);
@@ -236,7 +363,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
              }
              return ds;
          }
-    
+
         /**
           The handler for the 'ViewReadyEvent' event
           
@@ -318,13 +445,13 @@ require.def('design/conceptmanager',['design/views'], function(views) {
         };    
         /**
              The handler for the 'ViewErrorEvent' event
-      
+
              This event is fired by a concept/concept plugin when
              an unrecoveralble error has been received. The framework
              can choose to show the 'Report Error' Panel
-      
+
           @private
-        */    
+        */
 
         function viewErrorHandler(evt, details) {
 
@@ -389,7 +516,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
           only properly named attributes.
           @private
         */
-        
+
         function postViewErrorCheck(ds){
             // Is the datasource an empty object?
             if ($.isEmptyObject(ds)) {
@@ -407,7 +534,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
             }
             return true;
         }
-        
+
         /**
           This is the main control function for built-in and custom views
           that will use the default query constructor. It calls the function 
@@ -429,7 +556,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
             
             $(event.target).trigger("UpdateQueryEvent", [server_query]);
         }
-        
+
         /**
           This function is the handler for the "add to query" button.
           This button appears in the static content area for all concepts,
@@ -444,8 +571,8 @@ require.def('design/conceptmanager',['design/views'], function(views) {
         function addQueryButtonHandler(event){
             activeView.contents.triggerHandler("UpdateQueryButtonClicked"); // This would be better if every view didn't need to handle this
         }                                                                   // it should be concept level thing.
-        
-        
+
+
        /**
          This function notifies the framework that the user has entered invalid input. 
          The framework will only show the same error message once, and it will only show
@@ -458,7 +585,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
          code that sent it will prevent the action the error forbids.)
          @private
        */
-        
+
         function badInputHandler(evt){
             evt.reason = evt.reason ? "_"+ evt.reason : "";
             var invalid_fields = cache[activeConcept].invalid_fields;
@@ -519,7 +646,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                 $staticBox.find("#add_to_query").attr("disabled","true"); // TODO this is not visibly disabled to the user
             }
         }
-        
+
         /**
           This function notifies the framework that the user corrected an invalid field. 
           The framework will only show the same error message once, and it will only show
@@ -562,7 +689,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
         });
         
         /**
-          Simple dynamic coad CSS function (taken from http://requirejs.org/docs/faq-advanced.html#css)
+          Simple dynamic load CSS function (taken from http://requirejs.org/docs/faq-advanced.html#css)
         */
         function loadCss(url) {
             var link = document.createElement("link");
@@ -580,7 +707,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
         */
         function loadDependencies(deps, cb) {
             cb = cb || function(){};
-        
+
             if (deps.css){
                 loadCss(deps.css);
             }
@@ -600,7 +727,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
           "add to query" button and displays the first view
           @private
         */
-        
+
         function loadConcept(concept){
             // If we got here, the globals for the current concept have been loaded
             // We will register it in our cache
@@ -615,15 +742,19 @@ require.def('design/conceptmanager',['design/views'], function(views) {
             } else {
                 $tabsBar.show();
             }
-        
+
             var tabs = $.jqote(tab_tmpl, concept.views);
             $tabsBar.html(tabs); 
             
+            
+            
             if (concept['static']){
                 $staticBox.append(concept['static']);
+                $addQueryButton = $staticBox.find("#add_to_query");
+                
             }else{
                 // Prepare the static concept box
-                var $addQueryButton = $(add_query_tmpl);
+                $addQueryButton = $(add_query_tmpl);
                 $addQueryButton.click(function(){
                      var event = $.Event("UpdateQueryButtonClicked");
                      $(this).trigger(event); 
@@ -631,10 +762,16 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                 $staticBox.append($addQueryButton);
             }
             
+            // Make sure the button for this concept has the correct label
+            if ($.inArray(activeConcept, concepts_in_query) >=0 ) {
+                $addQueryButton.val("Update Query");
+            }else{
+                $addQueryButton.val("Add to Query");
+            }
             // Regardless of whether the tabs are visible, load the first view
             $tabsBar.children(':first').click();
         };
-    
+
         /**
           Set up the tabs bar for the plugin, we are using the live events to automatically
           create tabs for any <a> elements put into the target area.
@@ -670,7 +807,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                 // If this concept already has a query associated with it, 
                 // populate the datasource
                 if (concept.query) {
-                    concept.ds = createDSFromQuery(concept.query); 
+                    concept.ds = createDSFromQuery(concept.query);
                 }else{
                     // create empty datasource
                     concept.ds = {};
@@ -711,7 +848,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
            } else {
                 loadDependencies(concept, loadConcept);
            }
-       };
+       }
         
        return {
             show: show

@@ -46,7 +46,6 @@ require.def('design/criteriamanager', ['design/criteria', "design/templates","li
         
         // Listen for new criteria as it is added
         $panel.bind("UpdateQueryEvent", function(evt, criteria_constraint){
-            
             var pk = criteria_constraint.concept_id;
             var new_criteria;
             // If this is the first criteria to be added remove 
@@ -64,6 +63,9 @@ require.def('design/criteriamanager', ['design/criteria', "design/templates","li
             }else{
                 new_criteria = criteria.Criteria(criteria_constraint);
                 $criteria_div.append(new_criteria);
+                var addEvent = $.Event("ConceptAddedEvent");
+                addEvent.concept_id = pk;
+                $panel.trigger(addEvent);
             }
             criteria_cache[pk] =  new_criteria;
         });
@@ -75,6 +77,10 @@ require.def('design/criteriamanager', ['design/criteria', "design/templates","li
             var constraint = $target.data("constraint");
             criteria_cache[constraint.concept_id].remove();
             delete criteria_cache[constraint.concept_id];
+            
+            var removedEvent = $.Event("ConceptDeletedEvent");
+            removedEvent.concept_id = constraint.concept_id;
+            $panel.trigger(removedEvent);
             
             // If this is the last criteria, remove "run query" button
             // and add back "No Criteria" indicator
@@ -102,8 +108,6 @@ require.def('design/criteriamanager', ['design/criteria', "design/templates","li
                 });
                 return ds;
             }
-
-
         };
         return that;
     };
