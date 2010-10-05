@@ -60,6 +60,8 @@ class BufferedPaginator(Paginator):
                 top = self.count
 
             object_list = self.object_list[bottom:top]
+        elif self.object_list is not None:
+            object_list = []
         else:
             object_list = None
 
