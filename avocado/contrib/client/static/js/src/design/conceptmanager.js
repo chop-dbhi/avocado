@@ -314,7 +314,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                                      'concept_id':activeConcept
                                };
             }
-            console.log(server_query);
+
             return (server_query);
         }
 
