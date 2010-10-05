@@ -51,6 +51,51 @@ require.def(
                 }
             });
 
+            columns.delegate('.add-column', 'click', function(evt) {
+                var id = evt.target.hash.substr(1);
+                searchdialog.trigger('add.column', [id]);
+                return false;
+            });
+
+            searchdialog.cache = {};
+
+            searchdialog.bind('add.column', function(evt, id) {
+                if (!searchdialog.cache[id]) {
+                    var sel = '[data-model=column][data-id=' + id + ']'; 
+                    searchdialog.cache[id] = {
+                        src: $(sel, columns),
+                        tgt: $(sel, active_columns)
+                    };
+                }
+
+                map = searchdialog.cache[id];
+
+                map.src.removeClass('active');
+                active_columns.append(
+                    map.tgt.detach().addClass('active')
+                );
+
+                return false;
+            });
+
+            searchdialog.bind('remove.column', function(evt, id) {
+                if (!searchdialog.cache[id]) {
+                    var sel = '[data-model=column][data-id=' + id + ']'; 
+                    searchdialog.cache[id] = {
+                        src: $(sel, columns),
+                        tgt: $(sel, active_columns)
+                    };
+                }
+
+                map = searchdialog.cache[id];
+
+                map.tgt.removeClass('active');
+                map.src.addClass('active');
+
+                return false;
+            });
+
+
             searchdialog.bind('search', function(evt, value) {
                 searchinput.trigger('search', value);
                 return false;
