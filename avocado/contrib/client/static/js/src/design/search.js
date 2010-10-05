@@ -19,11 +19,12 @@ require.def('design/search',
             var rnd = {
                 criteria: new renderer.template({
                     target: criteria,
-                    template: templates.criteria.list
+                    template: templates.criteria,
+                    bindData: true
                 }),
                 categories: new renderer.template({
                     target: categories,
-                    template: templates.categories.list
+                    template: templates.categories
                 })
             };
 
@@ -33,12 +34,9 @@ require.def('design/search',
             */
             var src = {
                 criteria: new datasource.ajax({
-                    uri: criteria.attr('data-uri'),
+                    uri: searchForm.attr('action'),
                     success: function(json) {
-                        if (json.length > 0)
-                            rnd.criteria.render(json);
-                        else
-                            rnd.criteria.target.html('<em class="ht mg">No results found</em');
+                        rnd.criteria.render(json);
                     }
                 }),
                 categories: new datasource.ajax({
@@ -84,12 +82,19 @@ require.def('design/search',
                 return false;
             });
 
+            /*
+             * the search acts on all criteria that is present for the user.
+             * each search returns a list of ids that can be used to filter
+             * down the list of criteria. the server hit is necessary to
+             * utilize the database fulltext search, but it is uneccesary to
+             * re-render the criteria every time.
+             */
             searchInput.autocomplete({
                 success: function(value, json) {
-                    if (json.length > 0)
-                        rnd.criteria.render(json);
-                    else
-                        rnd.criteria.target.html('<em class="ca mg">No results found for term "'+ value +'"</em>');
+                    var foo = $('[data-model=criterion]', criteria).removeClass('inview');
+                    for (var i = 0; i < json.length; i++) {
+                        foo.jdata('id', json[i]).addClass('inview');
+                    }
                 }
             });
             

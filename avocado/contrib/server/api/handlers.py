@@ -40,13 +40,15 @@ class CriterionHandler(BaseHandler):
 
     def read(self, request, *args, **kwargs):
         obj = super(CriterionHandler, self).read(request, *args, **kwargs)
-        # if an instance was returned, simply return the view responses
+
+        # if an instance was returned, return the view responses
         if isinstance(obj, self.model):
             return obj.view_responses()
 
         # apply fulltext if the 'q' GET param exists
         if request.GET.has_key('q'):
             obj = self.model.objects.fulltext_search(request.GET.get('q'), obj, True)
+            return obj.values_list('id', flat=True)
         return map(lambda x: x.json(), obj)
 
 
@@ -70,6 +72,7 @@ class ColumnHandler(BaseHandler):
         # apply fulltext if the 'q' GET param exists
         if request.GET.has_key('q'):
             obj = self.model.objects.fulltext_search(request.GET.get('q'), obj, True)
+            return obj.values_list('id', flat=True)
         return obj
 
 
