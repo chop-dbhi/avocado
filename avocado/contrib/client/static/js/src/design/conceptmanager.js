@@ -91,6 +91,8 @@ require.def('design/conceptmanager',['design/views'], function(views) {
         var nb_plural_to_singular_map = {"in":"exact", "-in":"-exact"};
         var nb_singular_to_plural_map = {"exact":"in", "-exact":"-in"};
         
+        var s_to_primative_map = {"true":true, "false":false, "null":null};
+        
          /**
            Event listener for concepts added to the users query
            @private
@@ -250,7 +252,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                                                     bool_list.push( {
                                                          'operator':op,
                                                          'id' : field_id,
-                                                         'value' : item,
+                                                         'value' : s_to_primative_map[item] !== undefined? s_to_primative_map[item]:item,
                                                          'concept_id': activeConcept,
                                                          'datatype':'nullboolean'
                                                     });

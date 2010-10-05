@@ -1,6 +1,7 @@
 require.def('design/form', [], {
     
     Form : function(view, concept_pk){
+          var s_to_primative_map = {"true":true, "false":false, "null":null};
           var $form = $('<span class="form_container"></span>');
           var decOperatorsTmpl =  ['<option selected id="<%=this.field_id%>" value="range">is between</option>',
                                    '<option id="<%=this.field_id%>" value="-range">is not between</option>',
@@ -42,19 +43,19 @@ require.def('design/form', [], {
               var input = []; // avoid odd exception if the server sends nothing
               switch (element.datatype) {
                   case 'nullboolean': input = ['<label for="<%=this.field_id%>"><%=this.label%></label>',
-                                               '<select multiple id ="<%=this.field_id%>" name="<%=this.field_id%>">',
-                                                  '<option value="True">Yes</option>',
-                                                  '<option value="False">No</option>',
-                                                  '<option value="Null">No Data</option>',
+                                               '<select data-datatype="nullboolean"data-optional="<%=this.optional%>"  multiple id ="<%=this.field_id%>" name="<%=this.field_id%>">',
+                                                  '<option <%=this["default"]===true?"selected":""%> value="true">Yes</option>',
+                                                  '<option <%=this["default"]===false?"selected":""%> value="false">No</option>',
+                                                  '<option <%=this["default"]===null?"selected":""%> value="null">No Data</option>',
                                                '</select>'];
                                       break;
                   case 'boolean':
                                  if (element.optional) {
                                      input ['<label for="<%=this.field_id%>"><%=this.label%></label>',
-                                            '<select id ="<%=this.field_id%>" name="<%=this.field_id%>">',
+                                            '<select data-datatype="boolean" data-optional="<%=this.optional%>" id ="<%=this.field_id%>" name="<%=this.field_id%>">',
                                                  '<option value=""></option>',
-                                                 '<option value="True">Yes</option>',
-                                                 '<option value="False">No</option>',
+                                                 '<option <%=this["default"]===true?"selected":""%> value="true">Yes</option>',
+                                                 '<option <%=this["default"]===false?"selected":""%> value="false">No</option>',
                                             '</select>'];
                                  }else{
                                      input = ['<input type="checkbox" name="<%=this.field_id%>" value="<%=this.field_id%>" <%= this["default"] ? "checked":""%>/>',
@@ -82,7 +83,7 @@ require.def('design/form', [], {
                                                   '<%}%>',
                                                   '</select>',
                                               '<%} else {%>',
-                                                  '<input type="text" id="<%=this.field_id%>_text" name="<%=this.field_id%>" size = "10">',
+                                                  '<input data-optional="<%=this.optional%> type="text" id="<%=this.field_id%>_text" name="<%=this.field_id%>" size = "10">',
                                               '<%}%>'
                                             ];
                                     break;
@@ -197,16 +198,18 @@ require.def('design/form', [], {
                                              if (evt.target.type === "select-multiple"){
                                                  // If a select-multiple box is optional, and nothing is selected, send null so that it doesn't appear as empty in 
                                                  // the datasource, eitherwise, we will throw an error if nothing is supplied;
+                                                 var selected_prim = $.map(selected, function(val, index){
+                                                     return $target.is("[date-datatype$='boolean']")? s_to_primative_map[val] : val;
+                                                 });
+                                                 
                                                  if ($target.is('[data-optional=true]')) {
-                                                    sendValue = selected.length ? selected : null;
+                                                    sendValue = selected_prim.length ? selected_prim : null;
                                                  } else {
-                                                    sendValue = selected; 
+                                                    sendValue = selected_prim; 
                                                  }
                                              } else { 
-                                                 sendValue = selected[0]; // JMM I am concerned selected[0] could sometimes be undefined?
+                                                 sendValue = $target.is("[date-datatype$='boolean']") ? s_to_primative_map[selected[0]] : selected[0];
                                              }
-                                            
-                                             
                                              $form.trigger("ElementChangedEvent", [{name:evt.target.name, value:sendValue}]);
                                              break;
                     default   : // This catches input boxes, if input boxes are not currently visible, send null for them
@@ -260,13 +263,21 @@ require.def('design/form', [], {
                  var $element = $("[name="+element.name+"]", $form);
                  // Note: Just because we are here doesn't mean we contain the element
                  // to be updated, it may reside on another view within this concept
+                 
+                 // Also not that values that are not string or numbers needs to 
+                 // be converted to a string before being displayed to the user
+                 // For example, you cannot set the value of an option tag to a boolean or null
+                 // it does not work
                  if ($element.length === 0) return;
                  var type = $element.attr("type");
                  switch (type){
                      case "checkbox": $element.attr("checked",element.value);
                                       break;
                      case "select-multiple" : $("option", $element).each(function(index,opt){
-                                                  if ($.inArray(opt.value,element.value)!=-1){
+                                                  var vals = $.map(element.value, function(val, index){
+                                                      return typeof val in {string:1,number:1}?val:String(val);
+                                                  });
+                                                  if ($.inArray(opt.value,vals)!=-1){
                                                       opt.selected = true;
                                                   }else{
                                                       opt.selected = false;
@@ -274,7 +285,7 @@ require.def('design/form', [], {
                                               });
                                               break; 
                      default:   // inputs and singular selects 
-                                $element.attr("value",element.value); 
+                                $element.attr("value",typeof element.value in {string:1,number:1}?element.value:String(element.value)); 
                                 break;
                  }
                  
