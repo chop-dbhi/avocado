@@ -31,7 +31,7 @@ require.def('design/criteriamanager', ['design/criteria', "design/templates","li
                 server_query = {type: "and", children : all_constraints};
             }
             $.putJSON('/api/scope/session/', JSON.stringify(server_query), function(){
-              //  window.location='/report';
+                window.location='/report';
             });
         });
         
