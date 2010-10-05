@@ -154,11 +154,6 @@ require.def('design/form', [], {
                 $form.append($row);
          });
          
-         // Make form into a table
-         //$("label,select,input,span", $form).not("span *").wrap("<td/>");
-         //$("p", $form).wrap("<tr/>");
-         //$("p",$form).children().unwrap();
-         
          // Trigger an event when anything changes
          $("input,select",$form).bind('change keyup', function(evt){
             var $target = $(evt.target); 
@@ -169,25 +164,25 @@ require.def('design/form', [], {
                     case "select-multiple" : 
                     case "select"          : var selected = []; 
                                               $("option", $(evt.target)).each(function(index,opt){
-                                                 if  (opt.selected){
-                                                     selected.push(opt.value);
-                                                     // Do we need to show 1, 2, or no inputs?
-                                                     
+                                                 if  (opt.selected) {
+                                                    selected.push(opt.value);
+                                                    // Do we need to show 1, 2, or no inputs?
                                                     if (opt.value.search(/range/) >= 0){
+                                                         // two inputs
                                                          $("input[name="+opt.id+"_input1]",$form).show().change();
                                                          $("label[for="+opt.id+"_input1]",$form).show();
                                                          // Trigger change on associated inputs because they need to work with a range operator now
                                                          $("input[name="+opt.id+"_input0]",$form).show().change();
                                                      } else if (opt.value.search(/null/) >= 0){
+                                                         // no inputs
                                                          $("input[name="+opt.id+"_input1],",$form).hide().change();
                                                          $("label[for="+opt.id+"_input1]",$form).hide();
-                                                         // Trigger change on associated inputs because they need to work with a range operator now
                                                          $("input[name="+opt.id+"_input0]",$form).hide().change();
                                                              
                                                      } else {
+                                                         // one input
                                                          $("input[name="+opt.id+"_input1],",$form).hide().change();
                                                          $("label[for="+opt.id+"_input1]",$form).hide();
-                                                         // Trigger change on associated inputs because they need to work with a range operator now
                                                          $("input[name="+opt.id+"_input0]",$form).show().change();
                                                      }
                                                  }

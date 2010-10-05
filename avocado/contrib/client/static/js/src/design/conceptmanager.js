@@ -196,7 +196,15 @@ require.def('design/conceptmanager',['design/views'], function(views) {
             for (item in ds){
                  if (!ds.hasOwnProperty(item)) continue;
                  m = opRe.exec(item);
-                 if ((m) && fields[m[2]]) { // For optional fields, we may have an operator, but the value may not exist, so don't use it
+                 
+                 // // For optional fields, we may have an operator, 
+                 // but the value may not exist, so don't use it,
+                 // however if the operator contains null (null, -null)
+                 // the operator does take anything, so thats all wee need
+                 if ((m) && (fields[m[2]] || ds[item].match(/null/))) {
+                     if (!fields.hasOwnProperty(m[2])){
+                         fields[m[2]] = {val0:null, val1:null, op:null};
+                     }
                      fields[m[2]]['op'] = ds[item];
                  }
             }
@@ -204,7 +212,6 @@ require.def('design/conceptmanager',['design/views'], function(views) {
             // based on the fields in the concept. Construct the server
             // required datastructure
             var nodes = [];
-
             for (var field_id in fields) {
                 var field = fields[field_id];
 
@@ -252,6 +259,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                                                     bool_list.push( {
                                                          'operator':op,
                                                          'id' : field_id,
+                                                         // In case a plugin gave us strings for null, true or false, fix it
                                                          'value' : s_to_primative_map[item] !== undefined? s_to_primative_map[item]:item,
                                                          'concept_id': activeConcept,
                                                          'datatype':'nullboolean'
@@ -306,6 +314,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                                      'concept_id':activeConcept
                                };
             }
+            console.log(server_query);
             return (server_query);
         }
 
