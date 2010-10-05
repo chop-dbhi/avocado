@@ -26,6 +26,10 @@ require.def(
                 columns: new m_renderer.template({
                     target: columns,
                     template: m_templates.columns
+                }),
+                active_columns: new m_renderer.template({
+                    target: active_columns,
+                    template: m_templates.active_columns
                 })
             };
 
@@ -34,6 +38,11 @@ require.def(
                     uri: searchform.attr('action'),
                     success: function(json) {
                         rnd.columns.render(json);
+                        var columns = json.map(function(e) {
+                            return e['columns'];
+                        });
+                        columns = Array.prototype.concat.apply([], columns);
+                        rnd.active_columns.render(columns);
                     }
                 })
             };
@@ -42,10 +51,9 @@ require.def(
 
             searchinput.autocomplete({
                 success: function(value, json) {
-                    var objs = $('[data-model=column]', columns);
-                    for (var i = 0; i < json.length; i++) {
-                        objs.jdata('id', json[i]).addClass('inview');
-                    }
+                    var objs = $('[data-model=column]', columns).addClass('filtered');
+                    for (var i = 0; i < json.length; i++)
+                        objs.jdata('id', json[i]).removeClass('filtered');
 
 //                    rnd.criteria.target.html('<em class="ca mg">no results found for term "'+ value +'"</em>');
                 }
@@ -57,20 +65,33 @@ require.def(
                 return false;
             });
 
+            active_columns.delegate('.remove-column', 'click', function(evt) {
+                var id = evt.target.hash.substr(1);
+                searchdialog.trigger('remove.column', [id]);
+                return false;
+            });
+
             searchdialog.cache = {};
 
-            searchdialog.bind('add.column', function(evt, id) {
+            searchdialog.get = function(id) {
                 if (!searchdialog.cache[id]) {
                     var sel = '[data-model=column][data-id=' + id + ']'; 
+
                     searchdialog.cache[id] = {
-                        src: $(sel, columns),
-                        tgt: $(sel, active_columns)
+                        'src': columns.find(sel),
+                        'tgt': active_columns.find(sel)
                     };
                 }
+                return searchdialog.cache[id];
+            };
 
-                map = searchdialog.cache[id];
+            searchdialog.bind('add.column', function(evt, id) {
+                map = searchdialog.get(id);
 
                 map.src.removeClass('active');
+                // detach from wherever it is and append it to the end of the
+                // list. since non-active columns are not shown, this will be
+                // perceived as being added to the end of the 'visible' list
                 active_columns.append(
                     map.tgt.detach().addClass('active')
                 );
@@ -79,15 +100,7 @@ require.def(
             });
 
             searchdialog.bind('remove.column', function(evt, id) {
-                if (!searchdialog.cache[id]) {
-                    var sel = '[data-model=column][data-id=' + id + ']'; 
-                    searchdialog.cache[id] = {
-                        src: $(sel, columns),
-                        tgt: $(sel, active_columns)
-                    };
-                }
-
-                map = searchdialog.cache[id];
+                map = searchdialog.get(id);
 
                 map.tgt.removeClass('active');
                 map.src.addClass('active');
@@ -125,6 +138,21 @@ require.def(
                         $columnEditor.dialog('close');
                     }
                 }
+            });
+
+            /*
+             * The active columns list is sortable to easily define the order
+             * of display of the columns. That is, the order defined in the
+             * list (top-bottom) translates to the order in the table
+             * (left-right).
+             */
+            active_columns.sortable({
+                placeholder: 'placeholder',
+                forcePlaceholderSize: true,
+                forceHelperSize: true,
+                opacity: 0.5,
+                cursor: 'move',
+                tolerance: 'intersect'
             });
 
             searchbutton.bind('click', function(evt) {

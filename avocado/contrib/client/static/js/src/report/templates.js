@@ -15,7 +15,7 @@ require.def(
                     '<ul>',
                         '<% for (var e,k=0; k<this.columns.length; k++) { %>',
                             '<% e = this.columns[k]; %>',
-                            '<li data-model="column" data-id="<%= e.id %>">',
+                            '<li class="active" data-model="column" data-id="<%= e.id %>">',
                                 '<a class="fr ht add-column" href="#<%= e.id %>">Add</a>',
                                 '<%= e.name %>',
                                 '<% if (e.description) { %><p class="ht"><%= e.description %></p><% } %>',
@@ -26,10 +26,10 @@ require.def(
             ].join('')), 
 
             active_columns: $.jqotec([
-                '<li data-model="column" data-id="<%= e.id %>">',
-                    '<a class="fr ht add-column" href="#">Add</a>',
-                    '<%= e.name %>',
-                    '<% if (e.description) { %><p class="ht"><%= e.description %></p><% } %>',
+                '<li data-model="column" data-id="<%= this.id %>">',
+                    '<a class="fr ht remove-column" href="#<%= this.id %>">Remove</a>',
+                    '<%= this.name %>',
+                    '<% if (this.description) { %><p class="ht"><%= this.description %></p><% } %>',
                 '</li>',
             ].join('')),
 

@@ -51,8 +51,17 @@
 }
 
 #search-dialog li {
+    display: none;
     margin: 3px 0;
     padding: 5px 8px;
+}
+
+#search-dialog li.active {
+    display: block;
+}
+
+#search-display li.active.filtered {
+    display: none;
 }
 
 #columns {
@@ -67,4 +76,8 @@
 #active-columns li {
     background-color: #fcdb6a;
     border: 1px solid #fcba21;
+}
+
+#active-columns li.placeholder {
+    border: 1px dashed #aaa;
 }
