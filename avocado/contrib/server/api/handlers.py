@@ -187,25 +187,21 @@ class PerspectiveHandler(BaseHandler):
             super(PerspectiveHandler, self).update(request, *args, **kwargs)
 
         # if the request is relative to the session and not to a specific id,
-        # it cannot be assumed that if the session is using a saved perspective
+        # it cannot be assumed that if the session is using a saved scope
         # for it, iself, to be updated, but rather the session representation.
-        # therefore, if the session perspective is not temporary, make it a
+        # therefore, if the session scope is not temporary, make it a
         # temporary object with the new parameters.
-        json = convert2str(request.data)
         inst = request.session['report'].perspective
 
-        try:
-            inst.has_permission(json, request.user)
-        except PermissionDenied:
-            return rc.FORBIDDEN
+        json = convert2str(request.data)
+
+        # see if the json object is only the ``store``
+        if 'columns' in json:
+            json = {'store': json}
 
         # assume the PUT request is only the store
-        if kwargs['id'] == 'session':
-            inst.write(json)
-
-        # an object has been targeted via the ``id`` referenced in the url
-        else:
-            if int(kwargs['id']) != inst.id:
+        if kwargs['id'] != 'session':
+            if kwargs['id'] != inst.id:
                 try:
                     inst = self.queryset(request).get(pk=kwargs['id'])
                 except ObjectDoesNotExist:
@@ -213,16 +209,20 @@ class PerspectiveHandler(BaseHandler):
                 except MultipleObjectsReturned:
                     return rc.BAD_REQUEST
 
-            store = json.pop('store', None)
-            attrs = self.flatten_dict(json)
+        store = json.pop('store', None)
 
-            # special case
-            if store is not None:
-                inst.write(store)
+        if store is not None:
+            if not inst.is_valid(store) or inst.has_permission(store, request.user):
+                rc.BAD_REQUEST
+            inst.write(store)
 
-            for k, v in attrs.iteritems():
-                setattr(inst, k, v)
+        attrs = self.flatten_dict(json)
+        for k, v in attrs.iteritems():
+            setattr(inst, k, v)
 
+        # only save existing instances that have been saved.
+        # a POST is required to make the intial save
+        if inst.id is not None:
             inst.save()
 
         request.session['report'].perspective = inst

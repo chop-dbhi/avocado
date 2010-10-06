@@ -33,12 +33,9 @@
     margin-right: 20px;
 }
 
-#search-dialog h3 {
-    margin-bottom: 10px;
-}
-
 #search-dialog h4 {
     font-weight: bold;
+    margin-bottom: 10px;
 }
 
 #search-dialog input {
@@ -51,8 +48,21 @@
 }
 
 #search-dialog li {
+    display: none;
     margin: 3px 0;
     padding: 5px 8px;
+}
+
+#search-dialog li.active {
+    display: block;
+}
+
+#search-dialog li.active.filtered {
+    display: none;
+}
+
+#search-dialog p {
+    margin: 10px 0;
 }
 
 #columns {
@@ -67,4 +77,12 @@
 #active-columns li {
     background-color: #fcdb6a;
     border: 1px solid #fcba21;
+}
+
+#active-columns li.placeholder {
+    border: 1px dashed #aaa;
+}
+
+#columns li p, #active-columns li p {
+    margin: 5px 0 0 0;
 }

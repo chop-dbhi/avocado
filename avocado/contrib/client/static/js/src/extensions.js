@@ -33,7 +33,7 @@ if (!Array.prototype.map) {
 
     $.extend({
         putJSON: function(url, data, callback, type) {
-            return jQuery.ajax({
+            return $.ajax({
                 type: 'PUT',
                 url: url,
                 contentType: 'application/json',
@@ -44,7 +44,7 @@ if (!Array.prototype.map) {
         },
         
         postJSON: function(url, data, callback, type) {
-            return jQuery.ajax({
+            return $.ajax({
                 type: 'POST',
                 url: url,
                 contentType: 'application/json',

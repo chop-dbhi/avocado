@@ -175,8 +175,8 @@ class Field(models.Model):
         if hasattr(self, '_choices'):
             delattr(self, '_choices')
 
-    def distribution(self, exclude=[], min_count=None, max_points=30,
-        order_by='field', smooth=0.05, **filters):
+    def distribution(self, exclude=[], min_count=None, max_points=20,
+        order_by='field', smooth=0.01, **filters):
 
         """Builds a GROUP BY queryset for use as a value distribution.
 
@@ -239,9 +239,12 @@ class Field(models.Model):
             dist = dist.order_by('count')
         elif order_by == 'field':
             dist = dist.order_by(name)
-        
+
         dist = list(dist)
-        
+
+        minx = dist.pop(0)
+        maxx = dist.pop()
+
         if self.datatype == 'number' and smooth > 0:
             maxy = dist[0][1]
             for x, y in dist[1:]:
@@ -256,7 +259,7 @@ class Field(models.Model):
         if max_points is not None:
             # TODO faster to do count or len?
             dist_len = len(dist)
-            step = int(dist_len/max_points)
+            step = int(dist_len/float(max_points))
 
             if step > 1:
                 # we can safely assume that this is NOT categorical data when
@@ -264,12 +267,10 @@ class Field(models.Model):
                 # be greater than max_points will usually never be true
 
                 # sample by step value
-                sampled_dist = dist[::step]
+                dist = dist[::step]
 
-                # if the last item was not included, include it to have the max
-                if sampled_dist[-1] != dist[-1]:
-                    sampled_dist.append(dist[-1])
-                dist = sampled_dist
+        dist.insert(0, minx)
+        dist.append(maxx)
 
         return tuple(dist)
 
