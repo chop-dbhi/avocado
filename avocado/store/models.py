@@ -194,7 +194,7 @@ class Perspective(Context):
     def header(self):
         store = self.read()
         header = []
-        print store
+
         for x in store['columns']:
             c = column_cache.get(x)
             o = {'id': x, 'name': c.name, 'direction': ''}
@@ -203,7 +203,7 @@ class Perspective(Context):
                     o['direction'] = z
                     break
             header.append(o)
-        print header
+
         return header
 
     def format(self, iterable, format_type):
