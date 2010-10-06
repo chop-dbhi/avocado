@@ -18,7 +18,7 @@ require.def(
                             '<li class="active" data-model="column" data-id="<%= e.id %>">',
                                 '<a class="fr ht add-column" href="#<%= e.id %>">Add</a>',
                                 '<%= e.name %>',
-                                '<% if (e.description) { %><p class="ht"><%= e.description %></p><% } %>',
+                                '<% if (e.description) { %><p class="ht mg"><%= e.description %></p><% } %>',
                             '</li>',
                         '<% } %>',
                     '</ul>',
@@ -29,7 +29,7 @@ require.def(
                 '<li data-model="column" data-id="<%= this.id %>">',
                     '<a class="fr ht remove-column" href="#<%= this.id %>">Remove</a>',
                     '<%= this.name %>',
-                    '<% if (this.description) { %><p class="ht"><%= this.description %></p><% } %>',
+                    '<% if (this.description) { %><p class="ht mg"><%= this.description %></p><% } %>',
                 '</li>',
             ].join('')),
 

@@ -22,6 +22,12 @@ class SessionReportMiddleware(object):
         if not request.session.has_key('report'):
             modified = True
             report = Report(user=user, scope=Scope(), perspective=Perspective())
+
+            # this initial write handles specifying a default value for each
+            # respective store
+            report.scope.write()
+            report.perspective.write()
+
             request.session['report'] = report
 
         # safe fallback
@@ -31,9 +37,12 @@ class SessionReportMiddleware(object):
             if report._scope_cache is None:
                 modified = True
                 report.scope = Scope()
+                report.scope.write()
+
             if report._perspective_cache is None:
                 modified = True
                 report.perspective = Perspective()
+                report.perspective.write()
 
         request.session.modified = modified
 

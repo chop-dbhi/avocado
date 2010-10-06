@@ -8,7 +8,6 @@ from functools import partial
 
 from django.db import models, transaction, connections, DEFAULT_DB_ALIAS
 from django.db.models.sql import RawQuery
-from django.core.exceptions import PermissionDenied
 from django.core.paginator import EmptyPage, InvalidPage
 from django.contrib.auth.models import User
 from django.core.cache import cache as dcache
@@ -92,7 +91,7 @@ class Context(Descriptor):
     def read(self):
         return self._get_obj(self.store or {})
 
-    def write(self, obj, *args, **kwargs):
+    def write(self, obj=None, *args, **kwargs):
         obj = self._get_obj(obj)
         self.store = obj
         self.timestamp = datetime.now()
@@ -141,12 +140,19 @@ class Scope(Context):
 
 
 class Perspective(Context):
+
     def _get_obj(self, obj=None):
         obj = super(Perspective, self)._get_obj(obj)
+
         if not obj.has_key('columns'):
             obj['columns'] = list(DEFAULT_COLUMNS)
         if not obj.has_key('ordering'):
             obj['ordering'] = list(DEFAULT_ORDERING)
+
+        # ordering of a column cannot exist when the column is not present
+        for i, (x, y) in enumerate(iter(obj['ordering'])):
+            if x not in obj['columns']:
+                obj['ordering'].pop(i)
         return obj
 
     def _get_contents(self, obj):

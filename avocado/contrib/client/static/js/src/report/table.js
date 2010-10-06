@@ -86,6 +86,7 @@ require.def(
                 return false;
             });
 
+            return {report: report};
         };
 
         return {init: init};
