@@ -17,8 +17,16 @@ require.def('design/views',  ['design/chart','design/form'], function(chart, for
         $view.bind("UpdateQueryButtonClicked", function(event){
             $(this).trigger("ConstructQueryEvent");
         });
-        $view.bind("UpdateElementEvent", function(evt, element){
-            $view.children().trigger("UpdateElementEvent",[element]);
+
+        $view.bind("UpdateElementEvent", function(evt){
+            $view.children().each(function(){$(this).triggerHandler(evt);});
+            evt.stopPropagation();
+        });
+        
+        $view.bind("HideDependentsEvent ShowDependentsEvent", function(evt){
+            if (evt.target === $view.children().get(0)){
+                $view.children().slice(1).each(function(){$(this).triggerHandler(evt);});
+            }
             evt.stopPropagation();
         });
         

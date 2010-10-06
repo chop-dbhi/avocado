@@ -97,7 +97,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
            Event listener for concepts added to the users query
            @private
         */
-        $container.bind("ConceptAddedEvent", function(evt){
+        function conceptAddedHandler(evt){
             if ($.inArray(evt.concept_id, concepts_in_query) < 0 ){
                 concepts_in_query.push(evt.concept_id);
                 if (activeConcept === evt.concept_id){
@@ -105,13 +105,13 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                 }
             }
             evt.stopPropagation();
-        });
+        }
         
         /**
            Event listener for concepts removed from the users query
            @private
         */
-        $container.bind("ConceptDeletedEvent", function(evt){
+        function conceptDeletedHandler(evt){
             var index = $.inArray(evt.concept_id, concepts_in_query);
             if (index >= 0 ){
                 concepts_in_query.splice(index,1);
@@ -120,7 +120,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                 }
             }
             evt.stopPropagation();
-        });
+        }
         /**
           This is a utility function that looks on the current view to find the
           datatype of a given field primary k. In the future it might use the server, 
@@ -138,11 +138,22 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                        datatype = element.data.datatype;
                        return false;
                    }
+                   // Maybe we weren't given a pk for this one
+                   if (element.data.pkchoices && 
+                      $.inArray(field_pk,$.map(element.data.pkchoices, function(item, index){String(item[0]);}))){
+                      datatype = element.data.datatype;
+                      return false;
+                   }
                } else {
                    $.each(element.fields, function(index, field){
                        if (field.pk == field_pk){
                            datatype = field.datatype;
                            return false;
+                       }
+                       if (element.field.pkchoices && 
+                            $.inArray(field_pk,$.map(element.field.pkchoices, function(item, index){String(item[0]);}))){
+                            datatype = element.field.datatype;
+                            return false;
                        }
                    });
                    if (datatype !== null){
@@ -163,6 +174,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
           @private
         */
         function buildQuery(ds) {
+            console.log(ds);
             var fields={};
             // We need to analyze the current concept and the datasource and construct
             // the proper datastructure to represent this query on the server
@@ -171,7 +183,11 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                 if (!ds.hasOwnProperty(item)) continue;
                 var m = fieldRe.exec(item); // Either a choice, assertion, or boolean
                 if (m){
-                    fields[m[2]] = { val0:ds[item], val1:null, op:null};
+                    if (fields.hasOwnProperty(m[2])){
+                        $.extend(fields[m[2]], {val0:ds[item], val1:null, op:null})
+                    }else{
+                        fields[m[2]] = {val0:ds[item], val1:null, op:null};
+                    }
                     continue;
                 }
                 m = binaryFieldRe.exec(item); // decimal
@@ -228,7 +244,9 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                      nodes.push({
                                      'operator' : field.op,
                                      'id' : field_id,
-                                     'concept_id': activeConcept
+                                     'concept_id': activeConcept,
+                                     'value' : true,
+                                     'datatype':getDataType(field_id)
                                 });
                 }
                 else if (field.val0 && field.val1 && field.op) { // Decimal Binary Op
@@ -236,14 +254,16 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                                     'operator' : field.op,
                                     'id' : field_id,
                                     'value' : [field.val0,field.val1],
-                                    'concept_id': activeConcept
+                                    'concept_id': activeConcept,
+                                    'datatype': getDataType(field_id)
                                 });
                 } else if (field.val0 && field.op && !(field.val0 instanceof Array)){ // Decimal or boolean or free text
                     nodes.push({                                                      // probably not boolean though because
                                     'operator' : field.op,                            // a specific operator has been 
                                     'id' : field_id,                                  // specified
                                     'value' : field.val0,
-                                    'concept_id': activeConcept
+                                    'concept_id': activeConcept,
+                                    'datatype': getDataType(field_id)
                                 });
                 } else if (field.val0 && field.val0 instanceof Array){ // String choice, or nullboolean
                     // if field.op is null, assume the query was the default, which is "in"
@@ -340,27 +360,36 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                      // coupled
                      field_portion = parameter.id;
                  }
-                 field_prefix = parameter.concept_id+"_"+field_portion;
-                 var choice = parameter.operator.match(/^(in|-in)$/) !== null;
-                 if ((parameter.value instanceof Array) && (!choice)) {
-                     for (var index=0; index < parameter.value.length; index++){
-                         ds[field_prefix+"_input"+index] = parameter.value[index];
-                     }
-                 }else if (parameter.value !== undefined){
-                     if (ds.hasOwnProperty(field_prefix)){
-                        if (ds[field_prefix] instanceof Array) {
-                            ds[field_prefix].push(parameter.value);
-                        }else{
-                            ds[field_prefix] = [ds[field_prefix]];
-                            ds[field_prefix].push(parameter.value);
-                        }
-                     }else if (parameter.datatype==="nullboolean"){
-                        ds[field_prefix] = [parameter.value];
-                     }else {
-                        ds[field_prefix] = parameter.value;
-                     }
-                 }
                  
+                 // determine values for this field.
+                 // if the operator contains null ("isnull" or "-isnull")
+                 // then there is no value. Any value in there would have been
+                 // put there explicitly for the server.
+                 field_prefix = parameter.concept_id+"_"+field_portion;
+                 if (!parameter.operator.match(/null/)) { 
+                    if (parameter.datatype == "number") {
+                        // make this an array either way, even if it was not a binary operator
+                        parameter.value = parameter.value instanceof Array ? parameter.value : [parameter.value];
+                        for (var index=0; index < parameter.value.length; index++){
+                            ds[field_prefix+"_input"+index] = parameter.value[index];
+                        }
+                    } else {
+                        if (ds.hasOwnProperty(field_prefix)){
+                           if (ds[field_prefix] instanceof Array) {
+                               ds[field_prefix].push(parameter.value);
+                           }else{
+                               ds[field_prefix] = [ds[field_prefix]];
+                               ds[field_prefix].push(parameter.value);
+                           }
+                        }else if (parameter.datatype==="nullboolean"){
+                           ds[field_prefix] = [parameter.value];
+                        } else {
+                           // Operators containing null do not actually take a value, and in the scenario where
+                           // a value is there, it was manufactured for the backend, and must be ignored 
+                           ds[field_prefix] = parameter.value;
+                        }
+                    }
+                 }
                  ds[field_prefix+"_"+"operator"] = ds[field_prefix] instanceof Array ? 
                                                    nb_singular_to_plural_map[parameter.operator] : parameter.operator;
                                                    
@@ -581,6 +610,15 @@ require.def('design/conceptmanager',['design/views'], function(views) {
             activeView.contents.triggerHandler("UpdateQueryButtonClicked"); // This would be better if every view didn't need to handle this
         }                                                                   // it should be concept level thing.
 
+        // 
+        // function hideDependentsHandler(event){
+        //     console.log("handled");
+        //     $.each(cache[activeConcept].views, function(index,view) {
+        //         if (view.contents) {
+        //             view.contents.triggerHandler(event);
+        //         }
+        //     });
+        // }
 
        /**
          This function notifies the framework that the user has entered invalid input. 
@@ -694,7 +732,9 @@ require.def('design/conceptmanager',['design/views'], function(views) {
             'UpdateQueryButtonClicked' : addQueryButtonHandler,
             'InvalidInputEvent' : badInputHandler,
             'InputCorrectedEvent': fixedInputHandler,
-            'ConstructQueryEvent': constructQueryHandler
+            'ConstructQueryEvent': constructQueryHandler,
+            'ConceptDeletedEvent': conceptDeletedHandler,
+            'ConceptAddedEvent': conceptAddedHandler
         });
         
         /**
@@ -817,6 +857,8 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                 // populate the datasource
                 if (concept.query) {
                     concept.ds = createDSFromQuery(concept.query);
+                    console.log(concept.ds);
+                    
                 }else{
                     // create empty datasource
                     concept.ds = {};
