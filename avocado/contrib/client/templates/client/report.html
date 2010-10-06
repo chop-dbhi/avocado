@@ -44,6 +44,7 @@
 {% block content %}
     
     <div id="report" class="container" data-uri="{% url api:reports:session:resolve %}">
+
         <div class="title">Report</div>
 
         <div class="toolbar header">
@@ -60,9 +61,10 @@
         </div>
 
         <div class="content">
-            <table id="table">
+            <table id="table" class="sortable">
                 <thead><tr></tr></thead>
-                <tbody></tbody></table>
+                <tbody></tbody>
+            </table>
         </div>
 
         <div class="toolbar footer">
@@ -104,4 +106,5 @@
             <ul id="active-columns"></ul>
         </div>
     </div>
+
 {% endblock %}

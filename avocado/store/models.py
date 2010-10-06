@@ -61,7 +61,7 @@ class Context(Descriptor):
 
     def _get_obj(self, obj=None):
         if obj is None:
-            obj = self.store or {}
+            return self.store or {}
         return obj
 
     def _get_contents(self, obj):
@@ -80,6 +80,11 @@ class Context(Descriptor):
         """
         pass
 
+    def cache_is_valid(self, timestamp=None):
+        if timestamp and timestamp > self.timestamp:
+            return True
+        return False
+
     def is_valid(self, obj):
         """Takes an object and determines if the data structure is valid for
         this particular context.
@@ -89,7 +94,7 @@ class Context(Descriptor):
         return False
 
     def read(self):
-        return self._get_obj(self.store or {})
+        return self._get_obj()
 
     def write(self, obj=None, *args, **kwargs):
         obj = self._get_obj(obj)
@@ -123,6 +128,7 @@ class Context(Descriptor):
 
         if queryset is None:
             queryset = trees[using].get_queryset()
+
         func = self._parse_contents(obj, using=using, *args, **kwargs)
         queryset = func(queryset, *args, **kwargs)
         return queryset
@@ -142,18 +148,29 @@ class Scope(Context):
 class Perspective(Context):
 
     def _get_obj(self, obj=None):
-        obj = super(Perspective, self)._get_obj(obj)
+        obj = obj or {}
+        if self.store is not None:
+            copy = self.store.copy()
+        else:
+            copy - {}
 
-        if not obj.has_key('columns'):
-            obj['columns'] = list(DEFAULT_COLUMNS)
-        if not obj.has_key('ordering'):
-            obj['ordering'] = list(DEFAULT_ORDERING)
+        copy.update(obj)
+
+        # supply default values
+        if not copy.has_key('columns'):
+            copy['columns'] = list(DEFAULT_COLUMNS)
+        if not copy.has_key('ordering'):
+            copy['ordering'] = list(DEFAULT_ORDERING)
+
+        copy['columns'] = [int(x) for x in copy['columns']]
+        copy['ordering'] = [(int(x), y) for x, y in copy['ordering']]
 
         # ordering of a column cannot exist when the column is not present
-        for i, (x, y) in enumerate(iter(obj['ordering'])):
-            if x not in obj['columns']:
-                obj['ordering'].pop(i)
-        return obj
+        for i, (x, y) in enumerate(iter(copy['ordering'])):
+            if x not in copy['columns']:
+                copy['ordering'].pop(i)
+
+        return copy
 
     def _get_contents(self, obj):
         ids = obj['columns'] + [x for x,y in obj['ordering']]
@@ -177,7 +194,7 @@ class Perspective(Context):
     def header(self):
         store = self.read()
         header = []
-
+        print store
         for x in store['columns']:
             c = column_cache.get(x)
             o = {'id': x, 'name': c.name, 'direction': ''}
@@ -186,6 +203,7 @@ class Perspective(Context):
                     o['direction'] = z
                     break
             header.append(o)
+        print header
         return header
 
     def format(self, iterable, format_type):
@@ -254,10 +272,9 @@ class Report(Descriptor):
         return md5(request.session._session_key + 'data').hexdigest()
 
     def cache_is_valid(self, timestamp=None):
-        if timestamp:
-            if timestamp > self.scope.timestamp and \
-                timestamp > self.perspective.timestamp:
-                return True
+        if self.scope.cache_is_valid(timestamp) and \
+            self.perspective.cache_is_valid(timestamp):
+            return True
         return False
 
     # in it's current implementation, this will try to get the requested
@@ -357,7 +374,7 @@ class Report(Descriptor):
         tmp.query.clear_ordering(True)
         return tmp.count()
 
-    def get_queryset(self, run_counts=False, using=DEFAULT_MODELTREE_ALIAS, **context):
+    def get_queryset(self, timestamp=None, using=DEFAULT_MODELTREE_ALIAS, **context):
         """Returns a ``QuerySet`` object that is generated from the ``scope``
         and ``perspective`` objects bound to this report. This should not be
         used directly when requesting data since it does not utlize the cache
@@ -369,18 +386,15 @@ class Report(Descriptor):
         # first argument is ``None`` since we want to use the session objects
         queryset = self.scope.get_queryset(None, queryset, using=using, **context)
 
-        if run_counts:
+        if not self.scope.cache_is_valid(timestamp):
             unique = self._get_count(queryset)
 
         queryset = self.perspective.get_queryset(None, queryset, using=using)
 
-        if run_counts:
+        if unique is not None or not self.perspective.cache_is_valid(timestamp):
             count = self._get_count(queryset)
 
-        if run_counts:
-            return queryset, unique, count
-
-        return queryset
+        return queryset, unique, count
 
     def has_permission(self, user):
         # ensure the requesting user has permission to view the contents of

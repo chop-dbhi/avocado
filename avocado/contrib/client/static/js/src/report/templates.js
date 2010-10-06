@@ -33,7 +33,8 @@ require.def(
                 '</li>',
             ].join('')),
 
-            header: $.jqotec('<th class="header <%= this.direction %>"><span><%= this.name %></span></th>'),
+            header: $.jqotec('<th data-model="column" data-id="<%= this.id %>" ' +
+                'class="header <%= this.direction %>"><span><%= this.name %></span></th>'),
 
             row: $.jqotec([
                 '<tr>',
@@ -72,8 +73,8 @@ require.def(
                     '<span><a href="#<%= this.page+1 %>">Next</a> &rsaquo;</span>',
                     '<span><a href="#<%= this.num_pages %>">Last</a> (<%= this.num_pages %>) &raquo;</span>',
                 '<% } else { %>',
-                    '<span class="inactive">&rsaquo; Next</span>',
-                    '<span class="inactive">&raquo; Last</span>',
+                    '<span class="inactive">Next &rsaquo;</span>',
+                    '<span class="inactive">Last (<%= this.num_pages %>) &raquo;</span>',
                 '<% } %>'
             
             ].join(''))

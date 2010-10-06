@@ -7,8 +7,8 @@ require(
     function(m_table, m_search) {
 
         $(function() {
-            var shared = m_table.init();
-            m_search.init(shared);
+            m_search.init();
+            m_table.init();
         });
 
     }

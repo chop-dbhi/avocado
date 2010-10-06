@@ -150,7 +150,6 @@ class ScopeHandler(BaseHandler):
         if inst.id is not None:
             inst.save()
 
-        request.session['report'].scope = inst
         request.session.modified = True
 
         return rc.ALL_OK
@@ -196,7 +195,7 @@ class PerspectiveHandler(BaseHandler):
         json = convert2str(request.data)
 
         # see if the json object is only the ``store``
-        if 'columns' in json:
+        if json.has_key('columns') or json.has_key('ordering'):
             json = {'store': json}
 
         # assume the PUT request is only the store
@@ -225,7 +224,6 @@ class PerspectiveHandler(BaseHandler):
         if inst.id is not None:
             inst.save()
 
-        request.session['report'].perspective = inst
         request.session.modified = True
 
         return rc.ALL_OK
@@ -238,7 +236,7 @@ class ReportHandler(BaseHandler):
         ('scope', ScopeHandler.fields),
         ('perspective', PerspectiveHandler.fields)
     )
-#    exclude = ('user',)
+    exclude = ('user',)
 
     def queryset(self, request):
         return self.model.objects.filter(user=request.user)
@@ -267,10 +265,6 @@ class ReportResolverHandler(BaseHandler):
         if not kwargs.has_key('id'):
             return rc.BAD_REQUEST
 
-        format_type = request.GET.get('format', 'html')
-        page_num = request.GET.get('page', None)
-        per_page = request.GET.get('per_page', None)
-
         inst = request.session['report']
 
         if kwargs.get('id') != 'session':
@@ -287,6 +281,11 @@ class ReportResolverHandler(BaseHandler):
         if not inst.has_permission(user):
             raise rc.FORBIDDEN
 
+        page_num = request.GET.get('p', None)
+        per_page = request.GET.get('n', None)
+
+        count = unique = None
+
         # define the default context for use by ``get_queryset``
         # TODO can this be defined elsewhere? only scope depends on this, but
         # the user object has to propagate down from the view
@@ -296,17 +295,25 @@ class ReportResolverHandler(BaseHandler):
         # a few defaults. if a new dict is used, this implies that this a
         # report has not been resolved yet this session.
         cache = request.session.get(inst.REPORT_CACHE_KEY, {
-            'offset': 0,
+            'timestamp': None,
             'page_num': 1,
             'per_page': 10,
+            'offset': 0,
+            'unique': None,
+            'count': None,
             'datakey': inst.get_datakey(request)
         })
 
-        print 'before', cache
+        # acts as reference to compare to so the resp can be determined
+        old_cache = cache.copy()
+
+        print 'before', old_cache
 
         # test if the cache is still valid, then attempt to fetch the requested
         # page from cache
-        if inst.cache_is_valid(cache.get('timestamp', None)):
+        timestamp = cache['timestamp']
+
+        if inst.cache_is_valid(timestamp):
             # only update the cache if there are values specified for either arg
             if page_num:
                 cache['page_num'] = int(page_num)
@@ -319,22 +326,25 @@ class ReportResolverHandler(BaseHandler):
             # update the cache by running a partial query
             if rows is None:
                 # since the cache is not invalid, the counts do not have to be run
-                queryset = inst.get_queryset(run_counts=False, **context)
+                queryset, unique, count = inst.get_queryset(timestamp, **context)
                 cache['timestamp'] = datetime.now()
 
                 rows = inst.update_cache(cache, queryset);
 
         # when the cache becomes invalid, the cache must be refreshed
         else:
-            queryset, unique, count = inst.get_queryset(run_counts=True, **context)
+            queryset, unique, count = inst.get_queryset(timestamp, **context)
 
             cache.update({
-                'page_num': 1,
                 'timestamp': datetime.now(),
+                'page_num': 1,
                 'offset': 0,
-                'unique': unique,
-                'count': count,
             })
+
+            if count is not None:
+                cache['count'] = count
+                if unique is not None:
+                    cache['unique'] = unique
 
             rows = inst.refresh_cache(cache, queryset)
 
@@ -342,17 +352,54 @@ class ReportResolverHandler(BaseHandler):
 
         request.session[inst.REPORT_CACHE_KEY] = cache
 
-        paginator, page = inst.paginator_and_page(cache)
-
-        return {
-            'header': inst.perspective.header(),
-            'unique': cache['unique'],
-            'count': cache['count'],
-            'pages': {
-                'page': page.number,
-                'pages': page.page_links(),
-                'num_pages': paginator.num_pages,
-            },
-            'per_page': per_page,
-            'rows': list(inst.perspective.format(rows, format_type)),
+        # the response is composed of a few different data that is dependent on
+        # various conditions. the only required data is the ``rows`` which will
+        # always be needed since all other components act on determing the rows
+        # to be returned
+        resp = {
+            'rows': list(inst.perspective.format(rows, 'html')),
         }
+
+        # a *no change* requests implies the page has been requested statically
+        # and the whole response object must be provided
+        if old_cache == cache:
+            paginator, page = inst.paginator_and_page(cache)
+
+            resp.update({
+                'header': inst.perspective.header(),
+                'pages': {
+                    'page': page.number,
+                    'pages': page.page_links(),
+                    'num_pages': paginator.num_pages,
+                },
+                'per_page': cache['per_page'],
+                'count': cache['count'],
+                'unique': cache['unique'],
+
+            })
+
+        else:
+            # implies a new query has been run
+            if count is not None:
+                resp['header'] = inst.perspective.header()
+                resp['unique'] = cache['unique']
+                resp['count'] = cache['count']
+
+                paginator, page = inst.paginator_and_page(cache)
+
+                resp['pages'] = {
+                    'page': page.number,
+                    'pages': page.page_links(),
+                    'num_pages': paginator.num_pages,
+                }
+
+            elif page_num is not None or per_page is not None:
+                paginator, page = inst.paginator_and_page(cache)
+
+                resp['pages'] = {
+                    'page': page.number,
+                    'pages': page.page_links(),
+                    'num_pages': paginator.num_pages,
+                }
+
+        return resp
