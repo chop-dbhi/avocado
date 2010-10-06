@@ -638,6 +638,7 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                               color:color
                             });
                      }
+                     $chartDiv.trigger("ShowDependentsEvent");
                      break;
                  case "lt":
                      color = INCLUDE_COLOR;
@@ -663,6 +664,7 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                               color:color
                          });
                      }
+                     $chartDiv.trigger("ShowDependentsEvent");
                      break;
                  case "gt":
                      color = INCLUDE_COLOR;
@@ -688,6 +690,7 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                               color:color
                          });
                      }
+                     $chartDiv.trigger("ShowDependentsEvent");
                      break;
                  case "lte":
                      color = INCLUDE_COLOR;
@@ -708,6 +711,7 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                               color:color
                          });
                      }
+                     $chartDiv.trigger("ShowDependentsEvent");
                      break;
                  case "gte":
                      color = INCLUDE_COLOR;
@@ -728,6 +732,7 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                               color:color
                          });
                      }
+                     $chartDiv.trigger("ShowDependentsEvent");
                      break;
                  case "exact":
                      color = INCLUDE_COLOR;
@@ -748,6 +753,7 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                                      width: 3
                          });
                      }
+                     $chartDiv.trigger("ShowDependentsEvent");
                      break;
                  case "-exact":
                      color = INCLUDE_COLOR;
@@ -768,6 +774,7 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                                      width: 3
                          });
                      }
+                     $chartDiv.trigger("ShowDependentsEvent");
                      break;
                  case "isnull":
                      color = EXCLUDE_COLOR;
@@ -785,6 +792,7 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                                 to: extremes.max,
                                 color:color
                      });
+                     $chartDiv.trigger("HideDependentsEvent");
                      break;
                  case "-isnull":
                      if (options.chart.zoomType !== ""){
@@ -795,6 +803,7 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                          chart = new Highcharts.Chart(options);
                          $chartDiv.append($range_form);
                      }
+                     $chartDiv.trigger("ShowDependentsEvent");
                      chart.xAxis[0].removePlotBand();
                      break;
              }

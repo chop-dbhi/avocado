@@ -156,10 +156,13 @@ require.def('design/form', [], {
          
          // Trigger an event when anything changes
          $("input,select",$form).bind('change keyup', function(evt){
-            var $target = $(evt.target); 
+            var $target = $(evt.target);
+            var sendValue;
             switch (evt.target.type){
-                    case "checkbox": $form.trigger("ElementChangedEvent", [{name:evt.target.name,value:evt.target.checked}]);
-                                     break;
+                    case "checkbox":sendValue = evt.target.checked;
+                                    sendValue = $target.is(":visible") && $target.is(":enabled") ? sendValue: null;
+                                    $form.trigger("ElementChangedEvent", [{name:evt.target.name,value:sendValue}]);
+                                    break;
                     case "select-one"      :
                     case "select-multiple" : 
                     case "select"          : var selected = []; 
@@ -189,7 +192,7 @@ require.def('design/form', [], {
                                              });
                                              // Since this code executes for select choices boxes as well as operators (which should
                                              // never be plural), we make sure to send the correct type array, or single item
-                                             var sendValue;
+                                             
                                              if (evt.target.type === "select-multiple"){
                                                  // If a select-multiple box is optional, and nothing is selected, send null so that it doesn't appear as empty in 
                                                  // the datasource, eitherwise, we will throw an error if nothing is supplied;
@@ -205,6 +208,7 @@ require.def('design/form', [], {
                                              } else { 
                                                  sendValue = $target.is("[date-datatype$='boolean']") ? s_to_primative_map[selected[0]] : selected[0];
                                              }
+                                             sendValue = $target.is(":visible") && $target.is(":enabled") ? sendValue: null;
                                              $form.trigger("ElementChangedEvent", [{name:evt.target.name, value:sendValue}]);
                                              break;
                     default   : // This catches input boxes, if input boxes are not currently visible, send null for them
@@ -247,8 +251,8 @@ require.def('design/form', [], {
                                                     break;
                                     default: break;
                                 }
-                                var value = $target.is(":visible") ? $target.val() : null;
-                                $form.trigger("ElementChangedEvent", [{name:evt.target.name,value:value}]);
+                                sendValue = $target.is(":visible") && $target.is(":enabled") ? $target.val() : null;
+                                $form.trigger("ElementChangedEvent", [{name:evt.target.name,value:sendValue}]);
                                 break;
              }
              evt.stopPropagation();
@@ -297,6 +301,14 @@ require.def('design/form', [], {
          $form.bind("GainedFocusEvent", function(evt) {
              $("input,select", $form).change(); 
          });
+         
+         $form.bind("HideDependentsEvent", function(evt){
+            $("input,select,label", $form).attr("disabled","true").change(); 
+         });
+         $form.bind("ShowDependentsEvent", function(evt){
+            $("input,select,label", $form).filter(":disabled").removeAttr("disabled").change(); 
+         });
+         
          return $form;
     }
 });
