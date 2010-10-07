@@ -140,7 +140,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                    }
                    // Maybe we weren't given a pk for this one
                    if (element.data.pkchoices && 
-                      $.inArray(field_pk,$.map(element.data.pkchoices, function(item, index){String(item[0]);}))){
+                      $.inArray(field_pk,$.map(element.data.pkchoices, function(item, index){return item[0];}))>=0){
                       datatype = element.data.datatype;
                       return false;
                    }
@@ -150,9 +150,9 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                            datatype = field.datatype;
                            return false;
                        }
-                       if (element.field.pkchoices && 
-                            $.inArray(field_pk,$.map(element.field.pkchoices, function(item, index){String(item[0]);}))){
-                            datatype = element.field.datatype;
+                       if (field.pkchoices && 
+                            $.inArray(field_pk,$.map(field.pkchoices, function(item, index){return item[0];}))>=0){
+                            datatype = field.datatype;
                             return false;
                        }
                    });
@@ -184,19 +184,19 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                 var m = fieldRe.exec(item); // Either a choice, assertion, or boolean
                 if (m){
                     if (fields.hasOwnProperty(m[2])){
-                        $.extend(fields[m[2]], {val0:ds[item], val1:null, op:null})
+                        $.extend(fields[m[2]], {val0:ds[item], val1:undefined, op:undefined});
                     }else{
-                        fields[m[2]] = {val0:ds[item], val1:null, op:null};
+                        fields[m[2]] = {val0:ds[item], val1:undefined, op:undefined};
                     }
                     continue;
                 }
                 m = binaryFieldRe.exec(item); // decimal
                 if (m) {
                     if (fields.hasOwnProperty(m[2])) {
-                        fields[m[2]]['val'+m[3]] = ds[item];
+                        fields[m[2]]['val'+m[3]] = Number(ds[item]);
                     }else{
-                        fields[m[2]] = {val0:null, val1:null, op:null};
-                        fields[m[2]]['val'+m[3]] = ds[item];
+                        fields[m[2]] = {val0:undefined, val1:undefined, op:undefined};
+                        fields[m[2]]['val'+m[3]] = Number(ds[item]);
                     }
                     continue;
                 }
@@ -205,7 +205,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                     if (fields.hasOwnProperty(m[0])){
                         fields[m[0]]['pk'] = ds[item];
                     }else{
-                        fields[m[0]] = {val0:null, val1:null, op:null, pk:ds[item]};
+                        fields[m[0]] = {val0:undefined, val1:undefined, op:undefined, pk:ds[item]};
                     }
                 }
             }
@@ -219,11 +219,12 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                  // the operator does take anything, so thats all wee need
                  if ((m) && (fields[m[2]] || ds[item].match(/null/))) {
                      if (!fields.hasOwnProperty(m[2])){
-                         fields[m[2]] = {val0:null, val1:null, op:null};
+                         fields[m[2]] = {val0:undefined, val1:undefined, op:undefined};
                      }
                      fields[m[2]]['op'] = ds[item];
                  }
             }
+           
             // We now have the ds sorted into a sensible datastructure
             // based on the fields in the concept. Construct the server
             // required datastructure
@@ -239,8 +240,9 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                     field_id = field.pk;
                     variable_pk = true;
                 }
-
-                if (!field.val0 && !field.val1 && field.op){  // either "is null" or "is not null"
+                
+                field_id = Number(field_id);
+                if (field.val0===undefined && field.val1===undefined && field.op!==undefined){  // either "is null" or "is not null"
                      nodes.push({
                                      'operator' : field.op,
                                      'id' : field_id,
@@ -249,7 +251,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                                      'datatype':getDataType(field_id)
                                 });
                 }
-                else if (field.val0 && field.val1 && field.op) { // Decimal Binary Op
+                else if (field.val0!==undefined && field.val1!==undefined && field.op!==undefined) { // Decimal Binary Op
                     nodes.push({
                                     'operator' : field.op,
                                     'id' : field_id,
@@ -257,7 +259,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                                     'concept_id': activeConcept,
                                     'datatype': getDataType(field_id)
                                 });
-                } else if (field.val0 && field.op && !(field.val0 instanceof Array)){ // Decimal or boolean or free text
+                } else if (field.val0!==undefined && field.op!==undefined && !(field.val0 instanceof Array)){ // Decimal or boolean or free text
                     nodes.push({                                                      // probably not boolean though because
                                     'operator' : field.op,                            // a specific operator has been 
                                     'id' : field_id,                                  // specified
@@ -265,13 +267,13 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                                     'concept_id': activeConcept,
                                     'datatype': getDataType(field_id)
                                 });
-                } else if (field.val0 && field.val0 instanceof Array){ // String choice, or nullboolean
+                } else if (field.val0!==undefined && field.val0 instanceof Array){ // String choice, or nullboolean
                     // if field.op is null, assume the query was the default, which is "in"
                     // this one is a bit special, there is no avoiding that in this situation
-                    // we could be dealing with a string "choice" option, or a nullbullean
+                    // we could be dealing with a string "choice" option, or a nullboolean
                     // nullbooleans need to have an OR'd query specifically construct for them
                     // because they cannot use the IN operator.
-                    field.op = field.op !== null ? field.op : "in";
+                    field.op = field.op !== undefined ? field.op : "in";
                     switch (getDataType(field_id)) {
                         case "nullboolean" : var bool_list = [];
                                              var op = nb_plural_to_singular_map[field.op];
@@ -303,8 +305,8 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                                              });
                                              break;
                     }
-                } else if (field.val0 !== null && !(field.val0 instanceof Array) &&
-                          field.val1 === null){ // boolean when operator not specified
+                } else if (field.val0 !== undefined && !(field.val0 instanceof Array) &&
+                          field.val1 === undefined){ // boolean when operator not specified
                      nodes.push({
                                         'operator' : "exact",
                                         'id' : field_id,
@@ -334,7 +336,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                                      'concept_id':activeConcept
                                };
             }
-
+            console.log(server_query);
             return (server_query);
         }
 
@@ -390,7 +392,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                         }
                     }
                  }
-                 ds[field_prefix+"_"+"operator"] = ds[field_prefix] instanceof Array ? 
+                 ds[field_prefix+"_"+"operator"] = ds[field_prefix] instanceof Array && parameter.datatype === "nullboolean" ? 
                                                    nb_singular_to_plural_map[parameter.operator] : parameter.operator;
                                                    
                  
@@ -440,7 +442,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
             $view.children().trigger("GainedFocusEvent");
 
             activeView.loaded = true;
-         };
+         }
 
 
         /** 
@@ -480,7 +482,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                     loadDependencies(activeView, callback);
                 }
             }
-        };    
+        }    
         /**
              The handler for the 'ViewErrorEvent' event
 
@@ -493,7 +495,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
 
         function viewErrorHandler(evt, details) {
 
-        };
+        }
         
         
         /**
@@ -522,7 +524,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                         break;
                     }
                 }
-                if ((missing_item == false)&&(element.value.length == ds[element.name].length)){
+                if ((missing_item === false)&&(element.value.length == ds[element.name].length)){
                     // All elements in one are in the other, and the lists are same length
                     return;
                 }
@@ -544,7 +546,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                     view.contents.trigger("UpdateElementEvent",[element]);
                 }
             });
-        };
+        }
         
         /**
           This function is used by the constructQueryHandler to scan
@@ -609,17 +611,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
         function addQueryButtonHandler(event){
             activeView.contents.triggerHandler("UpdateQueryButtonClicked"); // This would be better if every view didn't need to handle this
         }                                                                   // it should be concept level thing.
-
-        // 
-        // function hideDependentsHandler(event){
-        //     console.log("handled");
-        //     $.each(cache[activeConcept].views, function(index,view) {
-        //         if (view.contents) {
-        //             view.contents.triggerHandler(event);
-        //         }
-        //     });
-        // }
-
+        
        /**
          This function notifies the framework that the user has entered invalid input. 
          The framework will only show the same error message once, and it will only show
@@ -794,8 +786,6 @@ require.def('design/conceptmanager',['design/views'], function(views) {
 
             var tabs = $.jqote(tab_tmpl, concept.views);
             $tabsBar.html(tabs); 
-            
-            
             
             if (concept['static']){
                 $staticBox.append(concept['static']);

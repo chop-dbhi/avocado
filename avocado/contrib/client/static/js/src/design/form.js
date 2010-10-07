@@ -17,6 +17,12 @@ require.def('design/form', [], {
           var choiceOperatorsTmpl = ['<option selected value="in">is equal to</option>',
                                      '<option value="-in">is not equal to</option>'].join('');
                                      
+                                     
+          var freeTextOperatorsTmpl = ['<option selected value="exact">is equal to</option>',
+                                       '<option value="-exact">is not equal to</option>',
+                                       '<option value="contains">contains</option>',
+                                       '<option value="-contains">does not contain</option>'].join('');
+           
           // For most cases we use the name attribute to constuct a unique id for all inputs (see field_id in the template context 
           // object below). The format for it is <concept primary key>_<field primary key> with optional "_input[01]" to support datatypes that
           // require ranges, and "_operator" to indicate the field represents an operator that can be changed by the users. With nothing appended to the 
@@ -72,17 +78,22 @@ require.def('design/form', [], {
                                             '<input data-validate="decimal" id="<%=this.field_id%>_input1" type="text" name="<%=this.field_id%>_input1" size="5">',
                                             '</span>'];
                                    break;
-                 case 'string'    : input = [ '<label for="<%=this.field_id%>"><%=this.label%></label>', // No defaults for this type, doesn't make sense
-                                              '<select id="<%=this.field_id%>-operator" name="<%=this.field_id%>_operator">',
-                                                 choiceOperatorsTmpl,
-                                              '</select>',
+                 case 'string'    : input = [ 
                                               '<% if (this.choices) {%>',
+                                                    '<label for="<%=this.field_id%>"><%=this.label%></label>', // No defaults for this type, doesn't make sense
+                                                     '<select id="<%=this.field_id%>-operator" name="<%=this.field_id%>_operator">',
+                                                        choiceOperatorsTmpl,
+                                                     '</select>',
                                                  '<select multiple="multiple" id="<%=this.field_id%>-value" name="<%=this.field_id%>" size="3" data-optional="<%=this.optional%>" >',
                                                   '<% for (index in this.choices) { %>',
                                                         '<option value="<%=this.choices[index][0]%>"><%=this.choices[index][1]%></option>',
                                                   '<%}%>',
                                                   '</select>',
                                               '<%} else {%>',
+                                                  '<label for="<%=this.field_id%>"><%=this.label%></label>', // No defaults for this type, doesn't make sense
+                                                   '<select id="<%=this.field_id%>-operator" name="<%=this.field_id%>_operator">',
+                                                        freeTextOperatorsTmpl,
+                                                   '</select>',
                                                   '<input data-optional="<%=this.optional%> type="text" id="<%=this.field_id%>_text" name="<%=this.field_id%>" size = "10">',
                                               '<%}%>'
                                             ];
