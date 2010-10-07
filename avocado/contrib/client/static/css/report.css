@@ -89,18 +89,21 @@
 
 #search-dialog {
     display: none; /* for jquery ui dialog */
+    overflow: auto;
 }
 
 #search-dialog > div {
+    float: right;
     border: 1px dotted #aaa;
     padding: 10px;
     display: inline-block;
     vertical-align: top;
-    width: 306px;
+    width: 300px;
 }
 
-#search-dialog > :first-child {
-    margin-right: 20px;
+
+#search-dialog > div:first-child {
+    float: left;
 }
 
 #search-dialog h4 {
@@ -137,11 +140,16 @@
 
 #columns {
     margin-top: 10px;
+    overflow: auto;
 }
 
 #columns li {
     background-color: #eee;
     border: 1px solid #ddd;
+}
+
+#active-columns {
+    overflow: auto;
 }
 
 #active-columns li {
