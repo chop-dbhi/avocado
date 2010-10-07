@@ -792,7 +792,7 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                                 to: extremes.max,
                                 color:color
                      });
-                     $chartDiv.trigger("HideDependentsEvent");
+                     //$chartDiv.trigger("HideDependentsEvent");
                      break;
                  case "-isnull":
                      if (options.chart.zoomType !== ""){
