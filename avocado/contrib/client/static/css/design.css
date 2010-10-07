@@ -20,6 +20,8 @@
 }
 
 #center-pane {
+    min-height: 400px;
+    max-height: 650px;
     padding: 10px 10px 8px 10px;
 }
 
@@ -89,9 +91,9 @@
     font-size: 12px;
     display: inline-block;
     width: 170px;
-    max-height: 500px;
     margin-right: 10px;
     padding-right: 5px;
+    max-height: 550px;
     overflow: auto;
     text-shadow: #fff 1px 1px 0;
 }
