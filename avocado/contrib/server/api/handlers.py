@@ -1,8 +1,8 @@
 from itertools import groupby
 from datetime import datetime
 
-from django.core.exceptions import (ObjectDoesNotExist, MultipleObjectsReturned,
-    PermissionDenied)
+from django.http import HttpResponse
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from piston.handler import BaseHandler
 from piston.utils import rc
 
@@ -42,6 +42,9 @@ class CriterionHandler(BaseHandler):
     def read(self, request, *args, **kwargs):
         obj = super(CriterionHandler, self).read(request, *args, **kwargs)
 
+        if isinstance(obj, HttpResponse):
+            return obj
+
         # if an instance was returned, return the view responses
         if isinstance(obj, self.model):
             return obj.view_responses()
@@ -50,6 +53,8 @@ class CriterionHandler(BaseHandler):
         if request.GET.has_key('q'):
             obj = self.model.objects.fulltext_search(request.GET.get('q'), obj, True)
             return obj.values_list('id', flat=True)
+
+        print obj
         return map(lambda x: x.json(), obj)
 
 
@@ -69,6 +74,9 @@ class ColumnHandler(BaseHandler):
 
     def read(self, request, *args, **kwargs):
         obj = super(ColumnHandler, self).read(request, *args, **kwargs)
+
+        if isinstance(obj, HttpResponse):
+            return obj
 
         # apply fulltext if the 'q' GET param exists
         if request.GET.has_key('q'):
@@ -99,7 +107,6 @@ class ScopeHandler(BaseHandler):
             return super(ScopeHandler, self).read(request, *args, **kwargs)
         return request.session['report'].scope
 
-
     def update(self, request, *args, **kwargs):
         """Modified to allow for updating the session's current ``scope``
         object.
@@ -109,7 +116,7 @@ class ScopeHandler(BaseHandler):
         """
         # perform default behavior of responding with rc.BAD_REQUEST
         if not kwargs.has_key('id'):
-            super(ScopeHandler, self).update(request, *args, **kwargs)
+            return super(ScopeHandler, self).update(request, *args, **kwargs)
 
         # if the request is relative to the session and not to a specific id,
         # it cannot be assumed that if the session is using a saved scope
@@ -183,7 +190,7 @@ class PerspectiveHandler(BaseHandler):
         """
         # perform default behavior of responding with rc.BAD_REQUEST
         if not kwargs.has_key('id'):
-            super(PerspectiveHandler, self).update(request, *args, **kwargs)
+            return super(PerspectiveHandler, self).update(request, *args, **kwargs)
 
         # if the request is relative to the session and not to a specific id,
         # it cannot be assumed that if the session is using a saved scope
