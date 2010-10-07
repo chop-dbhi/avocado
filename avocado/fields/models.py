@@ -176,7 +176,7 @@ class Field(models.Model):
             delattr(self, '_choices')
 
     def distribution(self, exclude=[], min_count=None, max_points=20,
-        order_by='field', smooth=0.01, **filters):
+        order_by='field', smooth=0.01, annotate_by='id', **filters):
 
         """Builds a GROUP BY queryset for use as a value distribution.
 
@@ -226,7 +226,7 @@ class Field(models.Model):
             dist = dist.filter(**filters)
 
         # apply annotation
-        dist = dist.annotate(count=Count('id'))
+        dist = dist.annotate(count=Count(annotate_by))
 
         if min_count is not None and min_count > 1:
             dist = dist.exclude(count__lt=min_count)
@@ -241,6 +241,9 @@ class Field(models.Model):
             dist = dist.order_by(name)
 
         dist = list(dist)
+
+        if len(dist) < 3:
+            return tuple(dist)
 
         minx = dist.pop(0)
         maxx = dist.pop()
