@@ -5,10 +5,10 @@ require.def('design/search',
 
         function init() {
 
-            var panel = $('#search-panel'),
+            var content = $('#content'),
                 categories = $('#categories'),
                 searchInput = $('#search'),
-                searchForm = $('form', panel),
+                searchForm = $('#search-panel form'),
 
                 criteria = $('#criteria');
 
@@ -50,15 +50,24 @@ require.def('design/search',
             // make initial request
             src.criteria.get();
             src.categories.get();
-            
-            panel.bind('activate.tabs', function(evt) {
+
+            content.bind('activate.tabs', function(evt) {
                 // remove ``active`` class from all *tabs*
-                $('[data-model=category]', categories).removeClass('active');
+                var target = $(evt.target);
+
+                categories.children().removeClass('active');
                 searchForm.removeClass('active');
 
-                // activate the target
-                $(evt.target).addClass('active');
+                target.addClass('active');
+
+                content.active_tab = target; 
                 
+                // check to see if a ``concept_id`` exists for this tab.
+                // attempt to show the concept is so.
+                if (target.data('concept_id'))
+                    content.trigger('ShowConceptEvent', target.data('concept_id'));
+
+                return false;
             });
             
             categories.delegate('[data-model=category]', 'click', function(evt) {
@@ -70,16 +79,19 @@ require.def('design/search',
                 target.trigger('activate');
                 return false;
             });            
-            
-            searchInput.bind('focus', function() {
-                searchForm.trigger('activate');
+
+            /*
+             * handles taking a criterion id and set it as an attribute on the
+             * active tab.
+             */
+            content.bind('setid.tabs', function(evt, id) {
+                content.active_tab.data('concept_id', parseInt(id));
                 return false;
             });
 
-            // manual delegation, since there is a specific
-            panel.bind('search', function(evt, value) {
-                searchInput.trigger('search', value);
-                return false;
+            searchInput.bind('focus', function() {
+                searchForm.trigger('activate');
+                searchInput.trigger('search', this.value);
             });
 
             /*
@@ -96,8 +108,9 @@ require.def('design/search',
                         objs.jdata('id', json[i]).addClass('inview');
                     }
                 }
-            });
+            }, null, 200);
             
+
 
         };
 

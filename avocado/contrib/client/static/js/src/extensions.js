@@ -200,12 +200,11 @@ if (!Array.prototype.map) {
                 loading = false;
                 end();
             };
+
             
-            input.keyup(function(evt) {
+            input.bind('search', function(evt, value) {
                 // clear previous maxTimeout to cancel last request
                 clearTimeout(timer);
-                // get new value
-                value = input.val();
 
                 // if any `placeholder' is provided, test if the value matches it
                 if (placeholder !== null && value === placeholder)
@@ -233,10 +232,10 @@ if (!Array.prototype.map) {
                     // run `end' function which mimics finalizing a duplicate request
                     ajaxargs.end();
                 }
-            }).bind('search', function(evt, value) {
-                if (value !== null || value !== undefined)
-                    input.val(value);
-                input.keyup();
+            });
+
+            input.keyup(function(evt) {
+                input.trigger('search', [this.value]);
                 return false;
             });
         });

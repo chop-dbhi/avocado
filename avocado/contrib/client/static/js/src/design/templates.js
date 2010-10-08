@@ -1,7 +1,7 @@
 require.def('design/templates', function() {
     return {
         criteria: [
-            '<div class="inview" data-model="criterion" data-uri="<%= this.uri %>">',
+            '<div class="inview" data-model="criterion" data-id="<%= this.id %>" data-uri="<%= this.uri %>">',
                 '<span><%= this.name %></span>',
                 '<p class="ht mg hd"><%= this.description %></p>',
             '</div>'

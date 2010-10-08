@@ -23,6 +23,7 @@
     min-height: 400px;
     max-height: 650px;
     padding: 10px 10px 8px 10px;
+    background: transparent url(../img/sb/1_click.png) no-repeat 200px 50px;
 }
 
 #right-pane {
@@ -59,7 +60,7 @@
     height: 16px;
     padding: 13px 15px;
     border-bottom: 1px solid #ccc;
-    border-right: 1px dotted #aaa;
+    border-left: 1px dotted #aaa;
     display: inline-block;
     background-color: #fff;
     
@@ -70,7 +71,7 @@
 
 #search-panel form {
     color: #333;
-    border-right: none;    
+    border-left: none;    
 }
 
 #categories > :hover {

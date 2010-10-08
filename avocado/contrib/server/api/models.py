@@ -13,9 +13,5 @@ class CriterionProxy(Criterion):
             'uri': reverse('api:criteria:read', args=(self.id,)),
             'name': self.name,
             'description': self.description,
-            'icon': None
         }
-
-        if self.category:
-            json['icon'] = self.category.icon
         return json
