@@ -13,10 +13,10 @@ require.def(
             categories: '<span id="tab-<%= this.name.toLowerCase() %>" data-model="category" ' +
                     'data-search-term="<%= this.name.toLowerCase() %>"><%= this.name %></span>',
             
-            scope_element: ['<div id="<%= this.pk %>" class="criterion clearfix">',
+            scope_element: ['<div data-uri="<%=this.uri%>" data-id="<%= this.pk %>" class="criterion clearfix">',
                                 '<a href="#" class="remove-criterion">X</a>',
                                 '<a href="#" class="field-anchor">',
-                                '<%= this.description %>',
+                                    '<%= this.description %>',
                                 '</a>',
                             '</div>'].join(''),
             run_query : '<input id="submit-query" type="button" value="Run the query!">'

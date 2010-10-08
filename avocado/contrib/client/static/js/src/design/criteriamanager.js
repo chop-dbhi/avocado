@@ -7,14 +7,40 @@ require.def('design/criteriamanager', ['design/criteria', "design/templates","li
         var $criteria_div = $panel.find("#criteria-list"),
             $run_query_div = $panel.find(".content"),
             $remove_criteria = $panel.find("#remove-criteria");
-            
+        
+        var criteria_api_uri = $criteria_div.attr("data-uri");
+        var report_url = $criteria_div.attr("data-report");
+        var session_api_uri = $panel.attr("data-uri");
+        
         
         // Grab the contents of panel while it is empty and save off the 
         // "No Criteria" indicator text
         var $no_criteria_defined = $criteria_div.children();
         
-        // Create the run query buttong
+        // Create the run query button
         var $run_query = $(templates.run_query);
+        
+        // Load any criteria on the session
+        $.getJSON(session_api_uri, function(data){
+              if ((data.store === null) || $.isEmptyObject(data.store)){
+                  return;
+              }
+              
+              if (!data.store.hasOwnProperty("concept_id")){ // Root node representing a list of concepts won't have this attribute
+                  $.each(data.store.children, function(index, criteria_constraint){
+                      $panel.triggerHandler("UpdateQueryEvent", [criteria_constraint]);
+                  });
+              }else{
+                  $panel.triggerHandler("UpdateQueryEvent", [data.store]);
+              }
+
+             // If we have any criteria, show the first one.
+             if (!$.isEmptyObject(criteria_cache)){
+                $($criteria_div.children()[0]).find(".field-anchor").click();
+             }
+        });
+
+        // Setup click even handlers
         // run the query
         $run_query.click(function(){
             var all_constraints = [];
@@ -30,8 +56,8 @@ require.def('design/criteriamanager', ['design/criteria', "design/templates","li
             }else{
                 server_query = {type: "and", children : all_constraints};
             }
-            $.putJSON('/api/scope/session/', JSON.stringify(server_query), function(){
-                window.location='/report';
+            $.putJSON(session_api_uri, JSON.stringify(server_query), function(){
+                window.location=report_url;
             });
         });
         
@@ -58,10 +84,10 @@ require.def('design/criteriamanager', ['design/criteria', "design/templates","li
             
             // Is this an update?
             if (criteria_cache.hasOwnProperty(pk)){
-                new_criteria = criteria.Criteria(criteria_constraint);
+                new_criteria = criteria.Criteria(criteria_constraint, criteria_api_uri);
                 criteria_cache[pk].replaceWith(new_criteria);
             }else{
-                new_criteria = criteria.Criteria(criteria_constraint);
+                new_criteria = criteria.Criteria(criteria_constraint, criteria_api_uri);
                 $criteria_div.append(new_criteria);
                 var addEvent = $.Event("ConceptAddedEvent");
                 addEvent.concept_id = pk;
@@ -91,11 +117,6 @@ require.def('design/criteriamanager', ['design/criteria', "design/templates","li
         });
 
         var that = {
-            fireFirstCriteria: function(){
-               if (!$.isEmptyObject(criteria_cache)){
-                  $($criteria_div.children()[0]).find(".field-anchor").click(); // TODO clean up
-                }
-            },
             retrieveCriteriaDS: function(concept_id) {
                 var ds = null;
                 concept_id && $.each($criteria_div.children(), function(index,element){

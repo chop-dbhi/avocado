@@ -85,7 +85,7 @@
     <div id="right-pane" class="clearfix">
         {# This panel defines the validated criteria the user has defined for the #}
         {# current query #}
-        <div id="user-criteria" class="container">
+        <div id="user-criteria" data-uri="{% url api:scope:session %}" class="container">
 
             <div class="title">
                  <button id="remove-criteria" href="#">Clear All</button>
@@ -93,7 +93,7 @@
              </div>
 
             <div class="content">
-                <div id="criteria-list">
+                <div id="criteria-list" data-report="{% url report %}"  data-uri="{% url api:criteria:read %}">
                     <strong>No criteria defined</strong><br>
                     <span class="ht mg">Click on a query option icon and specify some conditions</span>
                 </div>
