@@ -10,7 +10,7 @@ def _tokenize(search_str):
     "Strips stopwords and tokenizes search string if not already a list."
     if isinstance(search_str, basestring):
         # TODO determine appropriate characters that should be retained
-        sanitized_str = re.sub('[^\w\s@-]+', '', search_str)
+        sanitized_str = re.sub('[^\w\s]+', '', search_str)
         cleaned_str = stopwords.strip_stopwords(sanitized_str)
         toks = cleaned_str.split()
     else:
@@ -91,7 +91,7 @@ class ConceptManager(models.Manager):
         queryset = base_queryset.extra(where=(column + ' @@ to_tsquery(%s)',),
             params=(tok_str,))
 
-        if use_icontains and queryset.exists():
+        if use_icontains and not queryset.exists():
             queryset = self.icontains_search(toks, base_queryset.all())
 
         return queryset
