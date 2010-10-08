@@ -42,7 +42,6 @@ require(['design/search', 'design/conceptmanager', 'design/criteriamanager'], fu
             var target = $(evt.target);
             var concept_id = target.attr('data-id');
             var existing_ds = evt.constraints; // if they clicked on the right side
-
             if (!existing_ds){
                 // Criteria manager will have constraints if this is already in the right side
                 // but they clicked on the concept in the left side
