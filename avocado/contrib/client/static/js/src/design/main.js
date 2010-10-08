@@ -45,7 +45,7 @@ require(['design/search', 'design/conceptmanager', 'design/criteriamanager'], fu
             if (!existing_ds){
                 // Criteria manager will have constraints if this is already in the right side
                 // but they clicked on the concept in the left side
-                existing_ds = criteriaManager.retrieveCriteriaDS(target.attr('data-concept-id'));
+                existing_ds = criteriaManager.retrieveCriteriaDS(concept_id);
             }
 
             if (conceptManager.isConceptLoaded(concept_id)){
@@ -53,7 +53,7 @@ require(['design/search', 'design/conceptmanager', 'design/criteriamanager'], fu
                 conceptManager.show({id: concept_id}, existing_ds);
             }else{
                 $.ajax({
-                    url: target.attr('data-uri') || "/api/criteria/"+target.data("constraint")["concept_id"], // Clean this UP!
+                    url: target.attr('data-uri'),
                     dataType:'json',
                     success: function(json) {
                             pluginPanel.fadeIn(100);
@@ -63,22 +63,7 @@ require(['design/search', 'design/conceptmanager', 'design/criteriamanager'], fu
             }    
         });
         
-        $.getJSON("/api/scope/session/", function(data){
-            if ((data.store === null) || $.isEmptyObject(data.store)){
-                return;
-            }
-            if (!data.store.hasOwnProperty("concept_id")){ // Root node representing a list of concepts won't have this attribute
-                $.each(data.store.children, function(index, criteria_constraint){
-                    criteriaPanel.triggerHandler("UpdateQueryEvent", [criteria_constraint]);
-                });
-            }else{
-                criteriaPanel.triggerHandler("UpdateQueryEvent", [data.store]);
-            }
-            
-            criteriaManager.fireFirstCriteria();
-        });
-
-        // TODO change this into a jQuery extension or something..
+// TODO change this into a jQuery extension or something..
 //        (function() {
 //            var cache = {},
 //                tools = $('#tools'),
