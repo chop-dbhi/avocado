@@ -772,7 +772,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
         function loadConcept(concept){
             // If we got here, the globals for the current concept have been loaded
             // We will register it in our cache
-            register(concept);
+            concept = register(concept);
             activeConcept = concept.id;
             // Mark this concept as having its global dependencies loaded
             concept.globalsLoaded = true; 
@@ -829,8 +829,8 @@ require.def('design/conceptmanager',['design/views'], function(views) {
         $tabsBar.tabs(true, function(evt, $tab) {
             $tab.trigger('ConceptTabClickedEvent',$tab);
         });
-        
-        
+
+
 
         /**
           Registers a concept. This creates the concept object in the 
@@ -840,6 +840,8 @@ require.def('design/conceptmanager',['design/views'], function(views) {
         function register(concept) {
             if (cache[concept.id] === undefined){
                 cache[concept.id] = concept;
+            }else{
+                concept = cache[concept.id]
             }
             // Create a datasource for this concept if we don't have one
             if (!concept.ds){
@@ -858,6 +860,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
             if (!concept.invalid_fields){
                 concept.invalid_fields = {};
             }
+            return concept;
         };  
 
         // PUBLIC METHODS
