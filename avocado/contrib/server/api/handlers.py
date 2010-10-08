@@ -54,7 +54,6 @@ class CriterionHandler(BaseHandler):
             obj = self.model.objects.fulltext_search(request.GET.get('q'), obj, True)
             return obj.values_list('id', flat=True)
 
-        print obj
         return map(lambda x: x.json(), obj)
 
 
