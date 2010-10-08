@@ -174,7 +174,6 @@ require.def('design/conceptmanager',['design/views'], function(views) {
           @private
         */
         function buildQuery(ds) {
-            console.log(ds);
             var fields={};
             // We need to analyze the current concept and the datasource and construct
             // the proper datastructure to represent this query on the server
@@ -336,7 +335,6 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                                      'concept_id':activeConcept
                                };
             }
-            console.log(server_query);
             return (server_query);
         }
 
@@ -850,8 +848,6 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                 // populate the datasource
                 if (concept.query) {
                     concept.ds = createDSFromQuery(concept.query);
-                    console.log(concept.ds);
-                    
                 }else{
                     // create empty datasource
                     concept.ds = {};
