@@ -336,7 +336,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                                };
             }
             return (server_query);
-        }
+          }
 
          /**
            This function takes an avocado query datastructure and 
