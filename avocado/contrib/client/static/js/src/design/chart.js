@@ -163,46 +163,53 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
          });
         $chartDiv.prepend($range_form);
         
+        function updateChart(){
+            // Rotated text does not show up without this in 
+            // ie 8 and ie 7
+            $.map(chart.series[0].data, function(element,index){
+                   var category = element.name || element.category;
+                   if ($.inArray(unmap[category], selected) !==-1){
+                       if (negated){
+                           element.update({color:EXCLUDE_COLOR});
+                       }else{
+                           element.update({color:SELECTED_COLOR});
+                       }
+                   }else{
+                       element.update({color:UNSELECTED_COLOR});
+                   }
+                   $(element.tracker.element).mouseover();
+                   $(element.tracker.element).mouseout();
+             });
+
+            chart.xAxis[0].isDirty = true;
+            chart.yAxis[0].isDirty = true;
+            chart.isDirty = true;
+            chart.series[0].isDirty = true;
+            chart.redraw();
+        }
+        
         $range_form.bind("ElementChangedEvent",function(evt,value){
-              if (value.value === "in"){
+               // We don't care about null values here because it means
+               // the item was hidden
+               if (value.value === null) return;
+               if (value.value === "in"){
                    negated = false;
                }else{
                    negated = true;
                }
-               $chartDiv.triggerHandler("GainedFocusEvent");
+               updateChart();
         });
        
-         $chartDiv.bind("GainedFocusEvent", function(evt){
-                // Rotated text does not show up without this in 
-                // ie 8 and ie 7
-                $.map(chart.series[0].data, function(element,index){
-                       var category = element.name || element.category;
-                       if ($.inArray(unmap[category], selected) !==-1){
-                           if (negated){
-                               element.update({color:EXCLUDE_COLOR});
-                           }else{
-                               element.update({color:SELECTED_COLOR});
-                           }
-                       }else{
-                           element.update({color:UNSELECTED_COLOR});
-                       }
-                       $(element.tracker.element).mouseover();
-                       $(element.tracker.element).mouseout();
-                 });
-
-                chart.xAxis[0].isDirty = true;
-                chart.yAxis[0].isDirty = true;
-                chart.isDirty = true;
-                chart.series[0].isDirty = true;
-                chart.redraw();
-          });
+        $chartDiv.bind("GainedFocusEvent", function(evt){
+            $('input,select',$chartDiv).change();
+        });
          
-          $chartDiv.bind("UpdateDSEvent", function(evt, ds){
+        $chartDiv.bind("UpdateDSEvent", function(evt, ds){
              selected = ds[concept_id+  "_"+view.data.pk] || [];
              negated = ds[concept_id + "_"+view.data.pk + "_operator"] === "-in";
              $range_form.triggerHandler(evt,[ds]);
-          });
-         return $chartDiv;
+        });
+        return $chartDiv;
      };
  
      var getBarChart = function(view, concept_id, $location) {
@@ -229,9 +236,6 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
              $chartDiv.trigger("ElementChangedEvent", [{name:concept_id+"_"+view.data.pk, value:selected}]);
          };
 
-         $.each(view.data.coords, function(index,element){
-        //     view.data.coords[index][0] = map[view.data.coords[index][0]];
-         });
          
          var chart = new Highcharts.Chart({
             chart: {
@@ -406,18 +410,8 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
          });
          
          $chartDiv.prepend($range_form);
-
-         $range_form.bind("ElementChangedEvent", function(evt, item){
-            if (item.value==="in"){
-                negated = false;
-            }else{
-                negated = true;
-            }
-            $chartDiv.triggerHandler("GainedFocusEvent");
-         });
          
-         // AvocadoClient event listners
-         $chartDiv.bind("GainedFocusEvent", function(evt){
+         function updateChart(){
                 $.map(chart.series[0].data, function(element,index){
                     if ($.inArray(unmap[element.category], selected) !==-1){
                         if (negated){
@@ -434,6 +428,7 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                     $(element.tracker.element).mouseover();
                     $(element.tracker.element).mouseout();
                  });
+         
                  // Rotated text does not show up in ie8 and ie7 
                  // when the graph is inserted dynamically without this
                  chart.xAxis[0].isDirty = true;
@@ -441,6 +436,23 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                  chart.isDirty = true;
                  chart.series[0].isDirty = true;
                  chart.redraw();
+         }
+         
+         $range_form.bind("ElementChangedEvent", function(evt, item){
+            // We don't care about null values here because it means
+            // the item was hidden
+            if (item.value === null) return;
+            if (item.value ==="in"){
+                negated = false;
+            }else{
+                negated = true;
+            }
+            updateChart();
+         });
+         
+         // AvocadoClient event listners
+         $chartDiv.bind("GainedFocusEvent", function(evt){
+            $('input,select',$chartDiv).change();
          });
          
          $chartDiv.bind("UpdateDSEvent", function(evt, ds){
@@ -792,7 +804,7 @@ require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
                                 to: extremes.max,
                                 color:color
                      });
-                     //$chartDiv.trigger("HideDependentsEvent");
+                     $chartDiv.trigger("HideDependentsEvent");
                      break;
                  case "-isnull":
                      if (options.chart.zoomType !== ""){
