@@ -63,6 +63,7 @@
     border-left: 1px dotted #aaa;
     display: inline-block;
     background-color: #fff;
+    cursor: pointer;
     
     box-shadow: inset #eee 0 -5px 10px;
     -webkit-box-shadow: inset #eee 0 -5px 10px;
@@ -166,6 +167,7 @@
     display: none;
     float: right;
     width: 498px;
+    min-height: 300px;
     -webkit-box-shadow: none;
     -moz-box-shadow: none;
 }

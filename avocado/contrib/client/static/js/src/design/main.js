@@ -9,7 +9,9 @@ require(['design/search', 'design/conceptmanager', 'design/criteriamanager'], fu
             pluginTitle = $('#plugin-title'),
             criteriaPanel = $("#user-criteria"),
             pluginStaticContent = $('#plugin-static-content'),
-            pluginDynamicContent = $('#plugin-dynamic-content');
+            pluginDynamicContent = $('#plugin-dynamic-content'),
+
+            criteria = $('#criteria');
             
             
         // Create an instance of the conceptManager object. Only do this once.
@@ -30,6 +32,7 @@ require(['design/search', 'design/conceptmanager', 'design/criteriamanager'], fu
         // Listen for the user clicking on criteria in the right hand panel
         rootNode.bind("ShowConceptEvent", function(evt){
             var target = $(evt.target);
+            var concept_id = target.attr('data-id');
             var existing_ds = evt.constraints; // if they clicked on the right side
 
             if (!existing_ds){
@@ -38,9 +41,9 @@ require(['design/search', 'design/conceptmanager', 'design/criteriamanager'], fu
                 existing_ds = criteriaManager.retrieveCriteriaDS(target.attr('data-concept-id'));
             }
 
-            if (conceptManager.isConceptLoaded(evt.concept_id)){
+            if (conceptManager.isConceptLoaded(concept_id)){
                 pluginPanel.fadeIn(100);
-                conceptManager.show({id:evt.concept_id}, existing_ds);
+                conceptManager.show({id: concept_id}, existing_ds);
             }else{
                 $.ajax({
                     url: target.attr('data-uri') || "/api/criteria/"+target.data("constraint")["concept_id"], // Clean this UP!
@@ -119,18 +122,32 @@ require(['design/search', 'design/conceptmanager', 'design/criteriamanager'], fu
 //                }
 //            });            
 //        })();
-    
-        $('[data-model=criterion]').live('click', function(evt) {
-            var target = $(this);
+//
+//
+
+        rootNode.bind('activate-criterion', function(evt, id) {
+            var target;
+
+            if (!id)
+                target = $(evt.target);
+            else
+                target = criteria.children('[data-id=' + id + ']');
+
+            id = id || target.attr('data-id');
+
             // remove active state for all siblings
             target.addClass('active').siblings().removeClass('active');
-            // show concept
-            var show_concept_event = $.Event("ShowConceptEvent");
-            show_concept_event.concept_id = target.attr('data-id');
-            target.trigger(show_concept_event);
+
+            target.trigger('ShowConceptEvent');
             // bind this concept's id to the current active tab
-            target.trigger('setid.tabs', target.attr('data-id'));
-            return false; 
+            rootNode.trigger('setid-tab', [id]);
+
+            return false;
+        });
+ 
+        $('[data-model=criterion]').live('click', function(evt) {
+            $(this).trigger('activate-criterion');
+            return false;
         });
     });
 });

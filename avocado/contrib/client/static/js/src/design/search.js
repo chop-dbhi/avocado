@@ -9,6 +9,7 @@ require.def('design/search',
                 categories = $('#categories'),
                 searchInput = $('#search'),
                 searchForm = $('#search-panel form'),
+                pluginPanel = $('#plugin-panel'),
 
                 criteria = $('#criteria');
 
@@ -51,7 +52,7 @@ require.def('design/search',
             src.criteria.get();
             src.categories.get();
 
-            content.bind('activate.tabs', function(evt) {
+            content.bind('activate-tab', function(evt) {
                 // remove ``active`` class from all *tabs*
                 var target = $(evt.target);
 
@@ -64,10 +65,14 @@ require.def('design/search',
                 
                 // check to see if a ``concept_id`` exists for this tab.
                 // attempt to show the concept is so.
-                if (target.data('concept_id')){
-                    var show_concept_event = $.Event("ShowConceptEvent");
-                    show_concept_event.concept_id = target.data("concept_id");
-                    content.trigger(show_concept_event);
+
+                var id = target.data('concept_id');
+
+                if (id) {
+                    pluginPanel.show();
+                    content.trigger('activate-criterion', [id]);
+                } else {
+                    pluginPanel.hide();
                 }
 
                 return false;
@@ -79,7 +84,7 @@ require.def('design/search',
 
                 // trigger events
                 searchInput.trigger('search', value);
-                target.trigger('activate');
+                target.trigger('activate-tab');
                 return false;
             });            
 
@@ -87,17 +92,19 @@ require.def('design/search',
              * handles taking a criterion id and set it as an attribute on the
              * active tab.
              */
-            content.bind('setid.tabs', function(evt, id) {
+            content.bind('setid-tab', function(evt, id) {
                 content.active_tab.data('concept_id', parseInt(id));
                 return false;
             });
 
-            searchForm.bind('click', function(evt) {
-                searchForm.trigger('activate');
-                searchInput.focus();
+            searchInput.bind('focus', function(evt) {
+                searchForm.trigger('activate-tab');
                 searchInput.trigger('search', searchInput.val());
-            });
+            }).focus();
 
+            searchForm.bind('click', function(evt) {
+                searchInput.focus();
+            });
 
             /*
              * the search acts on all criteria that is present for the user.
@@ -112,6 +119,7 @@ require.def('design/search',
                     for (var i = 0; i < json.length; i++) {
                         objs.jdata('id', json[i]).addClass('inview');
                     }
+                    return false;
                 }
             }, null, 200);
             
