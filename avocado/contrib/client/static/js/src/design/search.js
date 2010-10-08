@@ -89,10 +89,12 @@ require.def('design/search',
                 return false;
             });
 
-            searchInput.bind('focus', function() {
+            searchForm.bind('click', function(evt) {
                 searchForm.trigger('activate');
-                searchInput.trigger('search', this.value);
+                searchInput.focus();
+                searchInput.trigger('search', searchInput.val());
             });
+
 
             /*
              * the search acts on all criteria that is present for the user.
