@@ -476,7 +476,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                 var callback = null;
                 activeView.concept_id = activeConcept;
                 if (activeView.type !== 'custom'){// Show the view
-                    $container.trigger('ViewReadyEvent', [views.createView(activeView)]);
+                    $container.trigger('ViewReadyEvent', [views.createView(activeView,cache[activeConcept].name)]);
                 }else{
                     // Load the custom view
                     loadDependencies(activeView, callback);
