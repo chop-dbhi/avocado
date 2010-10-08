@@ -892,8 +892,11 @@ require.def('design/conceptmanager',['design/views'], function(views) {
        }
         
        return {
-            show: show
-        };
+            show: show,
+            isConceptLoaded: function(concept_id){
+                return (concept_id in cache);
+            }
+       };
     };
     
     return {
