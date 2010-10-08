@@ -841,7 +841,8 @@ require.def('design/conceptmanager',['design/views'], function(views) {
             if (cache[concept.id] === undefined){
                 cache[concept.id] = concept;
             }else{
-                concept = cache[concept.id]
+                $.extend(cache[concept.id], concept);
+                concept = cache[concept.id];
             }
             // Create a datasource for this concept if we don't have one
             if (!concept.ds){
@@ -886,7 +887,7 @@ require.def('design/conceptmanager',['design/views'], function(views) {
                cache[activeConcept]['static'] = $staticBox.children().detach();
            }
            // Set the name of the concept in the title bar
-           $titleBar.text(concept.name);
+           // $titleBar.text(concept.name);
            if (cache[concept.id] && cache[concept.id].globalsLoaded){
                 loadConcept(concept);
            } else {

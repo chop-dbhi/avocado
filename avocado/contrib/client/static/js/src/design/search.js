@@ -64,8 +64,11 @@ require.def('design/search',
                 
                 // check to see if a ``concept_id`` exists for this tab.
                 // attempt to show the concept is so.
-                if (target.data('concept_id'))
-                    content.trigger('ShowConceptEvent', target.data('concept_id'));
+                if (target.data('concept_id')){
+                    var show_concept_event = $.Event("ShowConceptEvent");
+                    show_concept_event.concept_id = target.data("concept_id");
+                    content.trigger(show_concept_event);
+                }
 
                 return false;
             });
@@ -114,7 +117,7 @@ require.def('design/search',
             
 
 
-        };
+        }
 
         return {init: init};
     });

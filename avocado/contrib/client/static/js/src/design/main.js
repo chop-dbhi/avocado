@@ -30,20 +30,27 @@ require(['design/search', 'design/conceptmanager', 'design/criteriamanager'], fu
         // Listen for the user clicking on criteria in the right hand panel
         rootNode.bind("ShowConceptEvent", function(evt){
             var target = $(evt.target);
-            var existing_ds = evt.constraints;
+            var existing_ds = evt.constraints; // if they clicked on the right side
 
             if (!existing_ds){
-                // Criteria manager will have constraints if this is already in the question
+                // Criteria manager will have constraints if this is already in the right side
+                // but they clicked on the concept in the left side
                 existing_ds = criteriaManager.retrieveCriteriaDS(target.attr('data-concept-id'));
             }
-            $.ajax({
-                url: target.attr('data-uri') || "/api/criteria/"+target.data("constraint")["concept_id"], // Clean this UP!
-                dataType:'json',
-                success: function(json) {
-                        pluginPanel.fadeIn(100);
-                        conceptManager.show(json, existing_ds);
-                    }
-                });    
+
+            if (conceptManager.isConceptLoaded(evt.concept_id)){
+                pluginPanel.fadeIn(100);
+                conceptManager.show({id:evt.concept_id}, existing_ds);
+            }else{
+                $.ajax({
+                    url: target.attr('data-uri') || "/api/criteria/"+target.data("constraint")["concept_id"], // Clean this UP!
+                    dataType:'json',
+                    success: function(json) {
+                            pluginPanel.fadeIn(100);
+                            conceptManager.show(json, existing_ds);
+                        }
+                    });
+            }    
         });
         
         $.getJSON("/api/scope/session/", function(data){
@@ -118,7 +125,9 @@ require(['design/search', 'design/conceptmanager', 'design/criteriamanager'], fu
             // remove active state for all siblings
             target.addClass('active').siblings().removeClass('active');
             // show concept
-            target.trigger('ShowConceptEvent');
+            var show_concept_event = $.Event("ShowConceptEvent");
+            show_concept_event.concept_id = target.attr('data-id');
+            target.trigger(show_concept_event);
             // bind this concept's id to the current active tab
             target.trigger('setid.tabs', target.attr('data-id'));
             return false; 
