@@ -341,7 +341,7 @@ require.def(
                                    };
                 }
                 return (server_query);
-            }
+            };
 
              /**
                This function takes an avocado query datastructure and 

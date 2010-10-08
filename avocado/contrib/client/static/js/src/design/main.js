@@ -24,12 +24,20 @@ require(['design/search', 'design/conceptmanager', 'design/criteriamanager'], fu
             criteriaPanel.triggerHandler("UpdateQueryEvent", [criteria_constraint]);
         });
         
-        
         rootNode.bind("ConceptAddedEvent ConceptDeletedEvent", function(evt){
             pluginPanel.trigger(evt);
         });
         
-        // Listen for the user clicking on criteria in the right hand panel
+        // There are currently three ways this event can be triggered.
+        // 1) Clicking on concept in the left hand-side menu
+        //    a)  Slightly differently, a user can click on a concept in the left
+        //        hand panel while that concept is already part of a question in the
+        //        right-hand query panel, in which case, the data needs to be retrieved
+        //        from the query component. 
+        // 2) Clicking on a criteria from the query box on the right-hand side
+        // 3) Clicking on a tab where a concept has already been opened while on 
+        //    another tab. For example, if you were on Audiology Tab, selected ABR 1000,
+        //    and then moved to Imaging, and then clicked back on Audiology.
         rootNode.bind("ShowConceptEvent", function(evt){
             var target = $(evt.target);
             var concept_id = target.attr('data-id');
