@@ -10,7 +10,7 @@ class AbstractViewSet(object):
     css = ''
 
     def __call__(self, concept, *args, **kwargs):
-        cfields = list(concept.criterionfield_set.all())
+        cfields = list(concept.criterionfield_set.order_by('order'))
         return self._get_responses(concept, cfields, *args, **kwargs)
 
     def _get_responses(self, concept, cfields, *args, **kwargs):

@@ -182,7 +182,7 @@ NUMERIC_OPERATORS = (exact, notexact, lt, lte, gt, gte, between,
     notbetween, null, notnull)
 
 MODEL_FIELD_MAP = {
-    'AutoField': (exact, inlist, notexact, notinlist),
+    'AutoField': (exact, notexact, inlist, notinlist),
     'CharField': CHAR_OPERATORS,
     'IntegerField': NUMERIC_OPERATORS,
     'FloatField': NUMERIC_OPERATORS,
@@ -190,6 +190,6 @@ MODEL_FIELD_MAP = {
     'DateField': NUMERIC_OPERATORS,
     'DateTimeField': NUMERIC_OPERATORS,
     'TimeField': NUMERIC_OPERATORS,
-    'BooleanField': (exact,),
-    'NullBooleanField': (exact, null, notnull),
+    'BooleanField': (exact, notexact),
+    'NullBooleanField': (exact, notexact, null, notnull),
 }
