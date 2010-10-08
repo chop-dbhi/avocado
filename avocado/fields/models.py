@@ -228,7 +228,7 @@ class Field(models.Model):
         # apply annotation
         dist = dist.annotate(count=Count(annotate_by))
 
-        if min_count is not None and min_count > 1:
+        if min_count is not None and min_count > 0:
             dist = dist.exclude(count__lt=min_count)
 
         # evaluate
