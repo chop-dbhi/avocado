@@ -52,8 +52,10 @@ class CriterionHandler(BaseHandler):
         # apply fulltext if the 'q' GET param exists
         if request.GET.has_key('q'):
             obj = self.model.objects.fulltext_search(request.GET.get('q'), obj, True)
+            obj.query.clear_ordering(True)
             return obj.values_list('id', flat=True)
 
+        obj = obj.order_by('category', 'order')
         return map(lambda x: x.json(), obj)
 
 
