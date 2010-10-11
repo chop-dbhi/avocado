@@ -554,7 +554,7 @@ footer a:hover, footer a:active {
 */
 
 .container > .tabs .tab.disabled {
-    color: #9EB5C8;
+    color: #aaa;
     background-color: rgba(255, 255, 255, 0.4);
     border-left-color: rgba(255, 255, 255, 0.2);
     border-right-color: rgba(255, 255, 255, 0.2);
