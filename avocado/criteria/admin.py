@@ -10,7 +10,6 @@ class CriterionFieldInline(admin.TabularInline):
 
 
 class CriterionAdmin(ConceptAdmin):
-    list_display = ('name', 'is_public', 'category')
     inlines = (CriterionFieldInline,)
 
 

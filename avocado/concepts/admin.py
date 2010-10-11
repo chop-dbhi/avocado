@@ -13,9 +13,9 @@ def make_not_public(modeladmin, request, queryset):
 make_not_public.short_description = 'Mark selected as not public'
 
 class ConceptAdmin(admin.ModelAdmin):
-    list_display = ('name', 'category', 'is_public')
+    list_display = ('name', 'category', 'is_public', 'order')
     list_filter = ('is_public', 'category')
-    list_editable = ('is_public',)
+    list_editable = ('is_public', 'order')
     list_per_page = 25
     ordering = ('name',)
     save_as = True

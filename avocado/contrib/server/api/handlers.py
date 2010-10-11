@@ -82,7 +82,7 @@ class ColumnHandler(BaseHandler):
             obj = self.model.objects.fulltext_search(request.GET.get('q'), obj, True)
             return obj.values_list('id', flat=True)
 
-        obj = list(obj.order_by('category'))
+        obj = list(obj.order_by('category', 'order'))
         return [{'name': k.name, 'id': k.id, 'columns': list(v)}
             for k, v in groupby(obj, lambda x: x.category)]
 

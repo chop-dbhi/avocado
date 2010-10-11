@@ -23,7 +23,7 @@ class Concept(models.Model):
     keywords = models.CharField(max_length=100, null=True, blank=True)
     category = models.ForeignKey(Category, null=True, blank=True)
     is_public = models.BooleanField(default=False)
-    order = models.PositiveSmallIntegerField(default=0, help_text='This ' \
+    order = models.FloatField(default=0, help_text='This ' \
         'ordering is relative to the category this concept belongs to.')
 
     # search optimizations
@@ -41,7 +41,7 @@ class Concept(models.Model):
 
 
 class ConceptField(models.Model):
-    order = models.SmallIntegerField(default=0)
+    order = models.FloatField(default=0)
 
     class Meta(object):
         abstract = True
