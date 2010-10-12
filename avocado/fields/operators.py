@@ -175,8 +175,8 @@ class NotNull(Null):
 notnull = NotNull()
 
 
-CHAR_OPERATORS = (iexact, notiexact, contains, doesnotcontain, inlist,
-    notinlist, null, notnull)
+CHAR_OPERATORS = (exact, notexact, iexact, notiexact, contains,
+    doesnotcontain, inlist, notinlist, null, notnull)
 
 NUMERIC_OPERATORS = (exact, notexact, lt, lte, gt, gte, between,
     notbetween, null, notnull)
