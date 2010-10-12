@@ -18,8 +18,8 @@ require.def('design/form', [], {
                                      '<option value="-in">is not equal to</option>'].join('');
                                      
                                      
-          var freeTextOperatorsTmpl = ['<option selected value="exact">is equal to</option>',
-                                       '<option value="-exact">is not equal to</option>',
+          var freeTextOperatorsTmpl = ['<option selected value="iexact">is equal to</option>',
+                                       '<option value="-iexact">is not equal to</option>',
                                        '<option value="contains">contains</option>',
                                        '<option value="-contains">does not contain</option>'].join('');
            
