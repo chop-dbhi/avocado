@@ -189,11 +189,7 @@ nav ul {
 
 nav ul li {
     display: inline;
-    padding-left: 10px;
     margin-right: 12px;
-    background-image: url(../img/bc.gif);
-    background-repeat: no-repeat;
-    background-position: center left;
 }
 
 #tools {
@@ -643,4 +639,15 @@ footer a:hover, footer a:active {
 
 .ui-dialog .ui-dialog-titlebar .ui-dialog-titlebar-close {
     display: none;
+}
+
+.placeholder {
+    color: #999;
+    display: block;
+    border: 1px dashed #ccc;
+    padding: 10px;
+    text-align: center;
+    border-radius: 5px;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;    
 }

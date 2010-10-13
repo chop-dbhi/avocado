@@ -220,13 +220,12 @@
 .criterion {
     font-size: 12px;
     margin-bottom: 10px;
-    color: #333;
     background-color: #FFFEE0;
     border: 1px solid #ECE670;
     padding: 4px 5px;
     text-shadow: #fff 1px 1px 0;
-    -moz-box-shadow: 2px 2px 1px #eee;
-    -webkit-box-shadow: 2px 2px 1px #eee;
+    -moz-box-shadow: inset 0 0 10px #FFFE95;
+    -webkit-box-shadow: inset 0 0 10px #FFFE95;
     -moz-border-radius: 3px;
     -webkit-border-radius: 3px;    
     
@@ -237,27 +236,23 @@
 }
 
 .criterion a {
-    color: #333;
+    color: #603200;
     text-decoration: none;    
 }
 
-.criterion:hover a {
-    color: #000;
-}
-
-.remove-criterion {
+.criterion .remove-criterion {
     font-weight: bold;
     float: right;
 }
 
 .criterion .remove-criterion:hover {
-    color: #D40202;
+    color: #E60D00;
 }
 
 /*
  *  Validation
  */
  
-input[class*=invalid] {
+input.invalid {
      border: 2px solid #F00;
 }

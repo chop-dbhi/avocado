@@ -106,7 +106,7 @@ require.def(
                 if ($.inArray(evt.concept_id, concepts_in_query) < 0 ){
                     concepts_in_query.push(evt.concept_id);
                     if (activeConcept === evt.concept_id){
-                        $addQueryButton.val("Update Query");
+                        $addQueryButton.val("Update Condition");
                     }
                 }
                 evt.stopPropagation();
@@ -121,7 +121,7 @@ require.def(
                 if (index >= 0 ){
                     concepts_in_query.splice(index,1);
                     if (activeConcept === evt.concept_id){
-                        $addQueryButton.val("Add to Query");
+                        $addQueryButton.val("Add Condition");
                     }
                 }
                 evt.stopPropagation();
@@ -806,9 +806,9 @@ require.def(
                 
                 // Make sure the button for this concept has the correct label
                 if ($.inArray(activeConcept, concepts_in_query) >=0 ) {
-                    $addQueryButton.val("Update Query");
+                    $addQueryButton.val("Update Condition");
                 }else{
-                    $addQueryButton.val("Add to Query");
+                    $addQueryButton.val("Add Condition");
                 }
                 // Regardless of whether the tabs are visible, load the first view
                 $tabsBar.children(':first').click();

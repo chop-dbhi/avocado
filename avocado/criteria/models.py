@@ -40,7 +40,11 @@ class Criterion(Concept):
 class CriterionField(ConceptField):
     concept = models.ForeignKey(Criterion)
     field = models.ForeignKey(Field, limit_choices_to={'is_public': True})
+    name = models.CharField(max_length=100, null=True, blank=True)
     required = models.BooleanField(default=True)
 
     class Meta(ConceptField.Meta):
         pass
+
+    def get_name(self):
+        return self.name or self.field.name

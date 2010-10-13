@@ -1,6 +1,6 @@
-{% extends "base_nav.html" %}
+{% extends "base.html" %}
 
-{% block title %}{{ block.super }} : Design{% endblock %}
+{% block title %}{{ block.super }} : Define{% endblock %}
 
 {% block styles %}
     {{ block.super }}
@@ -11,10 +11,6 @@
 {% block scripts %}
     {{ block.super }}
     <script>require(['extensions', 'design/main']);</script>
-{% endblock %}
-
-{% block navigation %}
-    <li>Design Question</li>
 {% endblock %}
 
 {% block tools %}
@@ -41,7 +37,7 @@
 {% block content %}
 
     <div id="left-pane" class="container">
-        <div class="title">{% block search_panel_title %}{% endblock %}</div>
+        <div class="title">{% block search_panel_title %}Search Available Conditions{% endblock %}</div>
 
         <div class="content">
             <div id="search-panel">
@@ -89,13 +85,12 @@
 
             <div class="title">
                  <button id="remove-criteria" href="#">Clear All</button>
-                 Your Criteria
+                 Conditions
              </div>
 
             <div class="content">
                 <div id="criteria-list" data-report="{% url report %}"  data-uri="{% url api:criteria:read %}">
-                    <strong>No criteria defined</strong><br>
-                    <span class="ht mg">Add a few criteria here to define your patients of interest</span>
+                    <span class="placeholder">Add Condition</span>
                 </div>
             </div>
 
