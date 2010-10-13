@@ -1,4 +1,4 @@
-require(['design/search', 'design/conceptmanager', 'design/criteriamanager'], function(search, conceptmanager, criteriamanager) {
+require(['define/search', 'define/conceptmanager', 'define/criteriamanager'], function(search, conceptmanager, criteriamanager) {
    
     $(function() {
         search.init();

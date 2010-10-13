@@ -1,4 +1,4 @@
-require.def('design/form', [], {
+require.def('define/form', [], {
     
     Form : function(view, concept_pk){
           var s_to_primative_map = {"true":true, "false":false, "null":null};

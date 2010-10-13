@@ -4,13 +4,13 @@
 
 {% block styles %}
     {{ block.super }}
-    <link rel="stylesheet" href="{{ CLIENT_MEDIA_URL }}css/design.css">
-    <link rel="stylesheet" href="{{ CLIENT_MEDIA_URL }}css/design-ie7fix.css">
+    <link rel="stylesheet" href="{{ CLIENT_MEDIA_URL }}css/define.css">
+    <link rel="stylesheet" href="{{ CLIENT_MEDIA_URL }}css/define-ie7fix.css">
 {% endblock %}
 
 {% block scripts %}
     {{ block.super }}
-    <script>require(['extensions', 'design/main']);</script>
+    <script>require(['extensions', 'define/main']);</script>
 {% endblock %}
 
 {% block tools %}

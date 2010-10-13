@@ -6,6 +6,6 @@ urlpatterns = patterns('',
         {'template_name': 'login.html'}, name='login'),
     url(r'^logout/$', 'django.contrib.auth.views.logout_then_login', name='logout'),
 
-    url(r'^design/$', 'avocado.contrib.client.views.design', name='design'),
+    url(r'^define/$', 'avocado.contrib.client.views.define', name='define'),
     url(r'^report/$', 'avocado.contrib.client.views.report', name='report'),
 )

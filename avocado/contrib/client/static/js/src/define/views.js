@@ -1,4 +1,4 @@
-require.def('design/views',  ['design/chart','design/form'], function(chart, form){
+require.def('define/views',  ['define/chart','define/form'], function(chart, form){
      /**
         Certain types of views are built-into the framework.
         

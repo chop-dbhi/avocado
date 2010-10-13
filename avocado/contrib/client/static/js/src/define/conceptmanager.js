@@ -1,8 +1,8 @@
 require.def(
     
-    'design/conceptmanager',
+    'define/conceptmanager',
         
-    ['design/views'],
+    ['define/views'],
     
     function(views) { 
         /**

@@ -1,4 +1,4 @@
-require.def('design/chart', ['design/form', 'lib/highcharts'], function(form) {
+require.def('define/chart', ['define/form', 'lib/highcharts'], function(form) {
      var UNSELECTED_COLOR     = "#8E8F93";
      var SELECTED_COLOR       = "#99BDF1";
      var EXCLUDE_COLOR        = "#EE3A43";

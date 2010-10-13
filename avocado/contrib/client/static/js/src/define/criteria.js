@@ -1,4 +1,4 @@
-require.def('design/criteria', ['design/templates'], function(templates) {
+require.def('define/criteria', ['define/templates'], function(templates) {
     var tmpl = $.jqotec(templates.scope_element);
     
     var Criteria = function(criteria_constraint, uri){

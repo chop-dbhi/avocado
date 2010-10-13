@@ -1,6 +1,6 @@
 require.def(
     
-    'design/templates',
+    'define/templates',
     
     function() {
         return {

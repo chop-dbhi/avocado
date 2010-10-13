@@ -118,8 +118,8 @@ def login(request, template_name='registration/login.html',
     
         
 
-def design(request):
-    return render_to_response('design.html',
+def define(request):
+    return render_to_response('define.html',
         context_instance=RequestContext(request))
 
 def report(request):
