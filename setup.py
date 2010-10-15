@@ -15,7 +15,7 @@ kwargs = {
         'avocado': 'avocado',
         'client': 'avocado/contrib/client',
         'server': 'avocado/contrib/server',
-    }
+    },
 
     'package_data': {
         'avocado': ['sql/*.sql'],
