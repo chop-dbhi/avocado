@@ -88,6 +88,9 @@ require.def('define/criteriamanager', ['define/criteria', "define/templates","li
             if (criteria_cache.hasOwnProperty(pk)){
                 new_criteria = criteria.Criteria(criteria_constraint, criteria_api_uri);
                 criteria_cache[pk].replaceWith(new_criteria);
+                new_criteria.fadeTo(300, 0.5, function() {
+                      new_criteria.fadeTo("fast", 1);
+                });
             }else{
                 new_criteria = criteria.Criteria(criteria_constraint, criteria_api_uri);
                 $criteria_div.append(new_criteria);
