@@ -106,7 +106,7 @@ require.def(
             function conceptAddedHandler(evt){
                 if ($.inArray(evt.concept_id, concepts_in_query) < 0 ){
                     concepts_in_query.push(parseInt(evt.concept_id));
-                    if (parseInt(activeConcept) === parseInt(evt.concept_id)){
+                    if (activeConcept === parseInt(evt.concept_id)){
                         $addQueryButton.val("Update Condition");
                         $(".inquery", $staticBox).show();
                     }
@@ -122,7 +122,7 @@ require.def(
                 var index = $.inArray(parseInt(evt.concept_id), concepts_in_query);
                 if (index >= 0 ){
                     concepts_in_query.splice(index,1);
-                    if (parseInt(activeConcept) === parseInt(evt.concept_id)){
+                    if (activeConcept === parseInt(evt.concept_id)){
                         $addQueryButton.val("Add Condition");
                           $(".inquery", $staticBox).hide();
                     }
@@ -779,7 +779,7 @@ require.def(
                 // If we got here, the globals for the current concept have been loaded
                 // We will register it in our cache
                 concept = register(concept);
-                activeConcept = concept.id;
+                activeConcept = parseInt(concept.id);
                 // Mark this concept as having its global dependencies loaded
                 concept.globalsLoaded = true; 
                 
@@ -807,7 +807,7 @@ require.def(
                     $staticBox.append($addQueryButton);
                 }
                 // Make sure the button for this concept has the correct label
-                if ($.inArray(parseInt(activeConcept), concepts_in_query) >=0 ) {
+                if ($.inArray(activeConcept, concepts_in_query) >=0 ) {
                     $addQueryButton.val("Update Condition");
                     $(".inquery",$staticBox).show();
                     
@@ -878,7 +878,7 @@ require.def(
             function show(concept, existing_query, index, target) {
 
                // Verify that we need to do anything.
-               if (concept.id === activeConcept)
+               if (parseInt(concept.id) === activeConcept)
                    return;
                
                // If we already have a query for this concept, set it 
@@ -889,7 +889,7 @@ require.def(
                
                // If there is concept being displayed, save its static 
                // content
-               if (activeConcept){
+               if (activeConcept !== null){
                    cache[activeConcept]['static'] = $staticBox.children().detach();
                }
                // Set the name of the concept in the title bar
