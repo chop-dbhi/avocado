@@ -51,8 +51,8 @@ require.def(
               @private
               @type string
             */
-            var add_query_tmpl = '<input id="add_to_query" style="float:right" type="button" value="">';
-            add_query_tmpl += '<div class="inquery">Concept is included in your query. Edit and click "Update Criteria" to modify it.</div>';
+            var add_query_tmpl = '<div class="inquery" >Condition added. To update, modify and click "Update Condition"</div>';
+            add_query_tmpl += '<input id="add_to_query" style="float:right" type="button" value="">';
             /**
               Holds the currently viewable/active concept/criterionconcept    
 
@@ -641,7 +641,7 @@ require.def(
                 });
                 var message = evt.message ? evt.message : "This query contains invalid input, please correct any invalid fields.";
                 var already_displayed = false;
-                $.each($staticBox.find(".warning"), function(index, warning) {
+                $.each($staticBox.find(".error"), function(index, warning) {
                     warning = $(warning);
                     var rc = warning.data("ref_count");
                     if (warning.text() === message) {
@@ -673,7 +673,7 @@ require.def(
                     return;
                 }
 
-                var warning = $('<div class="warning">'+message+'</div>');
+                var warning = $('<div class="error">'+message+'</div>');
                 warning.data('ref_count',1);
                 if (!evt.ephemeral){
                     invalid_fields[target_name+evt.reason] = warning;

@@ -1,4 +1,19 @@
 /*
+ *  Info boxes
+ */
+.inquery {
+    color: #002E24;
+    font-size: 11px;
+	background: #F8F7A9 url(../img/icons/accept.png) no-repeat 10px;
+	border: 1px solid #ECE678;
+	padding: 5px 10px 5px 31px;
+	margin: 0px 5px 15px 0px;
+	text-shadow: #fff 1px 1px 0;
+	float:left;
+	width:65%;
+}
+
+/*
  * Panes - layout
  */
 
