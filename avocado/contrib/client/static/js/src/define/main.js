@@ -42,6 +42,16 @@ require(['define/search', 'define/conceptmanager', 'define/criteriamanager'], fu
             var target = $(evt.target);
             var concept_id = target.attr('data-id');
             var existing_ds = evt.constraints; // if they clicked on the right side
+            // notify the criteria manager so it can remove highlighted concepts if necessary
+            if (!$(evt.target).is(".criterion"))
+            {
+                evt.concept_id = target.attr('data-id');
+                criteriaPanel.triggerHandler(evt);
+            }else {
+                // deselect any highlighted criteria in the left hand side
+                criteria.children(".active").removeClass("active");
+                
+            }
             if (!existing_ds){
                 // Criteria manager will have constraints if this is already in the right side
                 // but they clicked on the concept in the left side

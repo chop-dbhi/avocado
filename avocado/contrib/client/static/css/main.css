@@ -335,6 +335,17 @@ footer a:hover, footer a:active {
 	padding-left: 21px;    
 }
 
+.inquery {
+    color: #002E24;
+    font-size: 11px;
+	background: #F8F7A9 url(../img/icons/accept.png) no-repeat 10px;
+	border: 1px solid #ECE678;
+	padding: 5px 10px 5px 31px;
+	margin: 5px 5px 15px 5px;
+	text-shadow: #fff 1px 1px 0;
+	float:left;
+}
+
 
 /*
 ** Action backgrounds

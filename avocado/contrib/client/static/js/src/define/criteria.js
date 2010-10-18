@@ -19,7 +19,7 @@ require.def('define/criteria', ['define/templates'], function(templates) {
         // Display the concept in the main area when the user clicks on the description
         element.find(".field-anchor").click(showCriteria);
         
-        return(element);
+        return element.addClass("selected");
     };
 
     return {Criteria:Criteria};

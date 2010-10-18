@@ -80,6 +80,8 @@ require.def('define/criteriamanager', ['define/criteria', "define/templates","li
             if ($.isEmptyObject(criteria_cache)){
                 $no_criteria_defined.detach();
                 $run_query_div.append($run_query);
+            }else{
+                $criteria_div.children(".criterion").removeClass("selected");
             }
             
             // Is this an update?
@@ -114,6 +116,22 @@ require.def('define/criteriamanager', ['define/criteria', "define/templates","li
                 $criteria_div.append($no_criteria_defined);
                 $run_query.detach();
             }
+        });
+        
+        // Listen to see if the user clicks on any of the criteria.
+        // Highlight the selected criteria to make it clear which one is
+        // displayed
+        $panel.bind("ShowConceptEvent", function (evt){
+              var $target = $(evt.target);
+              $criteria_div.children(".criterion").removeClass("selected");
+              if  ($target.is(".criterion")){
+                  $target.addClass("selected");
+              }else{
+                  // If the user clicked on the left-hand side, but we have this criteria
+                  // defined, highlight it.
+                  var id = evt.originalEvent.concept_id;
+                  criteria_cache[id] && criteria_cache[id].addClass("selected");
+              }
         });
 
         var that = {

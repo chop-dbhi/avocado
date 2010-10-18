@@ -231,7 +231,7 @@
     
 }
 
-.criterion:hover {
+.criterion:hover, .criterion.selected {
     background-color: #FFFBB3;    
 }
 

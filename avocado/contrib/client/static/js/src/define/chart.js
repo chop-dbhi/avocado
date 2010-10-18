@@ -1,5 +1,5 @@
 require.def('define/chart', ['define/form', 'lib/highcharts'], function(form) {
-     var UNSELECTED_COLOR     = "#8E8F93";
+     var UNSELECTED_COLOR     = "#DEDEDE";
      var SELECTED_COLOR       = "#99BDF1";
      var EXCLUDE_COLOR        = "#EE3A43";
      var INCLUDE_COLOR        = "#99BDF1";
@@ -132,15 +132,23 @@ require.def('define/chart', ['define/form', 'lib/highcharts'], function(form) {
                                         return this.point.name;
                                     }
                      },
-                     borderWidth: 3,
+                     borderColor: "#000000",
+                     borderWidth: 2,
                      allowPointSelect: false,
                      cursor: "pointer",
                      enableMouseTracking: true,
                      stickyTracking: false,
-                
+                     
                      states:{
                          hover:{
-                             brightness: 0
+                             brightness: -.1,
+                             enabled:true
+                         }
+                     },
+                     point:{
+                         events:{
+                             mouseOver : function (){},
+                             mouseOut : function() {}
                          }
                      }
                  }
@@ -152,16 +160,17 @@ require.def('define/chart', ['define/form', 'lib/highcharts'], function(form) {
              legend:{
                  enabled: false
              },
-              title: {
-                  text: null
-              },
+             title: {
+                  text: view.data.title
+             },
              series: [{
                 type: 'pie',
                 name: view.data.title,
                 data: view.data.coords
              }]
          });
-        $chartDiv.prepend($range_form);
+         
+        //$chartDiv.append($range_form);
         
         function updateChart(){
             // Rotated text does not show up without this in 
@@ -177,8 +186,8 @@ require.def('define/chart', ['define/form', 'lib/highcharts'], function(form) {
                    }else{
                        element.update({color:UNSELECTED_COLOR});
                    }
-                   $(element.tracker.element).mouseover();
-                   $(element.tracker.element).mouseout();
+                  $(element.tracker.element).mouseover();
+                  $(element.tracker.element).mouseout();
              });
 
             chart.xAxis[0].isDirty = true;
@@ -201,7 +210,9 @@ require.def('define/chart', ['define/form', 'lib/highcharts'], function(form) {
         });
        
         $chartDiv.bind("GainedFocusEvent", function(evt){
-            $('input,select',$chartDiv).change();
+            //$('input,select',$chartDiv).change(); 
+            negated = false; // Remove to enable negation again
+            updateChart();
         });
          
         $chartDiv.bind("UpdateDSEvent", function(evt, ds){
@@ -346,7 +357,13 @@ require.def('define/chart', ['define/form', 'lib/highcharts'], function(form) {
                     allowPointSelect:false,
                     cursor:"pointer",
                     enableMouseTracking:true,
-                    stickyTracking:false
+                    stickyTracking:false,
+                    states:{
+                         hover:{
+                             brightness: -.1,
+                             enabled:true
+                         }
+                    }
                 }
             },
             credits:{
@@ -356,7 +373,7 @@ require.def('define/chart', ['define/form', 'lib/highcharts'], function(form) {
                 enabled:false
             },
             title: {
-               text: null
+               text: view.data.title
             },
             tooltip:{
                    formatter:function(){
@@ -409,8 +426,6 @@ require.def('define/chart', ['define/form', 'lib/highcharts'], function(form) {
              }]
          });
          
-         $chartDiv.prepend($range_form);
-         
          function updateChart(){
                 $.map(chart.series[0].data, function(element,index){
                     if ($.inArray(unmap[element.category], selected) !==-1){
@@ -452,7 +467,8 @@ require.def('define/chart', ['define/form', 'lib/highcharts'], function(form) {
          
          // AvocadoClient event listners
          $chartDiv.bind("GainedFocusEvent", function(evt){
-            $('input,select',$chartDiv).change();
+            //$('input,select',$chartDiv).change();
+            updateChart();
          });
          
          $chartDiv.bind("UpdateDSEvent", function(evt, ds){
