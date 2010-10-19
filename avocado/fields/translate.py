@@ -45,7 +45,12 @@ class AbstractTranslator(object):
             if self.formfield_overrides.has_key(name):
                 formfield = self.formfield_overrides[name]
 
-        ff = field.formfield(formfield=formfield, **kwargs)
+        # TODO since None is considered an empty value by the django validators
+        # ``required`` has to be set to False to not raise a ValidationError
+        # saying the field is required. There may be a need to more explicitly
+        # check to see if the value be passed is only None and not any of the
+        # other empty values in ``django.core.validators.EMPTY_VALUES``
+        ff = field.formfield(formfield=formfield, required=False, **kwargs)
 
         if ins(value):
             return map(ff.clean, value)
