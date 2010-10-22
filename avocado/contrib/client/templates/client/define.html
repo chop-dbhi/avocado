@@ -57,8 +57,9 @@
                 <div id="criteria">
                     {% for criterion in criteria %}
                         <div data-id="{{ criterion.id }}" data-model="criterion" data-uri="{{ criterion.uri }}">
-                            <span>{{ criterion.name }}</span>
-                            <p class="ht mg">{{ criterion.description }}</p>
+                            <span class="name">{{ criterion.name }}</span>
+                            <span class="info"></span>
+                            <p class="hd">{{ criterion.description|safe }}</p>
                         </div>
                     {% endfor %}
                 </div>

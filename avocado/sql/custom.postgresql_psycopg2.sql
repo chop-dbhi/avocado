@@ -21,14 +21,19 @@ create language plpgsql;
 
 alter table avocado_field add column search_tsv tsvector;
 
-update avocado_field U0 set search_tsv = to_tsvector(U0.name || ' ' || U0.description || ' ' || U0.keywords);
+update avocado_field U0 set search_tsv = to_tsvector(
+    coalesce(U0.name, '') || ' ' ||
+    coalesce(U0.description, '') || ' ' ||
+    coalesce(U0.keywords, ''));
 
 create index avocado_field_search_tsv on avocado_field using gin(search_tsv);
 
 create or replace function avocado_field_search_tsv_func() returns trigger as $$
     begin
-        new.search_tsv :=
-            to_tsvector(new.name || ' ' || new.description || ' ' || new.keywords);
+        new.search_tsv := to_tsvector(
+            coalesce(new.name, '') || ' ' ||
+            coalesce(new.description, '') || ' ' ||
+            coalesce(new.keywords, ''));
         return new;
     end
 $$ LANGUAGE plpgsql;
@@ -38,17 +43,25 @@ create trigger avocado_field_search_tsv_update before insert or update
 
 -- update the search_doc column for icontains searching
 
-update avocado_field U0 set search_doc = (U0.name || ' ' || U0.description || ' ' || U0.keywords);
+update avocado_field U0 set search_doc = (
+    coalesce(U0.name, '') || ' ' ||
+    coalesce(U0.description, '') || ' ' ||
+    coalesce(U0.keywords, ''));
 
 create or replace function avocado_field_search_doc_func() returns trigger as $$
     begin
-        new.search_doc := (new.name || ' ' || new.description || ' ' || new.keywords);
+        new.search_doc := (
+            coalesce(new.name, '') || ' ' ||
+            coalesce(new.description, '') || ' ' ||
+            coalesce(new.keywords, ''));
         return new;
     end
 $$ LANGUAGE plpgsql;
 
 create trigger avocado_field_search_doc_update before insert or update
     on avocado_field for each row execute procedure avocado_field_search_doc_func();
+
+
 
 -- Column Concept
 
@@ -58,16 +71,19 @@ alter table avocado_column add column search_tsv tsvector;
 
 update avocado_column U0 set search_tsv = to_tsvector(
     coalesce((select U1.name from avocado_category U1 where U0.category_id = U1.id), '') || ' ' ||
-    U0.name || ' ' || U0.description || ' ' || U0.keywords);
+    coalesce(U0.name, '') || ' ' ||
+    coalesce(U0.description, '') || ' ' ||
+    coalesce(U0.keywords, ''));
 
 create index avocado_column_search_tsv on avocado_column using gin(search_tsv);
 
 create or replace function avocado_column_search_tsv_func() returns trigger as $$
     begin
-        new.search_tsv :=
-            to_tsvector(
-            coalesce((select U1.name from avocado_category U1 where new.category_id = U1.id), '') || ' '
-            || new.name || ' ' || new.description || ' ' || new.keywords);
+        new.search_tsv := to_tsvector(
+            coalesce((select U1.name from avocado_category U1 where new.category_id = U1.id), '') || ' ' ||
+            coalesce(new.name, '') || ' ' ||
+            coalesce(new.description, '') || ' ' ||
+            coalesce(new.keywords, ''));
         return new;
     end
 $$ LANGUAGE plpgsql;
@@ -77,14 +93,19 @@ create trigger avocado_column_search_tsv_update before insert or update
 
 -- update the search_doc column for icontains searching
 
-update avocado_column U0 set search_doc = (coalesce((select U1.name from avocado_category U1
-    where U0.category_id = U1.id), '') || ' ' || U0.name || ' ' || U0.description || ' ' || U0.keywords);
+update avocado_column U0 set search_doc = (
+    coalesce((select U1.name from avocado_category U1 where U0.category_id = U1.id), '') || ' ' ||
+    coalesce(U0.name, '') || ' ' ||
+    coalesce(U0.description, '') || ' ' ||
+    coalesce(U0.keywords, ''));
 
 create or replace function avocado_column_search_doc_func() returns trigger as $$
     begin
-        new.search_doc :=
-        (coalesce((select U1.name from avocado_category U1 where new.category_id = U1.id), '') || ' '
-            || new.name || ' ' || new.description || ' ' || new.keywords);
+        new.search_doc := (
+            coalesce((select U1.name from avocado_category U1 where new.category_id = U1.id), '') || ' ' ||
+            coalesce(new.name, '') || ' ' ||
+            coalesce(new.description, '') || ' ' ||
+            coalesce(new.keywords, ''));
         return new;
     end
 $$ LANGUAGE plpgsql;
@@ -100,16 +121,19 @@ alter table avocado_criterion add column search_tsv tsvector;
 
 update avocado_criterion U0 set search_tsv = to_tsvector(
     coalesce((select U1.name from avocado_category U1 where U0.category_id = U1.id), '') || ' ' ||
-    U0.name || ' ' || U0.description || ' ' || U0.keywords);
+    coalesce(U0.name, '') || ' ' ||
+    coalesce(U0.description, '') || ' ' ||
+    coalesce(U0.keywords, ''));
 
 create index avocado_criterion_search_tsv on avocado_criterion using gin(search_tsv);
 
 create or replace function avocado_criterion_search_tsv_func() returns trigger as $$
     begin
-        new.search_tsv :=
-            to_tsvector(
-            coalesce((select U1.name from avocado_category U1 where new.category_id = U1.id), '') || ' '
-            || new.name || ' ' || new.description || ' ' || new.keywords);
+        new.search_tsv := to_tsvector(
+            coalesce((select U1.name from avocado_category U1 where new.category_id = U1.id), '') || ' ' ||
+            coalesce(new.name, '') || ' ' ||
+            coalesce(new.description, '') || ' ' ||
+            coalesce(new.keywords, ''));
         return new;
     end
 $$ LANGUAGE plpgsql;
@@ -119,14 +143,19 @@ create trigger avocado_criterion_search_tsv_update before insert or update
 
 -- update the search_doc column for icontains searching
 
-update avocado_criterion U0 set search_doc = (coalesce((select U1.name from avocado_category U1
-    where U0.category_id = U1.id), '') || ' ' || U0.name || ' ' || U0.description || ' ' || U0.keywords);
+update avocado_criterion U0 set search_doc = (
+    coalesce((select U1.name from avocado_category U1 where U0.category_id = U1.id), '') || ' ' ||
+    coalesce(U0.name, '') || ' ' ||
+    coalesce(U0.description, '') || ' ' ||
+    coalesce(U0.keywords, ''));
 
 create or replace function avocado_criterion_search_doc_func() returns trigger as $$
     begin
-        new.search_doc :=
-        (coalesce((select U1.name from avocado_category U1 where new.category_id = U1.id), '') || ' '
-            || new.name || ' ' || new.description || ' ' || new.keywords);
+        new.search_doc := (
+            coalesce((select U1.name from avocado_category U1 where new.category_id = U1.id), '') || ' ' ||
+            coalesce(new.name, '') || ' ' ||
+            coalesce(new.description, '') || ' ' ||
+            coalesce(new.keywords, ''));
         return new;
     end
 $$ LANGUAGE plpgsql;

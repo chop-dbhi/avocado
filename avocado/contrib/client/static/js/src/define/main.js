@@ -151,5 +151,35 @@ require(['define/search', 'define/conceptmanager', 'define/criteriamanager'], fu
             $(this).trigger('activate-criterion');
             return false;
         });
+
+        $('#criteria > *').bind({
+            'mouseover': function() {
+                var target = $(this);
+                target.find('.info').css('display', 'inline-block');
+            },
+            'mouseout': function() {
+                var target = $(this);
+                target.find('.info').hide();
+            }
+        });
+
+
+        var descriptionBox = $('<div id="description"></div>')
+            .appendTo('body');
+
+        $('#criteria').delegate('.info', 'mouseover', function() {
+            var target = $(this).parent(),
+                offset = target.offset(),
+                width = target.outerWidth(),
+                description = target.children('p').html();                
+
+            descriptionBox.html(description);
+            descriptionBox.css({
+                left: offset.left + width + 20,
+                top: offset.top
+            }).show();
+        }).delegate('.info', 'mouseout', function() {
+            descriptionBox.hide();
+        });
     });
 });

@@ -1,4 +1,5 @@
 from django.db import models
+from django.template import Template, Context
 
 from avocado.concepts.managers import ConceptManager
 
@@ -39,6 +40,24 @@ class Concept(models.Model):
     def __unicode__(self):
         return u'%s' % self.name
 
+    def full_description(self):
+        if self.description:
+            return self.description
+
+        fields = list(self.fields.values('name', 'description')\
+            .exclude(description=None))
+
+        # don't bother with the template if only one field qualifies
+        if len(fields) == 1:
+            return fields[0]['description']
+
+        t = Template("""
+            {% for field in fields %}
+                <strong>{{ field.name }}</strong> - {{ field.description }}
+            {% endfor %}
+            """)
+        c = Context({'name': self.name, 'fields': fields})
+        return t.render(c).strip()
 
 class ConceptField(models.Model):
     order = models.FloatField(default=0)
