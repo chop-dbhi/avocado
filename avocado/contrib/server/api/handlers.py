@@ -11,6 +11,7 @@ from avocado.contrib.server.api.models import CriterionProxy
 from avocado.conf import settings
 
 def convert2str(data):
+    "Recursively iterates over a data structure and converts unicode to str"
     if isinstance(data, unicode):
         return str(data)
     elif isinstance(data, dict):

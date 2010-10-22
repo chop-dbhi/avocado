@@ -10,6 +10,8 @@ require.def(
 
         function init() {
             var body = $('body'),
+                content = $('#content'),
+                resize = $('#resize'),
                 report = $('#report'),
                 thead = $('#table thead tr'),
                 tbody = $('#table tbody'),
@@ -42,14 +44,16 @@ require.def(
                     success: function(json) {
                         rnd.table_rows.render(json.rows);
 
-                        if (json.pages)
-                            rnd.pages.render(json.pages);
-
                         // TODO clean up
                         if (json.header) {
                             rnd.table_header.target.html('<th><input type="checkbox"></th>');
                             rnd.table_header.render(json.header);
                         }
+
+                        report.trigger('resize-report');
+
+                        if (json.pages)
+                            rnd.pages.render(json.pages);
 
                         if (json.unique)
                             unique.html(json.unique);
@@ -65,6 +69,47 @@ require.def(
             };
 
             src.table_rows.get();
+
+
+            report.bind('resize-report', function(evt) {
+                var table = $('#table'),
+                    minWidth = 850,
+                    rInnerWidth = report.innerWidth(),
+                    tOuterWidth = table.outerWidth(true)+20; // padding is not usable
+
+                // do not grow past window width. take into account the padding
+                nInnerWidth = Math.min(tOuterWidth, window.innerWidth-30);
+                nInnerWidth = Math.max(minWidth, nInnerWidth);
+ 
+                // determine the difference. half of it needs to be added
+                // to the margin-right offset
+                if (nInnerWidth == rInnerWidth)
+                    return;
+
+                half = (nInnerWidth - rInnerWidth) / 2.0;
+
+                nLeft = parseInt(content.css('margin-left').match(/-?\d+/)[0]) - half;
+
+                content.animate({
+                    'margin-left': nLeft
+                });
+
+                report.animate({
+                    'width': nInnerWidth,
+                });
+            });
+
+            resize.bind('click', function(evt) {
+                report.trigger('resize-report');
+            });
+
+            var resizeTimeOut;
+            $(window).resize(function() {
+                clearTimeout(resizeTimeOut);
+                resizeTimeOut = setTimeout(function() {
+                    report.trigger('resize-report');
+                }, 200);
+            });
 
              /*
              * Define primary event that handles fetching data.

@@ -164,6 +164,7 @@ if (!Array.prototype.map) {
             var input = $(this),
                 form,
                 value,
+                cache,
                 lastValue = null,
                 timer = null,
                 firstResp = null,
@@ -181,6 +182,10 @@ if (!Array.prototype.map) {
                 // for later faux-usage
                 if (firstResp == null && cacheResp)
                     firstResp = {resp: resp, status: status, xhr: xhr};
+
+                if (cache && status == 'success')
+                    input.cache[value] = resp;
+
                 lastValue = value;
                 loading = false;
                 ajaxargs.end();
@@ -202,7 +207,17 @@ if (!Array.prototype.map) {
             };
 
             
-            input.bind('search', function(evt, value) {
+            input.cache = {};
+            input.bind('search', function(evt, value_, cache_) {
+                cache = cache_ ? true : false;
+                value = value_;
+
+                // check to see if in cache
+                if (cache && input.cache[value]) {
+                    ajaxargs.success(input.cache[value], 'cached', null);
+                    return;
+                }
+                
                 // clear previous maxTimeout to cancel last request
                 clearTimeout(timer);
 
@@ -211,7 +226,7 @@ if (!Array.prototype.map) {
                     value = '';
 
                 // sanitize and strip useless stopwords and non-alphanumerics, and lowercase
-                value = value.toLowerCase(); //SearchSanitizer.clean(value).toLowerCase();
+                value = SearchSanitizer.clean(value).toLowerCase();
                 
                 if (value !== lastValue) {
                     // only start once, when the user first begins typing

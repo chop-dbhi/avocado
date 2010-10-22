@@ -10,7 +10,7 @@
 
 {% block scripts %}
     {{ block.super }}
-    <script>require(['extensions', 'define/main']);</script>
+    <script>require(['sanitizer', 'extensions', 'define/main']);</script>
 {% endblock %}
 
 {% block tools %}
@@ -40,19 +40,29 @@
         <div class="title">{% block search_panel_title %}Search Available Conditions{% endblock %}</div>
 
         <div class="content">
-            <div id="search-panel">
+            <div id="tabs">
                 {% spaceless %}
-                {# This form is used for searching available query options, it makes an async #}
-                {# request and returns the results in the #browse-all element. #}
-                <form method="get" class="active" action="{% url api:criteria:read %}">
-                    <input id="search" class="search" type="input" name="q" results="0" placeholder="Search..." autofocus="true">
+                <form method="get" class="tab active" data-search="" action="{% url api:criteria:read %}">
+                    <input id="search" class="search" type="input" name="q" results="0"
+                        placeholder="Search..." autofocus="true">
                 </form>
-                <div id="categories" data-uri="{% url api:categories:read %}"></div>         
+
+                {% for category in categories %}
+                    <span id="tab-{{ category.name|lower }}" class="tab" data-search="{{ category.name|lower }}">{{ category.name }}</span>
+                {% endfor %}
                 {% endspaceless %}
             </div>
         
             <div id="center-pane" class="clearfix">
-                <div id="criteria"></div>
+                <div id="criteria">
+                    {% for criterion in criteria %}
+                        <div data-id="{{ criterion.id }}" data-model="criterion" data-uri="{{ criterion.uri }}">
+                            <span>{{ criterion.name }}</span>
+                            <p class="ht mg">{{ criterion.description }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+
                 {# The "option-detail" panel displays information about a particular query option and the means #}
                 {# to interact with it.  #}
                 <div id="plugin-panel" class="container">

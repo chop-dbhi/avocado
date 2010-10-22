@@ -87,6 +87,19 @@
     color: #666;
 }
 
+#report .content {
+    overflow: auto;
+}
+
+#report .content::-webkit-scrollbar {
+    height: 1ex;
+}
+
+#report .content::-webkit-scrollbar-thumb:horizontal {
+    background: rgba(0, 0, 0, 0.2);
+    -webkit-border-radius: 1ex;
+}
+
 #search-dialog {
     display: none; /* for jquery ui dialog */
     overflow: auto;

@@ -6,66 +6,31 @@ require.def('define/search',
         function init() {
 
             var content = $('#content'),
-                categories = $('#categories'),
+                tabs = $('#tabs'),
                 searchInput = $('#search'),
                 searchForm = $('#search-panel form'),
                 pluginPanel = $('#plugin-panel'),
-
-                criteria = $('#criteria');
-
-            /*
-            ** Initialize renderers for the available criterion options
-            ** and the categories.
-            */
-            var rnd = {
-                criteria: new renderer.template({
-                    target: criteria,
-                    template: templates.criteria,
-                    bindData: true
-                }),
-                categories: new renderer.template({
-                    target: categories,
-                    template: templates.categories
-                })
-            };
+                criteria = $('#criteria').children();
 
             /*
-            ** Initialize data sources for the available criterion options
-            ** and the categories.
-            */
-            var src = {
-                criteria: new datasource.ajax({
-                    uri: searchForm.attr('action'),
-                    success: function(json) {
-                        rnd.criteria.render(json);
-                    }
-                }),
-                categories: new datasource.ajax({
-                    uri: categories.attr('data-uri'),
-                    success: function(json) {
-                        rnd.categories.render(json);
-                    }
-                })
-            };
-
-            // make initial request
-            src.criteria.get();
-            src.categories.get();
-
+             * Manages the tabs and keeps them in sync with the content area
+             * based on the users interactions.
+             */
             content.bind('activate-tab', function(evt) {
-                // remove ``active`` class from all *tabs*
-                var target = $(evt.target);
+                var target = $(evt.target),
+                    value = target.attr('data-search');
 
-                categories.children().removeClass('active');
-                searchForm.removeClass('active');
+                if (target.is('form'))
+                    value = searchInput.val();
 
-                target.addClass('active');
+                // activate target, deactivate other tabs
+                target.addClass('active')
+                    .siblings().removeClass('active');
 
-                content.active_tab = target; 
+                content.activetab = target; 
                 
                 // check to see if a ``concept_id`` exists for this tab.
                 // attempt to show the concept is so.
-
                 var id = target.data('concept_id');
 
                 if (id) {
@@ -75,39 +40,42 @@ require.def('define/search',
                     pluginPanel.hide();
                 }
 
+                // triggers a canned search based on the object's search
+                // term is provides. the ``true`` tells the search to cache
+                // the results
+                searchInput.trigger('search', [value, true]);
+
                 return false;
             });
             
-            categories.delegate('[data-model=category]', 'click', function(evt) {
-                var target = $(this),
-                    value = target.attr('data-search-term');
-
-                // trigger events
-                searchInput.trigger('search', value);
-                target.trigger('activate-tab');
+            /*
+             * Bind the click event for tabs to activate them.
+             */
+            tabs.delegate('.tab', 'click', function(evt) {
+                $(this).trigger('activate-tab');
                 return false;
             });            
 
             /*
-             * handles taking a criterion id and set it as an attribute on the
-             * active tab.
+             * Binds the focus event for the search input to handle
+             * keyboard tabbing.
+             */
+            searchInput.bind('focus', function(evt) {
+                searchForm.trigger('activate-tab');
+            }).focus();
+
+            /*
+             * Handles setting the criterion id currently in view for a
+             * particular tab. This is to ensure once the user comes back
+             * to the tab, the expected criterion will be shown.
              */
             content.bind('setid-tab', function(evt, id) {
-                content.active_tab.data('concept_id', parseInt(id));
+                content.activetab.data('concept_id', parseInt(id));
                 return false;
             });
 
-            searchInput.bind('focus', function(evt) {
-                searchForm.trigger('activate-tab');
-                searchInput.trigger('search', searchInput.val());
-            }).focus();
-
-            searchForm.bind('click', function(evt) {
-                searchInput.focus();
-            });
-
             /*
-             * the search acts on all criteria that is present for the user.
+             * The search acts on all criteria that is present for the user.
              * each search returns a list of ids that can be used to filter
              * down the list of criteria. the server hit is necessary to
              * utilize the database fulltext search, but it is uneccesary to
@@ -115,13 +83,12 @@ require.def('define/search',
              */
             searchInput.autocomplete({
                 success: function(value, json) {
-                    var objs = $('[data-model=criterion]', criteria).removeClass('inview');
-                    for (var i = 0; i < json.length; i++) {
-                        objs.jdata('id', json[i]).addClass('inview');
-                    }
+                    criteria.addClass('hd');
+                    for (var i = 0; i < json.length; i++)
+                        criteria.filter('[data-id='+json[i]+']').removeClass('hd'); 
                     return false;
                 }
-            }, null, 200);
+            }, null, 50);
             
 
 

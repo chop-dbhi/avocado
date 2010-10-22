@@ -55,21 +55,17 @@
  * Panels - components within the panes
  */
 
-#search-panel {
+#tabs {
     font-size: 13px;
     text-shadow: #fff 1px 1px 0;
 }
 
-#search-panel input {
+#tabs input {
     width: 105px;
     -moz-width: 101px;
 }
 
-#categories {
-    display: inline-block;
-}
-
-#categories > *, #search-panel form {
+#tabs > * {
     vertical-align: top;    
     color: #999;
     height: 16px;
@@ -85,17 +81,17 @@
     -moz-box-shadow: inset #eee 0 -5px 10px;
 }
 
-#search-panel form {
+#tabs form {
     color: #333;
     border-left: none;    
 }
 
-#categories > :hover {
+#tabs > :hover {
     color: #333;
     cursor: pointer;
 }
 
-#categories > .active, #search-panel form.active {
+#tabs > .active {
     color: #005DAA;
     border-bottom-color: #fff;
     text-shadow: none;
@@ -124,12 +120,11 @@
     -webkit-border-radius: 1ex;
 }
 
-#criteria > div {
-    display: none;
+#criteria > * {
     padding: 10px;
     border-right: 1px solid #ccc;
     border-left: 1px solid #ccc;
-    border-top: 1px dotted #999;
+    border-top: 1px solid #ccc;
     cursor: pointer;
     background-color: #eee;
     box-shadow: inset 0 0 8px #ddd;
@@ -137,28 +132,26 @@
     -moz-box-shadow: inset 0 0 8px #ddd;
 }
 
-#criteria > div.inview {
-    display: block;
-}
-
-#criteria > div.inview:first-child {
-    margin-top: 0;
-    border-top: 1px solid #ccc;
+#criteria > :first-child {
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
     -webkit-border-top-left-radius: 5px;
     -webkit-border-top-right-radius: 5px;
     -moz-border-radius-topleft: 5px;
     -moz-border-radius-topright: 5px;   
 }
 
-#criteria > div.inview:last-child {
+#criteria > :last-child {
     border-bottom: 1px solid #ccc;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
     -webkit-border-bottom-left-radius: 5px;
     -webkit-border-bottom-right-radius: 5px;
     -moz-border-radius-bottomleft: 5px;
     -moz-border-radius-bottomright: 5px;
 }
 
-#criteria > div:hover {
+#criteria > :hover {
     color: #fff;
     background-color: #1A4C97;
     text-shadow: #000 -1px 1px 0;
@@ -168,7 +161,7 @@
     -moz-box-shadow: inset 0 0 10px #0C264E;
 }
 
-#criteria > div.active {
+#criteria > .active {
     color: #fff;
     background-color: #1A4C97;
     text-shadow: #000 -1px 1px 0;
