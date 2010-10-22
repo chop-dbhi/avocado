@@ -53,7 +53,7 @@ class Column(Concept, ColumnMixin):
         return orders
 
 class ColumnField(ConceptField):
-    concept = models.ForeignKey(Column)
+    concept = models.ForeignKey(Column, related_name='conceptfields')
     field = models.ForeignKey(Field, limit_choices_to={'is_public': True})
 
     class Meta(ConceptField.Meta):

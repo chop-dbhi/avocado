@@ -178,6 +178,10 @@
     background: transparent url(../img/icons/i.png) no-repeat center;
 }
 
+#criteria > div > .description {
+    display: none;
+}
+
 #criteria > div.active {
     color: #fff;
     background-color: #1A4C97;

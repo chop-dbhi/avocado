@@ -171,7 +171,7 @@ require(['define/search', 'define/conceptmanager', 'define/criteriamanager'], fu
             var target = $(this).parent(),
                 offset = target.offset(),
                 width = target.outerWidth(),
-                description = target.children('p').html();                
+                description = target.children('.description').html();
 
             descriptionBox.html(description);
             descriptionBox.css({

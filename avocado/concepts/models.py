@@ -42,24 +42,32 @@ class Concept(models.Model):
 
     def full_description(self):
         if self.description:
-            return self.description
+            fields = [{'name': self.name, 'description': self.description}]
+        else:
+            fields = list(self.conceptfields.select_related('field').values('name',
+                'field__name', 'field__description').exclude(field__description=None))
 
-        fields = list(self.fields.values('name', 'description')\
-            .exclude(description=None))
+            for x in fields:
+                if x['name'] is None:
+                    x['name'] = x.pop('field__name')
+                x['description'] = x.pop('field__description')
 
-        # don't bother with the template if only one field qualifies
-        if len(fields) == 1:
-            return fields[0]['description']
+            # edge case when pretty field names are not set
+            if len(fields) == 1:
+                fields[0]['name'] = self.name
 
+        c = Context({'fields': fields})
         t = Template("""
+            {% load markup %}
             {% for field in fields %}
-                <strong>{{ field.name }}</strong> - {{ field.description }}
+                <strong>{{ field.name }}</strong>
+                {{ field.description|markdown }}
             {% endfor %}
             """)
-        c = Context({'name': self.name, 'fields': fields})
         return t.render(c).strip()
 
 class ConceptField(models.Model):
+    name = models.CharField(max_length=100, null=True, blank=True)
     order = models.FloatField(default=0)
 
     class Meta(object):
