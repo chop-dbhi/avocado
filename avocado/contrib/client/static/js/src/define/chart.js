@@ -216,7 +216,12 @@ require.def('define/chart', ['define/form', 'lib/highcharts'], function(form) {
         });
          
         $chartDiv.bind("UpdateDSEvent", function(evt, ds){
-             selected = ds[concept_id+  "_"+view.data.pk] || [];
+             selected = ds[concept_id+  "_"+view.data.pk];
+             if (selected === undefined){
+                 selected = [];
+             } else if (!(selected instanceof Array)){
+                   selected = [selected];
+             }
              negated = ds[concept_id + "_"+view.data.pk + "_operator"] === "-in";
              $range_form.triggerHandler(evt,[ds]);
         });
@@ -472,8 +477,13 @@ require.def('define/chart', ['define/form', 'lib/highcharts'], function(form) {
          });
          
          $chartDiv.bind("UpdateDSEvent", function(evt, ds){
-            selected =  ds[concept_id+"_"+view.data.pk] || [];
-
+            selected = ds[concept_id+  "_"+view.data.pk];
+            if (selected === undefined){
+                selected = [];
+            } else if (!(selected instanceof Array)){
+                  selected = [selected];
+            }
+            
             negated = ds[concept_id + "_"+view.data.pk + "_operator"] === "-in";
             $range_form.triggerHandler(evt,[ds]);
          });

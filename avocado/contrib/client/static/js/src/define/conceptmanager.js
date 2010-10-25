@@ -94,7 +94,7 @@ require.def(
             
             
             // Map used to convert array operators for the null boolean type;
-            var nb_plural_to_singular_map = {"in":"exact", "-in":"-exact"};
+            var nb_plural_to_singular_map = {"in":"exact", "-in":"-exact", "exact":"exact","-exact":"-exact"};
             var nb_singular_to_plural_map = {"exact":"in", "-exact":"-in"};
             
             var s_to_primative_map = {"true":true, "false":false, "null":null};
@@ -281,7 +281,9 @@ require.def(
                         // nullbooleans need to have an OR'd query specifically construct for them
                         // because they cannot use the IN operator.
                         field.op = field.op !== undefined ? field.op : "in";
-                        switch (getDataType(field_id)) {
+                        var datatype = getDataType(field_id);
+                        switch (datatype) {
+                            case "boolean"     :
                             case "nullboolean" : var bool_list = [];
                                                  var op = nb_plural_to_singular_map[field.op];
                                                  $.each(field.val0, function(index,item){
@@ -291,7 +293,7 @@ require.def(
                                                              // In case a plugin gave us strings for null, true or false, fix it
                                                              'value' : s_to_primative_map[item] !== undefined? s_to_primative_map[item]:item,
                                                              'concept_id': activeConcept,
-                                                             'datatype':'nullboolean'
+                                                             'datatype':datatype
                                                         });
                                                  });
                                                  if (bool_list.length > 1){
@@ -305,10 +307,10 @@ require.def(
                                                 }
                                                 break;
                                      default  :  nodes.push({
-                                                    'operator' : field.op,
-                                                    'id' : field_id,
-                                                    'value' : field.val0,
-                                                    'concept_id': activeConcept
+                                                        'operator' : field.op,
+                                                        'id' : field_id,
+                                                        'value' : field.val0,
+                                                        'concept_id': activeConcept
                                                  });
                                                  break;
                         }
@@ -343,8 +345,9 @@ require.def(
                                          'concept_id':activeConcept
                                    };
                 }
+                console.log(server_query);
                 return (server_query);
-            };
+            }
 
              /**
                This function takes an avocado query datastructure and 
@@ -389,8 +392,8 @@ require.def(
                                    ds[field_prefix] = [ds[field_prefix]];
                                    ds[field_prefix].push(parameter.value);
                                }
-                            }else if (parameter.datatype==="nullboolean"){
-                               ds[field_prefix] = [parameter.value];
+                            //  else if (parameter.datatype && parameter.datatype.indexOf("boolean")>=0){
+                            //   ds[field_prefix] = [parameter.value];
                             } else {
                                // Operators containing null do not actually take a value, and in the scenario where
                                // a value is there, it was manufactured for the backend, and must be ignored 
@@ -398,7 +401,7 @@ require.def(
                             }
                         }
                      }
-                     ds[field_prefix+"_"+"operator"] = ds[field_prefix] instanceof Array && parameter.datatype === "nullboolean" ? 
+                     ds[field_prefix+"_"+"operator"] = ds[field_prefix] instanceof Array && parameter.datatype && parameter.datatype.indexOf("boolean")>=0 ? 
                                                        nb_singular_to_plural_map[parameter.operator] : parameter.operator;
                                                        
                      
@@ -564,10 +567,29 @@ require.def(
             */
 
             function postViewErrorCheck(ds){
+                var empty = false;
                 // Is the datasource an empty object?
                 if ($.isEmptyObject(ds)) {
-                    return false;
+                    empty = true;
+                }else{
+                    // Is the datasource empty except for operators?
+                    empty = true
+                    for (var key in ds){
+                        if (!ds.hasOwnProperty(key)) continue;
+                        // Note, the null operators can stand on their own.
+                        if (opRe.test(key)){
+                            if(ds[key] && ds[key].indexOf("isnull") >= 0){
+                                empty = false;
+                                break;
+                            }
+                        } else if (pkChoiceRe.test(key) || fieldRe.test(key) || binaryFieldRe.test(key)){
+                            empty = false;
+                            break;
+                        }
+                    }
                 }
+                if (empty) return false;
+                
                 for (var key in ds){
                     if (!ds.hasOwnProperty(key)) continue;
                     
@@ -858,6 +880,7 @@ require.def(
                     // populate the datasource
                     if (concept.query) {
                         concept.ds = createDSFromQuery(concept.query);
+                        console.log(concept.ds);
                     }else{
                         // create empty datasource
                         concept.ds = {};

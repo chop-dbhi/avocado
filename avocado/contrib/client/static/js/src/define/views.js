@@ -44,7 +44,7 @@ require.def('define/views',  ['define/chart','define/form'], function(chart, for
                     var location = undefined; //Modernizr.svg ? undefined : $contentBox;
                     if (datatype === 'number') {
                         $view.append(chart.getLineChart(element, view.concept_id, location)); 
-                    } else if (datatype === 'nullboolean'){
+                    } else if (datatype === 'nullboolean' || datatype === 'boolean'){
                         $view.append(chart.getPieChart(element,  view.concept_id, location));
                     } else{
                         $view.append(chart.getBarChart(element,  view.concept_id, location));
