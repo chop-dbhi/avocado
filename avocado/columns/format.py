@@ -143,11 +143,16 @@ class FormatterLibrary(Library):
         for fname, nargs in rules:
             args = seq[n:n+nargs]
 
-            try:
-                obj = formatters[fname]
-                tok = obj(ftype, *args)
-            except Exception:
-                tok = error
+            # if the formatter expects one argument, but it is None,
+            # skip the formatting and default to None.
+            if len(args) == 1 and args[0] is None:
+                tok = None
+            else:
+                try:
+                    obj = formatters[fname]
+                    tok = obj(ftype, *args)
+                except Exception:
+                    tok = error
 
             if ins(tok):
                 tok = list(tok)
