@@ -5,33 +5,11 @@
 {% block styles %}
     {{ block.super }}
     <link rel="stylesheet" href="{{ CLIENT_MEDIA_URL }}css/define.css">
-    <link rel="stylesheet" href="{{ CLIENT_MEDIA_URL }}css/define-ie7fix.css">
 {% endblock %}
 
 {% block scripts %}
     {{ block.super }}
     <script>require(['sanitizer', 'extensions', 'define/main']);</script>
-{% endblock %}
-
-{% block tools %}
-    {# <button id="patient-set" data-for='#patient-set-menu'>Patient Cohorts</button> #}
-    {# <button id="scope" data-for='#scope-menu'>Questions</button> #}
-{% endblock %}
-
-{% block tool_menus %}
-    {# <div id="patient-set-menu"> #}
-    {#     <ul> #}
-    {#         <li>Patient Set 1</li> #}
-    {#         <li>Patient Set 2</li> #}
-    {#     </ul> #}
-    {# </div> #}
-    {#  #}
-    {# <div id="scope-menu"> #}
-    {#     <form method="get" action="{% url api:scope:read %}"> #}
-    {#         <input type="search" results="0" placeholder="Search questions..."> #}
-    {#     </form> #}
-    {#     <a class="ht" href="#">Save current question</a> #}
-    {# </div> #}
 {% endblock %}
 
 {% block content %}
@@ -58,7 +36,7 @@
                     {% for criterion in criteria %}
                         <div data-id="{{ criterion.id }}" data-model="criterion" data-uri="{{ criterion.uri }}">
                             <span class="name">{{ criterion.name }}</span>
-                            <span class="info"></span>
+                            <span class="iconic info"></span>
                             <span class="description">{{ criterion.description|safe }}</span>
                         </div>
                     {% endfor %}
@@ -101,7 +79,7 @@
 
             <div class="content">
                 <div id="criteria-list" data-report="{% url report %}"  data-uri="{% url api:criteria:read %}">
-                    <span class="placeholder">Add Condition</span>
+                    <span class="iconic plus"></span> <span class="it mg">Conditions are added here..</span>
                 </div>
             </div>
 

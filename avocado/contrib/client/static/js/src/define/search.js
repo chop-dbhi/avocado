@@ -43,7 +43,7 @@ require.def('define/search',
                 // triggers a canned search based on the object's search
                 // term is provides. the ``true`` tells the search to cache
                 // the results
-                searchInput.trigger('search', [value, true]);
+                searchInput.trigger('search-0', [value, true]);
 
                 return false;
             });

@@ -31,7 +31,7 @@ html{color:#000}body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,code,form,field
 body {
     font-family: "helvetica neue", helvetica, sans-serif;
     font-size: 13px;
-    background: #EEEDEA url(../img/tile.png);
+    background: #EEEDEA url(../img/tile_alt2.png);
 }
 
 a {
@@ -269,6 +269,7 @@ footer a:hover, footer a:active {
 .bt {font-size: 1.2em}
 .hd {display: none}
 .st {font-weight: bold}
+.it {font-style: italic;}
 .in {display: inline}
 .bl {display: block}
 .ib {display: inline-block}
@@ -630,15 +631,4 @@ footer a:hover, footer a:active {
 
 .ui-dialog .ui-dialog-titlebar .ui-dialog-titlebar-close {
     display: none;
-}
-
-.placeholder {
-    color: #999;
-    display: block;
-    border: 1px dashed #ccc;
-    padding: 10px;
-    text-align: center;
-    border-radius: 5px;
-    -webkit-border-radius: 5px;
-    -moz-border-radius: 5px;    
 }

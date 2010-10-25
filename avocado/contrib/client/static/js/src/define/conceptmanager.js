@@ -52,7 +52,7 @@ require.def(
               @type string
             */
             var add_query_tmpl = '<div class="inquery" >Condition added. To update, modify and click "Update Condition"</div>';
-            add_query_tmpl += '<input id="add_to_query" style="float:right" type="button" value="">';
+            add_query_tmpl += '<button id="add_to_query"></button>';
             /**
               Holds the currently viewable/active concept/criterionconcept    
 
@@ -107,7 +107,7 @@ require.def(
                 if ($.inArray(evt.concept_id, concepts_in_query) < 0 ){
                     concepts_in_query.push(parseInt(evt.concept_id));
                     if (activeConcept === parseInt(evt.concept_id)){
-                        $addQueryButton.val("Update Condition");
+                        $addQueryButton.html('<span class="iconic spin"></span> Update Condition');
                         $(".inquery", $staticBox).show();
                     }
                 }
@@ -123,7 +123,7 @@ require.def(
                 if (index >= 0 ){
                     concepts_in_query.splice(index,1);
                     if (activeConcept === parseInt(evt.concept_id)){
-                        $addQueryButton.val("Add Condition");
+                        $addQueryButton.html('<span class="iconic plus"></span> Add Condition');
                           $(".inquery", $staticBox).hide();
                     }
                 }
@@ -808,11 +808,11 @@ require.def(
                 }
                 // Make sure the button for this concept has the correct label
                 if ($.inArray(activeConcept, concepts_in_query) >=0 ) {
-                    $addQueryButton.val("Update Condition");
+                    $addQueryButton.html('<span class="iconic spin"></span> Update Condition');
                     $(".inquery",$staticBox).show();
                     
                 }else{
-                    $addQueryButton.val("Add Condition");
+                    $addQueryButton.html('<span class="iconic plus"></span> Add Condition');
                      $(".inquery",$staticBox).hide();
                 }
                 // Regardless of whether the tabs are visible, load the first view

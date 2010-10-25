@@ -15,7 +15,8 @@ from django.contrib.auth.models import User
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 
-from avocado.contrib.server.api.handlers import CategoryHandler, CriterionHandler
+from avocado.contrib.server.api.handlers import (CategoryHandler,
+    CriterionHandler, ColumnHandler)
 from avocado.contrib.client.utils import get_ip_address
 
 MAX_LOGIN_ATTEMPTS = 10
@@ -128,5 +129,7 @@ def define(request):
 
 @never_cache
 def report(request):
-    return render_to_response('report.html',
-        context_instance=RequestContext(request))
+    columns = ColumnHandler().read(request)
+    return render_to_response('report.html', {
+        'columns': columns,
+    }, context_instance=RequestContext(request))

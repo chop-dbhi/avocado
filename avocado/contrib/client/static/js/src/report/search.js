@@ -131,34 +131,33 @@ require.def(
                 return false;
             });
 
-            var rnd = {
-                columns: new m_renderer.template({
-                    target: columns,
-                    template: m_templates.columns
-                }),
-                active_columns: new m_renderer.template({
-                    target: active_columns,
-                    template: m_templates.active_columns
-                })
-            };
+//            var rnd = {
+//                columns: new m_renderer.template({
+//                    target: columns,
+//                    template: m_templates.columns
+//                }),
+//                active_columns: new m_renderer.template({
+//                    target: active_columns,
+//                    template: m_templates.active_columns
+//                })
+//            };
 
             var src = {
-                columns: new m_datasource.ajax({
-                    uri: column_uri,
-                    success: function(json) {
-                        rnd.columns.render(json);
-                        
-                        // only the columns are needed for setting up the list
-                        // of potential 'active columns'
-                        var columns = json.map(function(e) {
-                            return e['columns'];
-                        });
-                        columns = Array.prototype.concat.apply([], columns);
-                        rnd.active_columns.render(columns);
-
-                        src.perspective.get();
-                    }
-                }),
+//                columns: new m_datasource.ajax({
+//                    uri: column_uri,
+//                    success: function(json) {
+//                        rnd.columns.render(json);
+//                        
+//                        // only the columns are needed for setting up the list
+//                        // of potential 'active columns'
+//                        var columns = json.map(function(e) {
+//                            return e['columns'];
+//                        });
+//                        columns = Array.prototype.concat.apply([], columns);
+//                        rnd.active_columns.render(columns);
+//
+//                    }
+//                }),
                 perspective: new m_datasource.ajax({
                     uri: perspective_uri,
                     success: function(json) {
@@ -171,7 +170,39 @@ require.def(
                 }) 
             };
 
-            src.columns.get();
+//            src.columns.get();
+            src.perspective.get();
+
+            // $('#columns li').bind({
+            //     'mouseover': function() {
+            //         var target = $(this);
+            //         target.find('.info').css('display', 'inline-block');
+            //     },
+            //     'mouseout': function() {
+            //         var target = $(this);
+            //         target.find('.info').hide();
+            //     }
+            // });
+
+
+            var descriptionBox = $('<div id="description"></div>')
+                .appendTo('body');
+
+            $('#columns').delegate('.actions > .info', 'mouseover', function() {
+                var target = $(this).closest('li'),
+                    offset = target.offset(),
+                    width = target.outerWidth(),
+                    description = target.children('.description').html();
+
+                descriptionBox.html(description);
+                descriptionBox.css({
+                    left: offset.left + width + 20,
+                    top: offset.top
+                }).show();
+            }).delegate('.actions > .info', 'mouseout', function() {
+                descriptionBox.hide();
+            });
+
 
             searchinput.autocomplete2({
                 success: function(value, json) {

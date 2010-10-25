@@ -130,6 +130,7 @@
     box-shadow: inset 0 0 8px #ddd;
     -webkit-box-shadow: inset 0 0 8px #ddd;
     -moz-box-shadow: inset 0 0 8px #ddd;
+    text-align: right;
 }
 
 #criteria > div:first-child {
@@ -168,14 +169,18 @@
 #criteria > div > .name {
     display: inline-block;
     width: 119px;
-    padding: 3px 0;
+    text-align: left;
 }
 
 #criteria > div > .info {
-    display: none;
-    width: 20px;
-    height: 18px;
-    background: transparent url(../img/icons/i.png) no-repeat center;
+    padding: 0 5px;
+    text-align: center;
+    font-size: 14px;
+    color: #999;
+}
+
+#criteria > div > .info:hover {
+    color: #fff;
 }
 
 #criteria > div > .description {
@@ -264,20 +269,19 @@
  */
 
 .criterion {
+    border: 1px solid #ddd;
     font-size: 12px;
     margin-bottom: 10px;
-    background-color: #FFFEE0;
-    border: 1px solid #ECE670;
     padding: 4px 5px;
     text-shadow: #fff 1px 1px 0;
-    -moz-box-shadow: inset 0 0 10px #FFFE95;
-    -webkit-box-shadow: inset 0 0 10px #FFFE95;
+    border-radius: 3px;
     -moz-border-radius: 3px;
     -webkit-border-radius: 3px;    
     
 }
 
 .criterion:hover, .criterion.selected {
+    border: 1px solid #ECE670;
     background-color: #FFFBB3;    
 }
 
@@ -301,4 +305,8 @@
  
 input.invalid {
      border: 2px solid #F00;
+}
+
+#add_to_query {
+    float: right;
 }

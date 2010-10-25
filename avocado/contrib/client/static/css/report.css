@@ -154,6 +154,7 @@
 #columns {
     margin-top: 10px;
     overflow: auto;
+    text-shadow: #fff 1px 1px 0;
 }
 
 #columns li {
@@ -163,6 +164,7 @@
 
 #active-columns {
     overflow: auto;
+    text-shadow: #fff 1px 1px 0;
 }
 
 #active-columns li {
@@ -181,4 +183,80 @@
 
 #columns li p, #active-columns li p {
     margin: 5px 0 0 0;
+}
+
+#columns li > * {
+    vertical-align: middle;
+}
+
+#columns li > .name, #active-columns li > .name {
+    display: inline-block;
+    width: 240px;
+}
+
+#active-columns li > .name {
+    width: 220px;
+}
+
+.actions {
+    display: inline-block;
+    font-size: 11px;
+    color: #999;
+    text-align: right;
+}
+
+.actions a {
+    color: #999;
+    text-decoration: none;
+}
+
+.actions > * {
+    display: block;
+    margin-top: 3px;
+    text-align: center;
+}
+
+.actions > :first-child {
+    margin-top: 0;
+}
+
+.actions :hover {
+    color: #333;
+}
+
+.actions .info {
+    cursor: default;
+}
+
+.actions .iconic.info {
+    font-size: 14px;
+}
+
+.description {
+    display: none;
+}
+
+#active-columns .actions, #active-columns .actions a {
+    color: #B17431;
+}
+
+#active-columns .actions :hover {
+    color: #333;
+}
+
+#description {
+    padding: 10px;
+    z-index: 5000;
+    position: absolute;
+    display: none;
+    background-color: #fff;
+    border: 3px solid #aaa;
+    width: 300px;
+    white-space: pre-line;
+    box-shadow: #999 0 5px 10px;
+    -webkit-box-shadow: #999 0 5px 10px;
+    -moz-box-shadow: #999 0 5px 10px;
+    border-radius: 5px;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
 }

@@ -13,17 +13,14 @@
 {% endblock %}
 
 {% block navigation %}
-    <li>&larr; <a href="{% url define %}">Refine Conditions</a></li>
+    <li><span class="iconic arrow-left"></span> <a href="{% url define %}">Refine Conditions</a></li>
 {% endblock %}
 
 {% block content %}
     
     <div id="report" class="container" data-uri="{% url api:reports:session:resolve %}">
 
-        <div class="title">
-            Report
-            <button id="resize">Resize</button>
-        </div>
+        <div class="title"><span class="iconic document"></span> Report</div>
 
         <div class="toolbar header">
             <span><span class="count"></span> rows / <span class="unique-count"></span> patients</span>
@@ -35,7 +32,7 @@
                 <option value="50">50</option>
                 <option value="100">100</option>
             </select>
-            <button id="search-button">Show/Hide Columns</button>
+            <button id="search-button"><span class="iconic calendar-alt"></span> Show/Hide Columns</button>
         </div>
 
         <div class="content">
@@ -71,7 +68,26 @@
                 <input id="search" class="search" type="input" name="q" placeholder="Search...">
             </form>
 
-            <div id="columns"></div>
+            <div id="columns">
+                {% for category in columns %} 
+                    <div data-model="category" data-id="{{ category.id }}">
+                        <h4>{{ category.name }} <a class="ht add-all" href="#{{ category.id }}">Add All</a></h4>
+                        <ul>
+                            {% for column in category.columns %}
+
+                                <li class="active" data-model="column" data-id="{{ column.id }}">
+                                    <span class="name">{{ column.name }}</span>
+                                    <span class="actions">
+                                        <a class="add-column" href="#{{ column.id }}"><span class="iconic plus"></span> Add</a>
+                                        <span class="info"><span class="iconic info"></span> Info</span>
+                                    </span>
+                                    <span class="description">{{ column.full_description|safe }}</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endfor %}
+            </div>
         </div>
 
         <div>
@@ -82,7 +98,18 @@
             columns to the desired location and release in the visible drop zone.</p>
 
             <a class="ht st remove-all" href="#">Clear All</a>
-            <ul id="active-columns"></ul>
+            <ul id="active-columns">
+                {% for category in columns %} 
+                    {% for column in category.columns %}
+                        <li data-model="column" data-id="{{ column.id }}">
+                            <span class="name">{{ column.name }}</span>
+                            <span class="actions">
+                                <a class="remove-column" href="#{{ column.id }}"><span class="iconic x"></span> Remove</a>
+                            </span>                            
+                        </li>
+                    {% endfor %}
+                {% endfor %} 
+            </ul>
         </div>
     </div>
 

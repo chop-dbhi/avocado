@@ -152,22 +152,22 @@ require(['define/search', 'define/conceptmanager', 'define/criteriamanager'], fu
             return false;
         });
 
-        $('#criteria > *').bind({
-            'mouseover': function() {
-                var target = $(this);
-                target.find('.info').css('display', 'inline-block');
-            },
-            'mouseout': function() {
-                var target = $(this);
-                target.find('.info').hide();
-            }
-        });
+        // $('#criteria > *').bind({
+        //     'mouseover': function() {
+        //         var target = $(this);
+        //         target.find('.info').css('display', 'inline-block');
+        //     },
+        //     'mouseout': function() {
+        //         var target = $(this);
+        //         target.find('.info').hide();
+        //     }
+        // });
 
 
         var descriptionBox = $('<div id="description"></div>')
             .appendTo('body');
 
-        $('#criteria').delegate('.info', 'mouseover', function() {
+        $('#criteria').delegate('div > .info', 'mouseover', function() {
             var target = $(this).parent(),
                 offset = target.offset(),
                 width = target.outerWidth(),
@@ -178,7 +178,7 @@ require(['define/search', 'define/conceptmanager', 'define/criteriamanager'], fu
                 left: offset.left + width + 20,
                 top: offset.top
             }).show();
-        }).delegate('.info', 'mouseout', function() {
+        }).delegate('div > .info', 'mouseout', function() {
             descriptionBox.hide();
         });
     });
