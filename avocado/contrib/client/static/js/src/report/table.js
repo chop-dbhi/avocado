@@ -73,7 +73,7 @@ require.def(
 
             report.bind('resize-report', function(evt) {
                 var table = $('#table'),
-                    minWidth = 850,
+                    minWidth = 900,
                     rInnerWidth = report.innerWidth(),
                     tOuterWidth = table.outerWidth(true)+20; // padding is not usable
 

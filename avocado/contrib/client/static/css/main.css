@@ -287,19 +287,17 @@ footer a:hover, footer a:active {
 .warning {
     color: #653400;
     font-size: 11px;
-	background: #F8F7A9 url(../img/icons/warning.png) no-repeat 10px;
+	background-color: #F8F7A9;
 	border: 1px solid #ECE678;
-	padding: 5px 10px 5px 31px;
-	margin: 5px 0 15px 0;
+	margin: 5px 0;
 	text-shadow: #fff 1px 1px 0;
 }
 
 .success {
     color: #002E24;
     font-size: 11px;
-	background: #E3FFD8 url(../img/icons/success.png) no-repeat 10px;
+	background-color: #E3FFD8;
 	border: 1px solid #CDF0D5;
-	padding: 5px 10px 5px 31px;
 	margin: 5px 0; 
     text-shadow: #fff 1px 1px 0;
 }
@@ -307,32 +305,31 @@ footer a:hover, footer a:active {
 .error {
     color: #500700;
 	font-size: 11px;
-	background: #FFD3D9 url(../img/icons/error.png) no-repeat 10px;
+	background-color: #FFD3D9;
 	border: 1px solid #EEB9C6;
-	padding: 5px 10px 5px 31px;
 	margin: 5px 0;
     text-shadow: #fff 1px 1px 0;
 }
 
-.warning-no-back {
-    color: #653400;
-    font-size: 11px;
-	background: transparent url(../img/icons/warning.png) no-repeat 0;
-	padding-left: 21px;
+.warning-icon {
+	background-image: url(../img/icons/warning.png);
+    background-repeat: no-repeat;
+    background-position: 5px;
+	padding: 5px 5px 5px 31px;
 }
 
-.success-no-back {
-    color: #002E24;
-    font-size: 11px;
-	background: transparent url(../img/icons/success.png) no-repeat 0;
-	padding-left: 21px;
+.success-icon {
+	background-image: url(../img/icons/success.png);
+    background-repeat: no-repeat;
+    background-position: 5px;
+	padding: 5px 5px 5px 31px;
 }
 
-.error-no-back {
-    color: #500700;
-    font-size: 11px;
-	background: transparent url(../img/icons/error.png) no-repeat 0;
-	padding-left: 21px;    
+.error-icon {
+	background-image: url(../img/icons/error.png);
+    background-repeat: no-repeat;
+    background-position: 5px;
+	padding: 5px 5px 5px 31px;
 }
 
 /*
@@ -358,11 +355,6 @@ footer a:hover, footer a:active {
 	background-color: #FFF9B9;
     text-align: center;
     border-bottom: #F0E575 1px solid;
-}
-
-.format-error {
-    color: #4B0003;
-    background-color: #FFE8F1;
 }
 
 /*
