@@ -35,13 +35,13 @@ class Column(Concept, ColumnMixin):
             self._rules[ftype] = (fmtr, len(self.fields.all()))
         return self._rules[ftype]
 
-    def add_fields_to_queryset(self, queryset, using=DEFAULT_MODELTREE_ALIAS):
+    def add_fields_to_queryset(self, queryset, using=DEFAULT_MODELTREE_ALIAS, **kwargs):
         modeltree = trees[using]
 
         fields = self.fields.all()
         aliases = []
         for f in fields:
-            queryset = modeltree.add_joins(f.model, queryset)
+            queryset = modeltree.add_joins(f.model, queryset, **kwargs)
             aliases.append((f.model._meta.db_table, f.field_name))
         return (queryset, aliases)
 

@@ -500,14 +500,14 @@ class ModelTree(object):
                 connections.extend(node.join_connections[1:])
         return connections
 
-    def add_joins(self, model, queryset):
+    def add_joins(self, model, queryset, **kwargs):
         model = self._get_model(model)
 
         clone = queryset._clone()
         nodes = self.path_to(model)
         conns = self.get_all_join_connections(nodes)
         for c in conns:
-            clone.query.join(c, promote=True)
+            clone.query.join(c, **kwargs)
         return clone
 
     def print_path(self, node=None, depth=0):
