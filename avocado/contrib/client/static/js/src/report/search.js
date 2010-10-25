@@ -48,7 +48,7 @@ require.def(
 
             searchdialog.bind('addall.column', function(evt, id) {
                 var category = $('[data-model=category][data-id=' + id + ']'),
-                    columns = category.find('li');
+                    columns = category.find('.active:not(.filtered)');
                 
                 category.hide();
                 for (var i=columns.length; i--;)
@@ -87,6 +87,13 @@ require.def(
                 return false;
             });
 
+            searchdialog.bind('removeall.column', function(evt) {
+                for (var id in searchdialog.cache)
+                    searchdialog.trigger('remove.column', [id]);
+
+                return false;
+            });
+
             searchdialog.bind('search.column', function(evt, value) {
                 searchinput.trigger('search', value);
                 return false;
@@ -102,6 +109,27 @@ require.def(
                 return false;
             });
 
+            searchdialog.bind('filter.column', function(evt, id) {
+                map = searchdialog.get(id);
+                map.src.addClass('filtered');
+                var sibs = map.src.siblings('.active:not(.filtered)');
+                if (sibs.length == 0)
+                    map.src.parents('[data-model=category]').hide();
+            });
+
+            searchdialog.bind('filterall.column', function(evt) {
+                var objs = columns.find('[data-model=column]');
+                for (var i = objs.length; i--;)
+                    searchdialog.trigger('filter.column', [$(objs[i]).attr('data-id')]);
+                return false;
+            });
+
+            searchdialog.bind('unfilter.column', function(evt, id) {
+                map = searchdialog.get(id);
+                map.src.removeClass('filtered');
+                map.src.parents('[data-model=category]').show();
+                return false;
+            });
 
             var rnd = {
                 columns: new m_renderer.template({
@@ -145,13 +173,12 @@ require.def(
 
             src.columns.get();
 
-            searchinput.autocomplete({
+            searchinput.autocomplete2({
                 success: function(value, json) {
-                    var objs = $('[data-model=column]', columns).addClass('filtered');
+                    console.log(json);
+                    searchinput.trigger('filterall.column');
                     for (var i = 0; i < json.length; i++)
-                        objs.jdata('id', json[i]).removeClass('filtered');
-
-//                    rnd.criteria.target.html('<em class="ca mg">no results found for term "'+ value +'"</em>');
+                        searchinput.trigger('unfilter.column', [json[i]]);
                 }
             });
 
@@ -170,6 +197,11 @@ require.def(
             active_columns.delegate('.remove-column', 'click', function(evt) {
                 var id = evt.target.hash.substr(1);
                 searchdialog.trigger('remove.column', [id]);
+                return false;
+            });
+
+            searchdialog.delegate('.remove-all', 'click', function(evt) {
+                searchdialog.trigger('removeall.column');
                 return false;
             });
 
@@ -205,7 +237,7 @@ require.def(
                 opacity: 0.5,
                 cursor: 'move',
                 tolerance: 'intersect'
-            });
+            }).disableSelection();
 
             searchbutton.bind('click', function(evt) {
                 searchdialog.dialog('open');

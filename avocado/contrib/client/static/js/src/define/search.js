@@ -81,7 +81,7 @@ require.def('define/search',
              * utilize the database fulltext search, but it is uneccesary to
              * re-render the criteria every time.
              */
-            searchInput.autocomplete({
+            searchInput.autocomplete2({
                 success: function(value, json) {
                     criteria.addClass('hd');
                     for (var i = 0; i < json.length; i++)

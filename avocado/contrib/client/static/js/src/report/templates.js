@@ -71,10 +71,10 @@ require.def(
 
                 '<% if (this.page < this.num_pages) { %>',
                     '<span><a href="#<%= this.page+1 %>">Next</a> &rsaquo;</span>',
-                    '<span><a href="#<%= this.num_pages %>">Last</a> (<%= this.num_pages %>) &raquo;</span>',
+                    '<span><a href="#<%= this.num_pages %>">Last</a> &raquo;</span>',
                 '<% } else { %>',
                     '<span class="inactive">Next &rsaquo;</span>',
-                    '<span class="inactive">Last (<%= this.num_pages %>) &raquo;</span>',
+                    '<span class="inactive">Last &raquo;</span>',
                 '<% } %>'
             
             ].join(''))

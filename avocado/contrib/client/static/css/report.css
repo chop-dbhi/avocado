@@ -69,7 +69,7 @@
 
 
 #report .toolbar > * {
-    margin-right: 20px;
+    margin-right: 15px;
 }
 
 #report .page-links > *, #report .page-links .pages > * {
@@ -171,7 +171,12 @@
 }
 
 #active-columns li.placeholder {
-    border: 1px dashed #aaa;
+    display: block;
+    background-color: #fff;
+    border: 1px dashed #ccc;
+    border-radius: 0;
+    -webkit-border-radius: 0;
+    -moz-border-radius: 0;
 }
 
 #columns li p, #active-columns li p {

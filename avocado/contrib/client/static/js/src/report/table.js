@@ -124,6 +124,7 @@ require.def(
              */
             report.delegate('.per-page', 'change', function(evt) {
                 body.trigger('update.report', {'n': this.value});
+                per_page.val(this.value);
                 return false;
             });
 

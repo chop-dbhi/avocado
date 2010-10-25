@@ -120,7 +120,7 @@ if (!Array.prototype.map) {
         return $(arr);
     };
 
-    $.fn.autocomplete = function(ajax, placeholder, maxTimeout, cacheResp) {
+    $.fn.autocomplete2 = function(ajax, placeholder, maxTimeout, cacheResp) {
         /*
         ** Binds an input[type=text] field with autocomplete-like behavior.
         ** The parameter `ajax' is required and consists of the
@@ -159,7 +159,7 @@ if (!Array.prototype.map) {
 
         ajaxargs.data = {};
         
-        return this.each(function() {
+        return this.each(function(i) {
 
             var input = $(this),
                 form,
@@ -206,9 +206,10 @@ if (!Array.prototype.map) {
                 end();
             };
 
+            var eventName = 'search-' + i;
             
             input.cache = {};
-            input.bind('search', function(evt, value_, cache_) {
+            input.bind(eventName, function(evt, value_, cache_) {
                 cache = cache_ ? true : false;
                 value = value_;
 
@@ -250,7 +251,7 @@ if (!Array.prototype.map) {
             });
 
             input.keyup(function(evt) {
-                input.trigger('search', [this.value]);
+                input.trigger(eventName, [this.value]);
                 return false;
             });
         });

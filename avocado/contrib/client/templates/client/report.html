@@ -9,7 +9,7 @@
 
 {% block scripts %}
     {{ block.super }}
-    <script>require(['extensions', 'report/main']);</script>
+    <script>require(['sanitizer', 'extensions', 'report/main']);</script>
 {% endblock %}
 
 {% block navigation %}
@@ -26,7 +26,7 @@
         </div>
 
         <div class="toolbar header">
-            <span><span class="count"></span> / <span class="unique-count"></span></span>
+            <span><span class="count"></span> rows / <span class="unique-count"></span> patients</span>
             <span class="page-links"></span>
             Per page:
             <select class="per-page">
@@ -46,7 +46,7 @@
         </div>
 
         <div class="toolbar footer">
-            <span><span class="count"></span> / <span class="unique-count"></span></span>
+            <span><span class="count"></span> rows / <span class="unique-count"></span> patients</span>
             <span class="page-links"></span>
             Per page:
             <select class="per-page">
@@ -81,6 +81,7 @@
             displayed (left-right). To change the order simply click and drag any of the
             columns to the desired location and release in the visible drop zone.</p>
 
+            <a class="ht st remove-all" href="#">Clear All</a>
             <ul id="active-columns"></ul>
         </div>
     </div>
