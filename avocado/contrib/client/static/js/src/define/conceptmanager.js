@@ -51,7 +51,7 @@ require.def(
               @private
               @type string
             */
-            var add_query_tmpl = '<div class="inquery" >Condition added. To update, modify and click "Update Condition"</div>';
+            var add_query_tmpl = '<div class="inquery">Condition has been added.</div>';
             add_query_tmpl += '<button id="add_to_query"></button>';
             /**
               Holds the currently viewable/active concept/criterionconcept    
@@ -710,7 +710,7 @@ require.def(
                     });
                 }else{
                     // if not ephemeral, disable the button
-                    $staticBox.find("#add_to_query").attr("disabled","true"); // TODO this is not visibly disabled to the user
+                    $staticBox.find("#add_to_query").attr("disabled","true");
                 }
             }
 
@@ -821,12 +821,12 @@ require.def(
                     
                 }else{
                     // Prepare the static concept box
-                    $addQueryButton = $(add_query_tmpl);
+                    $staticBox.append(add_query_tmpl);
+                    $addQueryButton = $staticBox.find("#add_to_query");
                     $addQueryButton.click(function(){
                          var event = $.Event("UpdateQueryButtonClicked");
                          $(this).trigger(event); 
                     });
-                    $staticBox.append($addQueryButton);
                 }
                 // Make sure the button for this concept has the correct label
                 if ($.inArray(activeConcept, concepts_in_query) >=0 ) {
@@ -880,7 +880,6 @@ require.def(
                     // populate the datasource
                     if (concept.query) {
                         concept.ds = createDSFromQuery(concept.query);
-                        console.log(concept.ds);
                     }else{
                         // create empty datasource
                         concept.ds = {};
