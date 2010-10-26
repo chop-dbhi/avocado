@@ -1,3 +1,5 @@
+import time
+
 from itertools import groupby
 from datetime import datetime
 
@@ -7,19 +9,9 @@ from piston.handler import BaseHandler
 from piston.utils import rc
 
 from avocado.models import Category, Scope, Perspective, Report, Column
+from avocado.contrib.server.utils.types import uni2str
 from avocado.contrib.server.api.models import CriterionProxy
 from avocado.conf import settings
-
-def convert2str(data):
-    "Recursively iterates over a data structure and converts unicode to str"
-    if isinstance(data, unicode):
-        return str(data)
-    elif isinstance(data, dict):
-        return dict(map(convert2str, data.iteritems()))
-    elif isinstance(data, (list, tuple, set, frozenset)):
-        return type(data)(map(convert2str, data))
-    else:
-        return data
 
 class CategoryHandler(BaseHandler):
     allowed_methods = ('GET',)
@@ -127,7 +119,7 @@ class ScopeHandler(BaseHandler):
         # temporary object with the new parameters.
         inst = request.session['report'].scope
 
-        json = convert2str(request.data)
+        json = uni2str(request.data)
 
         # see if the json object is only the ``store``
         if 'children' in json or 'operator' in json:
@@ -201,7 +193,7 @@ class PerspectiveHandler(BaseHandler):
         # temporary object with the new parameters.
         inst = request.session['report'].perspective
 
-        json = convert2str(request.data)
+        json = uni2str(request.data)
 
         # see if the json object is only the ``store``
         if json.has_key('columns') or json.has_key('ordering'):
@@ -290,6 +282,7 @@ class ReportResolverHandler(BaseHandler):
         if not inst.has_permission(user):
             raise rc.FORBIDDEN
 
+        t0 = time.time()
         page_num = request.GET.get('p', None)
         per_page = request.GET.get('n', None)
 
@@ -316,7 +309,6 @@ class ReportResolverHandler(BaseHandler):
         # acts as reference to compare to so the resp can be determined
         old_cache = cache.copy()
 
-        print 'before', old_cache
 
         # test if the cache is still valid, then attempt to fetch the requested
         # page from cache
@@ -357,7 +349,6 @@ class ReportResolverHandler(BaseHandler):
 
             rows = inst.refresh_cache(cache, queryset)
 
-        print 'after', cache
 
         request.session[inst.REPORT_CACHE_KEY] = cache
 
@@ -411,4 +402,5 @@ class ReportResolverHandler(BaseHandler):
                     'num_pages': paginator.num_pages,
                 }
 
+        print time.time() - t0, 'seconds process time'
         return resp
