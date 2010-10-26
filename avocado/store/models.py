@@ -280,13 +280,11 @@ class Report(Descriptor):
     # in it's current implementation, this will try to get the requested
     # page from cache, or re-execute the query and store off the new cache
     def get_page_from_cache(self, cache, buf_size=CACHE_CHUNK_SIZE):
-        print 'getting page from cache'
         paginator, page = self.paginator_and_page(cache, buf_size)
 
         # now we can fetch the data
         if page.in_cache():
             data = dcache.get(cache['datakey'])
-            print 'page data exists:', data is not None
             if data is not None:
                 return page.get_list(pickle.loads(data))
 
@@ -294,7 +292,6 @@ class Report(Descriptor):
         """Does not utilize existing cache if it exists. This is an implied
         cache invalidation mechanism.
         """
-        print 'refreshing cache'
         paginator, page = self.paginator_and_page(cache, buf_size)
 
         queryset = self._set_queryset_offset_limit(queryset, cache['offset'], buf_size)
@@ -323,7 +320,6 @@ class Report(Descriptor):
         """Tries to use cache if it exists, this implies that the cache is still
         valid and a page that is not in cache has been requested.
         """
-        print 'updating cache'
         paginator, page = self.paginator_and_page(cache, buf_size)
 
         # since the page is not in cache new data must be requested, therefore
@@ -341,7 +337,6 @@ class Report(Descriptor):
             data = self._execute_raw_query(queryset)
         else:
             rdata = dcache.get(cache['datakey'])
-            print 'partial data exists:', rdata is not None
             if rdata is None:
                 return self.refresh_cache(cache, queryset, adjust_offset=False,
                     buf_size=buf_size)

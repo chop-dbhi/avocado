@@ -71,7 +71,7 @@ class BufferedPaginator(Paginator):
         "Returns the indices of the first and last pages that are cached."
         # the number of rows per page is greater than we will ever have in
         # the buffer at any given time. we can only provide partial results
-        if not self.object_list or self.buf_size < self.per_page:
+        if self.buf_size < self.per_page:
             # the beginning items are missing.. no good
             if self.offset > 0:
                 return (0, 0)
@@ -147,9 +147,15 @@ class BufferedPage(Page):
     def offset(self):
         return max(self.start_index(), 1) - 1
 
+    def start_index(self):
+        return super(BufferedPage, self).start_index() - self.paginator.offset
+
+    def end_index(self):
+        return super(BufferedPage, self).end_index() - self.paginator.offset
+
     def get_list(self, object_list=None):
         if object_list is not None:
-            s = self.offset()
+            s = self.start_index() - 1
             e = self.end_index()
             return object_list[s:e]
         if self.object_list is not None:
