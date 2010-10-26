@@ -1,8 +1,6 @@
 from django.db import models
 from django.template import Template, Context
 
-from avocado.concepts.managers import ConceptManager
-
 __all__ = ('Category',)
 
 class Category(models.Model):
@@ -30,8 +28,6 @@ class Concept(models.Model):
     # search optimizations
     search_doc = models.TextField(editable=False, null=True)
 
-    objects = ConceptManager()
-
     class Meta(object):
         abstract = True
         app_label = 'avocado'
@@ -50,7 +46,7 @@ class Concept(models.Model):
             for x in fields:
                 if x['name'] is None:
                     x['name'] = x.pop('field__name')
-                x['description'] = x.pop('field__description')
+                x['description'] = x.pop('field__description').strip()
 
             # edge case when pretty field names are not set
             if len(fields) == 1:

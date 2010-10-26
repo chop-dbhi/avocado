@@ -1,9 +1,9 @@
 import re
 
 from django.db import models
+from django.db.models.query import QuerySet
 from django.utils import stopwords
 
-from avocado.fields.models import Field
 from avocado.conf import settings
 
 def _tokenize(search_str):
@@ -20,49 +20,27 @@ def _tokenize(search_str):
 class ConceptManager(models.Manager):
     use_for_related_fields = True
 
-    def public(self):
+    def public(self, sql):
         """Translates to::
 
             'return all concepts which are public, all fields associated with
             them are public and all fields are not part of a group.'
         """
-        ids = []
-        # allowed concepts
-        public_concepts = list(self.get_query_set().filter(is_public=True))
-        # allowed fields
-        public_fields = list(Field.objects.public().values_list('id', flat=True))
-
-        for c in public_concepts:
-            fids = list(c.fields.values_list('id', flat=True))
-            for x in fids:
-                if x not in public_fields:
-                    break
-            else:
-                ids.append(c.id)
-
+        ids = [x.id for x in self.raw(sql)]
         return self.get_query_set().filter(id__in=ids)
 
     if settings.FIELD_GROUP_PERMISSIONS:
-        def restrict_by_group(self, groups):
+        def restrict_by_group(self, sql, groups):
             """Translates to::
 
                 'return all concepts which are public, all fields associated with
                 them are public and all fields per column are either not part of
                 a group or are within any of the groups specified by ``groups``.
             """
-            ids = []
-            # allowed concepts
-            public_concepts = list(self.get_query_set().filter(is_public=True))
-            # allowed fields
-            public_fields = list(Field.objects.restrict_by_group(groups).values_list('id', flat=True))
 
-            for c in public_concepts:
-                fids = list(c.fields.values_list('id', flat=True))
-                for x in fids:
-                    if x not in public_fields:
-                        break
-                else:
-                    ids.append(c.id)
+            if isinstance(groups, QuerySet):
+                groups = groups.order_by().values_list('id', flat=True)
+            ids = [x.id for x in self.raw(sql, params=(tuple(groups),))]
             return self.get_query_set().filter(id__in=ids)
 
     def fulltext_search(self, search_str, base_queryset=None, use_icontains=False):

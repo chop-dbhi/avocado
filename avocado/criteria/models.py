@@ -4,12 +4,15 @@ from django.db import models
 from avocado.concepts.models import Concept, ConceptField
 from avocado.fields.models import Field
 from avocado.criteria.viewset import library
+from avocado.criteria.managers import CriterionManager
 
 __all__ = ('Criterion', 'CriterionField')
 
 class Criterion(Concept):
     fields = models.ManyToManyField(Field, through='CriterionField')
     viewset = models.CharField(max_length=100, choices=library.choices())
+
+    objects = CriterionManager()
 
     class Meta(Concept.Meta):
         verbose_name_plural = 'criteria'

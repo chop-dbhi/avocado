@@ -1,5 +1,3 @@
-import time
-
 from itertools import groupby
 from datetime import datetime
 
@@ -280,9 +278,8 @@ class ReportResolverHandler(BaseHandler):
         user = request.user
 
         if not inst.has_permission(user):
-            raise rc.FORBIDDEN
+            return rc.FORBIDDEN
 
-        t0 = time.time()
         page_num = request.GET.get('p', None)
         per_page = request.GET.get('n', None)
 
@@ -402,5 +399,4 @@ class ReportResolverHandler(BaseHandler):
                     'num_pages': paginator.num_pages,
                 }
 
-        print time.time() - t0, 'seconds process time'
         return resp
