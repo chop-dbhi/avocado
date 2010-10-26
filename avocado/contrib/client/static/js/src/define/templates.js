@@ -10,7 +10,7 @@ require.def(
                                     '<%= this.description %>',
                                 '</a>',
                             '</div>'].join(''),
-            run_query : '<button id="submit-query"><span class="iconic document"></span> Get Report</button>'
+            run_query : '<button id="submit-query"><span class="iconic arrow-right"></span> Get Report</button>'
         };    
     }
 );

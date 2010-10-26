@@ -107,7 +107,7 @@ require.def(
                 if ($.inArray(evt.concept_id, concepts_in_query) < 0 ){
                     concepts_in_query.push(parseInt(evt.concept_id));
                     if (activeConcept === parseInt(evt.concept_id)){
-                        $addQueryButton.html('<span class="iconic spin"></span> Update Condition');
+                        $addQueryButton.html('<span class="iconic arrow-up"></span> Update Condition');
                         $(".inquery", $staticBox).show();
                     }
                 }
@@ -830,7 +830,7 @@ require.def(
                 }
                 // Make sure the button for this concept has the correct label
                 if ($.inArray(activeConcept, concepts_in_query) >=0 ) {
-                    $addQueryButton.html('<span class="iconic spin"></span> Update Condition');
+                    $addQueryButton.html('<span class="iconic arrow-up"></span> Update Condition');
                     $(".inquery",$staticBox).show();
                     
                 }else{
