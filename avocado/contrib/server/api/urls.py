@@ -1,5 +1,5 @@
 from django.conf.urls.defaults import *
-from django.views.decorators.cache import never_cache
+from django.views.decorators.cache import never_cache, cache_page
 from piston.resource import Resource
 
 from avocado.contrib.server.api.handlers import (CriterionHandler, ColumnHandler,
@@ -8,9 +8,8 @@ from avocado.contrib.server.api.handlers import (CriterionHandler, ColumnHandler
 
 criterion =  Resource(CriterionHandler)
 column = Resource(ColumnHandler)
-category =  Resource(CategoryHandler)
+category =  cache_page(Resource(CategoryHandler), 60*60*24*30)
 
-# not yet exposed...
 scope =  never_cache(Resource(ScopeHandler))
 perspective = never_cache(Resource(PerspectiveHandler))
 report = never_cache(Resource(ReportHandler))
