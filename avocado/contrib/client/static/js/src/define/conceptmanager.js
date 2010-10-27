@@ -274,7 +274,7 @@ require.def(
                                         'concept_id': activeConcept,
                                         'datatype': getDataType(field_id)
                                     });
-                    } else if (field.val0!==undefined && field.val0 instanceof Array){ // String choice, or nullboolean
+                    } else if (field.val0!==undefined && field.val0 instanceof Array){ // String choice, or nullboolean, or was string-list, which is an array
                         // if field.op is null, assume the query was the default, which is "in"
                         // this one is a bit special, there is no avoiding that in this situation
                         // we could be dealing with a string "choice" option, or a nullboolean

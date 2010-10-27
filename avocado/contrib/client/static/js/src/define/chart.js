@@ -578,7 +578,8 @@ require.def('define/chart', ['define/form', 'lib/highcharts'], function(form) {
                text: view.data.title
             },
             xAxis: {
-                min:0,
+                maxPadding:.05,
+                startOnTick:false,
                 title: {
                     text: view.data.xaxis
                 },
@@ -588,7 +589,7 @@ require.def('define/chart', ['define/form', 'lib/highcharts'], function(form) {
                 }
             },
             yAxis: {
-                min:0,
+                min:0, 
                 title: {
                    style: {
                        fontWeight: 'bold'

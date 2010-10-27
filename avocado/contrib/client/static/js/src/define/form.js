@@ -36,11 +36,11 @@ require.def('define/form', [], {
           // <concept id>_tbd
           
           // A little bit about nullboolean vs boolean:
-          // boolean's can be represented two ways (and neither way can be charted)
+          // boolean's can be represented two ways 
           // Optional booleans have to be single select dropdowns with a blank option so 
-          // the user can in fact not select it.
-          // Required booleans are a checkbox.
-          // nullbooleans can be charted as pie charts, or they can be displayed as a multi-select boxes,
+          // the user can choose to not select it.
+          // Required booleans are a checkbox. They can also be displayed as a pie chart.
+          // nullbooleans can also be charted as pie charts, or they can be displayed as a multi-select boxes,
           // however they have an additional caveat. While they appear to be a "CHOICE" , in sql you cannot
           // actually use booleans with the IN operator, so for this datatype, we have to generate a more complex query
           // where it would be ITEM = TRUE or ITEM = null, etc.
@@ -78,8 +78,7 @@ require.def('define/form', [], {
                                             '<input data-validate="decimal" id="<%=this.field_id%>_input1" type="text" name="<%=this.field_id%>_input1" size="5">',
                                             '</span>'];
                                    break;
-                 case 'string'    : input = [ 
-                                              '<% if (this.choices) {%>',
+                 case 'string'    : input = [ '<% if (this.choices) {%>',
                                                     '<label for="<%=this.field_id%>"><%=this.label%></label>', // No defaults for this type, doesn't make sense
                                                      '<select id="<%=this.field_id%>-operator" name="<%=this.field_id%>_operator">',
                                                         choiceOperatorsTmpl,
@@ -94,10 +93,17 @@ require.def('define/form', [], {
                                                    '<select id="<%=this.field_id%>-operator" name="<%=this.field_id%>_operator">',
                                                         freeTextOperatorsTmpl,
                                                    '</select>',
-                                                  '<input data-optional="<%=this.optional%> type="text" id="<%=this.field_id%>_text" name="<%=this.field_id%>" size = "10">',
-                                              '<%}%>'
-                                            ];
+                                                  '<input data-optional="<%=this.optional%>" type="text" id="<%=this.field_id%>_text" name="<%=this.field_id%>" size = "10">',
+                                              '<%}%>'];
                                     break;
+                 case 'string-list' : input =  [ '<label for="<%=this.field_id%>"><%=this.label%></label>', // No defaults for this type, doesn't make sense
+                                                 '<select id="<%=this.field_id%>-operator" name="<%=this.field_id%>_operator">',
+                                                  choiceOperatorsTmpl,
+                                                  '</select>',
+                                                  '<textarea data-optional="<%=this.optional%>" id="<%=this.field_id%>_text" name="<%=this.field_id%>" rows="8" cols="25"></textarea>',
+                                               ];
+                                      break;
+                                               
                }
                
                
@@ -166,7 +172,7 @@ require.def('define/form', [], {
          });
          
          // Trigger an event when anything changes
-         $("input,select",$form).bind('change keyup', function(evt){
+         $("input,select,textarea",$form).bind('change keyup', function(evt){
             var $target = $(evt.target);
             var sendValue;
             switch (evt.target.type){
@@ -222,22 +228,26 @@ require.def('define/form', [], {
                                              sendValue = $target.is(":visible") && $target.is(":enabled") ? sendValue: null;
                                              $form.trigger("ElementChangedEvent", [{name:evt.target.name, value:sendValue}]);
                                              break;
+                    case "textarea": sendValue = $target.is(":visible") && $target.is(":enabled") ? $target.val().split("\n") : null;
+                                     $form.trigger("ElementChangedEvent", [{name:evt.target.name,value:sendValue}]);
+                                     break;
                     default   : // This catches input boxes, if input boxes are not currently visible, send null for them
                                 // Input boxes require an extra validation step because of the free form input
-                                
+                         
                                 var associated_operator = $(evt.target).closest("p").find("select").val();
                                 var name_prefix = evt.target.name.substr(0,evt.target.name.length-1);
-                                var $input1 = $("input[name="+name_prefix+"0]",$form);
-                                var $input2 = $("input[name="+name_prefix+"1]",$form);
-                                var value1 = parseFloat($input1.val());
-                                var value2 = parseFloat($input2.val());
-                                
+       
                                 // This one is a little tricky because it matters not just that the fields map to valid numbers
                                 // but that in the case of a range style operator, the two numbers are sequential, and finally
                                 // if fields have become hidden due to a change in operator, we no longer want to list that something
                                 // is wrong with the field even if there is (because it doesn't matter)
                                 switch ($target.attr('data-validate')){
-                                    case "decimal": if ($target.is(":visible") && isNaN(Number($target.val()))) {
+                                    case "decimal": 
+                                                    var $input1 = $("input[name="+name_prefix+"0]",$form);
+                                                    var $input2 = $("input[name="+name_prefix+"1]",$form);
+                                                    var value1 = parseFloat($input1.val());
+                                                    var value2 = parseFloat($input2.val());
+                                                    if ($target.is(":visible") && isNaN(Number($target.val()))) {
                                                         // Field contains a non-number and is visible
                                                         var input_evt = $.Event("InvalidInputEvent");
                                                         $target.trigger(input_evt);
@@ -279,7 +289,7 @@ require.def('define/form', [], {
                  // For example, you cannot set the value of an option tag to a boolean or null
                  // it does not work
                  if ($element.length === 0) return;
-                 var type = $element.attr("type");
+                 var type = $element.attr("type"); // TODO Will this work for textarea in all browsers? I might have to check for nodename
                  switch (type){
                      case "checkbox": $element.attr("checked",element.value);
                                       break;
@@ -293,7 +303,9 @@ require.def('define/form', [], {
                                                       opt.selected = false;
                                                   }
                                               });
-                                              break; 
+                                              break;
+                     case "textarea" : $element.val(element.value.join("\n"));
+                                       break;
                      default:   // inputs and singular selects 
                                 $element.attr("value",typeof element.value in {string:1,number:1}?element.value:String(element.value)); 
                                 break;
