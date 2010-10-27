@@ -40,7 +40,13 @@ class ConceptManager(models.Manager):
 
             if isinstance(groups, QuerySet):
                 groups = groups.order_by().values_list('id', flat=True)
-            ids = [x.id for x in self.raw(sql, params=(tuple(groups),))]
+
+            if len(groups) > 0:
+                raw = self.raw(sql, params=(tuple(groups),))
+            else:
+                raw = self.raw(sql)
+            ids = [x.id for x in raw]
+
             return self.get_query_set().filter(id__in=ids)
 
     def fulltext_search(self, search_str, base_queryset=None, use_icontains=False):
