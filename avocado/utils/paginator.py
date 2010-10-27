@@ -147,16 +147,10 @@ class BufferedPage(Page):
     def offset(self):
         return max(self.start_index(), 1) - 1
 
-    def start_index(self):
-        return super(BufferedPage, self).start_index() - self.paginator.offset
-
-    def end_index(self):
-        return super(BufferedPage, self).end_index() - self.paginator.offset
-
     def get_list(self, object_list=None):
         if object_list is not None:
-            s = self.start_index() - 1
-            e = self.end_index()
+            s = self.start_index() - self.paginator.offset - 1
+            e = self.end_index() - self.paginator.offset
             return object_list[s:e]
         if self.object_list is not None:
             return self.object_list
