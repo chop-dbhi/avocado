@@ -18,6 +18,11 @@ class CriterionManager(ConceptManager):
 
     if settings.FIELD_GROUP_PERMISSIONS:
         def restrict_by_group(self, groups):
+            if len(groups) > 0:
+                snp = 'AND U2.group_id not in %s'
+            else:
+                snp = ''
+
             sql = """
             SELECT id
                 FROM avocado_criterion
@@ -28,7 +33,8 @@ class CriterionManager(ConceptManager):
                                 INNER JOIN avocado_criterionfield U1 ON (U0.id = U1.concept_id)
                                 INNER JOIN avocado_field U2 ON (U1.field_id = U2.id)
                             WHERE (U2.is_public = false
-                                OR (U2.group_id is not NULL AND U2.group_id not in %s)))
-            """
+                                OR (U2.group_id is not NULL %s)))
+            """ % snp
+
             return super(CriterionManager, self).restrict_by_group(sql, groups)
 
