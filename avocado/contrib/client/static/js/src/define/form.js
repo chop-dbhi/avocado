@@ -2,6 +2,8 @@ require.def('define/form', [], {
     
     Form : function(view, concept_pk){
           var s_to_primative_map = {"true":true, "false":false, "null":null};
+          var opRe = /^(\d*)_(\d+(?:OR\d+)*)_operator$/;
+          
           var $form = $('<span class="form_container"></span>');
           var decOperatorsTmpl =  ['<option selected id="<%=this.field_id%>" value="range">is between</option>',
                                    '<option id="<%=this.field_id%>" value="-range">is not between</option>',
@@ -20,8 +22,8 @@ require.def('define/form', [], {
                                      
           var freeTextOperatorsTmpl = ['<option selected value="iexact">is equal to</option>',
                                        '<option value="-iexact">is not equal to</option>',
-                                       '<option value="contains">contains</option>',
-                                       '<option value="-contains">does not contain</option>'].join('');
+                                       '<option value="contains">is one of</option>',
+                                       '<option value="-contains">is not one of</option>'].join('');
            
           // For most cases we use the name attribute to constuct a unique id for all inputs (see field_id in the template context 
           // object below). The format for it is <concept primary key>_<field primary key> with optional "_input[01]" to support datatypes that
@@ -182,28 +184,70 @@ require.def('define/form', [], {
                                     break;
                     case "select-one"      :
                     case "select-multiple" : 
-                    case "select"          : var selected = []; 
-                                              $("option", $(evt.target)).each(function(index,opt){
+                    case "select"          : var selected = [];
+                                             var $associated_input = null;
+                                             // If this is an operator for a free input text box, and the user has 
+                                             // just changed from an equals or not equals to in or not in, we are goin
+                                             // to change the input to be a text-area. Figure out if this an operator 
+                                             // and who the associated input is
+                                             var op_match = opRe.exec($target.attr("name"));
+                                             if (op_match){
+                                                 // Get the associated text input
+                                                 $associated_inputs = $("[name^="+op_match[1]+"_"+op_match[2]+"]", $form).not($target).not("span");
+                                             }
+                                             
+                                             $("option", $(evt.target)).each(function(index,opt){
                                                  if  (opt.selected) {
                                                     selected.push(opt.value);
-                                                    // Do we need to show 1, 2, or no inputs?
-                                                    if (opt.value.search(/range/) >= 0){
-                                                         // two inputs
-                                                         $("input[name="+opt.id+"_input1]",$form).show().change();
-                                                         $("label[for="+opt.id+"_input1]",$form).show();
-                                                         // Trigger change on associated inputs because they need to work with a range operator now
-                                                         $("input[name="+opt.id+"_input0]",$form).show().change();
-                                                     } else if (opt.value.search(/null/) >= 0){
-                                                         // no inputs
-                                                         $("input[name="+opt.id+"_input1],",$form).hide().change();
-                                                         $("label[for="+opt.id+"_input1]",$form).hide();
-                                                         $("input[name="+opt.id+"_input0]",$form).hide().change();
-                                                             
-                                                     } else {
-                                                         // one input
-                                                         $("input[name="+opt.id+"_input1],",$form).hide().change();
-                                                         $("label[for="+opt.id+"_input1]",$form).hide();
-                                                         $("input[name="+opt.id+"_input0]",$form).show().change();
+                                                    if ($associated_inputs && $associated_inputs.attr("data-validate")==="decimal"){
+                                                         // Do we need to show 1, 2, or no inputs?
+                                                         if (opt.value.search(/range/) >= 0){
+                                                             // two inputs
+                                                             $("input[name="+opt.id+"_input1]",$form).show().change();
+                                                             $("label[for="+opt.id+"_input1]",$form).show();
+                                                             // Trigger change on associated inputs because they need to work with a range operator now
+                                                             $("input[name="+opt.id+"_input0]",$form).show().change();
+                                                         } else if (opt.value.search(/null/) >= 0){
+                                                             // no inputs
+                                                             $("input[name="+opt.id+"_input1],",$form).hide().change();
+                                                             $("label[for="+opt.id+"_input1]",$form).hide();
+                                                             $("input[name="+opt.id+"_input0]",$form).hide().change();
+                                                                 
+                                                         } else {
+                                                             // one input
+                                                             $("input[name="+opt.id+"_input1],",$form).hide().change();
+                                                             $("label[for="+opt.id+"_input1]",$form).hide();
+                                                             $("input[name="+opt.id+"_input0]",$form).show().change();
+                                                         }
+                                                     } else if ($associated_inputs && $associated_inputs.attr("type") in {"text":1, "textarea":1}){
+                                                         // The operator has associated inputs, and they are of type text or textarea:
+                                                         // This section takes care of modifying textinputs when the user changes the operator
+                                                         // to be an IN operator.
+                                                         // One of the convenience things we allows is the pasting of newline sepearate text so that
+                                                         // for example, someone can paste in an excel column of patient aliases.
+                                                         // If the user selects an IN operator, we switch the text input -> textarea and vice versa
+                                                         if (opt.value.search(/exact/) >=0 && $associated_inputs.attr("type") === "textarea"){
+                                                             // The operator is of type exact, but the associated input is a text area, switch to text input
+                                                             $associated_inputs.data("switch").data("switch", $associated_inputs);
+                                                             $associated_inputs.before($associated_inputs.data("switch")).detach();
+                                                             $associated_inputs.data("switch").keyup();
+                                                             // Swap out textarea with text
+                                                         } else if (opt.value.search(/in/)>=0 && $associated_inputs.attr("type") === "text"){
+                                                             // The operator is of type in, but the associated input is a text input, switch to textarea
+                                                             if (!$associated_inputs.data("switch")){
+                                                                // We have not yet done a switch, otherwise we would have saved it, so we have to actually create the
+                                                                // textarea. This happens only once per input
+                                                                var $mline = $('<textarea rows="8" id="'+$associated_inputs.attr("id")+'" name="'+$associated_inputs.attr("name")+'" cols="25"></textarea>').data("switch",$associated_inputs);
+                                                                $mline.bind("keyup", $associated_inputs.data("events").keyup[0].handler);
+                                                                $associated_inputs.before($mline).detach();
+                                                                $form.triggerHandler("UpdateDSEvent", $form.data("datasource")||[]);
+                                                            }else{
+                                                                // The alternative input has already been created, just use it.
+                                                                $associated_inputs.data("switch").data("switch", $associated_inputs);
+                                                                $associated_inputs.before($associated_inputs.data("switch")).detach();
+                                                                $associated_inputs.data("switch").keyup();
+                                                            }
+                                                         }
                                                      }
                                                  }
                                              });
@@ -306,9 +350,12 @@ require.def('define/form', [], {
                                               break;
                      case "textarea" : $element.val(element.value.join("\n"));
                                        break;
-                     default:   // inputs and singular selects 
-                                $element.attr("value",typeof element.value in {string:1,number:1}?element.value:String(element.value)); 
-                                break;
+                     default:   // inputs and singular selects
+                               if (element.value instanceof Array) break; // If this is an array, we can't put it in single line input
+                                                                          // Hold of until the operator swap causes this to be come
+                                                                          // a textarea
+                               $element.attr("value",typeof element.value in {string:1,number:1}?element.value:String(element.value)); 
+                               break;
                  }
                  
          };
@@ -319,6 +366,7 @@ require.def('define/form', [], {
              for (var key in ds){
                  updateElement(null, {name:key, value:ds[key]});
              }
+             $form.data("datasource", ds);
          });
          
          $form.bind("GainedFocusEvent", function(evt) {
