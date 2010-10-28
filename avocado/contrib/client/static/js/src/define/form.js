@@ -22,8 +22,8 @@ require.def('define/form', [], {
                                      
           var freeTextOperatorsTmpl = ['<option selected value="iexact">is equal to</option>',
                                        '<option value="-iexact">is not equal to</option>',
-                                       '<option value="contains">is one of</option>',
-                                       '<option value="-contains">is not one of</option>'].join('');
+                                       '<option value="in">is one of</option>',
+                                       '<option value="-in">is not one of</option>'].join('');
            
           // For most cases we use the name attribute to constuct a unique id for all inputs (see field_id in the template context 
           // object below). The format for it is <concept primary key>_<field primary key> with optional "_input[01]" to support datatypes that
@@ -176,7 +176,24 @@ require.def('define/form', [], {
          // Trigger an event when anything changes
          $("input,select,textarea",$form).bind('change keyup', function(evt){
             var $target = $(evt.target);
+            // This is bad, but there is a situtation where, when an element is 
+            // swapped out for another type of element (text input to textarea)
+            // a situation can occur where all the elements are populated with the datasource
+            // except text inputs whose value contains new lines which have to be skipped because the
+            // new lines will be stripped when you insert, you tell all elements to register with the 
+            // datasource, you swap out the text input, put in the textarea, update it,
+            // and then next the original input's update executes (out of luck of the order)
+            // and registers as being empty. This fixes this by not doing it if the element is no longer in the DOM
+            
+            // TODO: This raises the question, after populating values from the datasource, we make all elements fire 
+            // as if they had changed (which shouldn't change anything except in the bug above) but causes them to 
+            // hide and show any fields that are dependent on the data (decimals that are dependent on operator, textarea or inputs
+            // that are dependent on operator.). Should the update view event be separated from the elementchangedevent?
+            
+    
+            if (!$.contains($form.get(0), $target.get(0))) return;
             var sendValue;
+            var ds;
             switch (evt.target.type){
                     case "checkbox":sendValue = evt.target.checked;
                                     sendValue = $target.is(":visible") && $target.is(":enabled") ? sendValue: null;
@@ -240,7 +257,21 @@ require.def('define/form', [], {
                                                                 var $mline = $('<textarea rows="8" id="'+$associated_inputs.attr("id")+'" name="'+$associated_inputs.attr("name")+'" cols="25"></textarea>').data("switch",$associated_inputs);
                                                                 $mline.bind("keyup", $associated_inputs.data("events").keyup[0].handler);
                                                                 $associated_inputs.before($mline).detach();
-                                                                $form.triggerHandler("UpdateDSEvent", $form.data("datasource")||[]);
+                                                                ds = $form.data("datasource")||[];
+                                                                // We are in this code for one of 3 reasons
+                                                                
+                                                                if (ds[$associated_inputs.attr('name')] instanceof Array) {
+                                                                    // #1. We are reloading the page, and switching the original text input to textarea
+                                                                    updateElement(null, {name:$associated_inputs.attr('name'), value:ds[$associated_inputs.attr('name')]});
+                                                                } else if (typeof(ds[$associated_inputs.attr('name')])==="string") {
+                                                                    // #2. We typed something into the original text input, but then switched to textarea, populate it
+                                                                    updateElement(null, {name:$associated_inputs.attr('name'), value:[ds[$associated_inputs.attr('name')]]});
+                                                                }else {
+                                                                    // #3. We never typed anything into the original text input, just switched to textara
+                                                                    updateElement(null, {name:$associated_inputs.attr('name'), value:[]});
+                                                                }
+                                                                $mline.keyup();
+                                                                //$form.triggerHandler("UpdateDSEvent", $form.data("datasource")||[]);
                                                             }else{
                                                                 // The alternative input has already been created, just use it.
                                                                 $associated_inputs.data("switch").data("switch", $associated_inputs);
@@ -277,7 +308,7 @@ require.def('define/form', [], {
                                      break;
                     default   : // This catches input boxes, if input boxes are not currently visible, send null for them
                                 // Input boxes require an extra validation step because of the free form input
-                         
+                                
                                 var associated_operator = $(evt.target).closest("p").find("select").val();
                                 var name_prefix = evt.target.name.substr(0,evt.target.name.length-1);
        
