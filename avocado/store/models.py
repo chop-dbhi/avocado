@@ -2,11 +2,13 @@ try:
     import cPickle as pickle
 except ImportError:
     import pickle
+
+#from cStringIO import StringIO
 from hashlib import md5
 from datetime import datetime
 from functools import partial
 
-from django.db import models, transaction, connections, DEFAULT_DB_ALIAS
+from django.db import models, DEFAULT_DB_ALIAS
 from django.db.models.sql import RawQuery
 from django.core.paginator import EmptyPage, InvalidPage
 from django.contrib.auth.models import User
@@ -21,7 +23,7 @@ from avocado.columns.cache import cache as column_cache
 from avocado.columns import utils, format
 from avocado.utils.paginator import BufferedPaginator
 
-__all__ = ('Scope', 'Perspective', 'Report')
+__all__ = ('Scope', 'Perspective', 'Report', 'ObjectSet')
 
 PAGE = 1
 PAGINATE_BY = 10
@@ -137,12 +139,60 @@ class Context(Descriptor):
 class Scope(Context):
     "Stores information needed to provide scope to data."
 
+    cnt = models.PositiveIntegerField('count', editable=False)
+
     def _get_contents(self, obj):
         return logictree.transform(obj).get_field_ids()
 
     def _parse_contents(self, obj, *args, **kwargs):
         node = logictree.transform(obj, *args, **kwargs)
         return node.apply
+
+    def _merge(self, c1, c2, promote=True):
+        "Only attempt to merge numerical and list-based values."
+        if c1['id'] == c2['id'] and c1['operator'] == c2['operator']:
+            if c1['operator'] in ('in', '-in'):
+                return list(set(c1['value'] + c2['value']))
+
+    def write(self, obj=None, partial=False, *args, **kwargs):
+        # TODO this is a partially working implementation, but will currently
+        # ignore if a condition is set at the same level
+        if partial and obj:
+            stored_obj = self._get_obj()
+            if 'type' in stored_obj:
+                if stored_obj['type'].upper() == 'AND':
+                    # attempt to merge with an existing child node
+                    for i, node in enumerate(stored_obj['children']):
+                        value = self._merge(node, obj)
+                        if value is not None:
+                            node['value'] = value
+                            break
+                    else:
+                        stored_obj['children'].append(obj)
+                    obj = stored_obj
+                else:
+                    obj = {
+                        'type': 'and',
+                        'children': [stored_obj, obj]
+                    }
+            elif stored_obj:
+                value = self._merge(stored_obj, obj)
+                if value is not None:
+                    obj['value'] = value
+                else:
+                    obj = {
+                        'type': 'and',
+                        'children': [stored_obj, obj]
+                    }
+        else:
+            obj = self._get_obj(obj)
+
+        self.store = obj
+        self.timestamp = datetime.now()
+
+    def save(self):
+        self.cnt = self.get_queryset().distinct().count()
+        super(Scope, self).save()
 
 
 class Perspective(Context):
@@ -217,8 +267,8 @@ class Report(Descriptor):
     "Represents a combination ``scope`` and ``perspective``."
     REPORT_CACHE_KEY = 'reportcache'
 
-    scope = models.ForeignKey(Scope)
-    perspective = models.ForeignKey(Perspective)
+    scope = models.OneToOneField(Scope)
+    perspective = models.OneToOneField(Perspective)
 
     def _center_cache_offset(self, count, offset, buf_size=CACHE_CHUNK_SIZE):
         """The ``offset`` will be relative to the next requested row. To ensure
@@ -411,26 +461,24 @@ class ObjectSet(Descriptor):
 
     `ObjectSet' must be subclassed to add the many-to-many relationship
     to the "object" of interest.
+
+    `related_field_name` - the name of the ManyToManyField on the non-abstract
+    subclass
+
+    `field_ref` - an optional reference to a `Field` object that represents
+    a unique reference to the objects in the set e.g. the 'id' field
     """
-    scope = models.ForeignKey(Scope)
-    cnt = models.PositiveIntegerField('count', editable=False)
+    scope = models.OneToOneField(Scope, editable=False)
+    cnt = models.PositiveIntegerField('count', default=0, editable=False)
+    created = models.DateTimeField(editable=False)
+    modified = models.DateTimeField(editable=False)
 
     class Meta:
         abstract = True
 
-    def bulk_insert(self, object_ids, join_table, fk1, fk2):
-        "Uses the SQL COPY command to populate the M2M join table."
-        from cStringIO import StringIO
+    def save(self):
+        if not self.created:
+            self.created = datetime.now()
+        self.modified = datetime.now()
+        super(ObjectSet, self).save()
 
-        cursor = connections['default'].cursor()
-
-        buff = StringIO()
-
-        for oid in object_ids:
-            buff.write('%s\t%s\n' % (self.id, oid))
-        buff.seek(0)
-
-        cursor.copy_from(buff, join_table, columns=(fk1, fk2))
-
-        transaction.set_dirty()
-        transaction.commit_unless_managed()

@@ -136,16 +136,19 @@ class ScopeHandler(BaseHandler):
         store = json.pop('store', None)
 
         if store is not None:
+            # TODO improve this method of adding a partial condition tree
             if not inst.is_valid(store) or inst.has_permission(store, request.user):
                 rc.BAD_REQUEST
-            inst.write(store)
+
+            partial = store.pop('partial', False)
+            inst.write(store, partial=partial)
 
         attrs = self.flatten_dict(json)
         for k, v in attrs.iteritems():
             setattr(inst, k, v)
 
         # only save existing instances that have been saved.
-        # a POST is required to make the intial save
+        # a POST is required to make the initial save
         if inst.id is not None:
             inst.save()
 
