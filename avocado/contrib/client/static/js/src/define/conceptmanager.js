@@ -610,19 +610,20 @@ require.def(
               finally triggers the UpdateQueryEvent up the DOM
               @private
             */ 
-            function constructQueryHandler(event){
-                var ds = cache[activeConcept].ds;
+            function constructQueryHandler(event, ds){
+                var ds = ds || cache[activeConcept].ds;
                 // Does this datasource contain valid values?
                 if (!postViewErrorCheck(ds)){
                     var evt = $.Event("InvalidInputEvent");
                     evt.ephemeral = true;
                     evt.message = "No value has been specified.";
                     $(event.target).trigger(evt);
-                    return;
+                    return false;
                 }
                 var server_query =  buildQuery(ds);
                 
                 $(event.target).trigger("UpdateQueryEvent", [server_query]);
+                return true;
             }
 
             /**
@@ -927,7 +928,9 @@ require.def(
                 show: show,
                 isConceptLoaded: function(concept_id){
                     return (concept_id in cache);
-                }
+                },
+                buildQuery: buildQuery,
+                constructQueryHandler: constructQueryHandler
            };
         };
         
