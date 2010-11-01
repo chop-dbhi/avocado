@@ -13,6 +13,8 @@ from avocado.fields.managers import FieldManager
 
 __all__ = ('Field',)
 
+CHARS = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+
 COERCED_DATATYPES = (
     (re.compile(r'^integer|float|decimal|big|positive|small|auto'), 'number'),
     (re.compile(r'^char|text|file|ipaddress|slug'), 'string'),
@@ -109,7 +111,7 @@ class Field(models.Model):
                 self._field = None
         return self._field
     field = property(_get_field)
-    
+
     def _get_datatype(self):
         if not hasattr(self, '_datatype'):
             internal = self.field.get_internal_type().lower()
@@ -167,6 +169,9 @@ class Field(models.Model):
         if self.choices is not None:
             return map(lambda x: x[0], self.choices)
     raw_choices = property(_get_raw_choices)
+
+    def natural_key(self):
+        return [self.app_name, self.model_name, self.field_name]
 
     def reset_choices(self):
         """This should be called when the ``_choices`` cache needs to be
@@ -319,3 +324,4 @@ class Field(models.Model):
             widget = forms.SelectMultiple(choices=self.choices)
 
         return formfield(label=label, widget=widget, **kwargs)
+
