@@ -131,33 +131,7 @@ require.def(
                 return false;
             });
 
-//            var rnd = {
-//                columns: new m_renderer.template({
-//                    target: columns,
-//                    template: m_templates.columns
-//                }),
-//                active_columns: new m_renderer.template({
-//                    target: active_columns,
-//                    template: m_templates.active_columns
-//                })
-//            };
-
             var src = {
-//                columns: new m_datasource.ajax({
-//                    uri: column_uri,
-//                    success: function(json) {
-//                        rnd.columns.render(json);
-//                        
-//                        // only the columns are needed for setting up the list
-//                        // of potential 'active columns'
-//                        var columns = json.map(function(e) {
-//                            return e['columns'];
-//                        });
-//                        columns = Array.prototype.concat.apply([], columns);
-//                        rnd.active_columns.render(columns);
-//
-//                    }
-//                }),
                 perspective: new m_datasource.ajax({
                     uri: perspective_uri,
                     success: function(json) {
@@ -170,20 +144,7 @@ require.def(
                 }) 
             };
 
-//            src.columns.get();
             src.perspective.get();
-
-            // $('#columns li').bind({
-            //     'mouseover': function() {
-            //         var target = $(this);
-            //         target.find('.info').css('display', 'inline-block');
-            //     },
-            //     'mouseout': function() {
-            //         var target = $(this);
-            //         target.find('.info').hide();
-            //     }
-            // });
-
 
             var descriptionBox = $('<div id="description"></div>')
                 .appendTo('body');
@@ -240,7 +201,7 @@ require.def(
                 autoOpen: false,
                 draggable: true,
                 resizable: true,
-                title: 'Show/Hide Columns',
+                title: 'Add or Remove Columns from this Report',
                 height: 550,
                 width: 700,
                 minWidth: 700,
