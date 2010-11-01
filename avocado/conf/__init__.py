@@ -1,5 +1,6 @@
 from django.utils.functional import LazyObject
 from django.conf import settings as default_settings
+
 from avocado.conf import global_settings
 
 class LazySettings(LazyObject):

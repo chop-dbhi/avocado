@@ -74,10 +74,22 @@ class AbstractTranslator(object):
         operator, value = self.validate(field, operator, value, **context)
         key = field.query_string(operator.operator, using=using)
         kwarg = {key: value}
+        
+        meta = {
+            'condition': None,
+            'annotations': {},
+            'cleaned_data': {
+                'operator': operator,
+                'value': value
+            }
+        }
 
         if operator.negated:
-            return ~Q(**kwarg), {}
-        return Q(**kwarg), {}
+            meta['condition'] = ~Q(**kwarg)
+        else:
+            meta['condition'] = Q(**kwarg)
+
+        return meta
 
 
 class DefaultTranslator(AbstractTranslator):

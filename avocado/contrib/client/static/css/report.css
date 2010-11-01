@@ -97,7 +97,7 @@
 
 #report .content::-webkit-scrollbar-thumb:horizontal {
     background: rgba(0, 0, 0, 0.2);
-    -webkit-border-radius: 1ex;
+    border-radius: 1ex;
 }
 
 #search-dialog {
@@ -177,7 +177,6 @@
     background-color: #fff;
     border: 1px dashed #ccc;
     border-radius: 0;
-    -webkit-border-radius: 0;
     -moz-border-radius: 0;
 }
 
@@ -257,6 +256,5 @@
     -webkit-box-shadow: #999 0 5px 10px;
     -moz-box-shadow: #999 0 5px 10px;
     border-radius: 5px;
-    -webkit-border-radius: 5px;
     -moz-border-radius: 5px;
 }

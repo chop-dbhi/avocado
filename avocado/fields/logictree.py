@@ -39,7 +39,7 @@ Two examples as follows:
     }
 """
 from avocado.modeltree import DEFAULT_MODELTREE_ALIAS
-from avocado.models import Field
+from avocado.models import Field, Criterion, CriterionField
 
 class Node(object):
     condition = None
@@ -64,34 +64,50 @@ class Condition(Node):
         self.id = kwargs['id']
         self.operator = kwargs['operator']
         self.value = kwargs['value']
+        self.concept_id = kwargs['concept_id']
+        
+    @property
+    def _meta(self):
+        if not hasattr(self, '__meta'):
+            self.__meta = self.field.translate(self.operator, self.value,
+                using=self.using, **self.context)
+        return self.__meta
 
-    def _get_field(self):
+    @property
+    def criterion(self):
+        if not hasattr(self, '_criterion'):
+            self._criterion = Criterion.objects.get(id=self.concept_id)
+        return self._criterion
+    
+    @property
+    def criterionfield(self):
+        if not hasattr(self, '_criterionfield'):
+            self._criterionfield = CriterionField.objects.get(concept__id=self.concept_id,
+                field__id=self.id)
+        return self._criterionfield
+
+    @property
+    def field(self):
         if not hasattr(self, '_field'):
             self._field = Field.objects.get(id=self.id)
         return self._field
-    field = property(_get_field)
 
-    def _translate(self):
-        condition, annotations = self.field.translate(self.operator, self.value,
-            using=self.using, **self.context)
-        self._condition = condition
-        self._annotations = annotations
+    @property
+    def condition(self):
+        return self._meta['condition']
 
-    def _get_condition(self):
-        if not hasattr(self, '_condition'):
-            self._translate()
-        return self._condition
-    condition = property(_get_condition)
+    @property
+    def annotations(self):
+        return self._meta['annotations']
 
-    def _get_annotations(self):
-        if not hasattr(self, '_annotations'):
-            self._translate()
-        return self._annotations
-    annotations = property(_get_annotations)
+    @property
+    def text(self):
+        operator = self._meta['cleaned_data']['operator']
+        value = self._meta['cleaned_data']['value']
+        return self.criterionfield.text(operator, value)
 
     def get_field_ids(self):
         return [self.id]
-
 
 class LogicalOperator(Node):
     "Provides a logical relationship between it's children."
@@ -105,7 +121,8 @@ class LogicalOperator(Node):
             return q1 | q2
         return q1 & q2
 
-    def _get_condition(self):
+    @property
+    def condition(self):
         if not hasattr(self, '_condition'):
             condition = None
             for node in self.children:
@@ -115,15 +132,23 @@ class LogicalOperator(Node):
                     condition = node.condition
             self._condition = condition
         return self._condition
-    condition = property(_get_condition)
 
-    def _get_annotations(self):
+    @property
+    def annotations(self):
         if not hasattr(self, '_annotations'):
             self._annotations = {}
             for node in self.children:
                 self._annotations.update(node.annotations)
         return self._annotations
-    annotations = property(_get_annotations)
+
+    @property
+    def text(self):
+        if not hasattr(self, '_text'):
+            text = []
+            for node in self.children:
+                text.append(node.text)
+            self._text = (' %s ' % self.type.lower()).join(text)
+        return self._text
 
     def get_field_ids(self):
         ids = []

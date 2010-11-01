@@ -7,6 +7,10 @@ class FieldManager(models.Manager):
     "Adds additional helper methods focused around access and permissions."
     use_for_related_fields = True
 
+    def get_by_natural_key(self, app_name, model_name, field_name):
+        return self.get(app_name=app_name, model_name=model_name,
+            field_name=field_name)
+
     def public(self):
         """Translates to::
 

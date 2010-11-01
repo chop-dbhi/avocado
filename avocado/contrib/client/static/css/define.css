@@ -209,8 +209,8 @@
     box-shadow: #999 0 5px 10px;
     -webkit-box-shadow: #999 0 5px 10px;
     -moz-box-shadow: #999 0 5px 10px;
+
     border-radius: 5px;
-    -webkit-border-radius: 5px;
     -moz-border-radius: 5px;
 }
 
@@ -275,9 +275,7 @@
     padding: 4px 5px;
     text-shadow: #fff 1px 1px 0;
     border-radius: 3px;
-    -moz-border-radius: 3px;
-    -webkit-border-radius: 3px;    
-    
+    -moz-border-radius: 3px;  
 }
 
 .criterion:hover, .criterion.selected {
