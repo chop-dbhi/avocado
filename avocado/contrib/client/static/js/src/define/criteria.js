@@ -1,9 +1,10 @@
 require.def('define/criteria', ['define/templates'], function(templates) {
     var tmpl = $.jqotec(templates.scope_element);
     
-    var Criteria = function(criteria_constraint, uri){
+    var Criteria = function(criteria_constraint, uri,english){
+        
         var element = $($.jqote(tmpl, {pk:criteria_constraint.concept_id,
-                                       description:"Generic English Sentence Representing Concept " + criteria_constraint.concept_id,
+                                       description:english,
                                        uri:uri+criteria_constraint.concept_id}));
         element.data("constraint", criteria_constraint);
         

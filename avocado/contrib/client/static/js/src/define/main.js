@@ -21,7 +21,9 @@ require(['define/search', 'define/conceptmanager', 'define/criteriamanager'], fu
         var criteriaManager = criteriamanager.Manager(criteriaPanel);
         
         rootNode.bind('UpdateQueryEvent', function(evt, criteria_constraint) {
-            criteriaPanel.triggerHandler("UpdateQueryEvent", [criteria_constraint]);
+            $.postJSON("/api/criteria/",JSON.stringify(criteria_constraint), function(data){
+                criteriaPanel.triggerHandler("UpdateQueryEvent", [criteria_constraint, data]);
+            }, "text/plain");
         });
         
         rootNode.bind("ConceptAddedEvent ConceptDeletedEvent", function(evt){
