@@ -48,5 +48,8 @@ class CriterionField(ConceptField):
     class Meta(ConceptField.Meta):
         pass
 
+    def text(self, operator, value):
+        return ('%s %s' % (self.get_name(), operator.text(value))).strip()
+
     def get_name(self):
         return self.name or self.field.name

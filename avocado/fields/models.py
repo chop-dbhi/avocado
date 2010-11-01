@@ -302,12 +302,12 @@ class Field(models.Model):
 
     def query_by_value(self, operator, value, using=DEFAULT_MODELTREE_ALIAS):
         modeltree = trees[using]
-        condition, annotations = self.translate(operator, value, using)
+        meta = self.translate(operator, value, using)
         queryset = modeltree.root_model.objects.all()
-        if annotations:
-            queryset = queryset.annotate(**annotations)
-        if condition:
-            queryset = queryset.filter(condition)
+        if meta['annotations']:
+            queryset = queryset.annotate(**meta['annotations'])
+        if meta['condition']:
+            queryset = queryset.filter(meta['condition'])
         return queryset
 
     def formfield(self, formfield=None, widget=None, **kwargs):

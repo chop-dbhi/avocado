@@ -136,6 +136,12 @@ class Scope(Context):
 
     cnt = models.PositiveIntegerField('count', editable=False)
 
+    def __str__(self):
+        return self._get_readable(self._get_obj())
+
+    def __unicode__(self):
+        return unicode(str(self))
+
     def _get_contents(self, obj):
         return logictree.transform(obj).get_field_ids()
 

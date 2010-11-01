@@ -42,6 +42,12 @@ class Operator(object):
     def check(self, value):
         "Cleans and verifies `value' can be used for this operator."
         raise NotImplementedError
+    
+    def text(self, value):
+        if ins(value):
+            return '%s %s' % (self.verbose_name,
+                ' or '.join([str(x) for x in value]))
+        return '%s %s' % (self.verbose_name, str(value))
 
 
 class PrimitiveOperator(Operator):
@@ -62,6 +68,11 @@ class Exact(PrimitiveOperator):
     short_name = '='
     verbose_name = 'is equal to'
     operator = 'exact'
+    
+    def text(self, value):
+        if type(value) is bool:
+            return ''
+        return super(Exact, self).text(value)
 exact = Exact()
 
 
@@ -111,6 +122,9 @@ class Null(PrimitiveOperator):
     short_name = 'is null'
     verbose_name = 'is null'
     operator = 'isnull'
+    
+    def text(self, value):
+        return value and 'has no value' or 'has any value'
 null = Null()
 
 
@@ -130,6 +144,10 @@ class Between(SequenceOperator):
         if ins(value) and len(value) == 2:
             return True
         return False
+    
+    def text(self, value):
+        return '%s %s' % (self.verbose_name,
+            ' and '.join([str(x) for x in value]))
 between = Between()
 
 
@@ -174,15 +192,17 @@ class NotNull(Null):
     negated = True
 notnull = NotNull()
 
+NULL_OPERATORS = (null, notnull)
+GENERAL_OPERATORS = (inlist, notinlist, exact, notexact)
 
-CHAR_OPERATORS = (exact, notexact, iexact, notiexact, contains,
-    doesnotcontain, inlist, notinlist, null, notnull)
+CHAR_OPERATORS = GENERAL_OPERATORS + NULL_OPERATORS + (iexact, notiexact,
+    contains, doesnotcontain)
 
-NUMERIC_OPERATORS = (exact, notexact, lt, lte, gt, gte, between,
-    notbetween, null, notnull)
+NUMERIC_OPERATORS = GENERAL_OPERATORS + NULL_OPERATORS + (lt, lte, gt, gte,
+    between, notbetween)
 
 MODEL_FIELD_MAP = {
-    'AutoField': (exact, notexact, inlist, notinlist),
+    'AutoField': GENERAL_OPERATORS,
     'CharField': CHAR_OPERATORS,
     'IntegerField': NUMERIC_OPERATORS,
     'FloatField': NUMERIC_OPERATORS,
@@ -190,6 +210,6 @@ MODEL_FIELD_MAP = {
     'DateField': NUMERIC_OPERATORS,
     'DateTimeField': NUMERIC_OPERATORS,
     'TimeField': NUMERIC_OPERATORS,
-    'BooleanField': (exact, notexact),
-    'NullBooleanField': (exact, notexact, null, notnull),
+    'BooleanField': GENERAL_OPERATORS,
+    'NullBooleanField': NULL_OPERATORS + GENERAL_OPERATORS
 }

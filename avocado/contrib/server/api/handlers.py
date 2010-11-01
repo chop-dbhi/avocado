@@ -7,6 +7,7 @@ from piston.handler import BaseHandler
 from piston.utils import rc
 
 from avocado.models import Category, Scope, Perspective, Report, Column
+from avocado.fields import logictree
 from avocado.contrib.server.utils.types import uni2str
 from avocado.contrib.server.api.models import CriterionProxy
 from avocado.conf import settings
@@ -18,7 +19,7 @@ class CategoryHandler(BaseHandler):
 
 
 class CriterionHandler(BaseHandler):
-    allowed_methods = ('GET',)
+    allowed_methods = ('GET', 'POST')
     model = CriterionProxy
 
     def queryset(self, request):
@@ -48,6 +49,16 @@ class CriterionHandler(BaseHandler):
 
         obj = obj.order_by('category', 'order')
         return map(lambda x: x.json(), obj)
+    
+    def create(self, request):
+        json = uni2str(request.data)
+        if not any([x in json for x in ('type', 'operator')]):
+            return rc.BAD_REQUEST
+        
+        node = logictree.transform(json)
+        resp = rc.ALL_OK
+        resp._container = [node.text]
+        return resp
 
 
 class ColumnHandler(BaseHandler):
