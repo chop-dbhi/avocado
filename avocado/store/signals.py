@@ -1,6 +1,6 @@
-from avocado.models import Scope, ObjectSet
+from django.db.models import ObjectDoesNotExist
 
-def objectset_scope_sync_pre_save(sender, instance, **kwargs):
+def objectset_scope_sync_pre_save(instance, **kwargs):
     """Pre-save handler for both the ``Scope`` object and the ``ObjectSet``
     object. If registered with ``Scope`` as the sender, two additional keyword
     arguments must be partially applied prior to connecting the handler.
@@ -12,18 +12,10 @@ def objectset_scope_sync_pre_save(sender, instance, **kwargs):
     If the sender is a subclass of ``ObjectSet``, only the ``set_manager``
     must be defined.
     """
-    if sender is Scope:
-        try:
-            objectset = getattr(instance, kwargs['set_name'])
-            scope = objectset.scope
-        except (AttributeError, KeyError):
-            return
-    elif issubclass(sender, ObjectSet):
-        objectset = instance
-        if objectset.id is not None:
-            return
-        scope = objectset.scope
-    else:
+    scope = instance
+    try:
+        objectset = getattr(scope, kwargs['set_name'])
+    except ObjectDoesNotExist:
         return
 
     objectset_manager = getattr(objectset, kwargs['set_manager'])
@@ -52,3 +44,5 @@ def objectset_incr_count_pre_save(instance, action, pk_set, **kwargs):
 
         instance.cnt += count
         instance.save()
+
+
