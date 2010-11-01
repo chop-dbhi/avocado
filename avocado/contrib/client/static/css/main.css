@@ -399,12 +399,8 @@ footer a:hover, footer a:active {
 	background-color: #fff;
 	margin-bottom: 20px;
 
-	border-top-left-radius: 4px;
-    border-top-right-radius: 4px;	
-    -moz-border-radius-topleft: 4px;
-    -moz-border-radius-topright: 4px;
-    -webkit-border-top-left-radius: 4px;
-    -webkit-border-top-right-radius: 4px;   
+    border-radius: 4px 4px 0 0;
+    -moz-border-radius: 4px 4px 0 0;
 
 	box-shadow: #999 0 4px 4px;
 	-moz-box-shadow: #999 0 4px 4px;
@@ -423,12 +419,8 @@ footer a:hover, footer a:active {
     filter: progid:DXImageTransform.Microsoft.Gradient(startColorstr='#555555', endColorstr='#444444');
 	text-shadow: #000 -1px -1px 0;
 
-	border-top-left-radius: 4px;
-    border-top-right-radius: 4px;	
-	-moz-border-radius-topleft: 4px;
-	-moz-border-radius-topright: 4px;
-	-webkit-border-top-left-radius: 4px;
-	-webkit-border-top-right-radius: 4px;
+    border-radius: 4px 4px 0 0;
+    -moz-border-radius: 4px 4px 0 0;
 }
 
 .container > .title button {
@@ -465,10 +457,8 @@ footer a:hover, footer a:active {
 .container > .no-title {
     height: 5px;
     background-color: #666;
-	-moz-border-radius-topleft: 4px;
-	-moz-border-radius-topright: 4px;
-	-webkit-border-top-left-radius: 4px;
-	-webkit-border-top-right-radius: 4px;            
+    border-radius: 4px 4px 0 0;
+    -moz-border-radius: 4px 4px 0 0;          
 }
 
 .container > .toolbar {
@@ -554,10 +544,8 @@ footer a:hover, footer a:active {
 */
 
 .container > .header .tab {
-    -moz-border-radius-topleft: 4px;
-    -moz-border-radius-topright: 4px;
-    -webkit-border-top-left-radius: 4px;
-    -webkit-border-top-right-radius: 4px;
+    border-radius: 4px 4px 0 0;
+    -moz-border-radius: 4px 4px 0 0;
     border-top-color: rgba(255, 255, 255, 0.6);
 }
 
@@ -577,10 +565,8 @@ footer a:hover, footer a:active {
 */
 
 .container > .footer .tab {
-    -moz-border-radius-bottomleft: 4px;
-    -moz-border-radius-bottomright: 4px;
-    -webkit-border-bottom-left-radius: 4px;
-    -webkit-border-bottom-right-radius: 4px;
+    border-radius: 0 0 4px 4px;
+    -moz-border-radius: 0 0 4px 4px;
     border-bottom-color: rgba(255, 255, 255, 0.6);
 }
 
