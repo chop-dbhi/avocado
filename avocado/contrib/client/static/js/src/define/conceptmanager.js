@@ -174,7 +174,7 @@ require.def(
      
             /**
               This function is a utility function, currently called by the AddQueryButtonHandler,
-              for concepts made of builtin views, the function will be responsible
+              for concepts made of built-in views, the function will be responsible
               for analyzing the current concept's datasource and creating the 
               datastructure representing the proper query for the server to 
               perform.
@@ -182,6 +182,8 @@ require.def(
               @private
             */
             function buildQuery(ds) {
+                console.log("in:");
+                console.log(ds);
                 var fields={};
                 // We need to analyze the current concept and the datasource and construct
                 // the proper datastructure to represent this query on the server
@@ -345,8 +347,9 @@ require.def(
                                          'concept_id':activeConcept
                                    };
                 }
+                console.log("out:");
                 console.log(server_query);
-                return (server_query);
+                return server_query;
             }
 
              /**
@@ -830,7 +833,7 @@ require.def(
                     });
                 }
                 // Make sure the button for this concept has the correct label
-                if ($.inArray(activeConcept, concepts_in_query) >=0 ) {
+                if ($.inArray(activeConcept, concepts_in_query) >= 0) {
                     $addQueryButton.html('<span class="iconic arrow-up"></span> Update Condition');
                     $(".inquery",$staticBox).show();
                     
@@ -854,7 +857,6 @@ require.def(
                 var index = $tabsBar.children().index(tab);
                 $tabsBar.trigger('ShowViewEvent', index);
             };
-
             $tabsBar.bind('ConceptTabClickedEvent', tabClickedHandler);
 
             $tabsBar.tabs(true, function(evt, $tab) {
@@ -899,7 +901,6 @@ require.def(
                @public
             */
             function show(concept, existing_query, index, target) {
-
                // Verify that we need to do anything.
                if (parseInt(concept.id) === activeConcept)
                    return;

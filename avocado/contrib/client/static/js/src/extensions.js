@@ -311,7 +311,7 @@ if (!Array.prototype.map) {
             
                 // if not are pre-selected, click the first one
                 if ($children.filter('.tab-selected').length === 0)
-                    $children.not('.disabled').filter(':first').click();                
+                    $children.not('.disabled').filter(':first').click();
             },
             
             toggle: function(obj, index) {
