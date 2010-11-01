@@ -1,9 +1,4 @@
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
-
-#from cStringIO import StringIO
+import cPickle as pickle
 from hashlib import md5
 from datetime import datetime
 from functools import partial
@@ -16,7 +11,7 @@ from django.core.cache import cache as dcache
 
 from avocado.conf import settings
 from avocado.models import Field
-from avocado.db_fields import PickledObjectField
+from avocado.store.fields import PickledObjectField
 from avocado.modeltree import DEFAULT_MODELTREE_ALIAS, trees
 from avocado.fields import logictree
 from avocado.columns.cache import cache as column_cache
