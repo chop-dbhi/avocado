@@ -259,7 +259,9 @@ footer a:hover, footer a:active {
 */
 
 .cl {clear: both}
+.la {text-align: left}
 .ca {text-align: center}
+.ra {text-align: right}
 .fl {float: left}
 .fr {float: right}
 .lg {color: #999}
@@ -268,11 +270,19 @@ footer a:hover, footer a:active {
 .ht {font-size: 0.8em}
 .bt {font-size: 1.2em}
 .hd {display: none}
-.st {font-weight: bold}
+.bo, .st {font-weight: bold}
 .it {font-style: italic;}
 .in {display: inline}
 .bl {display: block}
 .ib {display: inline-block}
+
+.ad:after {
+    content: url(../img/ad.png);
+}
+
+.au:after {
+    content: url(../img/au.png);
+}
 
 .form-controls {
     border-top: 1px dotted #aaa;

@@ -17,10 +17,14 @@
 {% endblock %}
 
 {% block content %}
-    
+
     <div id="report" class="container" data-uri="{% url api:reports:session:resolve %}">
 
         <div class="title">Report</div>
+
+        {# <div id="report-info"> #}
+        {#     Report Details (not saved) <span class="iconic arrow-bottom"></span> #}
+        {# </div> #}
 
         <div class="toolbar header">
             <span><span class="count"></span> rows / <span class="unique-count"></span> patients</span>

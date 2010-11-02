@@ -19,6 +19,11 @@
     text-align: center;
     font-weight: normal;
     background-color: #fff;
+    min-width: 100px;
+}
+
+.sortable td:first-child, .sortable th:first-child {
+    min-width: 0;
 }
 
 .sortable td > *, .sortable th > * {
@@ -27,10 +32,6 @@
 
 .sortable thead > *, .sortable tfoot > * {
     background-color: #efefef;    
-}
-
-.sortable thead tr, .sortable tfoot tr {
-    
 }
 
 .sortable thead td, .sortable tfoot td, .sortable thead th, .sortable tfoot th {
@@ -56,11 +57,11 @@
 }
 
 .sortable thead tr .asc {
-	background-image: url(../img/asc.gif);
+    background-image: url(../img/asc.gif);
 }
 
 .sortable thead tr .desc {
-	background-image: url(../img/desc.gif);
+    background-image: url(../img/desc.gif);
 }
 
 .sortable thead tr .desc, .sortable thead tr .asc {
@@ -257,4 +258,9 @@
     -moz-box-shadow: #999 0 5px 10px;
     border-radius: 5px;
     -moz-border-radius: 5px;
+}
+
+#report-info {
+    margin-bottom: 20px;
+    font-size: 11px;
 }
