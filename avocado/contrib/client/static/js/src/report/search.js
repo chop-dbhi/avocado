@@ -172,7 +172,7 @@ require.def(
                     for (var i = 0; i < json.length; i++)
                         searchinput.trigger('unfilter.column', [json[i]]);
                 }
-            });
+            }, null, 50);
 
             columns.delegate('.add-column', 'click', function(evt) {
                 var id = evt.target.hash.substr(1);
