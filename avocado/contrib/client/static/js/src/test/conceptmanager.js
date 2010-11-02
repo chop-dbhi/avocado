@@ -19,8 +19,7 @@ require.def('test/conceptmanager',
                 }
                 
                 switch(objectType)
-                {       case 'array' :
-                               //debugger;
+                {       case 'array':
                                 var otherObjectType = typeof(x[p]);
                                 if (!((otherObjectType === "object") && (x[p].constructor === Array))){
                                    // not an array
@@ -373,6 +372,68 @@ require.def('test/conceptmanager',
                    "tabname": "Default View"
                }
            ]
+       },
+       1: {
+           "name": "Pure Tone Average (PTA)", 
+           "js": null, 
+           "id": 1, 
+           "css": null, 
+           "views": [
+               {
+                   "elements": [
+                       {
+                           "type": "chart", 
+                           "data": {
+                               "pkchoice_default": 142, 
+                               "name": "Pure Tone Average", 
+                               "title": "Distribution of Pure Tone Average", 
+                               "pkchoices": [
+                                   [
+                                       142, 
+                                       "either ear"
+                                   ], 
+                                   [
+                                       151, 
+                                       "the better ear"
+                                   ], 
+                                   [
+                                       152, 
+                                       "the worse ear"
+                                   ]
+                               ], 
+                               "pkchoice_label": "in", 
+                               "yaxis": "# Audiogram Results", 
+                               "datatype": "number", 
+                               "coords": [
+                                   [
+                                       0.0, 
+                                       192
+                                   ], 
+                                   [
+                                       1, 
+                                       32
+                                   ] 
+                                  
+                               ], 
+                               "xaxis": "PTA (dB)"
+                           }
+                       }, 
+                       {
+                           "fields": [
+                               {
+                                   "datatype": "boolean", 
+                                   "pk": 143, 
+                                   "default": true, 
+                                   "name": "Exclude PTA's with one or more 'no response' values"
+                               }
+                           ], 
+                           "type": "form"
+                       }
+                   ], 
+                   "type": "builtin", 
+                   "tabname": "Chart"
+               }
+           ]
        }
    };
    
@@ -398,35 +459,37 @@ require.def('test/conceptmanager',
       ConceptManager.show(criteria[11]);
       $dom_dummy.bind("InvalidInputEvent", function(evt){
             ok(true, "Empty datasource raises error");
-            $dom_dummy.unbind(); 
       });
       ConceptManager.constructQueryHandler(event, {});
+      $dom_dummy.unbind(); 
+      
+      
       $dom_dummy.bind("InvalidInputEvent", function(evt){
               ok(true, "Datasource with empty list raises error.");
-              $dom_dummy.unbind(); 
-      });
-      ConceptManager.constructQueryHandler(event, {"32_32":undefined});
-      $dom_dummy.bind("InvalidInputEvent", function(evt){
-              ok(true, "Datasource with undefined raises error.");
-              $dom_dummy.unbind(); 
-      });
-      
-      ConceptManager.constructQueryHandler(event, {"32_32":''});
-      $dom_dummy.bind("InvalidInputEvent", function(evt){
-              ok(true, "Datasource with empty string raises error.");
-              $dom_dummy.unbind(); 
-      });
-      ConceptManager.constructQueryHandler(event, {"32_32":null});
-      $dom_dummy.bind("InvalidInputEvent", function(evt){
-              ok(true, "Datasource with null value raises error.");
-              $dom_dummy.unbind(); 
       });
       ConceptManager.constructQueryHandler(event, {"32_32":[]});
+      $dom_dummy.unbind(); 
+      
       $dom_dummy.bind("InvalidInputEvent", function(evt){
-                ok(true, "Datasource with only operators raises error");
-                $dom_dummy.unbind(); 
+              ok(true, "Datasource with undefined raises error.");
+      });
+      ConceptManager.constructQueryHandler(event, {"32_32":undefined});
+      $dom_dummy.unbind(); 
+      
+      $dom_dummy.bind("InvalidInputEvent", function(evt){
+              ok(true, "Datasource with empty string raises error.");
+      });
+      ConceptManager.constructQueryHandler(event, {"32_32":''});
+      $dom_dummy.unbind(); 
+      
+      ok(ConceptManager.constructQueryHandler(event, {"32_32":null}), "Datasource with null value does not raise error.");
+      
+      $dom_dummy.bind("InvalidInputEvent", function(evt){
+                ok(true, "Datasource with only operators raises error");; 
       });
       ConceptManager.constructQueryHandler(event, {"32_32_operator":"exact"});
+      $dom_dummy.unbind(); 
+      
       ok(ConceptManager.constructQueryHandler(event, {"32_32_operator":"isnull"}),
          "Datasource with operator isnull does not raise error");
    });
@@ -816,10 +879,7 @@ require.def('test/conceptmanager',
            '50_157_operator': "lte"
        };
        ok(equivalent(ConceptManager.buildQuery(ds),key), "Query for number field with lte operator specified.");
-    
-       ds = {
-           '50_157_operator': "isnull"
-       };
+        
        key = {
            concept_id: 50,
            datatype: "number",
@@ -827,11 +887,11 @@ require.def('test/conceptmanager',
            operator: "isnull",
            value: true
        };
+       ds = {
+           '50_157_operator': "isnull"
+       };
        ok(equivalent(ConceptManager.buildQuery(ds),key), "Query for number field with isnull operator specified.");
        
-       ds = {
-           '50_157_operator': "-isnull"
-       };
        key = {
            concept_id: 50,
            datatype: "number",
@@ -839,7 +899,51 @@ require.def('test/conceptmanager',
            operator: "-isnull",
            value: true
        };
+       ds = {
+           '50_157_operator': "-isnull"
+       };
        ok(equivalent(ConceptManager.buildQuery(ds),key), "Query for number field with negated isnull operator specified.");
+       
+   });
+   
+   test("Query with conditions applied to variable fields.",1,function(){
+       ConceptManager.show(criteria[1]);
+       
+       key = {
+           children:[
+                {
+                    concept_id: 1,
+                    id: 143,
+                    operator: "exact",
+                    value: true
+                },
+                {
+                    concept_id: 1,
+                    datatype: "number",
+                    id: 151,
+                    id_choices: [
+                        "142",
+                        "151",
+                        "152"
+                    ],
+                    operator: "range",
+                    value: [
+                       24.7,
+                       50.6
+                    ]
+                }
+           ],
+           concept_id: 1,
+           type: "and"
+       };
+       ds = {
+           '1_142OR151OR152_input0': "24.7",
+           '1_142OR151OR152_input1': "50.6",
+           '1_142OR151OR152_operator': "range",
+           '1_143': true,
+           '142OR151OR152': "151"
+       };
+       ok(equivalent(ConceptManager.buildQuery(ds),key), "Query for number with conditional field set to 152 and range operator selected. Additional boolean field set to true.");
        
    });
    

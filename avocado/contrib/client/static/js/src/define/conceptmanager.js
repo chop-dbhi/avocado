@@ -182,8 +182,6 @@ require.def(
               @private
             */
             function buildQuery(ds) {
-                console.log("in:");
-                console.log(ds);
                 var fields={};
                 // We need to analyze the current concept and the datasource and construct
                 // the proper datastructure to represent this query on the server
@@ -276,7 +274,7 @@ require.def(
                                         'concept_id': activeConcept,
                                         'datatype': getDataType(field_id)
                                     });
-                    } else if (field.val0!==undefined && field.val0 instanceof Array){ // String choice, or nullboolean, or was string-list, which is an array
+                    } else if (field.val0!==undefined && field.val0 instanceof Array){ // String choice, boolean (usually charted), or nullboolean, or was string-list, which is an array
                         // if field.op is null, assume the query was the default, which is "in"
                         // this one is a bit special, there is no avoiding that in this situation
                         // we could be dealing with a string "choice" option, or a nullboolean
@@ -347,8 +345,6 @@ require.def(
                                          'concept_id':activeConcept
                                    };
                 }
-                console.log("out:");
-                console.log(server_query);
                 return server_query;
             }
 
@@ -544,7 +540,7 @@ require.def(
                 
                 // A field is no longer in use, most likely a field was hidden due to 
                 // an operator change
-                if (element.value == null){
+                if (element.value === undefined){
                     // Clear out this value in the datasource
                     delete cache[activeConcept].ds[element.name];
                 }else{
@@ -596,7 +592,7 @@ require.def(
                 for (var key in ds){
                     if (!ds.hasOwnProperty(key)) continue;
                     
-                    if ((ds[key] === undefined) || (ds[key]===null) || (ds[key] === "")){
+                    if ((ds[key] === undefined) || (ds[key] === "")){
                         return false;
                     }
                     if (($.isArray(ds[key])) && (ds[key].length === 0)){

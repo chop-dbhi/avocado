@@ -220,7 +220,7 @@ require.def('define/chart', ['define/form', 'lib/highcharts'], function(form) {
              if (selected === undefined){
                  selected = [];
              } else if (!(selected instanceof Array)){
-                   selected = [selected];
+                 selected = [selected];
              }
              negated = ds[concept_id + "_"+view.data.pk + "_operator"] === "-in";
              $range_form.triggerHandler(evt,[ds]);

@@ -34,7 +34,7 @@ require.def('define/form', [], {
           // Tone Average (PTA), the user will select a range in the graph, and then below there will be a drop box that says "in the" and then a single choice
           // dropdown. The choices in the dropdown ("both","better ear", "worse ear") will actually represent the fields that the PTA ranges are to be applied to.
           // To indicate this type of a field, the concept description from the server will not contain a "pk" field for these types of fields. This will indicate 
-          // that the pk is determined by the user. Fields that whose database field id are "variable" will have their name attribute set like this 
+          // that the pk is determined by the user. Fields whose database field id are "variable" will have their name attribute set like this 
           // <concept id>_tbd
           
           // A little bit about nullboolean vs boolean:
@@ -129,7 +129,7 @@ require.def('define/form', [], {
                     element[attr] && $.each(element[attr], function(index, choice){
                           // null needs to be "No Data"
                           if ( element[attr][index][0] === null){
-                               element[attr][index][0] = "No Data";
+                               element[attr][index][0] = "null";
                           }          
                           if ( element[attr][index][1] === "None"){
                                element[attr][index][1] = "No Data";
@@ -196,7 +196,7 @@ require.def('define/form', [], {
             var ds;
             switch (evt.target.type){
                     case "checkbox":sendValue = evt.target.checked;
-                                    sendValue = $target.is(":visible") && $target.is(":enabled") ? sendValue: null;
+                                    sendValue = $target.is(":visible") && $target.is(":enabled") ? sendValue: undefined;
                                     $form.trigger("ElementChangedEvent", [{name:evt.target.name,value:sendValue}]);
                                     break;
                     case "select-one"      :
@@ -282,28 +282,32 @@ require.def('define/form', [], {
                                                      }
                                                  }
                                              });
+                               
                                              // Since this code executes for select choices boxes as well as operators (which should
                                              // never be plural), we make sure to send the correct type array, or single item
-                                             
                                              if (evt.target.type === "select-multiple"){
-                                                 // If a select-multiple box is optional, and nothing is selected, send null so that it doesn't appear as empty in 
-                                                 // the datasource, eitherwise, we will throw an error if nothing is supplied;
                                                  var selected_prim = $.map(selected, function(val, index){
-                                                     return $target.is("[date-datatype$='boolean']")? s_to_primative_map[val] : val;
+                                                     return val in s_to_primative_map ? s_to_primative_map[val] : val;
                                                  });
                                                  
+                                                 if (selected.length > selected_prim){
+                                                     selected_prim.push(null);
+                                                 }
+                                                 // If a select-multiple box is optional, and nothing is selected, send null so that it doesn't appear as empty in 
+                                                 // the datasource, eitherwise, we will throw an error if nothing is supplied;
                                                  if ($target.is('[data-optional=true]')) {
-                                                    sendValue = selected_prim.length ? selected_prim : null;
+                                                    sendValue = selected_prim.length ? selected_prim : undefined;
                                                  } else {
                                                     sendValue = selected_prim; 
                                                  }
                                              } else { 
-                                                 sendValue = $target.is("[date-datatype$='boolean']") ? s_to_primative_map[selected[0]] : selected[0];
+                                                 sendValue = selected[0] in s_to_primative_map ? s_to_primative_map[selected[0]] : selected[0];
                                              }
-                                             sendValue = $target.is(":visible") && $target.is(":enabled") ? sendValue: null;
+                                             
+                                             sendValue = $target.is(":visible") && $target.is(":enabled") ? sendValue: undefined;
                                              $form.trigger("ElementChangedEvent", [{name:evt.target.name, value:sendValue}]);
                                              break;
-                    case "textarea": sendValue = $target.is(":visible") && $target.is(":enabled") ? $target.val().split("\n") : null;
+                    case "textarea": sendValue = $target.is(":visible") && $target.is(":enabled") ? $target.val().split("\n") : undefined;
                                      $form.trigger("ElementChangedEvent", [{name:evt.target.name,value:sendValue}]);
                                      break;
                     default   : // This catches input boxes, if input boxes are not currently visible, send null for them
@@ -347,7 +351,7 @@ require.def('define/form', [], {
                                                     break;
                                     default: break;
                                 }
-                                sendValue = $target.is(":visible") && $target.is(":enabled") ? $target.val() : null;
+                                sendValue = $target.is(":visible") && $target.is(":enabled") ? $target.val() : undefined;
                                 $form.trigger("ElementChangedEvent", [{name:evt.target.name,value:sendValue}]);
                                 break;
              }

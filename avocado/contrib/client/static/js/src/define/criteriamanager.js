@@ -28,25 +28,11 @@ require.def('define/criteriamanager', ['define/criteria', "define/templates","li
               
               if (!data.store.hasOwnProperty("concept_id")){ // Root node representing a list of concepts won't have this attribute
                   $.each(data.store.children, function(index, criteria_constraint){
-                      $.postJSON("/api/criteria/",JSON.stringify(criteria_constraint), function(english){
-                          $panel.triggerHandler("UpdateQueryEvent", [criteria_constraint,english]);
-                          // If we have any criteria, show the first one.
-                           if (!$.isEmptyObject(criteria_cache)){
-                              $($criteria_div.children()[0]).find(".field-anchor").click();
-                           }
-                      }, "text/plain");
+                      $panel.triggerHandler("UpdateQueryEvent", [criteria_constraint]);
                   });
               }else{
-                   $.postJSON("/api/criteria/", JSON.stringify(data.store), function(english){
-                       $panel.triggerHandler("UpdateQueryEvent", [data.store, english]);
-                       // If we have any criteria, show the first one.
-                        if (!$.isEmptyObject(criteria_cache)){
-                           $($criteria_div.children()[0]).find(".field-anchor").click();
-                        }
-                   }, "text/plain");
+                  $panel.triggerHandler("UpdateQueryEvent", [data.store]);
               }
-
-             
         });
 
         // Setup click even handlers
@@ -80,7 +66,7 @@ require.def('define/criteriamanager', ['define/criteria', "define/templates","li
         });
         
         // Listen for new criteria as it is added
-        $panel.bind("UpdateQueryEvent", function(evt, criteria_constraint, english){
+        $panel.bind("UpdateQueryEvent", function(evt, criteria_constraint){
             var pk = criteria_constraint.concept_id;
             var new_criteria;
             // If this is the first criteria to be added remove 
@@ -94,20 +80,28 @@ require.def('define/criteriamanager', ['define/criteria', "define/templates","li
             }
             
             // Is this an update?
-            if (criteria_cache.hasOwnProperty(pk)){
-                new_criteria = criteria.Criteria(criteria_constraint, criteria_api_uri, english);
-                criteria_cache[pk].replaceWith(new_criteria);
-                new_criteria.fadeTo(300, 0.5, function() {
-                      new_criteria.fadeTo("fast", 1);
-                });
-            }else{
-                new_criteria = criteria.Criteria(criteria_constraint, criteria_api_uri, english);
-                $criteria_div.append(new_criteria);
-                var addEvent = $.Event("ConceptAddedEvent");
-                addEvent.concept_id = pk;
-                $panel.trigger(addEvent);
-            }
-            criteria_cache[pk] =  new_criteria;
+            $.postJSON(criteria_api_uri, JSON.stringify(criteria_constraint), function(english){
+                var was_empty = $.isEmptyObject(criteria_cache);
+                if (criteria_cache.hasOwnProperty(pk)){
+                    new_criteria = criteria.Criteria(criteria_constraint, criteria_api_uri, english);
+                    criteria_cache[pk].replaceWith(new_criteria);
+                    new_criteria.fadeTo(300, 0.5, function() {
+                          new_criteria.fadeTo("fast", 1);
+                    });
+                }else{
+                    new_criteria = criteria.Criteria(criteria_constraint, criteria_api_uri, english);
+                    $criteria_div.append(new_criteria);
+                    var addEvent = $.Event("ConceptAddedEvent");
+                    addEvent.concept_id = pk;
+                    $panel.trigger(addEvent);
+                }
+                criteria_cache[pk] =  new_criteria;
+                
+                // If the cache used to be empty, show this one in the console.
+                if (was_empty){
+                   $($criteria_div.children()[0]).find(".field-anchor").click();
+                }
+            }, "text/plain");
         });
 
 
