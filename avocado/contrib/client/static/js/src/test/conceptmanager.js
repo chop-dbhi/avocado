@@ -2,37 +2,38 @@ require.def('test/conceptmanager',
             ['define/conceptmanager'],
             function(manager) {
                 
-    Object.prototype.equals = function(x)
-    {
-        for(p in this)
+    var equivalent = function(x,y)
+    {   var p = null;
+        for(p in y)
         {
             if(typeof(x[p])=='undefined') {return false;}
         }
         
-        for(p in this)
+        for(p in y)
         {
-            if (this[p])
+            if (y[p])
             {
-                var objectType = typeof(this[p]);
-                if ((objectType === "object")  && (this[p].constructor === Array)){
+                var objectType = typeof(y[p]);
+                if ((objectType === "object")  && (y[p].constructor === Array)){
                     objectType = 'array';
                 }
                 
                 switch(objectType)
                 {       case 'array' :
+                               //debugger;
                                 var otherObjectType = typeof(x[p]);
                                 if (!((otherObjectType === "object") && (x[p].constructor === Array))){
                                    // not an array
                                    return false;
                                 }
-                                if (this[p].length !== x[p].length){
+                                if (x[p] === undefined || y[p].length !== x[p].length){
                                     return false;
                                 }
  
-                                for (var i = 0; i < this[p].length; i++){
+                                for (var i = 0; i < y[p].length; i++){
                                     var found = false;
                                     for (var j = 0; j < x[p].length; j++){
-                                        if (this[p][i].equals(x[p][j])) found = true;
+                                        if (equivalent(y[p][i],x[p][j])) found = true;
                                     }
                                     if (!found){
                                         return false;
@@ -40,11 +41,11 @@ require.def('test/conceptmanager',
                                 }
                                 break;
                         case 'object':
-                                if (!this[p].equals(x[p])) { return false; } break;
+                                if (!equivalent(y[p],x[p])) { return false; } break;
                         case 'function':break;
-                               // if (typeof(x[p])=='undefined' || (p != 'equals' && this[p].toString() != x[p].toString())) { return false; }; break;
+                               // if (typeof(x[p])=='undefined' || (p != 'equals' && y[p].toString() != x[p].toString())) { return false; }; break;
                         default:
-                                if (this[p] != x[p]) { return false; }
+                                if (y[p] != x[p]) { return false; }
                 }
             }
             else
@@ -58,7 +59,7 @@ require.def('test/conceptmanager',
         
         for(p in x)
         {
-            if(typeof(this[p])=='undefined') {return false;}
+            if(typeof(y[p])=='undefined') {return false;}
         }
         
         return true;
@@ -195,6 +196,183 @@ require.def('test/conceptmanager',
                    "tabname": "Default View"
                }
            ]
+       },
+       43: {
+           "name": "Audiometry Test Condition", 
+           "js": null, 
+           "id": 43, 
+           "css": null, 
+           "views": [
+               {
+                   "elements": [
+                       {
+                           "type": "chart", 
+                           "data": {
+                               "name": "Audiometry Test Condition", 
+                               "title": "Audiometry Test Condition", 
+                               "datatype": "string", 
+                               "yaxis": "# of Tests", 
+                               "choices": [
+                                   [
+                                       "Aided", 
+                                       "Aided"
+                                   ], 
+                                   [
+                                       "Air", 
+                                       "Air"
+                                   ], 
+                                   [
+                                       "Bone", 
+                                       "Bone"
+                                   ], 
+                                   [
+                                       "Cochlear Implant", 
+                                       "Cochlear Implant"
+                                   ], 
+                                   [
+                                       "Noise", 
+                                       "Noise"
+                                   ], 
+                                   [
+                                       "Sound Field", 
+                                       "Sound Field"
+                                   ], 
+                                   [
+                                       "Warble", 
+                                       "Warble"
+                                   ]
+                               ], 
+                               "coords": [
+                                   [
+                                       "Aided", 
+                                       70
+                                   ], 
+                                   [
+                                       "Air", 
+                                       73032
+                                   ], 
+                                   [
+                                       "Bone", 
+                                       53232
+                                   ], 
+                                   [
+                                       "Cochlear Implant", 
+                                       13234
+                                   ], 
+                                   [
+                                       "Noise", 
+                                       23343
+                                   ], 
+                                   [
+                                       "Sound Field", 
+                                       234
+                                   ], 
+                                   [
+                                       "Warble", 
+                                       23432
+                                   ]
+                               ], 
+                               "xaxis": "Condition", 
+                               "pk": 119, 
+                               "optional": false
+                           }
+                       }
+                   ], 
+                   "type": "builtin", 
+                   "tabname": "Default View"
+               }
+           ]
+       },
+       60: {
+           "name": "Has Sensorineural Loss?", 
+           "js": null, 
+           "id": 60, 
+           "css": null, 
+           "views": [
+               {
+                   "elements": [
+                       {
+                           "type": "chart", 
+                           "data": {
+                               "name": "Has Sensorineural Loss?", 
+                               "title": "Has Sensorineural Loss?", 
+                               "datatype": "nullboolean", 
+                               "yaxis": null, 
+                               "choices": [
+                                   [
+                                       true, 
+                                       "Yes"
+                                   ], 
+                                   [
+                                       false, 
+                                       "No"
+                                   ], 
+                                   [
+                                       null, 
+                                       "No Data"
+                                   ]
+                               ], 
+                               "coords": [
+                                   [
+                                       false, 
+                                       5000
+                                   ], 
+                                   [
+                                       true, 
+                                       6000
+                                   ], 
+                                   [
+                                       null, 
+                                       10000
+                                   ]
+                               ], 
+                               "xaxis": null, 
+                               "pk": 116, 
+                               "optional": false
+                           }
+                       }
+                   ], 
+                   "type": "builtin", 
+                   "tabname": "Default View"
+               }
+           ]
+       },
+       50: {
+           "name": "Ear Canal Volume (ECV)", 
+           "js": null, 
+           "id": 50, 
+           "css": null, 
+           "views": [
+               {
+                   "elements": [
+                       {
+                           "type": "chart", 
+                           "data": {
+                               "name": "Ear Canal Volume (ECV)", 
+                               "title": "Distribution of Ear Canal Volume (ECV)", 
+                               "datatype": "number", 
+                               "yaxis": "# of Tests", 
+                               "choices": null, 
+                               "coords": [
+                                   [
+                                       2.7, 
+                                       1
+                                   ], 
+                                   [
+                                       4.2, 
+                                       1
+                                   ]
+                               ], 
+                               "xaxis": "Volume (mL)", 
+                               "pk": 157, 
+                               "optional": false
+                           }
+                       }
+                   ], 
+                   "type": "builtin", 
+                   "tabname": "Default View"
+               }
+           ]
        }
    };
    
@@ -215,8 +393,8 @@ require.def('test/conceptmanager',
    var event = {
          target: $dom_dummy
    };           
-   module("Concept Manager");
-   test('ConceptManager Datasource Error Checking.', 7, function() {
+   module("ConceptManager");
+   test('Datasource Error Checking.', 7, function() {
       ConceptManager.show(criteria[11]);
       $dom_dummy.bind("InvalidInputEvent", function(evt){
             ok(true, "Empty datasource raises error");
@@ -262,7 +440,7 @@ require.def('test/conceptmanager',
    var query = null;
    var key = null;
    
-   test('ConceptManager Query Construction.', 1, function() {
+   test('Boolean Query Construction.', 6, function() {
         ConceptManager.show(criteria[93]);
         key = {
             concept_id: 93,
@@ -271,14 +449,399 @@ require.def('test/conceptmanager',
             operator: "exact",
             value: false
         };
-        
         ds={'93_170':[false]};
-        query = ConceptManager.buildQuery(ds);
-        ok(ConceptManager.buildQuery(ds).equals(key), "Query for a boolean search field is correct");
+        ok(equivalent(ConceptManager.buildQuery(ds),key), "Query for a boolean search field with one selected with no operator specified.");
+        
+        key = {
+            concept_id: 93,
+            datatype: "boolean",
+            id: 170,
+            operator: "exact",
+            value: true
+        };
+        ds={'93_170':[true], '93_170_operator':'in'};
+        ok(equivalent(ConceptManager.buildQuery(ds),key), "Query for a boolean search field with one selected with 'in' operator specified.");
+        
+        key = {
+            concept_id: 93,
+            datatype: "boolean",
+            id: 170,
+            operator: "-exact",
+            value: true
+        };
+        ds={'93_170':[true], '93_170_operator':'-in'};
+        ok(equivalent(ConceptManager.buildQuery(ds),key), "Query for a boolean search field with one selected with negated operator specified.");
+
+        key = {
+            'type': 'or',
+            'children': [
+                 {
+                        concept_id: 93,
+                        datatype: "boolean",
+                        id: 170,
+                        operator: "exact",
+                        value: false
+                 },
+                 {
+                     
+                        concept_id: 93,
+                        datatype: "boolean",
+                        id: 170,
+                        operator: "exact",
+                        value: true
+                 }
+             
+             ],
+             'concept_id': 93
+        };
+        ds={'93_170':[false,true]};
+        ok(equivalent(ConceptManager.buildQuery(ds),key), "Query for a boolean search field with both selected with no operator specified.");
+        
+        ds={'93_170':[false,true], '93_170_operator':'in'};
+        ok(equivalent(ConceptManager.buildQuery(ds),key), "Query for a boolean search field with both selected with 'in' operator specified.");
+        
+        key = {
+            'type': 'and',
+            'children': [
+                 {
+                        concept_id: 93,
+                        datatype: "boolean",
+                        id: 170,
+                        operator: "-exact",
+                        value: false
+                 },
+                 {
+                     
+                        concept_id: 93,
+                        datatype: "boolean",
+                        id: 170,
+                        operator: "-exact",
+                        value: true                     
+                 }
+             
+             ],
+             'concept_id': 93
+        };
+        ds={'93_170':[true, false], '93_170_operator':'-in'};
+        ok(equivalent(ConceptManager.buildQuery(ds),key), "Query for a boolean search field with both selected with negated operator.");
    });
    
+   test('String Choice Query Construction',6 , function(){
+        ConceptManager.show(criteria[43]);
+        key = {
+            concept_id: 43,
+            id: 119,
+            operator: "in",
+            value: [ 
+               "Air",
+               "Bone",
+               "Cochlear Implant",
+               "Noise"
+            ]
+        };
+        ds = { 
+            "43_119": [
+                "Air",
+                "Bone",
+                "Cochlear Implant",
+                "Noise"
+            ]
+        };
+        ok(equivalent(ConceptManager.buildQuery(ds),key), "Query for a string choice field with multiple selected with no operator specified.");
+        
+        ds = { 
+            "43_119": [
+                "Air",
+                "Bone",
+                "Cochlear Implant",
+                "Noise"
+            ],
+            "43_119_operator" : "in"
+        };
+        ok(equivalent(ConceptManager.buildQuery(ds),key), "Query for a string choice field with multiple selected with 'in' operator specified.");
+        
+        key = {
+            concept_id: 43,
+            id: 119,
+            operator: "-in",
+            value: [ 
+               "Air",
+               "Bone",
+               "Cochlear Implant",
+               "Noise"
+            ]
+        };
+        ds = { 
+            "43_119": [
+                "Air",
+                "Bone",
+                "Cochlear Implant",
+                "Noise"
+            ],
+            "43_119_operator" : "-in"
+        };
+        ok(equivalent(ConceptManager.buildQuery(ds),key), "Query for a string choice field with multiple selected with negated operator specified.");
+        
+        
+        key = {
+            concept_id: 43,
+            id: 119,
+            operator: "in",
+            value: [ 
+               "Air"
+            ]
+        };
+        ds = { 
+            "43_119": [
+                "Air"
+            ]
+        };
+        ok(equivalent(ConceptManager.buildQuery(ds),key), "Query for a string choice field with one selected with no operator specified.");
+        
+        ds = { 
+            "43_119": [
+                "Air"
+            ],
+            "43_119_operator" : "in"
+        };
+        ok(equivalent(ConceptManager.buildQuery(ds),key), "Query for a string choice field with one selected with 'in' operator specified.");
+        
+        key = {
+            concept_id: 43,
+            id: 119,
+            operator: "-in",
+            value: [ 
+               "Air"
+            ]
+        };
+        ds = { 
+            "43_119": [
+                "Air"
+            ],
+            "43_119_operator" : "-in"
+        };
+        ok(equivalent(ConceptManager.buildQuery(ds),key), "Query for a string choice field with one selected with negated operator specified.");
+   });
    
+   test("Nullboolean Query Construction",7,function(){
+      ConceptManager.show(criteria[60]);
+      
+      key = { 
+          concept_id: 60,
+          datatype: "nullboolean",
+          id: 116,
+          operator: "exact",
+          value: null
+      };
+      ds = {
+          "60_116": [
+            null
+          ]
+      };
+      ok(equivalent(ConceptManager.buildQuery(ds),key), "Query for nullboolean field with one selected (null value) with no operator specified.");
+      
+      ds = {
+          "60_116": [
+            null
+          ],
+          "60_116_operator" : "in"
+      };
+      ok(equivalent(ConceptManager.buildQuery(ds),key), "Query for nullboolean field with one selected (null value) with 'in' operator specified.");
+      
+      key = { 
+          concept_id: 60,
+          datatype: "nullboolean",
+          id: 116,
+          operator: "-exact",
+          value: null
+      };
+      ds = {
+          "60_116": [
+            null
+          ],
+          "60_116_operator" : "-in"
+      };
+      ok(equivalent(ConceptManager.buildQuery(ds),key), "Query for nullboolean field with one selected (null value) with negated specified.");
+      
+      key = {
+          children: [
+            {
+                concept_id: 60,
+                datatype: "nullboolean",
+                id: 116,
+                operator: "exact",
+                value: null
+            },
+            {
+                concept_id: 60,
+                datatype: "nullboolean",
+                id: 116,
+                operator: "exact",
+                value: false
+            }
+          ],
+          concept_id: 60,
+          type: "or"
+      };
+      ds = {
+          '60_116': [
+              null,
+              false
+          ]
+      };
+      ok(equivalent(ConceptManager.buildQuery(ds),key), "Query for nullboolean field with two selected (null,true ) with no operator specified.");
+      
+      ds = {
+            '60_116': [
+                null,
+                false
+            ],
+            "60_116_operator" : "in"
+      };
+      ok(equivalent(ConceptManager.buildQuery(ds),key), "Query for nullboolean field with two selected (null,true ) with 'in' operator specified.");
+      
+      key = {
+          children: [
+            {
+                concept_id: 60,
+                datatype: "nullboolean",
+                id: 116,
+                operator: "-exact",
+                value: null
+            },
+            {
+                concept_id: 60,
+                datatype: "nullboolean",
+                id: 116,
+                operator: "-exact",
+                value: false
+            }
+          ],
+          concept_id: 60,
+          type: "and"
+      };
+      ds = {
+          '60_116': [
+              null,
+              false
+          ],
+          "60_116_operator" : "-in"
+      };
+      ok(equivalent(ConceptManager.buildQuery(ds),key), "Query for nullboolean field with two selected (null,true ) with negated operator specified.");
+      
+      key = {
+          children: [
+            {
+                concept_id: 60,
+                datatype: "nullboolean",
+                id: 116,
+                operator: "-exact",
+                value: null
+            },
+            {
+                concept_id: 60,
+                datatype: "nullboolean",
+                id: 116,
+                operator: "-exact",
+                value: false
+            },
+            {
+                concept_id: 60,
+                datatype: "nullboolean",
+                id: 116,
+                operator: "-exact",
+                value: true
+            }
+          ],
+          concept_id: 60,
+          type: "and"
+      };
+      ds = {
+          '60_116': [
+              null,
+              false,
+              true
+          ],
+          "60_116_operator" : "-in"
+      };
+      ok(equivalent(ConceptManager.buildQuery(ds),key), "Query for nullboolean field with all selected with negated operator specified.");
+   });
    
+   test('Number Query Construction',5,function(){
+       ConceptManager.show(criteria[50]);
+       
+       key = {
+           concept_id: 50,
+           datatype: "number",
+           id: 157,
+           operator: "range",
+           value: [
+               3.6,
+               5.9
+           ]
+       };
+       ds = {
+           '50_157_input0': "3.6",
+           '50_157_input1': "5.9",
+           '50_157_operator': "range"
+       };
+       ok(equivalent(ConceptManager.buildQuery(ds),key), "Query for number field with range operator specified.");
+       
+       key = {
+           concept_id: 50,
+           datatype: "number",
+           id: 157,
+           operator: "-range",
+           value: [
+               3.6,
+               5.9
+           ]
+       };
+       ds = {
+           '50_157_input0': "3.6",
+           '50_157_input1': "5.9",
+           '50_157_operator': "-range"
+       };
+       ok(equivalent(ConceptManager.buildQuery(ds),key), "Query for number field with negated range operator specified.");
+       
+       key = {
+           concept_id: 50,
+           datatype: "number",
+           id: 157,
+           operator: "lte",
+           value: 4
+       };
+       ds={
+           '50_157_input0': "4",
+           '50_157_operator': "lte"
+       };
+       ok(equivalent(ConceptManager.buildQuery(ds),key), "Query for number field with lte operator specified.");
+    
+       ds = {
+           '50_157_operator': "isnull"
+       };
+       key = {
+           concept_id: 50,
+           datatype: "number",
+           id: 157,
+           operator: "isnull",
+           value: true
+       };
+       ok(equivalent(ConceptManager.buildQuery(ds),key), "Query for number field with isnull operator specified.");
+       
+       ds = {
+           '50_157_operator': "-isnull"
+       };
+       key = {
+           concept_id: 50,
+           datatype: "number",
+           id: 157,
+           operator: "-isnull",
+           value: true
+       };
+       ok(equivalent(ConceptManager.buildQuery(ds),key), "Query for number field with negated isnull operator specified.");
+       
+   });
    
    // There is some odd behavior here when use requireJS with QUnit.
    // QUnit uses a Window Load event to fire the code that calls
