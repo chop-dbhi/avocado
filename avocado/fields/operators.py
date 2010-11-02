@@ -39,12 +39,21 @@ class Operator(object):
         return '%s' % self.operator
     uid = property(_get_uid)
 
+    def stringify(self, value):
+        s = '<b>%s</b>'
+        if ins(value):
+            return [s % str(x) for x in value]
+        return s % str(value)
+
     def check(self, value):
         "Cleans and verifies `value' can be used for this operator."
         raise NotImplementedError
-    
+
     def text(self, value):
+        value = self.stringify(value)
         if ins(value):
+            if len(value) == 1:
+                return '%s %s' % (Exact.verbose_name, value[0])
             return '%s %s' % (self.verbose_name,
                 ' or '.join([str(x) for x in value]))
         return '%s %s' % (self.verbose_name, str(value))
@@ -68,10 +77,10 @@ class Exact(PrimitiveOperator):
     short_name = '='
     verbose_name = 'is equal to'
     operator = 'exact'
-    
+
     def text(self, value):
         if type(value) is bool:
-            return ''
+            return self.stringify(value and 'Yes' or 'No')
         return super(Exact, self).text(value)
 exact = Exact()
 
@@ -122,16 +131,27 @@ class Null(PrimitiveOperator):
     short_name = 'is null'
     verbose_name = 'is null'
     operator = 'isnull'
-    
+
     def text(self, value):
-        return value and 'has no value' or 'has any value'
+        return self.stringify(value and 'has no value' or 'has any value')
 null = Null()
 
 
 class InList(SequenceOperator):
     short_name = 'in list'
-    verbose_name = 'is in list'
+    verbose_name = 'is either'
     operator = 'in'
+
+    def text(self, value):
+        value = self.stringify(value)
+        if len(value) == 1:
+            args = (Exact.verbose_name, value[0])
+        else:
+            v = ', '.join(value[:-1]) + ' or %s' % value[-1]
+            args = (self.verbose_name, v)
+        return '%s %s' % args
+
+
 inlist = InList()
 
 
@@ -144,10 +164,11 @@ class Between(SequenceOperator):
         if ins(value) and len(value) == 2:
             return True
         return False
-    
+
     def text(self, value):
+        value = self.stringify(value)
         return '%s %s' % (self.verbose_name,
-            ' and '.join([str(x) for x in value]))
+            ' and '.join(value))
 between = Between()
 
 
@@ -181,7 +202,7 @@ doesnotcontain = DoesNotContain()
 
 class NotInList(InList):
     short_name = 'not in list'
-    verbose_name = 'is not in list'
+    verbose_name = 'is not'
     negated = True
 notinlist = NotInList()
 
