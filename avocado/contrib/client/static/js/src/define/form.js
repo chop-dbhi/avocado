@@ -102,7 +102,7 @@ require.def('define/form', [], {
                                                  '<select id="<%=this.field_id%>-operator" name="<%=this.field_id%>_operator">',
                                                   choiceOperatorsTmpl,
                                                   '</select>',
-                                                  '<textarea data-optional="<%=this.optional%>" id="<%=this.field_id%>_text" name="<%=this.field_id%>" rows="8" cols="25"></textarea>',
+                                                  '<textarea data-optional="<%=this.optional%>" id="<%=this.field_id%>_text" name="<%=this.field_id%>" rows="8" cols="25"></textarea>'
                                                ];
                                       break;
                                                
@@ -286,12 +286,11 @@ require.def('define/form', [], {
                                              // Since this code executes for select choices boxes as well as operators (which should
                                              // never be plural), we make sure to send the correct type array, or single item
                                              if (evt.target.type === "select-multiple"){
-                                                 var selected_prim = $.map(selected, function(val, index){
-                                                     return val in s_to_primative_map ? s_to_primative_map[val] : val;
-                                                 });
                                                  
-                                                 if (selected.length > selected_prim){
-                                                     selected_prim.push(null);
+                                                 var selected_prim = [];
+                                                 for (var index in selected) {
+                                                     var val = selected[index];
+                                                     selected_prim.push(val in s_to_primative_map ? s_to_primative_map[val] : val);
                                                  }
                                                  // If a select-multiple box is optional, and nothing is selected, send null so that it doesn't appear as empty in 
                                                  // the datasource, eitherwise, we will throw an error if nothing is supplied;
