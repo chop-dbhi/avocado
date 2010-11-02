@@ -109,6 +109,7 @@ class Condition(Node):
     def get_field_ids(self):
         return [self.id]
 
+
 class LogicalOperator(Node):
     "Provides a logical relationship between it's children."
     def __init__(self, type, using=DEFAULT_MODELTREE_ALIAS):

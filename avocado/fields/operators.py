@@ -13,8 +13,8 @@ __all__ = ('exact', 'iexact', 'contains', 'inlist', 'lt', 'gt', 'lte', 'gte',
     'between', 'null', 'notbetween', 'notexact', 'notiexact', 'doesnotcontain',
     'notinlist', 'notnull', 'MODEL_FIELD_MAP')
 
-FIELD_LOOKUPS = re.compile(r'(i?exact|i?contains|in|gte?|lte?|i?startswith'\
-    '|i?endswith|range|year|month|day|week_day|isnull|search|i?regex)')
+FIELD_LOOKUPS = re.compile(r'(i?(exact|contains|regex|startswidth|endswith)|'\
+    '(gt|lt)e?|in|range|year|month|day|week_day|isnull|search)')
 
 class Operator(object):
     short_name = ''
@@ -41,22 +41,23 @@ class Operator(object):
 
     def stringify(self, value):
         s = '<b>%s</b>'
-        if ins(value):
-            return [s % str(x) for x in value]
-        return s % str(value)
+        if value is None:
+            if self.negated:
+                value = 'has any value'
+            else:
+                value = 'has no value'
+        elif type(value) is bool:
+            value = value and 'Yes' or 'No'
+        else:
+            value = str(value)
+
+        return s % value
 
     def check(self, value):
-        "Cleans and verifies `value' can be used for this operator."
-        raise NotImplementedError
+        pass
 
     def text(self, value):
-        value = self.stringify(value)
-        if ins(value):
-            if len(value) == 1:
-                return '%s %s' % (Exact.verbose_name, value[0])
-            return '%s %s' % (self.verbose_name,
-                ' or '.join([str(x) for x in value]))
-        return '%s %s' % (self.verbose_name, str(value))
+        pass
 
 
 class PrimitiveOperator(Operator):
@@ -65,11 +66,23 @@ class PrimitiveOperator(Operator):
             return True
         return False
 
+    def text(self, value):
+        value = self.stringify(value)
+        return '%s %s' % (self.verbose_name, value)
+
+
 class SequenceOperator(Operator):
     def check(self, value):
         if ins(value):
             return True
         return False
+
+    def text(self, value):
+        value = map(self.stringify, value)
+        if len(value) == 1:
+            return '%s %s' % (Exact.verbose_name, value[0])
+        return '%s %s' % (self.verbose_name,
+            ' or '.join(value))
 
 
 class Exact(PrimitiveOperator):
@@ -77,11 +90,6 @@ class Exact(PrimitiveOperator):
     short_name = '='
     verbose_name = 'is equal to'
     operator = 'exact'
-
-    def text(self, value):
-        if type(value) is bool:
-            return self.stringify(value and 'Yes' or 'No')
-        return super(Exact, self).text(value)
 exact = Exact()
 
 
@@ -94,7 +102,7 @@ iexact = iExact()
 
 class Contains(PrimitiveOperator):
     short_name = 'contains'
-    verbose_name = 'contains'
+    verbose_name = 'contains the text'
     operator = 'icontains'
 contains = Contains()
 
@@ -133,7 +141,8 @@ class Null(PrimitiveOperator):
     operator = 'isnull'
 
     def text(self, value):
-        return self.stringify(value and 'has no value' or 'has any value')
+        "Do not return operator"
+        return self.stringify(None)
 null = Null()
 
 
@@ -143,13 +152,11 @@ class InList(SequenceOperator):
     operator = 'in'
 
     def text(self, value):
-        value = self.stringify(value)
+        value = map(self.stringify, value)
         if len(value) == 1:
-            args = (Exact.verbose_name, value[0])
-        else:
-            v = ', '.join(value[:-1]) + ' or %s' % value[-1]
-            args = (self.verbose_name, v)
-        return '%s %s' % args
+            return '%s %s' % (Exact.verbose_name, value[0])
+        value = ', '.join(value[:-1]) + ' or %s' % value[-1]
+        return '%s %s' % (self.verbose_name, value)
 
 
 inlist = InList()
@@ -166,7 +173,7 @@ class Between(SequenceOperator):
         return False
 
     def text(self, value):
-        value = self.stringify(value)
+        value = map(self.stringify, value)
         return '%s %s' % (self.verbose_name,
             ' and '.join(value))
 between = Between()

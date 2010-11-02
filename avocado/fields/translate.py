@@ -1,5 +1,5 @@
+from django import forms
 from django.db.models import Q
-from django.forms import FloatField
 
 from avocado.exceptions import ValidationError
 from avocado.conf import settings
@@ -18,7 +18,7 @@ class AbstractTranslator(object):
     formfield = None
 
     formfield_overrides = {
-        'IntegerField': FloatField
+        'IntegerField': forms.FloatField
     }
 
     def __call__(self, field, operator=None, value=None, using=DEFAULT_MODELTREE_ALIAS, **context):
@@ -38,8 +38,20 @@ class AbstractTranslator(object):
 
     def _clean_value(self, field, value, **kwargs):
         formfield = None
+
+        # has highest precedence if defined on the class. this is usually NOT
+        # necessary
         if self.formfield:
             formfield = self.formfield
+
+        # special case for handling standalone ``None`` or ``bool`` values.
+        # this occurs when a field is can be queried as a null value, i.e.
+        # '-?isnull' : (True|False) or '-?exact' : None
+        elif value is None or type(value) is bool:
+            formfield = forms.NullBooleanField
+
+        # create an instance of the formfield "to be" and determine if there is
+        # a mapping listed for it. TODO make more elegant
         else:
             name = field.formfield().__class__.__name__
             if self.formfield_overrides.has_key(name):
@@ -52,8 +64,15 @@ class AbstractTranslator(object):
         # other empty values in ``django.core.validators.EMPTY_VALUES``
         ff = field.formfield(formfield=formfield, required=False, **kwargs)
 
+        # special case for ``None`` values since all form fields seem to handle
+        # the conversion differently. simply ignore the cleaning if ``None``,
+        # this scenario occurs when a list of values are being queried and one
+        # of them is to lookup NULL values
         if ins(value):
-            return map(ff.clean, value)
+            for i, x in enumerate(value):
+                if x is not None:
+                    value[i] = ff.clean(x)
+            return value
         return ff.clean(value)
 
     def validate(self, field, operator, value, **kwargs):
@@ -74,7 +93,7 @@ class AbstractTranslator(object):
         operator, value = self.validate(field, operator, value, **context)
         key = field.query_string(operator.operator, using=using)
         kwarg = {key: value}
-        
+
         meta = {
             'condition': None,
             'annotations': {},
