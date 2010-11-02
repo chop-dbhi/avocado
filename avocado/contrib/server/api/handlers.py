@@ -2,7 +2,7 @@ from itertools import groupby
 from datetime import datetime
 
 from django.http import HttpResponse
-from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
+from django.core.exceptions import ObjectDoesNotExist
 from piston.handler import BaseHandler
 from piston.utils import rc
 
@@ -49,12 +49,12 @@ class CriterionHandler(BaseHandler):
 
         obj = obj.order_by('category', 'order')
         return map(lambda x: x.json(), obj)
-    
+
     def create(self, request):
         json = uni2str(request.data)
         if not any([x in json for x in ('type', 'operator')]):
             return rc.BAD_REQUEST
-        
+
         node = logictree.transform(json)
         resp = rc.ALL_OK
         resp._container = [node.text]
@@ -94,7 +94,7 @@ class ColumnHandler(BaseHandler):
 class ScopeHandler(BaseHandler):
     allowed_methods = ('GET', 'PUT')
     model = Scope
-    fields = ('store',)
+    fields = ('store', 'cnt')
 
     def queryset(self, request):
         return self.model.objects.filter(user=request.user)
@@ -141,14 +141,12 @@ class ScopeHandler(BaseHandler):
                     inst = self.queryset(request).get(pk=kwargs['id'])
                 except ObjectDoesNotExist:
                     return rc.NOT_FOUND
-                except MultipleObjectsReturned:
-                    return rc.BAD_REQUEST
 
         store = json.pop('store', None)
 
         if store is not None:
             # TODO improve this method of adding a partial condition tree
-            if not inst.is_valid(store) or inst.has_permission(store, request.user):
+            if not inst.is_valid(store) or not inst.has_permission(store, request.user):
                 rc.BAD_REQUEST
 
             partial = store.pop('partial', False)
@@ -218,13 +216,11 @@ class PerspectiveHandler(BaseHandler):
                     inst = self.queryset(request).get(pk=kwargs['id'])
                 except ObjectDoesNotExist:
                     return rc.NOT_FOUND
-                except MultipleObjectsReturned:
-                    return rc.BAD_REQUEST
 
         store = json.pop('store', None)
 
         if store is not None:
-            if not inst.is_valid(store) or inst.has_permission(store, request.user):
+            if not inst.is_valid(store) or not inst.has_permission(store, request.user):
                 rc.BAD_REQUEST
             inst.write(store)
 
@@ -286,8 +282,6 @@ class ReportResolverHandler(BaseHandler):
                     inst = self.queryset(request).get(pk=kwargs['id'])
                 except ObjectDoesNotExist:
                     return rc.NOT_FOUND
-                except MultipleObjectsReturned:
-                    return rc.BAD_REQUEST
 
         user = request.user
 
