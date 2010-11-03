@@ -1,3 +1,7 @@
+#overlay {
+    display: block;
+}
+
 /*
 ** Base classes and styling for a sortable table elements
 */

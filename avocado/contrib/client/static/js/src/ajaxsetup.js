@@ -3,7 +3,7 @@
  * window location. This is mainly useful for session timeouts.
  */
 
-var overlay = $('#overlay');
+var OVERLAY = $('#overlay');
 
 $('body').bind({
     ajaxComplete: function(evt, xhr, options) {
@@ -12,7 +12,6 @@ $('body').bind({
             if (json.redirect)
                 window.location = json.redirect;
         }
-        overlay.fadeOut('slow');
     },
     ajaxError: function(evt, xhr, options, err) {
         window.location = $('#support-form').attr('href');

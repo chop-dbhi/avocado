@@ -14,6 +14,10 @@ require(['define/search', 'define/conceptmanager', 'define/criteriamanager'], fu
 
             criteria = $('#criteria');
         
+        $('body').ajaxComplete(function() {
+            OVERLAY.fadeOut();
+        });
+
         // Create an instance of the conceptManager object. Only do this once.
         var conceptManager = conceptmanager.manager(pluginPanel, pluginTitle, pluginTabs, pluginDynamicContent,
             pluginStaticContent);

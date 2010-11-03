@@ -637,6 +637,7 @@ footer a:hover, footer a:active {
 }
 
 #overlay {
+    display: none;
     z-index: 5000;
     position: fixed;
     top: 0;
