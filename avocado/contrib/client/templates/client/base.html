@@ -11,11 +11,6 @@
 
         {% block styles %}{% endblock %}
     
-        <!--[if lt IE 9]>
-            <script src="{{ CLIENT_JS_URL }}lib/chrome.frame.js"></script>
-            <script>CFInstall.check({mode:'overlay'});</script>
-        <![endif]-->
-        
         <script src="{{ CLIENT_JS_URL }}lib/modernizr.js"></script>
         <script>var require={baseUrl:'{{ CLIENT_JS_URL }}'};</script>
         <script src="{{ CLIENT_JS_URL }}lib/requirejs.jquery.js"></script>
@@ -26,6 +21,7 @@
     </head>
     
     <body>
+        <div id="overlay"></div>
         {# standard global header #}
         {% include "snippets/header.html" %}
 

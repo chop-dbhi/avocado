@@ -103,7 +103,7 @@
 
 #search-dialog {
     display: none; /* for jquery ui dialog */
-    overflow: auto;
+    height: 600px;
 }
 
 #search-dialog > div {
@@ -112,9 +112,19 @@
     padding: 10px;
     display: inline-block;
     vertical-align: top;
-    width: 300px;
+    width: 400px;
+    height: 580px;
+    overflow: auto;
 }
 
+#search-dialog > div::-webkit-scrollbar {
+    width: 1ex;
+}
+
+#search-dialog > div::-webkit-scrollbar-thumb:vertical {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 1ex;
+}
 
 #search-dialog > div:first-child {
     float: left;
@@ -191,11 +201,11 @@
 
 #columns li > .name, #active-columns li > .name {
     display: inline-block;
-    width: 240px;
+    width: 335px;
 }
 
 #active-columns li > .name {
-    width: 220px;
+    width: 315px;
 }
 
 .actions {
@@ -258,9 +268,4 @@
     -moz-box-shadow: #999 0 5px 10px;
     border-radius: 5px;
     -moz-border-radius: 5px;
-}
-
-#report-info {
-    margin-bottom: 20px;
-    font-size: 11px;
 }

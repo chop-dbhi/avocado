@@ -467,8 +467,15 @@ footer a:hover, footer a:active {
 .container > .no-title {
     height: 5px;
     background-color: #666;
-    border-radius: 4px 4px 0 0;
     -moz-border-radius: 4px 4px 0 0;          
+    border-radius: 4px 4px 0 0;
+}
+
+.container > .info {
+    font-size: 11px;
+    padding: 10px;
+    border-bottom: 1px dotted #999;
+    background-color: #E4E7FF;
 }
 
 .container > .toolbar {
@@ -627,4 +634,19 @@ footer a:hover, footer a:active {
 
 .ui-dialog .ui-dialog-titlebar .ui-dialog-titlebar-close {
     display: none;
+}
+
+#overlay {
+    z-index: 5000;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #fff url(../img/loader.gif) no-repeat center;
+/*    filter: progid:DXImageTransform.Microsoft.Alpha(opacity=95);
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(opacity=95)";
+    -moz-opacity: 0.95;
+    opacity: 0.95;
+*/
 }

@@ -167,7 +167,6 @@ require.def(
 
             searchinput.autocomplete2({
                 success: function(value, json) {
-                    console.log(json);
                     searchinput.trigger('filterall.column');
                     for (var i = 0; i < json.length; i++)
                         searchinput.trigger('unfilter.column', [json[i]]);
@@ -199,12 +198,11 @@ require.def(
 
             searchdialog.dialog({
                 autoOpen: false,
-                draggable: true,
-                resizable: true,
+                draggable: false,
+                resizable: false,
                 title: 'Add or Remove Columns from this Report',
-                height: 550,
-                width: 700,
-                minWidth: 700,
+                height: 600,
+                width: 900,
                 buttons: {
                     Cancel: function() {
                         searchdialog.dialog('close');

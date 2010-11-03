@@ -22,9 +22,9 @@
 
         <div class="title">Report</div>
 
-        {# <div id="report-info"> #}
-        {#     Report Details (not saved) <span class="iconic arrow-bottom"></span> #}
-        {# </div> #}
+        <div id="report-info" class="info">
+            Report Details <span class="iconic arrow-bottom"></span>
+        </div>
 
         <div class="toolbar header">
             <span><span class="count"></span> rows / <span class="unique-count"></span> patients</span>
@@ -59,7 +59,7 @@
         </div>
     </div>
 
-    <div id="search-dialog" data-uri="{% url api:perspectives:session %}">
+    <div id="search-dialog" class="clearfix" data-uri="{% url api:perspectives:session %}">
         <div>
             <h3>Available Columns</h3>
 
