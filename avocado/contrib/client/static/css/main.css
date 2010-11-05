@@ -475,7 +475,7 @@ footer a:hover, footer a:active {
     font-size: 11px;
     padding: 10px;
     border-bottom: 1px dotted #999;
-    background-color: #E4E7FF;
+    background-color: #D5E0F3;
 }
 
 .container > .toolbar {
@@ -645,9 +645,4 @@ footer a:hover, footer a:active {
     width: 100%;
     height: 100%;
     background: #fff url(../img/loader.gif) no-repeat center;
-/*    filter: progid:DXImageTransform.Microsoft.Alpha(opacity=95);
-    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(opacity=95)";
-    -moz-opacity: 0.95;
-    opacity: 0.95;
-*/
 }

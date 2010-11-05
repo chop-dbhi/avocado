@@ -19,19 +19,7 @@ require.def(
                 searchform = $('form', searchdialog),
                 searchbutton = $('#search-button');
 
-            var perspective_uri = searchdialog.attr('data-uri'),
-                column_uri = searchform.attr('action');
 
-            /*
-             * Pre-setup and event handler binding
-             */
-            body.bind('update.perspective', function(evt, params) {
-                $.putJSON(perspective_uri, JSON.stringify(params), function() {
-                    body.trigger('update.report');
-                });
-                return false;
-            });
- 
             searchdialog.cache = {};
 
             searchdialog.get = function(id) {
@@ -133,7 +121,7 @@ require.def(
 
             var src = {
                 perspective: new m_datasource.ajax({
-                    uri: perspective_uri,
+                    uri: API_URLS.perspective,
                     success: function(json) {
                         if (json.store) {
                             var rcols = json.store.columns;

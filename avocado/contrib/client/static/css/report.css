@@ -1,3 +1,17 @@
+h4 {
+    font-weight: 500;
+    margin-bottom: 5px;
+}
+
+button {
+    font-size: 10px;
+    margin-top: 5px;
+}
+
+button:first-child {
+    margin-top: 0;
+}
+
 #overlay {
     display: block;
 }
@@ -6,6 +20,7 @@
 ** Base classes and styling for a sortable table elements
 */
 .sortable {
+    display: none;
     border-collapse: separate;
 	font-size: 13px;
 	font-family: "Gill Sans", "Trebuchet MS", sans-serif;
@@ -72,35 +87,48 @@
     background-color: #FFEA5F;
 }
 
-
-#report .toolbar > * {
-    margin-right: 15px;
+.container > .info {
+    text-shadow: #fff 1px 1px 0;
+    display: none;
 }
 
-#report .page-links > *, #report .page-links .pages > * {
+.container > .info li {
+    margin: 3px 0;
+}
+
+.container > .toolbar {
+    display: none;
+}
+
+.container > .toolbar > * {
+    vertical-align: middle;
+}
+
+.container > .toolbar select {
+    font-size: 10px;
+}
+
+.container .page-links > * {
     margin-right: 10px;
 }
 
-#report .page-links .pages {
-    background-color: #eee;
+.container .page-links .pages {
     display: inline-block;
-    text-align: center;
-    width: 200px;
 }
 
-#report .page-links .inactive {
-    color: #666;
+.container .page-links .inactive {
+    color: #999;
 }
 
-#report .content {
+.container .content {
     overflow: auto;
 }
 
-#report .content::-webkit-scrollbar {
+.container .content::-webkit-scrollbar {
     height: 1ex;
 }
 
-#report .content::-webkit-scrollbar-thumb:horizontal {
+.container .content::-webkit-scrollbar-thumb:horizontal {
     background: rgba(0, 0, 0, 0.2);
     border-radius: 1ex;
 }

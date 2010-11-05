@@ -14,6 +14,6 @@ $('body').bind({
         }
     },
     ajaxError: function(evt, xhr, options, err) {
-        window.location = $('#support-form').attr('href');
+//        window.location = $('#support-form').attr('href');
     }
 });

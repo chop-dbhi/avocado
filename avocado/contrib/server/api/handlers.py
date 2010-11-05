@@ -13,14 +13,14 @@ from avocado.contrib.server.api.models import CriterionProxy
 from avocado.conf import settings
 
 class CategoryHandler(BaseHandler):
-    allowed_methods = ('GET',)
     model = Category
+    allowed_methods = ('GET',)
     fields = ('id', 'name')
 
 
 class CriterionHandler(BaseHandler):
-    allowed_methods = ('GET', 'POST')
     model = CriterionProxy
+    allowed_methods = ('GET', 'POST')
 
     def queryset(self, request):
         "Overriden to allow for user specificity."
@@ -50,14 +50,21 @@ class CriterionHandler(BaseHandler):
         obj = obj.order_by('category', 'order')
         return map(lambda x: x.json(), obj)
 
+    # TODO move this to the ``Scope`` resource since the request is the same --
+    # it is merely the response that is different
     def create(self, request):
         json = uni2str(request.data)
         if not any([x in json for x in ('type', 'operator')]):
             return rc.BAD_REQUEST
 
-        node = logictree.transform(json)
+        text = logictree.transform(json).text
+
+        j = ''
+        if text.has_key('type'):
+            j = ' %s ' % text['type']
+
         resp = rc.ALL_OK
-        resp._container = [node.text]
+        resp._container = [j.join(text['conditions'])]
         return resp
 
 
@@ -94,7 +101,16 @@ class ColumnHandler(BaseHandler):
 class ScopeHandler(BaseHandler):
     allowed_methods = ('GET', 'PUT')
     model = Scope
-    fields = ('store', 'cnt')
+    fields = ('store', 'count', 'text')
+
+    @classmethod
+    def count(cls, inst):
+        return inst.cnt
+
+    @classmethod
+    def text(cls, inst):
+        node = logictree.transform(inst.store)
+        return node.text
 
     def queryset(self, request):
         return self.model.objects.filter(user=request.user)
@@ -169,7 +185,11 @@ class ScopeHandler(BaseHandler):
 class PerspectiveHandler(BaseHandler):
     allowed_methods = ('GET', 'PUT')
     model = Perspective
-    fields = ('store',)
+    fields = ('store', 'header')
+
+    @classmethod
+    def header(cls, inst):
+        return inst.header()
 
     def queryset(self, request):
         return self.model.objects.filter(user=request.user)
@@ -331,6 +351,7 @@ class ReportResolverHandler(BaseHandler):
             # ``rows`` will only be None if no cache was found. attempt to
             # update the cache by running a partial query
             if rows is None:
+                print 'rows not found'
                 # since the cache is not invalid, the counts do not have to be run
                 queryset, unique, count = inst.get_queryset(timestamp, **context)
                 cache['timestamp'] = datetime.now()
@@ -367,44 +388,21 @@ class ReportResolverHandler(BaseHandler):
 
         # a *no change* requests implies the page has been requested statically
         # and the whole response object must be provided
-        if old_cache == cache:
-            paginator, page = inst.paginator_and_page(cache)
+        resp.update({
+            'per_page': cache['per_page'],
+            'count': cache['count'],
+            'unique': cache['unique'],
+        })
 
+        paginator, page = inst.paginator_and_page(cache)
+
+        if paginator.num_pages > 1:
             resp.update({
-                'header': inst.perspective.header(),
                 'pages': {
                     'page': page.number,
                     'pages': page.page_links(),
                     'num_pages': paginator.num_pages,
-                },
-                'per_page': cache['per_page'],
-                'count': cache['count'],
-                'unique': cache['unique'],
-
+                }
             })
-
-        else:
-            # implies a new query has been run
-            if count is not None:
-                resp['header'] = inst.perspective.header()
-                resp['unique'] = cache['unique']
-                resp['count'] = cache['count']
-
-                paginator, page = inst.paginator_and_page(cache)
-
-                resp['pages'] = {
-                    'page': page.number,
-                    'pages': page.page_links(),
-                    'num_pages': paginator.num_pages,
-                }
-
-            elif page_num is not None or per_page is not None:
-                paginator, page = inst.paginator_and_page(cache)
-
-                resp['pages'] = {
-                    'page': page.number,
-                    'pages': page.page_links(),
-                    'num_pages': paginator.num_pages,
-                }
 
         return resp

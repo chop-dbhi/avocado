@@ -214,7 +214,6 @@ class Perspective(Context):
 
     def format(self, iterable, format_type):
         store = self.read()
-
         rules = utils.column_format_rules(store['columns'], format_type)
         return format.library.format(iterable, rules, format_type)
 

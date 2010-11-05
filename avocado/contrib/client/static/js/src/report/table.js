@@ -8,18 +8,39 @@ require.def(
 
     function(m_datasource, m_renderer, m_templates) {
 
-        function init() {
-            var body = $('body'),
-                content = $('#content'),
-                resize = $('#resize'),
-                report = $('#report'),
-                thead = $('#table thead tr'),
-                tbody = $('#table tbody'),
-                per_page = $('.per-page'),
-                pages = $('.page-links'),
-                unique = $('.unique-count'),
-                count = $('.count');
+        // TODO remove hardcoded URL
+        var EMPTY_RESULTS = '<h1 class="ca info">No results match your conditions. ' +
+            '<a href="/define/">Refine your conditions</a>.</h1>';
 
+        function init() {
+            var firstRequest = true;
+
+            var body = $('body'),                       // event binding
+                content = $('#content'),                // resizing
+                report = $('#report'),                  // event binding, resizing, unhiding
+                info = $('#report-info'),               // unhiding
+                conditionsText = $('#conditions-text'), // unhiding
+                toolbars = report.find('.toolbar'),     // unhiding
+                table = $('#table'),                    // resizing, unhiding
+                thead = table.find('thead tr'),         // event delegation, data loading
+                tbody = table.find('tbody'),            // data loading
+                per_page = $('.per-page'),              // data loading
+                pages = $('.page-links'),               // data loading
+                unique = $('.unique-count'),            // data loading
+                count = $('.count');                    // data loading
+
+            /*
+             * The renderers necessary for rendering the response data into HTML
+             * templates.
+             *
+             * ``table_header`` - renders the table header that displays column
+             * names and the column ordering.
+             *
+             * ``table_rows`` - renders the table rows that displays the data.
+             *
+             * ``pages`` - renders the page links relative the entire result
+             * set.
+             */
             var rnd = {
                 table_header: new m_renderer.template({
                     target: thead,
@@ -36,24 +57,59 @@ require.def(
                 }),
             };
 
-            var report_uri = report.attr('data-uri');
 
+            /*
+             * The data sources which make requests and handles the body of the
+             * response.
+             *
+             * ``table_header`` - requests the latest header data.
+             *
+             * ``table_rows`` - requests the latest results for the report in
+             * view.
+             */
             var src = {
-                table_rows: new m_datasource.ajax({
-                    uri: report_uri,
+                scope_info: new m_datasource.ajax({
+                    uri: API_URLS.scope,
                     success: function(json) {
-                        rnd.table_rows.render(json.rows);
+                        if (json.text) { 
+                            var t = '';
+                            if (typeof json.text === 'string') {
+                                t = '<li>' + json.text + '</li>';
+                            } else {
+                                var conditions = json.text.conditions;
+                                for (var i=0; i < conditions.length; i++)
+                                    t += '<li>' + conditions[i] + '</li>';
+                            }
+                            conditionsText.html('<ul>' + t + '</ul>');
+                        }
+                    }
+                }),
 
-                        // TODO clean up
-                        if (json.header) {
-                            rnd.table_header.target.html('<th><input type="checkbox"></th>');
-                            rnd.table_header.render(json.header);
+                table_header: new m_datasource.ajax({
+                    uri: API_URLS.perspective,
+                    success: function(json) {
+                        rnd.table_header.target.html('<th><input type="checkbox"></th>');
+                        rnd.table_header.render(json.header);
+                    }
+                }),
+
+                table_rows: new m_datasource.ajax({
+                    uri: API_URLS.report,
+                    success: function(json) {
+                        if (json.rows.length == 0) {
+                            $('.content').html(EMPTY_RESULTS);
+                            return;
                         }
 
-                        report.trigger('resize-report');
+                        rnd.table_rows.render(json.rows); 
 
-                        if (json.pages)
+                        if (json.pages) {
                             rnd.pages.render(json.pages);
+                        } else {
+                            if (firstRequest)
+                                per_page.hide();
+                            rnd.pages.target.hide();
+                        }
 
                         if (json.unique)
                             unique.html(json.unique);
@@ -61,19 +117,32 @@ require.def(
                         if (json.count)
                             count.html(json.count);
 
+                        report.trigger('resize-report');
 
-                        if (json.per_page)
-                            per_page.val(json.per_page);
+                        /*
+                         * Unhide necessary elements on first request.
+                         */
+                        if (firstRequest) {
+                            firstRequest = false;
+                            setTimeout(function() {
+                                info.show();
+                                toolbars.show();
+                                table.slideDown();
+                            }, 300);
+                        }
                     }
                 })
             };
 
+            /*
+             * Make initial requests on initialization.
+             */
+            src.scope_info.get();
+            src.table_header.get();
             src.table_rows.get();
 
-
             report.bind('resize-report', function(evt) {
-                var table = $('#table'),
-                    minWidth = 900,
+                var minWidth = 900,
                     rInnerWidth = report.innerWidth(),
                     tOuterWidth = table.outerWidth(true)+20; // padding is not usable
 
@@ -99,10 +168,6 @@ require.def(
                 });
             });
 
-            resize.bind('click', function(evt) {
-                report.trigger('resize-report');
-            });
-
             var resizeTimeOut;
             $(window).resize(function() {
                 clearTimeout(resizeTimeOut);
@@ -118,13 +183,25 @@ require.def(
                 src.table_rows.get(params);
                 return false;
             });
+
+            body.bind('update.perspective', function(evt, params) {
+                $.putJSON(API_URLS.perspective, JSON.stringify(params), function() {
+                    body.trigger('update.report');
+                    if ('columns' in params)
+                        src.table_header.get(); 
+                });
+                return false;
+            });
+
           
             /*
              * Hook up the elements that change the number of rows per page.
              */
             report.delegate('.per-page', 'change', function(evt) {
-                body.trigger('update.report', {'n': this.value});
-                per_page.val(this.value);
+                if (this.value) {
+                    body.trigger('update.report', {'n': this.value});
+                    this.value = '';
+                }
                 return false;
             });
 
@@ -151,7 +228,7 @@ require.def(
                     dir = 'asc';
                 }
 
-                body.trigger('update.perspective', {'ordering': [[id, dir]]});
+                body.trigger('update.perspective', [{'ordering': [[id, dir]]}]);
                 return false;
             });
             
