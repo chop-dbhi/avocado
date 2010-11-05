@@ -1,8 +1,8 @@
-// report/search
+// report/columns
 
 require.def(
     
-    'report/search',
+    'report/columns',
 
     ['rest/datasource', 'rest/renderer', 'report/templates', 'lib/jquery.ui', 'lib/json2'],
 
@@ -14,39 +14,39 @@ require.def(
                 columns = $('#columns'),
                 active_columns = $('#active-columns'),
 
-                searchdialog = $('#search-dialog'),
+                columnsdialog = $('#columns-dialog'),
                 searchinput = $('#search'),
-                searchform = $('form', searchdialog),
-                searchbutton = $('#search-button');
+                searchform = $('form', columnsdialog),
+                columnsbutton = $('#data-columns');
 
 
-            searchdialog.cache = {};
+            columnsdialog.cache = {};
 
-            searchdialog.get = function(id) {
-                if (!searchdialog.cache[id]) {
+            columnsdialog.get = function(id) {
+                if (!columnsdialog.cache[id]) {
                     var sel = '[data-model=column][data-id=' + id + ']'; 
 
-                    searchdialog.cache[id] = {
+                    columnsdialog.cache[id] = {
                         'src': columns.find(sel),
                         'tgt': active_columns.find(sel)
                     };
                 }
-                return searchdialog.cache[id];
+                return columnsdialog.cache[id];
             };
 
-            searchdialog.bind('addall.column', function(evt, id) {
+            columnsdialog.bind('addall.column', function(evt, id) {
                 var category = $('[data-model=category][data-id=' + id + ']'),
                     columns = category.find('.active:not(.filtered)');
                 
                 category.hide();
-                for (var i=columns.length; i--;)
-                    searchdialog.trigger('add.column', [$(columns[i]).attr('data-id')]);
+                for (var i=0; i < columns.length; i++)
+                    columnsdialog.trigger('add.column', [$(columns[i]).attr('data-id')]);
 
                 return false;
             });
 
-            searchdialog.bind('add.column', function(evt, id) {
-                map = searchdialog.get(id);
+            columnsdialog.bind('add.column', function(evt, id) {
+                map = columnsdialog.get(id);
 
                 map.src.removeClass('active');
 
@@ -66,8 +66,8 @@ require.def(
                 return false;
             });
 
-            searchdialog.bind('remove.column', function(evt, id) {
-                map = searchdialog.get(id);
+            columnsdialog.bind('remove.column', function(evt, id) {
+                map = columnsdialog.get(id);
 
                 map.tgt.removeClass('active');
                 map.src.addClass('active').parents('[data-model=category]').show();
@@ -75,19 +75,19 @@ require.def(
                 return false;
             });
 
-            searchdialog.bind('removeall.column', function(evt) {
-                for (var id in searchdialog.cache)
-                    searchdialog.trigger('remove.column', [id]);
+            columnsdialog.bind('removeall.column', function(evt) {
+                for (var id in columnsdialog.cache)
+                    columnsdialog.trigger('remove.column', [id]);
 
                 return false;
             });
 
-            searchdialog.bind('search.column', function(evt, value) {
+            columnsdialog.bind('search.column', function(evt, value) {
                 searchinput.trigger('search', value);
                 return false;
             });
 
-            searchdialog.bind('save.column', function(evt) {
+            columnsdialog.bind('save.column', function(evt) {
                 var children = active_columns.children('.active'),
                     ids = $.map(children, function(e, i) {
                         return parseInt($(e).attr('data-id'));
@@ -97,23 +97,23 @@ require.def(
                 return false;
             });
 
-            searchdialog.bind('filter.column', function(evt, id) {
-                map = searchdialog.get(id);
+            columnsdialog.bind('filter.column', function(evt, id) {
+                map = columnsdialog.get(id);
                 map.src.addClass('filtered');
                 var sibs = map.src.siblings('.active:not(.filtered)');
                 if (sibs.length == 0)
                     map.src.parents('[data-model=category]').hide();
             });
 
-            searchdialog.bind('filterall.column', function(evt) {
+            columnsdialog.bind('filterall.column', function(evt) {
                 var objs = columns.find('[data-model=column]');
                 for (var i = objs.length; i--;)
-                    searchdialog.trigger('filter.column', [$(objs[i]).attr('data-id')]);
+                    columnsdialog.trigger('filter.column', [$(objs[i]).attr('data-id')]);
                 return false;
             });
 
-            searchdialog.bind('unfilter.column', function(evt, id) {
-                map = searchdialog.get(id);
+            columnsdialog.bind('unfilter.column', function(evt, id) {
+                map = columnsdialog.get(id);
                 map.src.removeClass('filtered');
                 map.src.parents('[data-model=category]').show();
                 return false;
@@ -126,7 +126,7 @@ require.def(
                         if (json.store) {
                             var rcols = json.store.columns;
                             for (var i=0; i < rcols.length; i++)
-                                searchdialog.trigger('add.column', [rcols[i]]);
+                                columnsdialog.trigger('add.column', [rcols[i]]);
                         }
                     }
                 }) 
@@ -163,28 +163,28 @@ require.def(
 
             columns.delegate('.add-column', 'click', function(evt) {
                 var id = evt.target.hash.substr(1);
-                searchdialog.trigger('add.column', [id]);
+                columnsdialog.trigger('add.column', [id]);
                 return false;
             });
 
             columns.delegate('.add-all', 'click', function(evt) {
                 var id = evt.target.hash.substr(1);
-                searchdialog.trigger('addall.column', [id]);
+                columnsdialog.trigger('addall.column', [id]);
                 return false;
             });
 
             active_columns.delegate('.remove-column', 'click', function(evt) {
                 var id = evt.target.hash.substr(1);
-                searchdialog.trigger('remove.column', [id]);
+                columnsdialog.trigger('remove.column', [id]);
                 return false;
             });
 
-            searchdialog.delegate('.remove-all', 'click', function(evt) {
-                searchdialog.trigger('removeall.column');
+            columnsdialog.delegate('.remove-all', 'click', function(evt) {
+                columnsdialog.trigger('removeall.column');
                 return false;
             });
 
-            searchdialog.dialog({
+            columnsdialog.dialog({
                 autoOpen: false,
                 draggable: false,
                 resizable: false,
@@ -193,11 +193,11 @@ require.def(
                 width: 900,
                 buttons: {
                     Cancel: function() {
-                        searchdialog.dialog('close');
+                        columnsdialog.dialog('close');
                     },
                     Save: function() {
-                        searchdialog.trigger('save.column');
-                        searchdialog.dialog('close');
+                        columnsdialog.trigger('save.column');
+                        columnsdialog.dialog('close');
                     }
                 }
             });
@@ -217,8 +217,8 @@ require.def(
                 tolerance: 'intersect'
             }).disableSelection();
 
-            searchbutton.bind('click', function(evt) {
-                searchdialog.dialog('open');
+            columnsbutton.bind('click', function(evt) {
+                columnsdialog.dialog('open');
             });
         };
 

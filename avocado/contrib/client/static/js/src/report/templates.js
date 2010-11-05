@@ -38,7 +38,7 @@ require.def(
 
             row: $.jqotec([
                 '<tr>',
-                    '<td><input type="checkbox"></td>',
+//                    '<td><input type="checkbox"></td>',
                     '<% for(var k=1; k<this.length; k++) { %>',
                         '<td><%= this[k] %></td>',
                     '<% } %>',

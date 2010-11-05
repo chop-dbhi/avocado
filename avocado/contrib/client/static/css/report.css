@@ -133,12 +133,12 @@ button:first-child {
     border-radius: 1ex;
 }
 
-#search-dialog {
+#columns-dialog {
     display: none; /* for jquery ui dialog */
     height: 600px;
 }
 
-#search-dialog > div {
+#columns-dialog > div {
     float: right;
     border: 1px dotted #aaa;
     padding: 10px;
@@ -149,48 +149,48 @@ button:first-child {
     overflow: auto;
 }
 
-#search-dialog > div::-webkit-scrollbar {
+#columns-dialog > div::-webkit-scrollbar {
     width: 1ex;
 }
 
-#search-dialog > div::-webkit-scrollbar-thumb:vertical {
+#columns-dialog > div::-webkit-scrollbar-thumb:vertical {
     background: rgba(0, 0, 0, 0.2);
     border-radius: 1ex;
 }
 
-#search-dialog > div:first-child {
+#columns-dialog > div:first-child {
     float: left;
 }
 
-#search-dialog h4 {
+#columns-dialog h4 {
     font-weight: bold;
     margin-bottom: 10px;
 }
 
-#search-dialog input {
+#columns-dialog input {
     width: 250px;
 }
 
-#search-dialog ul {
+#columns-dialog ul {
     margin: 0;
     list-style: none;
 }
 
-#search-dialog li {
+#columns-dialog li {
     display: none;
     margin: 3px 0;
     padding: 5px 8px;
 }
 
-#search-dialog li.active {
+#columns-dialog li.active {
     display: block;
 }
 
-#search-dialog li.active.filtered {
+#columns-dialog li.active.filtered {
     display: none;
 }
 
-#search-dialog p {
+#columns-dialog p {
     margin: 10px 0;
 }
 
