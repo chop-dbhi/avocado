@@ -70,7 +70,7 @@ require.def('define/search',
              * to the tab, the expected criterion will be shown.
              */
             content.bind('setid-tab', function(evt, id) {
-                content.activetab.data('concept_id', parseInt(id));
+                content.activetab && content.activetab.data('concept_id', parseInt(id));
                 return false;
             });
 

@@ -27,11 +27,11 @@ require.def('define/criteriamanager', ['define/criteria', "define/templates","li
               }
               
               if (!data.store.hasOwnProperty("concept_id")){ // Root node representing a list of concepts won't have this attribute
-                  $.each(data.store.children, function(index, criteria_constraint){
-                      $panel.triggerHandler("UpdateQueryEvent", [criteria_constraint]);
+                  $.each(data.store.children.reverse(), function(index, criteria_constraint){
+                      $panel.triggerHandler("UpdateQueryEvent", [criteria_constraint, true]);
                   });
               }else{
-                  $panel.triggerHandler("UpdateQueryEvent", [data.store]);
+                  $panel.triggerHandler("UpdateQueryEvent", [data.store, true]);
               }
         });
 
@@ -66,7 +66,8 @@ require.def('define/criteriamanager', ['define/criteria', "define/templates","li
         });
         
         // Listen for new criteria as it is added
-        $panel.bind("UpdateQueryEvent", function(evt, criteria_constraint){
+        $panel.bind("UpdateQueryEvent", function(evt, criteria_constraint, page_is_loading){
+            
             var pk = criteria_constraint.concept_id;
             var new_criteria;
             // If this is the first criteria to be added remove 
@@ -75,13 +76,15 @@ require.def('define/criteriamanager', ['define/criteria', "define/templates","li
             if ($.isEmptyObject(criteria_cache)){
                 $no_criteria_defined.detach();
                 $run_query_div.append($run_query);
-            }else{
-                $criteria_div.children(".criterion").removeClass("selected");
             }
-            
-            // Is this an update?
+
+            // Until this is validated by the server and we receive the english version of it
+            // disable the query.
+            $run_query.attr("disabled","true");
             $.postJSON(criteria_api_uri, JSON.stringify(criteria_constraint), function(english){
+                $run_query.removeAttr("disabled");
                 var was_empty = $.isEmptyObject(criteria_cache);
+                // Is this an update?
                 if (criteria_cache.hasOwnProperty(pk)){
                     new_criteria = criteria.Criteria(criteria_constraint, criteria_api_uri, english);
                     criteria_cache[pk].replaceWith(new_criteria);
@@ -90,12 +93,20 @@ require.def('define/criteriamanager', ['define/criteria', "define/templates","li
                     });
                 }else{
                     new_criteria = criteria.Criteria(criteria_constraint, criteria_api_uri, english);
-                    $criteria_div.append(new_criteria);
+                    if (page_is_loading){
+                        $criteria_div.prepend(new_criteria);
+                    }else{
+                         $criteria_div.append(new_criteria);
+                    }
                     var addEvent = $.Event("ConceptAddedEvent");
                     addEvent.concept_id = pk;
                     $panel.trigger(addEvent);
                 }
                 criteria_cache[pk] =  new_criteria;
+                if (!page_is_loading){
+                    new_criteria.addClass("selected");
+                    new_criteria.siblings().removeClass("selected");
+                }
                 
                 // If the cache used to be empty, show this one in the console.
                 if (was_empty){

@@ -68,8 +68,8 @@ require(['define/search', 'define/conceptmanager', 'define/criteriamanager'], fu
                     success: function(json) {
                             pluginPanel.fadeIn(100);
                             conceptManager.show(json, existing_ds);
-                        }
-                    });
+                    }
+                });
             }    
         });
         
