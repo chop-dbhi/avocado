@@ -88,8 +88,11 @@ button:first-child {
 }
 
 .container > .info {
-    text-shadow: #fff 1px 1px 0;
     display: none;
+}
+
+#report-actions {
+    float: right;
 }
 
 .container > .info li {

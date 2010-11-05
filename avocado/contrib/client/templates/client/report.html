@@ -34,16 +34,16 @@
         <div class="title">Report</div>
 
         <div id="report-info" class="info clearfix">
-            <div class="fr ra">
-                {% spaceless %}
-                {% block report_buttons %}
-                    <button id="data-columns">Data Columns...</button> 
-                {% endblock %}
-                {% endspaceless %}
-            </div>
             <div class="ib">
                 <h4>Details</h4>
                 <span id="conditions-text">No conditions were defined for this report.</span>
+            </div>
+            <div id="report-actions">
+                {% spaceless %}
+                {% block report_buttons %}
+                    <button id="data-columns">Add/Remove Columns...</button> 
+                {% endblock %}
+                {% endspaceless %}
             </div>
         </div>
 

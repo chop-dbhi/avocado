@@ -277,9 +277,8 @@
     font-size: 12px;
     margin-bottom: 10px;
     padding: 4px 5px;
-    text-shadow: #fff 1px 1px 0;
-    border-radius: 3px;
     -moz-border-radius: 3px;  
+    border-radius: 3px;
 }
 
 .criterion:hover, .criterion.selected {

@@ -474,8 +474,12 @@ footer a:hover, footer a:active {
 .container > .info {
     font-size: 11px;
     padding: 10px;
+    border-top: 1px dotted #fff;
     border-bottom: 1px dotted #999;
-    background-color: #D5E0F3;
+    background-color: #D9EAFF;
+    box-shadow: inset #C6DEFF 0 -5px 10px;
+    -webkit-box-shadow: inset #C6DEFF 0 -5px 10px;
+    -moz-box-shadow: inset #C6DEFF 0 -5px 10px;    
 }
 
 .container > .toolbar {
