@@ -18,7 +18,8 @@ from avocado.columns.cache import cache as column_cache
 from avocado.columns import utils, format
 from avocado.utils.paginator import BufferedPaginator
 
-__all__ = ('Scope', 'Perspective', 'Report', 'ObjectSet')
+__all__ = ('Scope', 'Perspective', 'Report', 'ObjectSet',
+    'ObjectSetJoinThrough')
 
 PAGE = 1
 PAGINATE_BY = 10
@@ -32,7 +33,7 @@ class Descriptor(models.Model):
     description = models.TextField(blank=True, null=True)
     keywords = models.CharField(max_length=100, null=True, blank=True)
 
-    class Meta:
+    class Meta(object):
         abstract = True
         app_label = 'avocado'
 
@@ -48,13 +49,9 @@ class Context(Descriptor):
     definition = models.TextField(editable=False, null=True)
     timestamp = models.DateTimeField(editable=False, default=datetime.now())
 
-    class Meta:
+    class Meta(object):
         abstract = True
         app_label = 'avocado'
-
-    def define(self):
-        "Interprets the stored data structure."
-        raise NotImplementedError
 
     def _get_obj(self, obj=None):
         if obj is None:
@@ -136,60 +133,18 @@ class Scope(Context):
 
     cnt = models.PositiveIntegerField('count', editable=False)
 
-    def __str__(self):
-        return self._get_readable(self._get_obj())
-
-    def __unicode__(self):
-        return unicode(str(self))
-
     def _get_contents(self, obj):
-        return logictree.transform(obj).get_field_ids()
+        self._node = logictree.transform(obj)
+        return self._node.get_field_ids()
 
     def _parse_contents(self, obj, *args, **kwargs):
-        node = logictree.transform(obj, *args, **kwargs)
-        return node.apply
+        self._node = logictree.transform(obj)
+        return self._node.apply
 
-    def _merge(self, c1, c2, promote=True):
-        "Only attempt to merge numerical and list-based values."
-        if c1['id'] == c2['id'] and c1['operator'] == c2['operator']:
-            if c1['operator'] in ('in', '-in'):
-                return list(set(c1['value'] + c2['value']))
-
-    def write(self, obj=None, partial=False, *args, **kwargs):
-        # TODO this is a partially working implementation, but will currently
-        # ignore if a condition is set at the same level
-        if partial and obj:
-            stored_obj = self._get_obj()
-            if 'type' in stored_obj:
-                if stored_obj['type'].upper() == 'AND':
-                    # attempt to merge with an existing child node
-                    for i, node in enumerate(stored_obj['children']):
-                        value = self._merge(node, obj)
-                        if value is not None:
-                            node['value'] = value
-                            break
-                    else:
-                        stored_obj['children'].append(obj)
-                    obj = stored_obj
-                else:
-                    obj = {
-                        'type': 'and',
-                        'children': [stored_obj, obj]
-                    }
-            elif stored_obj:
-                value = self._merge(stored_obj, obj)
-                if value is not None:
-                    obj['value'] = value
-                else:
-                    obj = {
-                        'type': 'and',
-                        'children': [stored_obj, obj]
-                    }
-        else:
-            obj = self._get_obj(obj)
-
-        self.store = obj
-        self.timestamp = datetime.now()
+    def is_valid(self, obj):
+        if hasattr(self, '_node'):
+            del self._node
+        return super(Scope, self).is_valid(obj)
 
     def save(self):
         self.cnt = self.get_queryset().distinct().count()
@@ -259,7 +214,6 @@ class Perspective(Context):
 
     def format(self, iterable, format_type):
         store = self.read()
-
         rules = utils.column_format_rules(store['columns'], format_type)
         return format.library.format(iterable, rules, format_type)
 
@@ -431,14 +385,9 @@ class Report(Descriptor):
 
         # first argument is ``None`` since we want to use the session objects
         queryset = self.scope.get_queryset(None, queryset, using=using, **context)
-
-        if not self.scope.cache_is_valid(timestamp):
-            unique = self._get_count(queryset)
-
+        unique = self._get_count(queryset)
         queryset = self.perspective.get_queryset(None, queryset, using=using)
-
-        if unique is not None or not self.perspective.cache_is_valid(timestamp):
-            count = self._get_count(queryset)
+        count = self._get_count(queryset)
 
         return queryset, unique, count
 
@@ -452,7 +401,8 @@ class Report(Descriptor):
 
 
 class ObjectSet(Descriptor):
-    """Provides a means of saving off a set of objects.
+    """
+    Provides a means of saving off a set of objects.
 
     `criteria' is persisted so the original can be rebuilt. `removed_ids'
     is persisted to know which objects have been excluded explicitly from the
@@ -462,19 +412,13 @@ class ObjectSet(Descriptor):
 
     `ObjectSet' must be subclassed to add the many-to-many relationship
     to the "object" of interest.
-
-    `related_field_name` - the name of the ManyToManyField on the non-abstract
-    subclass
-
-    `field_ref` - an optional reference to a `Field` object that represents
-    a unique reference to the objects in the set e.g. the 'id' field
     """
     scope = models.OneToOneField(Scope, editable=False)
-    cnt = models.PositiveIntegerField('count', default=0, editable=False)
     created = models.DateTimeField(editable=False)
     modified = models.DateTimeField(editable=False)
+    cnt = models.PositiveIntegerField('count', default=0, editable=False)
 
-    class Meta:
+    class Meta(object):
         abstract = True
 
     def save(self):
@@ -483,3 +427,23 @@ class ObjectSet(Descriptor):
         self.modified = datetime.now()
         super(ObjectSet, self).save()
 
+
+class ObjectSetJoinThrough(models.Model):
+    """
+    Adds additional information about the objects that have been ``added`` and
+    ``removed`` from the original set.
+
+    For instance, additional objects that are added which do not match the
+    conditions currently associated with the ``ObjectSet`` should be flagged
+    as ``added``. If in the future they match the conditions, the flag can be
+    removed.
+
+    Any objects that are removed from the set should be marked as ``removed``
+    even if they were added at one time. This is too keep track of the objects
+    that have been explicitly removed from the set.
+    """
+    removed = models.BooleanField(default=False)
+    added = models.BooleanField(default=False)
+
+    class Meta(object):
+        abstract = True

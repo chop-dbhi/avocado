@@ -1,9 +1,10 @@
 require(['define/search', 'define/conceptmanager', 'define/criteriamanager'], function(search, conceptmanager, criteriamanager) {
    
     $(function() {
+
         search.init();
         // The view manager needs to know where in the DOM to place certain things
-        var rootNode = $("#content"),
+        var content = $("#content"),
             pluginTabs = $('#plugin-tabs'),
             pluginPanel = $('#plugin-panel'),
             pluginTitle = $('#plugin-title'),
@@ -12,19 +13,22 @@ require(['define/search', 'define/conceptmanager', 'define/criteriamanager'], fu
             pluginDynamicContent = $('#plugin-dynamic-content'),
 
             criteria = $('#criteria');
-            
-            
+        
+        $('body').ajaxComplete(function() {
+            OVERLAY.fadeOut();
+        });
+
         // Create an instance of the conceptManager object. Only do this once.
         var conceptManager = conceptmanager.manager(pluginPanel, pluginTitle, pluginTabs, pluginDynamicContent,
             pluginStaticContent);
         
         var criteriaManager = criteriamanager.Manager(criteriaPanel);
         
-        rootNode.bind('UpdateQueryEvent', function(evt, criteria_constraint) {
+        content.bind('UpdateQueryEvent', function(evt, criteria_constraint) {
             criteriaPanel.triggerHandler("UpdateQueryEvent", [criteria_constraint]);
         });
         
-        rootNode.bind("ConceptAddedEvent ConceptDeletedEvent", function(evt){
+        content.bind("ConceptAddedEvent ConceptDeletedEvent", function(evt){
             pluginPanel.trigger(evt);
         });
         
@@ -38,7 +42,7 @@ require(['define/search', 'define/conceptmanager', 'define/criteriamanager'], fu
         // 3) Clicking on a tab where a concept has already been opened while on 
         //    another tab. For example, if you were on Audiology Tab, selected ABR 1000,
         //    and then moved to Imaging, and then clicked back on Audiology.
-        rootNode.bind("ShowConceptEvent", function(evt){
+        content.bind("ShowConceptEvent", function(evt){
             var target = $(evt.target);
             var concept_id = target.attr('data-id');
             var existing_ds = evt.constraints; // if they clicked on the right side
@@ -127,7 +131,7 @@ require(['define/search', 'define/conceptmanager', 'define/criteriamanager'], fu
 //
 //
 
-        rootNode.bind('activate-criterion', function(evt, id) {
+        content.bind('activate-criterion', function(evt, id) {
             var target;
 
             if (!id)
@@ -142,7 +146,7 @@ require(['define/search', 'define/conceptmanager', 'define/criteriamanager'], fu
 
             target.trigger('ShowConceptEvent');
             // bind this concept's id to the current active tab
-            rootNode.trigger('setid-tab', [id]);
+            content.trigger('setid-tab', [id]);
 
             return false;
         });

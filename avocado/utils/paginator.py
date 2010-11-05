@@ -176,7 +176,7 @@ class BufferedPage(Page):
                 pages.append(i)
 
         # if there is still a gap until `self.paginator.num_pages' is reached, add trailing pages
-        if (self.number + first_last_count + before_after_count + 1) < self.paginator.num_pages:
+        if (self.number + first_last_count + before_after_count) < self.paginator.num_pages:
             for i in range(self.number, self.number + before_after_count + 1):
                 pages.append(i)
 

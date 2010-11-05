@@ -56,7 +56,7 @@ class Concept(models.Model):
         t = Template("""
             {% load markup %}
             {% for field in fields %}
-                <strong>{{ field.name }}</strong>
+                <b>{{ field.name }}</b>
                 {{ field.description|markdown }}
             {% endfor %}
             """)

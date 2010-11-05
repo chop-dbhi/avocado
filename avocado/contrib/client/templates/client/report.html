@@ -9,7 +9,18 @@
 
 {% block scripts %}
     {{ block.super }}
-    <script>require(['sanitizer', 'extensions', 'report/main']);</script>
+    <script>
+        var API_URLS = {
+            scope: '{% url api:scope:session %}',
+            perspective: '{% url api:perspectives:session %}',
+            report: '{% url api:reports:session:resolve %}'
+        },
+        
+        URLS = {
+            define: '{% url define %}'
+        };
+        require(['sanitizer', 'extensions', 'report/main']);
+    </script>
 {% endblock %}
 
 {% block navigation %}
@@ -17,22 +28,34 @@
 {% endblock %}
 
 {% block content %}
-    
-    <div id="report" class="container" data-uri="{% url api:reports:session:resolve %}">
+
+    <div id="report" class="container">
 
         <div class="title">Report</div>
 
-        <div class="toolbar header">
+        <div id="report-info" class="info clearfix">
+            <div class="fr ra">
+                <button id="search-button">Data Columns...</button><br>
+                <button id="save-set">Save Patient Cohort...</button>
+            </div>
+            <div class="ib">
+                <h4>Details</h4>
+                <span id="conditions-text">No conditions were defined for this report.</span>
+            </div>
+        </div>
+
+        <div class="toolbar header clearfix">
             <span><span class="count"></span> rows / <span class="unique-count"></span> patients</span>
-            <span class="page-links"></span>
-            Per page:
-            <select class="per-page">
-                <option value="10">10</option>
-                <option value="25">25</option>
-                <option value="50">50</option>
-                <option value="100">100</option>
-            </select>
-            <button id="search-button"><span class="iconic plus"></span>/<span class="iconic minus"></span> Columns</button>
+            <span class="fr">
+                <span class="page-links"></span>
+                <select class="per-page">
+                    <option value=""># rows</option>
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </span>
         </div>
 
         <div class="content">
@@ -42,20 +65,22 @@
             </table>
         </div>
 
-        <div class="toolbar footer">
+        <div class="toolbar footer clearfix">
             <span><span class="count"></span> rows / <span class="unique-count"></span> patients</span>
-            <span class="page-links"></span>
-            Per page:
-            <select class="per-page">
-                <option value="10">10</option>
-                <option value="25">25</option>
-                <option value="50">50</option>
-                <option value="100">100</option>
-            </select>
+            <span class="fr">
+                <span class="page-links"></span>
+                <select class="per-page">
+                    <option value=""># rows</option>
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </span>
         </div>
     </div>
 
-    <div id="search-dialog" data-uri="{% url api:perspectives:session %}">
+    <div id="search-dialog" class="clearfix">
         <div>
             <h3>Available Columns</h3>
 

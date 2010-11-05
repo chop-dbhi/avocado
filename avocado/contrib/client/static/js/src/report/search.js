@@ -19,19 +19,7 @@ require.def(
                 searchform = $('form', searchdialog),
                 searchbutton = $('#search-button');
 
-            var perspective_uri = searchdialog.attr('data-uri'),
-                column_uri = searchform.attr('action');
 
-            /*
-             * Pre-setup and event handler binding
-             */
-            body.bind('update.perspective', function(evt, params) {
-                $.putJSON(perspective_uri, JSON.stringify(params), function() {
-                    body.trigger('update.report');
-                });
-                return false;
-            });
- 
             searchdialog.cache = {};
 
             searchdialog.get = function(id) {
@@ -133,7 +121,7 @@ require.def(
 
             var src = {
                 perspective: new m_datasource.ajax({
-                    uri: perspective_uri,
+                    uri: API_URLS.perspective,
                     success: function(json) {
                         if (json.store) {
                             var rcols = json.store.columns;
@@ -167,12 +155,11 @@ require.def(
 
             searchinput.autocomplete2({
                 success: function(value, json) {
-                    console.log(json);
                     searchinput.trigger('filterall.column');
                     for (var i = 0; i < json.length; i++)
                         searchinput.trigger('unfilter.column', [json[i]]);
                 }
-            });
+            }, null, 50);
 
             columns.delegate('.add-column', 'click', function(evt) {
                 var id = evt.target.hash.substr(1);
@@ -199,12 +186,11 @@ require.def(
 
             searchdialog.dialog({
                 autoOpen: false,
-                draggable: true,
-                resizable: true,
+                draggable: false,
+                resizable: false,
                 title: 'Add or Remove Columns from this Report',
-                height: 550,
-                width: 700,
-                minWidth: 700,
+                height: 600,
+                width: 900,
                 buttons: {
                     Cancel: function() {
                         searchdialog.dialog('close');

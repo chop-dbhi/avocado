@@ -41,6 +41,9 @@ Two examples as follows:
 from avocado.modeltree import DEFAULT_MODELTREE_ALIAS
 from avocado.models import Field, Criterion, CriterionField
 
+AND = 'AND'
+OR = 'OR'
+
 class Node(object):
     condition = None
     annotations = None
@@ -55,6 +58,10 @@ class Node(object):
             queryset = queryset.filter(self.condition)
         return queryset
 
+    @property
+    def text(self, *args, **kwargs):
+        pass
+
 
 class Condition(Node):
     "Contains information for a single query condition."
@@ -65,7 +72,7 @@ class Condition(Node):
         self.operator = kwargs['operator']
         self.value = kwargs['value']
         self.concept_id = kwargs['concept_id']
-        
+
     @property
     def _meta(self):
         if not hasattr(self, '__meta'):
@@ -78,7 +85,7 @@ class Condition(Node):
         if not hasattr(self, '_criterion'):
             self._criterion = Criterion.objects.get(id=self.concept_id)
         return self._criterion
-    
+
     @property
     def criterionfield(self):
         if not hasattr(self, '_criterionfield'):
@@ -101,23 +108,24 @@ class Condition(Node):
         return self._meta['annotations']
 
     @property
-    def text(self):
+    def text(self, flatten=True):
         operator = self._meta['cleaned_data']['operator']
         value = self._meta['cleaned_data']['value']
-        return self.criterionfield.text(operator, value)
+        return {'conditions': [self.criterionfield.text(operator, value)]}
 
     def get_field_ids(self):
         return [self.id]
+
 
 class LogicalOperator(Node):
     "Provides a logical relationship between it's children."
     def __init__(self, type, using=DEFAULT_MODELTREE_ALIAS):
         self.using = using
-        self.type = type
+        self.type = (type.upper() == AND) and AND or OR
         self.children = []
 
     def _combine(self, q1, q2):
-        if self.type.upper() == 'OR':
+        if self.type.upper() == OR:
             return q1 | q2
         return q1 & q2
 
@@ -142,12 +150,17 @@ class LogicalOperator(Node):
         return self._annotations
 
     @property
-    def text(self):
+    def text(self, flatten=True):
         if not hasattr(self, '_text'):
-            text = []
+            text = {'type': self.type.lower(), 'conditions': []}
             for node in self.children:
-                text.append(node.text)
-            self._text = (' %s ' % self.type.lower()).join(text)
+                t = node.text
+                # flatten if nested conditions are also AND's
+                if not t.has_key('type') or t['type'] == self.type.lower():
+                    text['conditions'].extend(t['conditions'])
+                else:
+                    text['conditions'].append(t['conditions'])
+            self._text = text
         return self._text
 
     def get_field_ids(self):

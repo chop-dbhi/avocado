@@ -1,7 +1,26 @@
+h4 {
+    font-weight: 500;
+    margin-bottom: 5px;
+}
+
+button {
+    font-size: 10px;
+    margin-top: 5px;
+}
+
+button:first-child {
+    margin-top: 0;
+}
+
+#overlay {
+    display: block;
+}
+
 /*
 ** Base classes and styling for a sortable table elements
 */
 .sortable {
+    display: none;
     border-collapse: separate;
 	font-size: 13px;
 	font-family: "Gill Sans", "Trebuchet MS", sans-serif;
@@ -19,6 +38,11 @@
     text-align: center;
     font-weight: normal;
     background-color: #fff;
+    min-width: 100px;
+}
+
+.sortable td:first-child, .sortable th:first-child {
+    min-width: 0;
 }
 
 .sortable td > *, .sortable th > * {
@@ -27,10 +51,6 @@
 
 .sortable thead > *, .sortable tfoot > * {
     background-color: #efefef;    
-}
-
-.sortable thead tr, .sortable tfoot tr {
-    
 }
 
 .sortable thead td, .sortable tfoot td, .sortable thead th, .sortable tfoot th {
@@ -56,53 +76,66 @@
 }
 
 .sortable thead tr .asc {
-	background-image: url(../img/asc.gif);
+    background-image: url(../img/asc.gif);
 }
 
 .sortable thead tr .desc {
-	background-image: url(../img/desc.gif);
+    background-image: url(../img/desc.gif);
 }
 
 .sortable thead tr .desc, .sortable thead tr .asc {
     background-color: #FFEA5F;
 }
 
-
-#report .toolbar > * {
-    margin-right: 15px;
+.container > .info {
+    text-shadow: #fff 1px 1px 0;
+    display: none;
 }
 
-#report .page-links > *, #report .page-links .pages > * {
+.container > .info li {
+    margin: 3px 0;
+}
+
+.container > .toolbar {
+    display: none;
+}
+
+.container > .toolbar > * {
+    vertical-align: middle;
+}
+
+.container > .toolbar select {
+    font-size: 10px;
+}
+
+.container .page-links > * {
     margin-right: 10px;
 }
 
-#report .page-links .pages {
-    background-color: #eee;
+.container .page-links .pages {
     display: inline-block;
-    text-align: center;
-    width: 200px;
 }
 
-#report .page-links .inactive {
-    color: #666;
+.container .page-links .inactive {
+    color: #999;
 }
 
-#report .content {
+.container .content {
     overflow: auto;
 }
 
-#report .content::-webkit-scrollbar {
+.container .content::-webkit-scrollbar {
     height: 1ex;
 }
 
-#report .content::-webkit-scrollbar-thumb:horizontal {
+.container .content::-webkit-scrollbar-thumb:horizontal {
     background: rgba(0, 0, 0, 0.2);
     border-radius: 1ex;
 }
 
 #search-dialog {
     display: none; /* for jquery ui dialog */
-    overflow: auto;
+    height: 600px;
 }
 
 #search-dialog > div {
@@ -111,9 +144,19 @@
     padding: 10px;
     display: inline-block;
     vertical-align: top;
-    width: 300px;
+    width: 400px;
+    height: 580px;
+    overflow: auto;
 }
 
+#search-dialog > div::-webkit-scrollbar {
+    width: 1ex;
+}
+
+#search-dialog > div::-webkit-scrollbar-thumb:vertical {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 1ex;
+}
 
 #search-dialog > div:first-child {
     float: left;
@@ -190,11 +233,11 @@
 
 #columns li > .name, #active-columns li > .name {
     display: inline-block;
-    width: 240px;
+    width: 335px;
 }
 
 #active-columns li > .name {
-    width: 220px;
+    width: 315px;
 }
 
 .actions {

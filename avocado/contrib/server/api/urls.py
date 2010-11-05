@@ -6,8 +6,8 @@ from avocado.contrib.server.api.handlers import (CriterionHandler, ColumnHandler
     CategoryHandler, ScopeHandler, PerspectiveHandler, ReportHandler,
     ReportResolverHandler)
 
-criterion =  Resource(CriterionHandler)
-column = Resource(ColumnHandler)
+criterion =  cache_page(Resource(CriterionHandler), 60*60)
+column = cache_page(Resource(ColumnHandler), 60*60)
 category =  cache_page(Resource(CategoryHandler), 60*60*24*30)
 
 scope =  never_cache(Resource(ScopeHandler))

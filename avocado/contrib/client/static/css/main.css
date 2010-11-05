@@ -259,7 +259,9 @@ footer a:hover, footer a:active {
 */
 
 .cl {clear: both}
+.la {text-align: left}
 .ca {text-align: center}
+.ra {text-align: right}
 .fl {float: left}
 .fr {float: right}
 .lg {color: #999}
@@ -268,11 +270,19 @@ footer a:hover, footer a:active {
 .ht {font-size: 0.8em}
 .bt {font-size: 1.2em}
 .hd {display: none}
-.st {font-weight: bold}
+.bo, .st {font-weight: bold}
 .it {font-style: italic;}
 .in {display: inline}
 .bl {display: block}
 .ib {display: inline-block}
+
+.ad:after {
+    content: url(../img/ad.png);
+}
+
+.au:after {
+    content: url(../img/au.png);
+}
 
 .form-controls {
     border-top: 1px dotted #aaa;
@@ -457,8 +467,15 @@ footer a:hover, footer a:active {
 .container > .no-title {
     height: 5px;
     background-color: #666;
-    border-radius: 4px 4px 0 0;
     -moz-border-radius: 4px 4px 0 0;          
+    border-radius: 4px 4px 0 0;
+}
+
+.container > .info {
+    font-size: 11px;
+    padding: 10px;
+    border-bottom: 1px dotted #999;
+    background-color: #D5E0F3;
 }
 
 .container > .toolbar {
@@ -617,4 +634,15 @@ footer a:hover, footer a:active {
 
 .ui-dialog .ui-dialog-titlebar .ui-dialog-titlebar-close {
     display: none;
+}
+
+#overlay {
+    display: none;
+    z-index: 5000;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #fff url(../img/loader.gif) no-repeat center;
 }
