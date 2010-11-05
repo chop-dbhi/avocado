@@ -507,7 +507,7 @@ class ModelTree(object):
         nodes = self.path_to(model)
         conns = self.get_all_join_connections(nodes)
         for c in conns:
-            clone.query.join(c, **kwargs)
+            clone.query.join(c, promote=True, **kwargs)
         return clone
 
     def print_path(self, node=None, depth=0):
