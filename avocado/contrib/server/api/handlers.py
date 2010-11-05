@@ -8,6 +8,7 @@ from piston.utils import rc
 
 from avocado.models import Category, Scope, Perspective, Report, Column
 from avocado.fields import logictree
+from avocado.contrib.server.http import ExcelResponse
 from avocado.contrib.server.utils.types import uni2str
 from avocado.contrib.server.api.models import CriterionProxy
 from avocado.conf import settings
@@ -288,6 +289,35 @@ class ReportResolverHandler(BaseHandler):
     def queryset(self, request):
         return self.model.objects.filter(user=request.user)
 
+    def _export_csv(self, request, inst, *args, **kwargs):
+        context = {'user': request.user}
+
+        # fetch the report cache from the session, default to a new dict with
+        # a few defaults. if a new dict is used, this implies that this a
+        # report has not been resolved yet this session.
+        cache = request.session.get(inst.REPORT_CACHE_KEY, {
+            'timestamp': None,
+            'page_num': 1,
+            'per_page': 10,
+            'offset': 0,
+            'unique': None,
+            'count': None,
+            'datakey': inst.get_datakey(request)
+        })
+
+        # test if the cache is still valid, then attempt to fetch the requested
+        # page from cache
+        timestamp = cache['timestamp']
+        queryset, unique, count = inst.get_queryset(timestamp, **context)
+
+        rows = inst._execute_raw_query(queryset)
+        iterator = inst.perspective.format(rows, 'csv')
+        header = inst.perspective.get_columns_as_fields()
+        name = 'audgendb_report-' + datetime.now().strftime('%Y-%m-%d-%H,%M,%S')
+
+        return ExcelResponse(list(iterator), name, header)
+
+
     def read(self, request, *args, **kwargs):
         "The interface for resolving a report, i.e. running a query."
 
@@ -307,6 +337,11 @@ class ReportResolverHandler(BaseHandler):
 
         if not inst.has_permission(user):
             return rc.FORBIDDEN
+
+        format_type = request.GET.get('f', None)
+
+        if format_type == 'csv':
+            return self._export_csv(request, inst, *args, **kwargs)
 
         page_num = request.GET.get('p', None)
         per_page = request.GET.get('n', None)

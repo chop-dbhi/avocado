@@ -13,6 +13,17 @@ require(
 
             m_columns.init();
             m_table.init();
+
+            var e = $('#export-data');
+
+            e.bind('click', function() {
+                e.attr('disabled', true);
+                window.location = API_URLS.report + '?f=csv';
+                setTimeout(function() {
+                    e.attr('disabled', false);
+                }, 5000);
+                return false;
+            });
         });
 
     }

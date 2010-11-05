@@ -93,6 +93,7 @@ button:first-child {
 
 #report-actions {
     float: right;
+    text-align: right;
 }
 
 .container > .info li {

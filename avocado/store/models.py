@@ -212,6 +212,19 @@ class Perspective(Context):
 
         return header
 
+    def get_columns_as_fields(self):
+        store = self.read()
+        header = []
+
+        for x in store['columns']:
+            c = column_cache.get(x)
+            fields = c.fields.order_by('columnfield__order')
+            if len(fields) == 1:
+                header.append(c.name)
+            else:
+                header.extend([x.name for x in fields])
+        return header
+
     def format(self, iterable, format_type):
         store = self.read()
         rules = utils.column_format_rules(store['columns'], format_type)

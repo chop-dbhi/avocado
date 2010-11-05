@@ -13,9 +13,18 @@ class JSONHttpResponse(HttpResponse):
 
 class ExcelResponse(HttpResponse):
     def __init__(self, data, output_name='excel_data', headers=None,
-                 force_csv=False, encoding='utf8'):
+                 has_id=True, force_csv=False, encoding='utf8'):
 
         valid_data = False
+
+        if headers is None:
+            l = len(data[0])
+            if has_id:
+                l -= 1
+            headers = ['' for i in range(l)]
+        else:
+            if has_id:
+                headers = [''] + headers
 
         # Make sure we've got the right type of data to work with
         if isinstance(data, ValuesQuerySet):
@@ -55,6 +64,8 @@ class ExcelResponse(HttpResponse):
 
             for rowx, row in enumerate(data):
                 for colx, value in enumerate(row):
+                    if colx == 0 and has_id:
+                        continue
                     if isinstance(value, datetime.datetime):
                         cell_style = styles['datetime']
                     elif isinstance(value, datetime.date):
@@ -70,7 +81,9 @@ class ExcelResponse(HttpResponse):
         else:
             for row in data:
                 out_row = []
-                for value in row:
+                for i, value in enumerate(row):
+                    if i == 0 and has_id:
+                        continue
                     if not isinstance(value, basestring):
                         value = unicode(value)
                     value = value.encode(encoding)
