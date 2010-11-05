@@ -430,10 +430,8 @@ require.def(
                 // passed is in the DOM or not, if not we inject it. The idea is to eventually
                 // when we can do this outside the dom in all browsers, to be able to do 
                 // this in the existing framework
-                if ($view.parent().length === 0){
-                    // This is not yet in the DOM
-                    $contentBox.append($view);
-                }
+
+                $contentBox.append($view);
                 activeView.contents.css("display","block");
                 
                 $(".chart", activeView.contents).css("display","block"); // Hack because of IE
@@ -466,11 +464,7 @@ require.def(
                 if (activeView !== null){
                     activeView.contents.css("display","none");
                     activeView.contents.children().trigger("LostFocusEvent");
-                    // TODO: Use Modernizer here?
-                    if ($("shape",activeView.contents).length === 0) {
-                        //  not VML
-                        activeView.contents.detach();
-                    }
+                    activeView.contents.detach();
                 }
                 
                 activeView = cache[activeConcept].views[tabIndex];
