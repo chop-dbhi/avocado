@@ -86,7 +86,7 @@ require.def('define/form', [], {
                                                         choiceOperatorsTmpl,
                                                      '</select>',
                                                  '<select multiple="multiple" id="<%=this.field_id%>-value" name="<%=this.field_id%>" size="3" data-optional="<%=this.optional%>" >',
-                                                  '<% for (index in this.choices) { %>',
+                                                  '<% for (var index = 0; index < this.choices.length; index++) { %>',
                                                         '<option value="<%=this.choices[index][0]%>"><%=this.choices[index][1]%></option>',
                                                   '<%}%>',
                                                   '</select>',
