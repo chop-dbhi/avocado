@@ -35,8 +35,11 @@
 
         <div id="report-info" class="info clearfix">
             <div class="fr ra">
-                <button id="search-button">Data Columns...</button><br>
-                <button id="save-set">Save Patient Cohort...</button>
+                {% spaceless %}
+                {% block report_buttons %}
+                    <button id="data-columns">Data Columns...</button> 
+                {% endblock %}
+                {% endspaceless %}
             </div>
             <div class="ib">
                 <h4>Details</h4>
@@ -80,7 +83,7 @@
         </div>
     </div>
 
-    <div id="search-dialog" class="clearfix">
+    <div id="columns-dialog" class="clearfix">
         <div>
             <h3>Available Columns</h3>
 

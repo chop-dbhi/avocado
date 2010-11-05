@@ -127,7 +127,6 @@ def define(request):
         'criteria': criteria,
     }, context_instance=RequestContext(request))
 
-@never_cache
 def report(request):
     columns = ColumnHandler().read(request)
     return render_to_response('report.html', {

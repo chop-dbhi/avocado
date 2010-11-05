@@ -2,16 +2,16 @@
 
 require(
     
-    ['report/table', 'report/search'],
+    ['report/table', 'report/columns'],
 
-    function(m_table, m_search) {
+    function(m_table, m_columns) {
 
         $(function() {
             $('body').ajaxComplete(function() {
                 OVERLAY.fadeOut();
             });
 
-            m_search.init();
+            m_columns.init();
             m_table.init();
         });
 

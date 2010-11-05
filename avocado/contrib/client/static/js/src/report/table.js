@@ -44,8 +44,8 @@ require.def(
             var rnd = {
                 table_header: new m_renderer.template({
                     target: thead,
-                    template: m_templates.header,
-                    replace: 'append'
+                    template: m_templates.header
+//                    replace: 'append'
                 }),
                 table_rows: new m_renderer.template({
                     target: tbody,
@@ -88,7 +88,7 @@ require.def(
                 table_header: new m_datasource.ajax({
                     uri: API_URLS.perspective,
                     success: function(json) {
-                        rnd.table_header.target.html('<th><input type="checkbox"></th>');
+//                        rnd.table_header.target.html('<th><input type="checkbox"></th>');
                         rnd.table_header.render(json.header);
                     }
                 }),
