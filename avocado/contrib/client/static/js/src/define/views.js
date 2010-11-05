@@ -41,13 +41,12 @@ require.def('define/views',  ['define/chart','define/form'], function(chart, for
                     break;
                 case 'chart':
                     var datatype = element.data.datatype;
-                    var location = undefined; //Modernizr.svg ? undefined : $contentBox;
                     if (datatype === 'number') {
-                        $view.append(chart.getLineChart(element, view.concept_id, location)); 
+                        $view.append(chart.getLineChart(element, view.concept_id)); 
                     } else if (datatype === 'nullboolean' || datatype === 'boolean'){
-                        $view.append(chart.getPieChart(element,  view.concept_id, location));
+                        $view.append(chart.getPieChart(element,  view.concept_id));
                     } else{
-                        $view.append(chart.getBarChart(element,  view.concept_id, location));
+                        $view.append(chart.getBarChart(element,  view.concept_id));
                     }
                     break;
                 default:

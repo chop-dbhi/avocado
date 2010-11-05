@@ -1,5 +1,5 @@
 require.def('define/chart', ['define/form', 'lib/highcharts'], function(form) {
-     var UNSELECTED_COLOR     = "#DEDEDE";
+     var UNSELECTED_COLOR     = "#C5C5C5";
      var SELECTED_COLOR       = "#99BDF1";
      var EXCLUDE_COLOR        = "#EE3A43";
      var INCLUDE_COLOR        = "#99BDF1";
@@ -27,7 +27,7 @@ require.def('define/chart', ['define/form', 'lib/highcharts'], function(form) {
     var nb_singular_to_plural_map = {"exact":"in", "-exact":"-in"}; 
      
      
-     var getPieChart = function(view, concept_id, $location){
+     var getPieChart = function(view, concept_id){
          // HighCharts cannot handle boolean values in the coordinates
          var map = map_data_to_display(view.data.choices);
          var unmap = map_display_to_data(view.data.choices);
@@ -67,8 +67,7 @@ require.def('define/chart', ['define/form', 'lib/highcharts'], function(form) {
          });
             
          var $chartDiv = $('<div class="chart"></div>');
-         $chartDiv.css("display","none");
-         $location && $location.append($chartDiv);
+
          var selected = [];
          
          var notify = function(){
@@ -228,7 +227,7 @@ require.def('define/chart', ['define/form', 'lib/highcharts'], function(form) {
         return $chartDiv;
      };
  
-     var getBarChart = function(view, concept_id, $location) {
+     var getBarChart = function(view, concept_id) {
          // HighCharts cannot handle boolean values in the coordinates
          var map = map_data_to_display(view.data.choices);
          var unmap = map_display_to_data(view.data.choices);
@@ -244,8 +243,7 @@ require.def('define/chart', ['define/form', 'lib/highcharts'], function(form) {
 
          $range_form.find("input").css("margin","10px"); //TODO should not be here
          var $chartDiv = $('<div class="chart"></div>');
-         $chartDiv.css("display","none");
-         $location && $location.append($chartDiv);
+
          var selected = [];
          
          var notify = function(){
@@ -505,13 +503,11 @@ require.def('define/chart', ['define/form', 'lib/highcharts'], function(form) {
          return $chartDiv;
      };    
  
-     var getLineChart = function(view, concept_id, $location) {
+     var getLineChart = function(view, concept_id) {
          var $range_form = form.Form({fields:[view.data]}, concept_id);
 
          $range_form.find("input").css("margin","10px");
          var $chartDiv = $('<div class="chart"></div>');
-         $chartDiv.css("display","none");
-         $location && $location.append($chartDiv);
          var chart = new Highcharts.Chart({
             chart: {
                marginBottom:50,
