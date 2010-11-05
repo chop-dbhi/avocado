@@ -10,7 +10,7 @@ require.def(
 
         // TODO remove hardcoded URL
         var EMPTY_RESULTS = '<h1 class="ca info">No results match your conditions. ' +
-            '<a href="/define/">Refine your conditions</a>.</h1>';
+            '<a href="' + URLS.define + '">Refine your conditions</a>.</h1>';
 
         function init() {
             var firstRequest = true;

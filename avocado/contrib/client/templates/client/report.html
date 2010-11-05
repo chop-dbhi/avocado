@@ -14,6 +14,10 @@
             scope: '{% url api:scope:session %}',
             perspective: '{% url api:perspectives:session %}',
             report: '{% url api:reports:session:resolve %}'
+        },
+        
+        URLS = {
+            design: '{% url define %}';
         };
         require(['sanitizer', 'extensions', 'report/main']);
     </script>

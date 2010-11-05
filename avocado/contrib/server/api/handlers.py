@@ -351,7 +351,6 @@ class ReportResolverHandler(BaseHandler):
             # ``rows`` will only be None if no cache was found. attempt to
             # update the cache by running a partial query
             if rows is None:
-                print 'rows not found'
                 # since the cache is not invalid, the counts do not have to be run
                 queryset, unique, count = inst.get_queryset(timestamp, **context)
                 cache['timestamp'] = datetime.now()
