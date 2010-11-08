@@ -5,7 +5,7 @@ require.def(
     function() {
         return {           
             scope_element: ['<div data-uri="<%=this.uri%>" data-id="<%= this.pk %>" class="criterion clearfix">',
-                                '<a href="#" class="remove-criterion">X</a>',
+                                '<a href="#" class="remove-criterion"></a>',
                                 '<a href="#" class="field-anchor">',
                                     '<%= this.description %>',
                                 '</a>',

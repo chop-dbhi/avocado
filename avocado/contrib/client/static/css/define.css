@@ -292,8 +292,12 @@
 }
 
 .criterion .remove-criterion {
-    font-weight: bold;
+    background: transparent url(../img/x.png) no-repeat;
+    height: 32px;
+    width: 32px;
     float: right;
+    margin-right: -20px;
+    margin-top: -18px;
 }
 
 .criterion .remove-criterion:hover {
