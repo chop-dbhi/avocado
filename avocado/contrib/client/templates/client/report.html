@@ -104,12 +104,12 @@
                         <ul>
                             {% for column in category.columns %}
 
-                                <li class="active" data-model="column" data-id="{{ column.id }}">
-                                    <span class="name">{{ column.name }}</span>
+                                <li class="active clearfix" data-model="column" data-id="{{ column.id }}">
                                     <span class="actions">
                                         <a class="add-column" href="#{{ column.id }}"><span class="iconic plus"></span> Add</a>
                                         <span class="info"><span class="iconic info"></span> Info</span>
                                     </span>
+                                    <span class="name">{{ column.name }}</span>
                                     <span class="description">{{ column.full_description|safe }}</span>
                                 </li>
                             {% endfor %}
@@ -130,11 +130,11 @@
             <ul id="active-columns">
                 {% for category in columns %} 
                     {% for column in category.columns %}
-                        <li data-model="column" data-id="{{ column.id }}">
-                            <span class="name">{{ column.name }}</span>
+                        <li class="clearfix" data-model="column" data-id="{{ column.id }}">
                             <span class="actions">
                                 <a class="remove-column" href="#{{ column.id }}"><span class="iconic x"></span> Remove</a>
                             </span>                            
+                            <span class="name">{{ column.name }}</span>
                         </li>
                     {% endfor %}
                 {% endfor %} 

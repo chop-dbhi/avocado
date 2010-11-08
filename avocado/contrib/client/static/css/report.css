@@ -1,6 +1,6 @@
 h4 {
     font-weight: 500;
-    margin-bottom: 5px;
+    margin: 5px 0;
 }
 
 button {
@@ -144,22 +144,10 @@ button:first-child {
 
 #columns-dialog > div {
     float: right;
-    border: 1px dotted #aaa;
-    padding: 10px;
-    display: inline-block;
+    padding: 10px 10px 0 10px;
     vertical-align: top;
     width: 400px;
     height: 580px;
-    overflow: auto;
-}
-
-#columns-dialog > div::-webkit-scrollbar {
-    width: 1ex;
-}
-
-#columns-dialog > div::-webkit-scrollbar-thumb:vertical {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 1ex;
 }
 
 #columns-dialog > div:first-child {
@@ -168,7 +156,7 @@ button:first-child {
 
 #columns-dialog h4 {
     font-weight: bold;
-    margin-bottom: 10px;
+    margin: 10px 0;
 }
 
 #columns-dialog input {
@@ -198,20 +186,30 @@ button:first-child {
     margin: 10px 0;
 }
 
-#columns {
+#columns::-webkit-scrollbar, #active-columns::-webkit-scrollbar {
+    width: 1ex;
+}
+
+#columns::-webkit-scrollbar-thumb:vertical, #active-columns::-webkit-scrollbar-thumb:vertical {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 1ex;
+}
+
+#columns, #active-columns {
+    padding-right: 10px;
     margin-top: 10px;
-    overflow: auto;
     text-shadow: #fff 1px 1px 0;
+    overflow: auto;
+    height: 486px;
+}
+
+#columns {
+    height: 469px;
 }
 
 #columns li {
     background-color: #eee;
     border: 1px solid #ddd;
-}
-
-#active-columns {
-    overflow: auto;
-    text-shadow: #fff 1px 1px 0;
 }
 
 #active-columns li {
@@ -223,8 +221,8 @@ button:first-child {
     display: block;
     background-color: #fff;
     border: 1px dashed #ccc;
-    border-radius: 0;
     -moz-border-radius: 0;
+    border-radius: 0;
 }
 
 #columns li p, #active-columns li p {
@@ -235,17 +233,9 @@ button:first-child {
     vertical-align: middle;
 }
 
-#columns li > .name, #active-columns li > .name {
-    display: inline-block;
-    width: 335px;
-}
-
-#active-columns li > .name {
-    width: 315px;
-}
-
 .actions {
-    display: inline-block;
+    float: right;
+    margin-top: 2px;
     font-size: 11px;
     color: #999;
     text-align: right;

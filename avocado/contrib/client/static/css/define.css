@@ -131,10 +131,9 @@
     border-top: 1px solid #ccc;
     cursor: pointer;
     background-color: #eee;
-    box-shadow: inset 0 0 8px #ddd;
     -webkit-box-shadow: inset 0 0 8px #ddd;
     -moz-box-shadow: inset 0 0 8px #ddd;
-    text-align: right;
+    box-shadow: inset 0 0 8px #ddd;
 }
 
 #criteria > div:first-child {
@@ -170,17 +169,13 @@
     vertical-align: middle;
 }
 
-#criteria > div > .name {
-    display: inline-block;
-    width: 119px;
-    text-align: left;
-}
-
 #criteria > div > .info {
-    padding: 0 5px;
-    text-align: center;
-    font-size: 14px;
     color: #999;
+    font-size: 14px;
+    text-align: center;
+    float: right;
+    padding: 1px 5px;
+    margin-right: -5px; /* compensate for padding */
 }
 
 #criteria > div > .info:hover {
@@ -298,10 +293,6 @@
     float: right;
     margin-right: -20px;
     margin-top: -18px;
-}
-
-.criterion .remove-criterion:hover {
-    color: #E60D00;
 }
 
 /*
