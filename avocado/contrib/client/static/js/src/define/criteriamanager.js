@@ -25,7 +25,6 @@ require.def('define/criteriamanager', ['define/criteria', "define/templates","li
               if ((data.store === null) || $.isEmptyObject(data.store)){
                   return;
               }
-              
               if (!data.store.hasOwnProperty("concept_id")){ // Root node representing a list of concepts won't have this attribute
                   $.each(data.store.children.reverse(), function(index, criteria_constraint){
                       $panel.triggerHandler("UpdateQueryEvent", [criteria_constraint, true]);
