@@ -54,7 +54,7 @@ require.def(
                 pages: new m_renderer.template({
                     target: pages,
                     template: m_templates.pages
-                }),
+                })
             };
 
 
@@ -164,7 +164,7 @@ require.def(
                 });
 
                 report.animate({
-                    'width': nInnerWidth,
+                    'width': nInnerWidth
                 });
             });
 

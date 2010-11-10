@@ -30,7 +30,7 @@ require.def(
                     '<a class="fr ht remove-column" href="#<%= this.id %>">Remove</a>',
                     '<%= this.name %>',
                     '<% if (this.description) { %><p class="ht mg"><%= this.description %></p><% } %>',
-                '</li>',
+                '</li>'
             ].join('')),
 
             header: $.jqotec('<th data-model="column" data-id="<%= this.id %>" ' +

@@ -2,7 +2,14 @@
 
 require(
     
-    ['report/table', 'report/columns'],
+    [
+        'report/table',
+        'report/columns',
+        'html5fix',
+        'ajaxsetup',
+        'extensions',
+        'sanitizer'       
+    ],
 
     function(m_table, m_columns) {
 

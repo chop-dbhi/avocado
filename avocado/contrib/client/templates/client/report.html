@@ -8,7 +8,6 @@
 {% endblock %}
 
 {% block scripts %}
-    {{ block.super }}
     <script>
         var API_URLS = {
             scope: '{% url api:scope:session %}',
@@ -19,7 +18,7 @@
         URLS = {
             define: '{% url define %}'
         };
-        require(['sanitizer', 'extensions', 'report/main']);
+        require(['report/main']);
     </script>
 {% endblock %}
 
