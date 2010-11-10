@@ -4,7 +4,7 @@ require.def('define/chart', ['define/form', 'lib/highcharts'], function(form) {
      var EXCLUDE_COLOR        = "#EE3A43";
      var INCLUDE_COLOR        = "#99BDF1";
      var ALTERNATE_GRID_COLOR = "#FDFFD5";
-     var MINIMUM_SLICE = 0.07;
+     var MINIMUM_SLICE = 0.04;
      
     var map_data_to_display = function(choices){
         var map = {};
