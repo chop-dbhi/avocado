@@ -379,9 +379,9 @@ require.def(
                      if (!parameter.operator.match(/null/)) { 
                         if (parameter.datatype == "number") {
                             // make this an array either way, even if it was not a binary operator
-                            parameter.value = parameter.value instanceof Array ? parameter.value : [parameter.value];
-                            for (var index=0; index < parameter.value.length; index++){
-                                ds[field_prefix+"_input"+index] = parameter.value[index];
+                            var iterator = parameter.value instanceof Array ? parameter.value : [parameter.value];
+                            for (var index=0; index < iterator.length; index++){
+                                ds[field_prefix+"_input"+index] = iterator[index];
                             }
                         } else {
                             if (ds.hasOwnProperty(field_prefix)){
