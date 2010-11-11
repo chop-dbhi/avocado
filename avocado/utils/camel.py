@@ -2,7 +2,7 @@ import re
 
 class CamelCaser(object):
     UNDERSCORE = re.compile(r'([^\A_])_+([^_])')
-    
+
     def __call__(self, s):
         return self.camel(s)
 
