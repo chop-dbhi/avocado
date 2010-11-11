@@ -202,7 +202,7 @@ require.def('define/form', [], {
                     case "select-one"      :
                     case "select-multiple" : 
                     case "select"          : var selected = [];
-                                             var $associated_input = null;
+                                             var $associated_inputs = null;
                                              // If this is an operator for a free input text box, and the user has 
                                              // just changed from an equals or not equals to in or not in, we are goin
                                              // to change the input to be a text-area. Figure out if this an operator 
