@@ -259,10 +259,9 @@ class LdapBackend(object):
                         % (fulln, dn))
 
         if emailf and emailf in attrs:
-            user.email = attrs[emailf][0]
+            user.email = attrs[emailf][0].lower()
         elif self.settings['LDAP_DEFAULT_EMAIL_SUFFIX']:
-            user.email = username + self.settings['LDAP_DEFAULT_EMAIL_SUFFIX']
-
+            user.email = (username + self.settings['LDAP_DEFAULT_EMAIL_SUFFIX']).lower()
 
         # Check if we are mapping an ldap id to check if the user is staff or super
         # Other wise the user is created but not give access
