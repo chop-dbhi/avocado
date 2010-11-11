@@ -190,14 +190,14 @@ class LdapBackend(object):
         username.
         called as: self._get_user_by_name(username)
         """
-        return User.objects.get(username=username)
+        return User.objects.get(username__iexact=username)
 
     def _create_user_object(self, username):
         """
         Creates and returns an object of contrib.auth.models.User.
         called as: self._create_user_object(username, password)
         """
-        return User(username=username, password=UNUSABLE_PASSWORD)
+        return User(username=username.lower(), password=UNUSABLE_PASSWORD)
 
     # Required for an authentication backend
     def get_user(self, user_id):
