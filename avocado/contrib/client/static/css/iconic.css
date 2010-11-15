@@ -1,14 +1,14 @@
 @font-face {
-  font-family: 'IconicStroke';
+    font-family: 'IconicStroke';
     src: url("../fonts/iconic_stroke.eot");
     src: local('IconicStroke'),
-       url("../fonts/iconic_stroke.svg#iconic") format('svg'),
-	   url("../fonts/iconic_stroke.otf") format('opentype');
+       url("../fonts/iconic_stroke.otf") format('opentype');
 }
 
 .iconic {
 	color:inherit;
 	font-family: "IconicStroke";
+	font-size: 1.3em;
 }
 
 a.iconic:hover {

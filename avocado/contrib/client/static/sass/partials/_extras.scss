@@ -1,0 +1,9 @@
+// jQuery UI components
+.ui-dialog {
+    @extend .container;
+}
+
+// jQuery UI styles..
+.ui-dialog .ui-dialog-buttonpane button {
+    @extend button;
+}

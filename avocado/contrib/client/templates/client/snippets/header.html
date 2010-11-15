@@ -1,5 +1,4 @@
 <header>
-    {% block logo %}{% endblock %}
     <span>
         {% if user.is_authenticated %}
             <span>{% firstof user.get_full_name user %} &middot;</span>
@@ -12,4 +11,5 @@
             <a href="{% url login %}">Login</a>
         {% endif %}
     </span>
+    {% block logo %}{% endblock %}
 </header>

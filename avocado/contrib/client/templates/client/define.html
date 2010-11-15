@@ -19,28 +19,18 @@
         <div class="content">
             <div id="tabs">
                 {% spaceless %}
-                <form method="get" class="tab active" data-search="" action="{% url api:criteria:read %}">
-                    <input id="search" class="search" type="input" name="q" results="0"
-                        placeholder="Search..." autofocus="true">
-                </form>
 
                 {% for category in categories %}
                     <span id="tab-{{ category.name|lower }}" class="tab" data-search="{{ category.name|lower }}">{{ category.name }}</span>
                 {% endfor %}
+                <form method="get" class="tab active" data-search="" action="{% url api:criteria:read %}">
+                    <input id="search" type="input" name="q" placeholder="Search..." autofocus>
+                </form>
+
                 {% endspaceless %}
             </div>
         
             <div id="center-pane" class="clearfix">
-                <div id="criteria">
-                    {% for criterion in criteria %}
-                        <div data-id="{{ criterion.id }}" data-model="criterion" data-uri="{{ criterion.uri }}">
-                            <span class="iconic info"></span>
-                            <span class="name">{{ criterion.name }}</span>
-                            <span class="description">{{ criterion.description|safe }}</span>
-                        </div>
-                    {% endfor %}
-                </div>
-
                 {# The "option-detail" panel displays information about a particular query option and the means #}
                 {# to interact with it.  #}
                 <div id="plugin-panel" class="container">
@@ -62,26 +52,34 @@
                 
                     </div>
                 </div>
+                
+                <div id="criteria">
+                    {% for criterion in criteria %}
+                        <div data-id="{{ criterion.id }}" data-model="criterion" data-uri="{{ criterion.uri }}">
+                            <span class="info">i</span>
+                            <span class="name">{{ criterion.name }}</span>
+                            <span class="description">{{ criterion.description|safe }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
             </div>
         </div>
     </div>
 
     <div id="right-pane" class="clearfix">
-        {# This panel defines the validated criteria the user has defined for the #}
-        {# current query #}
-        <div id="user-criteria" data-uri="{% url api:scope:session %}" class="container">
+        <div id="user-criteria" class="container" data-uri="{% url api:scope:session %}">
 
-            <div class="title">
-                 <button id="remove-criteria" href="#">Clear All</button>
-                 Conditions
-             </div>
+            <div class="title">Conditions</div>
 
             <div class="content">
                 <div id="criteria-list" data-report="{% url report %}"  data-uri="{% url api:criteria:read %}">
-                    <span class="iconic plus"></span> <span class="it mg">Conditions are added here..</span>
+                    <div id="no-conditions" class="error">No Conditions Have Been Added Yet!</div>
                 </div>
             </div>
 
+            <div class="toolbar footer">
+                <span class="icon-remove-all">Clear</span>
+            </div>
         </div>
 
     </div>

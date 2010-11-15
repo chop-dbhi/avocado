@@ -92,16 +92,16 @@ def login(request, template_name='registration/login.html',
 
                 t = Template(LOGIN_ATTEMPT_FAIL_MESSAGE)
                 c = Context({
+                    'ip': ip,                
                     'exists': exists,
                     'username': username,
-                    'ip': ip,
                     'timeout': int(LOGIN_CACHE_TIMEOUT / 3600.0)
                 })
 
                 mail_admins(LOGIN_ATTEMPT_FAIL_SUBJECT, t.render(c), True)
 
 
-            data = {'username': username, 'password': ' '*len(password)}
+            data = {}
             form = authentication_form(data=data)
             form.is_valid()
 

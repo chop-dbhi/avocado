@@ -4,3 +4,4 @@ syntax: glob
 
 syntax: regexp
 ^docs/_build
+.sass-cache
