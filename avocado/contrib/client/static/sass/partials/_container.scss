@@ -8,21 +8,26 @@
     filter: progid:DXImageTransform.Microsoft.Gradient(startColorstr="#555555", endColorstr="#333333");      
 }
 
-.container {
-    @include box-shadow(0, 4px, 4px, #999);	
-    @include border-radius($BORDER_RADIUS, $BORDER_RADIUS, 0, 0);
-    
-	margin-bottom: 20px;
-
-    // container title bar
-    > .title {
+@mixin container-title {
         @include container-title-gradient;
         @include border-radius($BORDER_RADIUS, $BORDER_RADIUS, 0, 0);
 
         color: #eee;
         padding: 5px 10px;
     	text-shadow: $DARK_TEXT_SHADOW;
-    	font-weight: 500;
+    	font-weight: 500;    
+}
+
+.container {
+    @include box-shadow(0, 4px, 4px, #999);	
+    @include border-radius($BORDER_RADIUS, $BORDER_RADIUS, 0, 0);
+    
+	margin-bottom: 20px;
+	background-color: #fff;
+
+    // container title bar
+    > .title {
+        @include container-title;
 
         // container title bar buttons
         button {
@@ -54,14 +59,64 @@
     }
     
     > .toolbar {
+        font-size: 0.9em;
         background-color: #D8E2F7; 
         padding: 3px 10px;
         text-shadow: $LIGHT_TEXT_SHADOW;
         
-        &.footer {
-            @include inset-box-shadow(0, 2px, 3px, #777);
-            padding-top: 6px;
+        > * {
+            vertical-align: middle;
+            
+            &:first-child {
+                margin-left: 0;
+            }
         }
+        
+        &.tabs {
+            padding-top: 8px;
+            padding-bottom: 4px;
+            
+            > .tab {
+                padding: 5px 10px;
+                border-top: 1px solid transparent;
+                border-right: 1px solid transparent;
+                border-left: 1px solid transparent;                
+
+                &.active {
+                    @include border-radius(4px, 4px, 0, 0);
+                    
+                    background-color: #fff;
+                    text-decoration: none;
+                    color: #444;
+                    border-top-color: #B5C7DF;
+                    border-right-color: #B5C7DF;
+                    border-left-color: #B5C7DF;
+                    cursor: default;
+                }
+                
+                &.disabled {
+                    color: #9BBBD4;
+                }
+            }
+        }
+        
+        &.header {
+            border-bottom: 1px dotted #B5C7DF;
+        }
+        
+        &.footer {
+            border-top: 1px dotted #B5C7DF;
+        }
+    }
+    
+    > .info {
+        @include inset-box-shadow(0, -5px, 10px, #eee);
+        
+        font-size: 0.85em;
+        padding: 10px;
+        border-top: 1px dotted #fff;
+        border-bottom: 1px dotted #999;
+        background-color: #fff;
     }
 
     // container content area, keep it simple...
