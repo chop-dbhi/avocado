@@ -96,7 +96,7 @@ require.def(
                 table_rows: new m_datasource.ajax({
                     uri: API_URLS.report,
                     success: function(json) {
-                        if (json.rows.length == 0) {
+                        if (json.rows.length === 0) {
                             $('.content').html(EMPTY_RESULTS);
                             return;
                         }
@@ -116,6 +116,9 @@ require.def(
 
                         if (json.count)
                             count.html(json.count);
+                        
+                        if (json.per_page)
+                            per_page.val(json.per_page);
 
                         report.trigger('resize-report');
 
@@ -160,11 +163,11 @@ require.def(
                 nLeft = parseInt(content.css('margin-left').match(/-?\d+/)[0]) - half;
 
                 content.animate({
-                    'margin-left': nLeft
+                    marginLeft: nLeft
                 });
 
                 report.animate({
-                    'width': nInnerWidth
+                    width: nInnerWidth
                 });
             });
 
@@ -198,10 +201,8 @@ require.def(
              * Hook up the elements that change the number of rows per page.
              */
             report.delegate('.per-page', 'change', function(evt) {
-                if (this.value) {
+                if (this.value)
                     body.trigger('update.report', {'n': this.value});
-                    this.value = '';
-                }
                 return false;
             });
 
