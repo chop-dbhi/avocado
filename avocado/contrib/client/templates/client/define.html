@@ -19,13 +19,14 @@
         <div class="content">
             <div id="tabs">
                 {% spaceless %}
-
-                {% for category in categories %}
-                    <span id="tab-{{ category.name|lower }}" class="tab" data-search="{{ category.name|lower }}">{{ category.name }}</span>
-                {% endfor %}
-                <form method="get" class="tab active" data-search="" action="{% url api:criteria:read %}">
+                <form method="get" class="tab active" action="{% url api:criteria:read %}">
                     <input id="search" type="input" name="q" placeholder="Search..." autofocus>
                 </form>
+                {% for category in categories %}
+                    <span id="tab-{{ category.name|lower }}" class="tab" data-search="{{ category.name|lower }}">
+                        <div class="icon"></div><span>{{ category.name }}</span>
+                    </span>
+                {% endfor %}
 
                 {% endspaceless %}
             </div>
@@ -54,6 +55,7 @@
                 </div>
                 
                 <div id="criteria">
+                    <em id="no-results"></em>
                     {% for criterion in criteria %}
                         <div data-id="{{ criterion.id }}" data-model="criterion" data-uri="{{ criterion.uri }}">
                             <span class="info">i</span>
@@ -69,16 +71,15 @@
     <div id="right-pane" class="clearfix">
         <div id="user-criteria" class="container" data-uri="{% url api:scope:session %}">
 
-            <div class="title">Conditions</div>
+            <div class="title">
+                <button id="remove-criteria">Clear</button>
+                Conditions
+            </div>
 
             <div class="content">
                 <div id="criteria-list" data-report="{% url report %}"  data-uri="{% url api:criteria:read %}">
                     <div id="no-conditions" class="error">No Conditions Have Been Added Yet!</div>
                 </div>
-            </div>
-
-            <div class="toolbar footer">
-                <span class="icon-remove-all">Clear</span>
             </div>
         </div>
 

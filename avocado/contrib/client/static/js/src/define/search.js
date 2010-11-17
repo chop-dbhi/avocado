@@ -10,7 +10,8 @@ require.def('define/search',
                 searchInput = $('#search'),
                 searchForm = $('#search-panel form'),
                 pluginPanel = $('#plugin-panel'),
-                criteria = $('#criteria').children();
+                criteria = $('#criteria').children('div'),
+                noResults = $('#no-results');
 
             /*
              * Manages the tabs and keeps them in sync with the content area
@@ -83,9 +84,15 @@ require.def('define/search',
              */
             searchInput.autocomplete2({
                 success: function(value, json) {
-                    criteria.addClass('hd');
-                    for (var i = 0; i < json.length; i++)
-                        criteria.filter('[data-id='+json[i]+']').removeClass('hd'); 
+                    criteria.hide();
+                    noResults.hide();
+
+                    if (json.length > 0) {
+                        for (var i = 0; i < json.length; i++)
+                            criteria.filter('[data-id='+json[i]+']').show();
+                    } else {
+                        noResults.html('No conditions found for "' + value + '".').show();
+                    }
                     return false;
                 }
             }, null, 50);

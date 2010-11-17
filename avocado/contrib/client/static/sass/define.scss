@@ -1,7 +1,6 @@
 @import "partials/constants";
 @import "partials/mixins";
 @import "partials/overlay";
-@import "partials/icons";
 
 /*
  * Panes - layout
@@ -15,12 +14,12 @@
     width: 730px;
     z-index: 100;
     background-color: #eee;
-}
-
-#left-pane > .content {
-    border: 1px solid #ccc;    
-    margin: 10px;
-    padding: 0;
+    
+    > .content {
+        border: 1px solid #ccc;    
+        margin: 10px;
+        padding: 0;
+    }
 }
 
 #center-pane {
@@ -46,12 +45,12 @@
 
 #tabs {
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 600;
     text-shadow: $LIGHT_TEXT_SHADOW;
     
     input {
         @include search-box;
-        width: 105px;    
+        margin-top: 3px;
     }
     
     > * {
@@ -59,32 +58,38 @@
      
         color: #999;
         height: 16px;
-        padding: 13px 15px;
+        padding: 9px 12px 18px 12px;
         vertical-align: top;
         border-bottom: 1px solid #ccc;
         border-left: 1px dotted #aaa;
         display: inline-block;
         cursor: pointer;
         background-color: #eee;
+
+        &:hover {
+            color: #333;
+            cursor: pointer;        
+        }
+        
+        > * {
+            vertical-align: middle;
+        }
     }
     
     > .active {
         @include no-box-shadow;
-        // TODO move to AudGenDB CSS
-        color: #005DAA;
         background-color: #fff;
         border-bottom-color: #fff;
         text-shadow: none;
         cursor: default;
+        
+        &:hover {
+            cursor: default;        
+        }
     }
 
     > :first-child {
         border-left: none;            
-    };
-    
-    :hover {
-        color: #333;
-        cursor: pointer;        
     }
 }
 
@@ -101,6 +106,39 @@
     max-height: 550px;
     overflow: auto;
     text-shadow: $LIGHT_TEXT_SHADOW;
+    
+    > div {
+        @include inset-box-shadow(0, 0, 8px, #ccc);
+        @include border-radius(3px, 3px, 3px, 3px);
+
+        margin-top: 1px;
+        padding: 10px;
+        background-color: #eee;
+        border: 1px solid #ccc;
+        cursor: pointer;
+        
+        &.active {
+            @include no-box-shadow;
+    
+            color: #fff;
+            background-color: #1A4C97;
+            text-shadow: $DARK_TEXT_SHADOW;
+            border-color: transparent;
+        }        
+        
+        &:first-child {
+            margin-top: 0;
+        }
+        
+        &:hover {
+            @include inset-box-shadow(0, 0, 10px, #0C264E);
+
+            color: #fff;
+            background-color: #1A4C97;
+            text-shadow: $DARK_TEXT_SHADOW;
+            border-color: transparent;
+        }        
+    }    
     
     // contents gets extracted and put into #description
     .description {
@@ -123,40 +161,11 @@
     }
 }
 
-#criteria > div {
-    @include inset-box-shadow(0, 0, 8px, #ccc);
-    @include border-radius(3px, 3px, 3px, 3px);
-
-    margin-top: 1px;
-    padding: 10px;
-    background-color: #eee;
-    border: 1px solid #ccc;
-    cursor: pointer;
-}
-
-#criteria > div:first-child {
-    margin-top: 0;
-}
-
-#criteria > div:hover {
-    @include inset-box-shadow(0, 0, 10px, #0C264E);
-
-    color: #fff;
-    background-color: #1A4C97;
-    text-shadow: $DARK_TEXT_SHADOW;
-    border-color: transparent;
-}
-
-#criteria > div.active {
-    @include no-box-shadow;
-    
-    color: #fff;
-    background-color: #1A4C97;
-    text-shadow: $DARK_TEXT_SHADOW;
-    border-color: transparent;
-}
-
 /* Other standalone elements */
+#no-results {
+    display: none;
+}
+
 #description {
     @include box-shadow(0, 5px, 10px, #999);
     @include border-radius(5px, 5px, 5px, 5px);
@@ -172,7 +181,8 @@
 }
 
 #no-conditions {
-    @include border-radius(3px, 3px, 3px, 3px);
+    border: none;
+    background-color: transparent;
 }
 
 #plugin-panel {
@@ -182,49 +192,52 @@
     float: right;
     width: 506px;
     min-height: 300px;
-}
-
-#plugin-panel .content {
-    padding: 0;
+    
+    .content {
+        padding: 0;
+    }
 }
 
 #plugin-static-content {
     margin-top: 10px;
 }
 
-
 .chart {
     width: 506px;
+}
+
+#add_to_query {
+    float: right;
 }
 
 /* Form elements below charts */
 .view {
     font-size: 0.85em;
-}
 
-.view h2 {
-    text-align: center;
-    font-size: 1.5em;
-    color: #22465B;
-    margin-bottom: 10px;
-}
+    h2 {
+        text-align: center;
+        font-size: 1.5em;
+        color: #22465B;
+        margin-bottom: 10px;
+    }    
 
-.view p {
-    margin: 0;
-    padding: 5px 0;
-    border-bottom: 1px dotted #999;
-    vertical-align: middle;
-}
+    p {
+        margin: 0;
+        padding: 5px 0;
+        border-bottom: 1px dotted #999;
+        vertical-align: middle;
 
-.view p > span {
-    display: inline-block;
-    margin-left: 20px;
-    vertical-align: middle;    
-}
-
-.view p > span:first-child {
-    width: 100px;
-    margin-left: 0;
+        > span {
+            display: inline-block;
+            margin-left: 20px;
+            vertical-align: middle;
+            
+            &:first-child {
+                width: 100px;
+                margin-left: 0;
+            }
+        }        
+    }
 }
 
 /*
@@ -238,29 +251,28 @@
     font-size: 12px;
     margin-bottom: 10px;
     padding: 4px 5px;
-}
-
-.criterion:hover, .criterion.selected {
-    @include box-shadow(0, 2px, 3px, #aaa);
+    
+    &:hover, &.selected {
+        @include box-shadow(0, 2px, 3px, #aaa);
         
-    border-color: #ECD41F;
-    background-color: #FFFBB3;    
+        border-color: #ECD41F;
+        background-color: #FFFBB3;    
+    }
+    
+    a {
+        color: #603200;
+        text-decoration: none;    
+    }
+    
+    .remove-criterion {
+        background: transparent url(../img/x.png) no-repeat;
+        height: 32px;
+        width: 32px;
+        float: right;
+        margin-right: -20px;
+        margin-top: -18px;
+    }    
 }
-
-.criterion a {
-    color: #603200;
-    text-decoration: none;    
-}
-
-.criterion .remove-criterion {
-    background: transparent url(../img/x.png) no-repeat;
-    height: 32px;
-    width: 32px;
-    float: right;
-    margin-right: -20px;
-    margin-top: -18px;
-}
-
 
 // IE fixes
 
@@ -274,10 +286,18 @@
     #left-pane, #right-pane, #tabs > * {
         zoom: 1;
         *display: inline;  
-    }    
+    } 
 
-    #tabs form {
-        padding-right: 5px;
-        padding-left: 5px;
+    #tabs {
+        
+        > * {
+            padding-right: 11px;
+            padding-left: 11px;
+        }
+        
+        form {
+            padding-right: 7px;
+            padding-left: 7px;
+        }
     }
 }
