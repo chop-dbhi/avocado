@@ -195,7 +195,7 @@ require.def(
                     Cancel: function() {
                         columnsdialog.dialog('close');
                     },
-                    Save: function() {
+                    'Update Columns': function() {
                         columnsdialog.trigger('save.column');
                         columnsdialog.dialog('close');
                     }

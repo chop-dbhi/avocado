@@ -33,10 +33,6 @@
         <div class="title">Report</div>
 
         <div id="report-info" class="info clearfix">
-            <div class="ib">
-                <h4>Details</h4>
-                <span id="conditions-text">No conditions were defined for this report.</span>
-            </div>
             <div id="report-actions">
                 {% spaceless %}
                 {% block report_buttons %}
@@ -45,10 +41,22 @@
                 {% endblock %}
                 {% endspaceless %}
             </div>
+
+            <div>
+                <h4>Details</h4>
+                <span id="conditions-text">No conditions were defined for this report.</span>
+            </div>
+
+            <div>
+                <h4>Stats</h4>
+                <ul>
+                    <li><b class="count"></b> rows</li>
+                    <li><b class="unique-count"></b> unique patients</li>
+                </ul>
+            </div>
         </div>
 
         <div class="toolbar header clearfix">
-            <span><span class="count"></span> rows / <span class="unique-count"></span> patients</span>
             <span class="fr">
                 <span class="page-links"></span>
                 <select class="per-page">
@@ -69,7 +77,6 @@
         </div>
 
         <div class="toolbar footer clearfix">
-            <span><span class="count"></span> rows / <span class="unique-count"></span> patients</span>
             <span class="fr">
                 <span class="page-links"></span>
                 <select class="per-page">
@@ -85,7 +92,7 @@
 
     <div id="columns-dialog" class="clearfix">
         <div>
-            <h3>Available Columns</h3>
+            <h4>Available Columns</h4>
 
             <p class="ht mg">Below are the columns of data that are available for
             viewing. Note that depending on which columns are added to your report,
@@ -119,7 +126,7 @@
         </div>
 
         <div>
-            <h3>Your Columns</h3>
+            <h4>Your Columns</h4>
 
             <p class="ht mg">The order below (top-bottom) defines the order they will be
             displayed (left-right). To change the order simply click and drag any of the
