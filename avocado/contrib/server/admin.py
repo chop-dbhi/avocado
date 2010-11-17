@@ -14,7 +14,7 @@ class EditorsAdminSite(AdminSite):
     "The admin site for editors of meta data."
     def has_permission(self, request):
         user = request.user
-        has_perm = user.groups.filter(name__iexact='editors').count() > 0
+        has_perm = user.groups.filter(name__iexact='editors').exists()
         return super(EditorsAdminSite, self).has_permission(request) and \
             has_perm or user.is_superuser
 
