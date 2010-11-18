@@ -85,6 +85,7 @@
 #report-actions {
     float: right;
     text-align: right;
+    margin: 0;
     
     button {
         font-size: 1em;
@@ -222,7 +223,7 @@
     @include border-radius(5px, 5px, 5px, 5px);
     
     padding: 10px;
-    z-index: 1000;
+    z-index: 2000;
     position: absolute;
     display: none;
     background-color: #fff;

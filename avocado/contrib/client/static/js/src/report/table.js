@@ -130,8 +130,8 @@ require.def(
                             setTimeout(function() {
                                 info.show();
                                 toolbars.show();
-                                table.slideDown();
-                            }, 300);
+                                table.show();
+                            }, 500);
                         }
                     }
                 })
