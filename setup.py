@@ -5,6 +5,8 @@ from distutils.command.install import INSTALL_SCHEMES
 import os
 import sys
 
+BASE_PACKAGE = 'avocado'
+
 class osx_install_data(install_data):
     # On MacOS, the platform-specific lib dir is /System/Library/Framework/Python/.../
     # which is wrong. Python 2.5 supplied with MacOS 10.5 has an Apple-specific fix
@@ -49,9 +51,8 @@ packages, data_files = [], []
 root_dir = os.path.dirname(__file__)
 if root_dir != '':
     os.chdir(root_dir)
-avocado_dir = 'avocado'
 
-for dirpath, dirnames, filenames in os.walk(avocado_dir):
+for dirpath, dirnames, filenames in os.walk(BASE_PACKAGE):
     # Ignore dirnames that start with '.'
     for i, dirname in enumerate(dirnames):
         if dirname.startswith('.'): del dirnames[i]
@@ -67,7 +68,7 @@ if len(sys.argv) > 1 and sys.argv[1] == 'bdist_wininst':
     for file_info in data_files:
         file_info[0] = '\\PURELIB\\%s' % file_info[0]
 
-version = __import__('avocado').__version__
+version = __import__(BASE_PACKAGE).__version__
 
 setup(
     version = version.replace(' ', '-'),
