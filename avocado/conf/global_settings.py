@@ -6,6 +6,10 @@ TRANSLATOR_MODULE_NAME = 'translate'
 # for user-specific authorization to certain fields.
 FIELD_GROUP_PERMISSIONS =  False
 
+# Defines an abstract base class to extend the Field model. It should be
+# ``None`` or a path string to the class e.g. 'path.to.my.field.Mixin'
+FIELD_MIXIN_PATH = None
+
 # For custom formatters, this is the name of the module that will be
 # introspected per app for registered formatters
 FORMATTER_MODULE_NAME = 'format'
@@ -27,9 +31,17 @@ COLUMN_ORDERING = ()
 # in a report
 COLUMNS = ()
 
+# Defines an abstract base class to extend the Column model. It should be
+# ``None`` or a path string to the class e.g. 'path.to.my.column.Mixin'
+COLUMN_MIXIN_PATH = None
+
 # For custom viewsets, this is the name of the module that will be
 # introspected per app for registered viewsets
 VIEWSET_MODULE_NAME = 'viewset'
+
+# Defines an abstract base class to extend the Criterion model. It should be
+# ``None`` or a path string to the class e.g. 'path.to.my.criterion.Mixin'
+CRITERION_MIXIN_PATH = None
 
 # A dict of modeltree configurations. Each config should contrain the necessary
 # keyword args for constructing a default ``ModelTree`` instance. View the 
