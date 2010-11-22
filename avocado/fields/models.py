@@ -80,9 +80,13 @@ class Field(models.Model):
     class Meta:
         app_label = u'avocado'
         unique_together = ('app_name', 'model_name', 'field_name')
+        ordering = ('name',)
 
     def __unicode__(self):
-        name = '.'.join([self.app_name, self.model_name, self.field_name])
+        if self.name:
+            name = self.name
+        else:
+            name = '.'.join([self.app_name, self.model_name, self.field_name])
         return u'%s' % name
 
     def _get_module(self):
