@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.db import transaction
 
 from avocado.concepts.admin import ConceptAdmin, EditorsConceptAdmin
 from avocado.models import Field, Column, Criterion
@@ -14,12 +15,16 @@ class FieldAdmin(ConceptAdmin):
 
     actions = ('create_criterion', 'create_column')
 
+    @transaction.commit_on_success
     def _create_concept(self, model, request, queryset):
         for f in queryset:
             concept = model(name=f.name, description=f.description,
                 keywords=f.keywords, is_public=False)
             concept.save()
-            concept.fields.add(f)
+
+            conceptfield = concept.conceptfields.model(field=f,
+                concept=concept)
+            conceptfield.save()
 
     def create_criterion(self, request, queryset):
         return self._create_concept(Criterion, request, queryset)
