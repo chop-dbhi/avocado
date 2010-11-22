@@ -10,7 +10,7 @@ class ConceptAdmin(admin.ModelAdmin):
     list_editable = ('category', 'is_public', 'order')
     search_fields = ('name', 'description', 'keywords')
     ordering = ('name',)
-    list_per_page = 25    
+    list_per_page = 25
     save_as = True
 
 

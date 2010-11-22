@@ -12,7 +12,7 @@ class FieldAdmin(ConceptAdmin):
     list_filter = ('is_public', 'model_name')
     list_editable = ('is_public', 'enable_choices')
 
-    actions = ConceptAdmin.actions + ('create_criterion', 'create_column')
+    actions = ('create_criterion', 'create_column')
 
     def _create_concept(self, model, request, queryset):
         for f in queryset:
