@@ -13,12 +13,12 @@ from avocado.conf import settings
 from avocado.modeltree import DEFAULT_MODELTREE_ALIAS, trees
 from avocado.concepts.models import Concept, ConceptField
 from avocado.fields.models import Field
-from avocado.columns.mixins import ColumnMixin
+from avocado.columns import mixins
 from avocado.columns.managers import ColumnManager
 
 __all__ = ('Column', 'ColumnField')
 
-class Column(Concept, ColumnMixin):
+class Column(Concept, mixins.Mixin):
     "An interface to specify the necessary fields for a column."
     fields = models.ManyToManyField(Field, through='ColumnField')
 

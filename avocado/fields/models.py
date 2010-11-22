@@ -10,17 +10,16 @@ from avocado.conf import settings
 from avocado.modeltree import DEFAULT_MODELTREE_ALIAS, trees
 from avocado.fields.translate import library
 from avocado.fields.managers import FieldManager
+from avocado.fields import mixins
 
 __all__ = ('Field',)
-
-CHARS = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
 COERCED_DATATYPES = (
     (re.compile(r'^integer|float|decimal|big|positive|small|auto'), 'number'),
     (re.compile(r'^char|text|file|ipaddress|slug'), 'string'),
 )
 
-class Field(models.Model):
+class Field(mixins.Mixin):
     """The `Field' class stores off meta data about a "field of
     interest" located on another model. This, in a sense, provides a way to
     specify the fields that can be utilized by the query engine.
@@ -68,12 +67,6 @@ class Field(models.Model):
             2. a constant name on the model's module
             3. a string that can be evaluated
     """)
-
-    # TODO chart specific fields, remove these from the core and create an
-    # extension
-    chart_title = models.CharField(max_length=100, null=True, blank=True)
-    chart_yaxis = models.CharField(max_length=100, null=True, blank=True)
-    chart_xaxis = models.CharField(max_length=100, null=True, blank=True)
 
     objects = FieldManager()
 

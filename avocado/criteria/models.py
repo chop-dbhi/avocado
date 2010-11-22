@@ -1,6 +1,7 @@
 from django import forms
 from django.db import models
 
+from avocado.criteria import mixins
 from avocado.concepts.models import Concept, ConceptField
 from avocado.fields.models import Field
 from avocado.criteria.viewset import library
@@ -8,7 +9,7 @@ from avocado.criteria.managers import CriterionManager
 
 __all__ = ('Criterion', 'CriterionField')
 
-class Criterion(Concept):
+class Criterion(Concept, mixins.Mixin):
     fields = models.ManyToManyField(Field, through='CriterionField')
     viewset = models.CharField(max_length=100, choices=library.choices())
 

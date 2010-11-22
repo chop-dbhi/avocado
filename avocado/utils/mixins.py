@@ -1,6 +1,8 @@
 from django.db import models
 
-def create_mixin(name, module, fields=None, options=None):
+def create_mixin(name, module, bases=None, fields=None, options=None):
+    bases = bases or (models.Model,)
+
     class Meta(object):
         abstract = True
 
@@ -17,6 +19,6 @@ def create_mixin(name, module, fields=None, options=None):
         attrs.update(fields)
 
     # Create the class, which automatically triggers ModelBase processing
-    model = type(name, (models.Model,), attrs)
+    model = type(name, bases, attrs)
 
     return model
