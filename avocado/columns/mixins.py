@@ -6,8 +6,8 @@ from avocado.utils.mixins import create_mixin
 from avocado.columns.format import library
 
 # attempt to import the user-defined mixin class if specified
-if settings.FIELD_MIXIN_PATH is not None:
-    path = settings.FIELD_MIXIN_PATH.split('.')
+if settings.COLUMN_MIXIN_PATH is not None:
+    path = settings.COLUMN_MIXIN_PATH.split('.')
     mixin_name = path.pop(-1)
     mod = import_module('.'.join(path))
     Mixin = getattr(mod, mixin_name)
