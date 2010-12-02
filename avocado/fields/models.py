@@ -77,7 +77,7 @@ class Field(mixins.Mixin):
 
     def __unicode__(self):
         if self.name:
-            name = self.name
+            name = '%s [%s]' % (self.name, self.model_name)
         else:
             name = '.'.join([self.app_name, self.model_name, self.field_name])
         return u'%s' % name
