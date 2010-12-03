@@ -150,6 +150,10 @@ class Scope(Context):
         self.cnt = self.get_queryset().distinct().count()
         super(Scope, self).save()
 
+    def get_text(self):
+        node = logictree.transform(self._get_obj())
+        return node.text
+
 
 class Perspective(Context):
 
