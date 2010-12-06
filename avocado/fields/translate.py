@@ -18,7 +18,10 @@ class AbstractTranslator(object):
     formfield = None
 
     formfield_overrides = {
-        'IntegerField': forms.FloatField
+        'IntegerField': forms.FloatField,
+        'ModelChoiceField': forms.IntegerField,
+        'ModelMultipleChoiceField': forms.IntegerField,
+        'AutoField': forms.IntegerField
     }
 
     def __call__(self, field, operator=None, value=None, using=DEFAULT_MODELTREE_ALIAS, **context):
@@ -53,7 +56,11 @@ class AbstractTranslator(object):
         # create an instance of the formfield "to be" and determine if there is
         # a mapping listed for it. TODO make more elegant
         else:
-            name = field.formfield().__class__.__name__
+            formfield = field.formfield()
+            if formfield is None:
+                name = field.field.__class__.__name__
+            else:
+                name = formfield.__class__.__name__
             if self.formfield_overrides.has_key(name):
                 formfield = self.formfield_overrides[name]
 
