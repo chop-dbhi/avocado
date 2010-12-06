@@ -69,10 +69,11 @@ class AbstractTranslator(object):
         # this scenario occurs when a list of values are being queried and one
         # of them is to lookup NULL values
         if ins(value):
-            for i, x in enumerate(value):
+            new_value = []
+            for x in value:
                 if x is not None:
-                    value[i] = ff.clean(x)
-            return value
+                    new_value.append(ff.clean(x))
+            return new_value
         return ff.clean(value)
 
     def validate(self, field, operator, value, **kwargs):
@@ -82,7 +83,7 @@ class AbstractTranslator(object):
             raise ValidationError, '"%s" is not valid for the operator "%s"' % (clean_val, clean_op)
         return clean_op, clean_val
 
-    def translate(self, field, operator, value, using, **context):
+    def translate(self, field, roperator, rvalue, using, **context):
         """Returns two types of queryset modifiers including:
             - a Q object applied via the `filter()' method
             - a dict of annotations
@@ -90,7 +91,7 @@ class AbstractTranslator(object):
         It should be noted that no checks are performed to prevent the same
         name being used for annotations.
         """
-        operator, value = self.validate(field, operator, value, **context)
+        operator, value = self.validate(field, roperator, rvalue, **context)
         key = field.query_string(operator.operator, using=using)
         kwarg = {key: value}
 
@@ -100,6 +101,10 @@ class AbstractTranslator(object):
             'cleaned_data': {
                 'operator': operator,
                 'value': value
+            },
+            'raw_data': {
+                'operator': roperator,
+                'value': rvalue,
             }
         }
 

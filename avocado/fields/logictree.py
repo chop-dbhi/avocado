@@ -110,7 +110,10 @@ class Condition(Node):
     @property
     def text(self, flatten=True):
         operator = self._meta['cleaned_data']['operator']
-        value = self._meta['cleaned_data']['value']
+        # the original value is used here to prevent representing a different
+        # value from what the client had submitted. this text has no impact
+        # on the stored 'cleaned' data structure
+        value = self._meta['raw_data']['value']
         return {'conditions': [self.criterionfield.text(operator, value)]}
 
     def get_field_ids(self):
