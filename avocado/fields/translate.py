@@ -32,7 +32,6 @@ class AbstractTranslator(object):
             operators = self.operators
         else:
             operators = MODEL_FIELD_MAP.get(field.field.__class__.__name__)
-
         operators = dict([(x.uid, x) for x in operators])
 
         if not operators.has_key(operator):
@@ -56,8 +55,9 @@ class AbstractTranslator(object):
         # create an instance of the formfield "to be" and determine if there is
         # a mapping listed for it. TODO make more elegant
         else:
-            formfield = field.formfield()
-            if formfield is None:
+            formfield = field.formfield
+
+            if formfield() is None:
                 name = field.field.__class__.__name__
             else:
                 name = formfield.__class__.__name__
