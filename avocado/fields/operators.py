@@ -232,6 +232,7 @@ NUMERIC_OPERATORS = GENERAL_OPERATORS + NULL_OPERATORS + (lt, lte, gt, gte,
 MODEL_FIELD_MAP = {
     'AutoField': GENERAL_OPERATORS,
     'CharField': CHAR_OPERATORS,
+    'TextField': CHAR_OPERATORS,
     'IntegerField': NUMERIC_OPERATORS,
     'FloatField': NUMERIC_OPERATORS,
     'DecimalField': NUMERIC_OPERATORS,
