@@ -41,6 +41,13 @@ class Column(Concept, mixins.Mixin):
     def add_fields_to_queryset(self, queryset, using=DEFAULT_MODELTREE_ALIAS, **kwargs):
         modeltree = trees[using]
 
+        # ensures that new joins that are performed use LEFT OUTER JOINs so
+        # records do not get thrown out
+        kwargs['outer_if_first'] = True
+
+        # TODO test if column being added is nullable? see
+        # django/db/models/sql/query.py#L818
+
         fields = self.fields.all()
         aliases = []
         for f in fields:
