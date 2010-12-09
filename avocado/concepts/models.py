@@ -55,10 +55,12 @@ class Concept(models.Model):
         c = Context({'fields': fields})
         t = Template("""
             {% load markup %}
+            {% spaceless %}
             {% for field in fields %}
                 <b>{{ field.name }}</b>
                 {{ field.description|markdown }}
             {% endfor %}
+            {% endspaceless %}
             """)
         return t.render(c).strip()
 
