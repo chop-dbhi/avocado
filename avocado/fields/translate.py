@@ -19,8 +19,6 @@ class AbstractTranslator(object):
 
     formfield_overrides = {
         'IntegerField': forms.FloatField,
-        'ModelChoiceField': forms.IntegerField,
-        'ModelMultipleChoiceField': forms.IntegerField,
         'AutoField': forms.IntegerField
     }
 
@@ -45,7 +43,6 @@ class AbstractTranslator(object):
         # necessary
         if self.formfield:
             formfield = self.formfield
-
         # special case for handling standalone ``None`` or ``bool`` values.
         # this occurs when a field is can be queried as a null value, i.e.
         # '-?isnull' : (True|False) or '-?exact' : None
@@ -60,7 +57,8 @@ class AbstractTranslator(object):
             if formfield() is None:
                 name = field.field.__class__.__name__
             else:
-                name = formfield.__class__.__name__
+                name = formfield().__class__.__name__
+
             if self.formfield_overrides.has_key(name):
                 formfield = self.formfield_overrides[name]
 
