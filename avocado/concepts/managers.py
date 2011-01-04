@@ -1,10 +1,13 @@
 import re
 
-from django.db import models
+from django.db import models, backend
 from django.db.models.query import QuerySet
 from django.utils import stopwords
 
 from avocado.conf import settings
+from avocado.concepts import db
+
+BACKEND = backend.split('.')[-1]
 
 def _tokenize(search_str):
     "Strips stopwords and tokenizes search string if not already a list."
@@ -63,19 +66,17 @@ class ConceptManager(models.Manager):
         if base_queryset is None:
             base_queryset = self.get_query_set()
 
-        column = '"%s"."search_tsv"' % self.model._meta.db_table
-
         toks = _tokenize(search_str)
 
-        if not toks:
-            return base_queryset
+        func = getattr(db, BACKEND, None)
 
-        tok_str = '&'.join(toks)
+        # if fulltext search is supported, generate queryset
+        if func:
+            queryset = func(base_queryset, toks)
 
-        queryset = base_queryset.extra(where=(column + ' @@ to_tsquery(%s)',),
-            params=(tok_str,))
-
-        if use_icontains and not queryset.exists():
+        # if fulltext is not supported or not hits are found, run the
+        # icontains operator
+        if func is None or (use_icontains and queryset.exists()):
             queryset = self.icontains_search(toks, base_queryset.all())
 
         return queryset
