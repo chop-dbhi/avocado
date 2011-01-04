@@ -6,3 +6,5 @@ def postgresql_psycopg2(queryset, terms):
 
     queryset = queryset.extra(where=(column + ' @@ to_tsquery(%s)',),
         params=('&'.join(terms),))
+
+    return queryset
