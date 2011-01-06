@@ -293,14 +293,13 @@ class Field(mixins.Mixin):
 
     def translate(self, operator=None, value=None, using=DEFAULT_MODELTREE_ALIAS, **context):
         trans = library.get(self.translator)
-        if trans is None:
-            trans = library.default
         return trans(self, operator, value, using, **context)
 
     def query_by_value(self, operator, value, using=DEFAULT_MODELTREE_ALIAS):
         modeltree = trees[using]
         meta = self.translate(operator, value, using)
         queryset = modeltree.root_model.objects.all()
+
         if meta['annotations']:
             queryset = queryset.annotate(**meta['annotations'])
         if meta['condition']:

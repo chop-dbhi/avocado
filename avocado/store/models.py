@@ -403,6 +403,7 @@ class Report(Descriptor):
         # first argument is ``None`` since we want to use the session objects
         queryset = self.scope.get_queryset(None, queryset, using=using, **context)
         unique = self._get_count(queryset)
+
         queryset = self.perspective.get_queryset(None, queryset, using=using)
         count = self._get_count(queryset)
 

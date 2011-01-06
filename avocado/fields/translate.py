@@ -75,11 +75,83 @@ class AbstractTranslator(object):
         # of them is to lookup NULL values
         if ins(value):
             new_value = []
+            unique_values = set([])
             for x in value:
+                if x in unique_values:
+                    continue
+                unique_values.add(x)
                 if x is not None:
                     new_value.append(ff.clean(x))
+                # Django assumes an empty string when given a ``NoneType``
+                # for char-based form fields, this is to ensure ``NoneType``
+                # are passed through unmodified
+                else:
+                    new_value.append(None)
             return new_value
         return ff.clean(value)
+
+    def _get_not_null_pk(self, field, using):
+        # HACK: the below logic is required to get the expected results back
+        # when querying for NULL values. since NULL can be a value and a
+        # placeholder for non-existent values, then a condition to ensure
+        # the row's primary key is also NOT NULL must be added. Django
+        # assumes in all cases when querying on a NULL value all joins in
+        # the chain up to that point must be promoted to LEFT OUTER JOINs,
+        # which could be a reasonable assumption for some cases, but for
+        # getting the existent rows of data back for our purposes, the
+        # assumption is wrong.
+
+        # if this field is already the primary key, then don't bother
+        # adding the test, since it would be redundant
+        if field.field.primary_key:
+            return Q()
+
+        from avocado.models import Field
+        pk_name = field.model._meta.pk.name
+
+        pk_field = Field(app_name=field.app_name,
+            model_name=field.model_name, field_name=pk_name)
+
+        key = pk_field.query_string('isnull', using=using)
+
+        return Q(**{key: False})
+
+    def _condition(self, field, operator, value, using):
+        # assuming the operator and value validate, check for a NoneType value
+        # if the operator is 'in'. This condition will be broken out into a
+        # separate Q object
+        if operator.operator == 'in' and None in value:
+            value = value[:]
+            value.remove(None)
+
+            key = field.query_string('isnull', using=using)
+
+            if operator.negated:
+                condition = Q(**{key: False})
+            else:
+                condition = Q(**{key: True}) & self._get_not_null_pk(field, using)
+
+            if value:
+                key = field.query_string(operator.operator, using=using)
+                condition = Q(**{key: value}) | condition
+        else:
+            if (operator.operator == 'isnull' or
+                (operator.operator == 'exact' and value is None)):
+
+                key = field.query_string('isnull', using=using)
+                value = not operator.negated
+
+                condition = Q(**{key: value})
+
+                if value is True:
+                    condition = condition & self._get_not_null_pk(field, using)
+            else:
+                key = field.query_string(operator.operator, using=using)
+                condition = Q(**{key: value})
+
+                condition = ~condition if operator.negated else condition
+
+        return condition
 
     def validate(self, field, operator, value, **kwargs):
         clean_op = self._clean_operator(field, operator)
@@ -97,11 +169,10 @@ class AbstractTranslator(object):
         name being used for annotations.
         """
         operator, value = self.validate(field, roperator, rvalue, **context)
-        key = field.query_string(operator.operator, using=using)
-        kwarg = {key: value}
+        condition = self._condition(field, operator, value, using)
 
         meta = {
-            'condition': None,
+            'condition': condition,
             'annotations': {},
             'cleaned_data': {
                 'operator': operator,
@@ -112,11 +183,6 @@ class AbstractTranslator(object):
                 'value': rvalue,
             }
         }
-
-        if operator.negated:
-            meta['condition'] = ~Q(**kwarg)
-        else:
-            meta['condition'] = Q(**kwarg)
 
         return meta
 
