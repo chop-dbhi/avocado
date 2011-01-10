@@ -11,6 +11,7 @@ Contents:
 .. toctree::
 
     intro
+    data_model
     concepts
     modelfield
     criterion
