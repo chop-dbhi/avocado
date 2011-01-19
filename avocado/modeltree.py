@@ -538,16 +538,20 @@ class ModelTree(object):
 
 class LazyModelTree(object):
     def __init__(self, modeltrees):
-        if not modeltrees:
-            raise ImproperlyConfigured, 'You must at least specify the "%s" ' \
-                'modeltree config' % DEFAULT_MODELTREE_ALIAS
-
         self.modeltrees = modeltrees
         self._modeltrees = {}
 
     def __getitem__(self, alias):
+        if not self.modeltrees:
+            raise ImproperlyConfigured, 'You must at least specify the "%s" ' \
+                'modeltree config' % DEFAULT_MODELTREE_ALIAS
+
         if alias not in self._modeltrees:
-            kwargs = self.modeltrees[alias]
+            try:
+                kwargs = self.modeltrees[alias]
+            except KeyError:
+                raise KeyError, 'No modeltree settings defined for "%s"' % alias
+
             self._modeltrees[alias] = ModelTree(**kwargs)
         return self._modeltrees[alias]
 
