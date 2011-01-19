@@ -1,11 +1,14 @@
 from django.db import models
 from django.template import Template, Context
+from avocado.concepts.managers import ConceptManager
 
 __all__ = ('Category',)
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
     icon = models.FileField(upload_to='uploads/categories/', blank=True)
+    parent = models.ForeignKey('self', null=True, blank=True,
+        related_name='children')
 
     class Meta(object):
         verbose_name_plural = 'categories'
@@ -27,6 +30,8 @@ class Concept(models.Model):
 
     # search optimizations
     search_doc = models.TextField(editable=False, null=True)
+
+    objects = ConceptManager()
 
     class Meta(object):
         abstract = True
@@ -63,6 +68,7 @@ class Concept(models.Model):
             {% endspaceless %}
             """)
         return t.render(c).strip()
+
 
 class ConceptField(models.Model):
     name = models.CharField(max_length=100, null=True, blank=True)

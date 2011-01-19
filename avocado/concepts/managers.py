@@ -1,6 +1,7 @@
 import re
 
 from django.db import models, database
+from django.db.models import Q
 from django.db.models.query import QuerySet
 from django.utils import stopwords
 
@@ -23,34 +24,54 @@ def _tokenize(search_str):
 class ConceptManager(models.Manager):
     use_for_related_fields = True
 
-    def public(self, sql):
+    def public(self):
         """Translates to::
 
             'return all concepts which are public, all fields associated with
             them are public and all fields are not part of a group.'
         """
-        ids = [x.id for x in self.raw(sql)]
-        return self.get_query_set().filter(id__in=ids)
+        queryset = self.get_query_set()
+
+        # all public columns
+        public = queryset.filter(is_public=True)
+
+        # columns that contain at least one non-public field
+        shadowed = queryset.filter(fields__is_public=False)
+
+        # columns that contain fields associated with a group
+        grouped = queryset.filter(fields__group__isnull=False)
+
+        return public.exclude(pk__in=shadowed).exclude(pk__in=grouped)
 
     if settings.FIELD_GROUP_PERMISSIONS:
-        def restrict_by_group(self, sql, groups):
+        def restrict_by_group(self, groups=None):
             """Translates to::
 
                 'return all concepts which are public, all fields associated with
                 them are public and all fields per column are either not part of
                 a group or are within any of the groups specified by ``groups``.
             """
+            # resolve groups to take a length; this will greatly reduce
+            # the complexity of the later query
+            groups = list(groups or [])
 
-            if isinstance(groups, QuerySet):
-                groups = groups.order_by().values_list('id', flat=True)
+            if len(groups) == 0:
+                return self.public()
 
-            if len(groups) > 0:
-                raw = self.raw(sql, params=(tuple(groups),))
-            else:
-                raw = self.raw(sql)
-            ids = [x.id for x in raw]
+            queryset = self.get_query_set()
 
-            return self.get_query_set().filter(id__in=ids)
+            # all public columns
+            public = queryset.filter(is_public=True)
+
+            # columns that contain at least one non-public field
+            shadowed = queryset.filter(fields__is_public=False)
+
+            condition = Q(fields__group__isnull=False) & ~Q(fields__group__in=groups)
+
+            # columns that contain fields not in the groups defined or 
+            grouped = queryset.filter(condition)
+
+            return public.exclude(pk__in=shadowed).exclude(pk__in=grouped)
 
     def fulltext_search(self, search_str, base_queryset=None, use_icontains=False):
         """Performs a fulltext search provided the database backend supports
