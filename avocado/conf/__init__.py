@@ -13,7 +13,7 @@ class Settings(object):
         for setting in dir(global_settings):
             if setting == setting.upper():
                 setattr(self, setting, getattr(global_settings, setting))
-        
+
         for k, v in settings_dict.items():
             if k == k.upper():
                 setattr(self, k, v)
