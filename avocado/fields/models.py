@@ -47,10 +47,12 @@ class Field(mixins.Mixin):
     description = models.TextField(null=True, blank=True)
     keywords = models.CharField(max_length=100, null=True, blank=True)
 
-    is_public = models.BooleanField(default=False)
+    # the ``search_doc`` refers to the aggregated text that can be fulltext
+    # searched. if the database backend supports it, this will also be used
+    # by the fulltext indexing to construct the search index
+    search_doc = models.TextField(null=True, db_index=True, editable=False)
 
-    # search optimizations
-    search_doc = models.TextField(editable=False, null=True)
+    is_public = models.BooleanField(default=False)
 
     if settings.FIELD_GROUP_PERMISSIONS:
         group = models.ForeignKey(Group, null=True, blank=True)
@@ -161,11 +163,12 @@ class Field(mixins.Mixin):
         return self._choices
     choices = property(_get_choices)
 
-    def _get_raw_choices(self):
+    def _get_distinct_choices(self):
         "Returns a list of the raw values."
         if self.choices is not None:
             return map(lambda x: x[0], self.choices)
-    raw_choices = property(_get_raw_choices)
+        return []
+    distinct_choices = property(_get_distinct_choices)
 
     def natural_key(self):
         return [self.app_name, self.model_name, self.field_name]
