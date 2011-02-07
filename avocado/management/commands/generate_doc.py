@@ -1,11 +1,11 @@
 import sys
+import locale
+import codecs
 from optparse import make_option
 
-from django.template import Context, TemplateDoesNotExist
-from django.template.loader import get_template
 from django.core.management.base import BaseCommand
 
-from avocado.models import Criterion, Column
+from avocado import docs
 
 class Command(BaseCommand):
     help = "Generates a report of all the metadata that exists."
@@ -16,22 +16,7 @@ class Command(BaseCommand):
     )
 
     def handle(self, *args, **options):
-        template_name = '.'.join(['avocado/doc', options['mimetype']])
-        try:
-            t = get_template(template_name)
-        except TemplateDoesNotExist:
-            sys.stderr.write('ERROR: No template exists for that type\n')
-            sys.exit(1)
-
-        criteria = Criterion.objects.public().order_by('order')
-        columns = Column.objects.public().order_by('order')
-
-        c = Context({
-            'criteria': criteria,
-            'columns': columns
-        })
-
-        output = t.render(c)
-
+        output = docs.generate_fields_doc(mimetype=options['mimetype'])
+        sys.stdout = codecs.getwriter(locale.getpreferredencoding())(sys.stdout)
         sys.stdout.write(output)
         sys.exit(0)

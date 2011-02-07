@@ -1,0 +1,34 @@
+{% load markup %}
+
+<h3 class="concept-name">{{ concept.name }}</h3>
+<div class="concept-description">
+    <p class="concept-meta">
+        <b>Category</b>: {{ concept.category }}
+        {% if concept.keywords %}
+            <br><b>Keywords</b>: {{ concept.keywords }}
+        {% endif %}
+    </p>
+
+    {% if concept.description %}
+        {{ concept.description|markdown }}
+    {% endif %}
+
+    <div class="concept-fields">
+        {% for field in concept.conceptfields.all %}
+            {% if field.name %}
+                <strong class="field-name">{{ field.name }}</strong>
+            {% endif %}
+            <p class="field-meta">
+                <b>Datatype</b>: {{ field.field.datatype }}
+                {% if field.field.keywords %}
+                    <br><b>Keywords</b>: {{ field.field.keywords }}
+                {% endif %}
+                {% if field.field.choices %}
+                <br><b>Choices</b>: {% filter truncatewords:30 %}{% for choice in field.field.distinct_choices %}{{ choice|default_if_none:"No Data" }}{% if not forloop.last %}, {% endif %}{% endfor %}{% endfilter %}
+                {% endif %}
+            </p>
+            <div class="field-description">{{ field.field.description|default:"<i>No description has been written yet!</i>"|markdown }}</div>
+        {% endfor %}
+    </div>
+</div>
+<hr>

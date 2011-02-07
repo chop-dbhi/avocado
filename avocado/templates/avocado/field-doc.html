@@ -1,0 +1,14 @@
+{% load markup %}
+
+<h3 class="field-name">{{ field.name }}</h3>
+<p class="field-meta">
+    <b>Datatype</b>: {{ field.datatype }}
+    {% if field.keywords %}
+        <br><b>Keywords</b>: {{ field.keywords }}
+    {% endif %}
+    {% if field.choices %}
+    <br><b>Choices</b>: {% filter truncatewords:30 %}{% for choice in field.distinct_choices %}{{ choice|default_if_none:"No Data" }}{% if not forloop.last %}, {% endif %}{% endfor %}{% endfilter %}
+    {% endif %}
+</p>
+<div class="field-description">{{ field.description|default:"<i>No description has been written yet!</i>"|markdown }}</div>
+<hr>
