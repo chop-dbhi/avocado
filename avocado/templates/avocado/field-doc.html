@@ -1,6 +1,6 @@
 {% load markup %}
 
-<h3 class="field-name">{{ field.name }}</h3>
+<h3 id="{{ field.name|slugify }}-{{ field.id }}" class="field-name">{{ field.name }}</h3>
 <p class="field-meta">
     <b>Datatype</b>: {{ field.datatype }}
     {% if field.keywords %}

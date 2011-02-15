@@ -1,6 +1,6 @@
 {% load markup %}
 
-<h3 class="concept-name">{{ concept.name }}</h3>
+<h3 id="{{ concept.name|slugify }}-{{ concept.id }}" class="concept-name">{{ concept.name }}</h3>
 <div class="concept-description">
     <p class="concept-meta">
         <b>Category</b>: {{ concept.category }}
