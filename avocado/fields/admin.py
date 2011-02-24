@@ -7,13 +7,39 @@ from avocado.fields.forms import FieldAdminForm
 
 __all__ = ('FieldAdmin', 'EditorsFieldAdmin')
 
+
 class FieldAdmin(ConceptAdmin):
     form = FieldAdminForm
-    list_display = ('name', 'is_public', 'model_name', 'enable_choices')
+    list_display = ('name', 'is_public', 'show_orphan_reason', 'model_name',
+        'enable_choices')
     list_filter = ('is_public', 'model_name')
     list_editable = ('is_public', 'enable_choices')
 
     actions = ('create_criterion', 'create_column')
+
+    fieldsets = (
+        (None, {
+            'fields': ('name', 'description', 'keywords', 'is_public'),
+        }),
+
+        ('Special Attributes', {
+            'classes': ('collapse',),
+            'fields': ('group', 'translator', 'enable_choices')
+        }),
+
+        ('Metadata', {
+            'classes': ('collapse',),
+            'fields': ('app_name', 'model_name', 'field_name'),
+        }),
+    )
+
+    def show_orphan_reason(self, obj):
+        if obj.model is None:
+            return 'Unknown Model'
+        if obj.field is None:
+            return 'Unknown Field'
+        return 'OK'
+    show_orphan_reason.short_description = 'Orphan Status'
 
     @transaction.commit_on_success
     def _create_concept(self, model, request, queryset):
