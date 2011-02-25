@@ -15,7 +15,8 @@ class ColumnFieldInline(admin.TabularInline):
 class ColumnAdmin(ConceptAdmin):
     inlines = (ColumnFieldInline,)
     formfield_overrides = {
-        models.TextField: {'widget': forms.Textarea(attrs={'cols': 30, 'rows': 3})}
+        models.TextField: {'widget': forms.Textarea(attrs={'cols': 30, 'rows': 3}),
+            'required': False}
     }
 
     def field_relations(self, obj):

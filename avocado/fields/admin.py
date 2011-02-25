@@ -14,7 +14,8 @@ __all__ = ('FieldAdmin', 'EditorsFieldAdmin')
 class FieldAdmin(ConceptAdmin):
     form = FieldAdminForm
     formfield_overrides = {
-        models.TextField: {'widget': forms.Textarea(attrs={'cols': 30, 'rows': 3})}
+        models.TextField: {'widget': forms.Textarea(attrs={'cols': 30, 'rows': 3}),
+            'required': False}
     }
 
     list_display = ('name', 'is_public', 'show_orphan_reason', 'model_name',
