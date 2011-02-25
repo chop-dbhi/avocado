@@ -1,5 +1,8 @@
+from django import forms
+from django.db import models
 from django.contrib import admin
 from django.db import transaction
+from django.core.urlresolvers import reverse
 
 from avocado.concepts.admin import ConceptAdmin, EditorsConceptAdmin
 from avocado.models import Field, Column, Criterion
@@ -10,16 +13,22 @@ __all__ = ('FieldAdmin', 'EditorsFieldAdmin')
 
 class FieldAdmin(ConceptAdmin):
     form = FieldAdminForm
+    formfield_overrides = {
+        models.TextField: {'widget': forms.Textarea(attrs={'cols': 30, 'rows': 3})}
+    }
+
     list_display = ('name', 'is_public', 'show_orphan_reason', 'model_name',
-        'enable_choices')
-    list_filter = ('is_public', 'model_name')
-    list_editable = ('is_public', 'enable_choices')
+        'enable_choices', 'status', 'note', 'reviewed', 'criterion_relations',
+        'column_relations')
+    list_filter = ('is_public', 'model_name', 'status')
+    list_editable = ('is_public', 'enable_choices', 'status', 'note')
 
     actions = ('create_criterion', 'create_column')
 
     fieldsets = (
         (None, {
-            'fields': ('name', 'description', 'keywords', 'is_public'),
+            'fields': ('name', 'description', 'keywords', 'is_public',
+                'status', 'reviewed', 'note'),
         }),
 
         ('Special Attributes', {
@@ -40,6 +49,26 @@ class FieldAdmin(ConceptAdmin):
             return 'Unknown Field'
         return 'OK'
     show_orphan_reason.short_description = 'Orphan Status'
+
+    def criterion_relations(self, obj):
+        queryset = obj.criterion_set.only('id', 'name')
+        urlize = lambda x: '<a href="%s">%s</a>' % (
+            reverse('admin:avocado_criterion_change', args=(x.id,)),
+            x.name
+        )
+        return '<br>'.join(map(urlize, queryset)) or None
+    criterion_relations.short_description = 'Criterion Relations'
+    criterion_relations.allow_tags = True
+
+    def column_relations(self, obj):
+        queryset = obj.column_set.only('id', 'name')
+        urlize = lambda x: '<a href="%s">%s</a>' % (
+            reverse('admin:avocado_column_change', args=(x.id,)),
+            x.name
+        )
+        return '<br>'.join(map(urlize, queryset)) or None
+    column_relations.short_description = 'Column Relations'
+    column_relations.allow_tags = True
 
     @transaction.commit_on_success
     def _create_concept(self, model, request, queryset):

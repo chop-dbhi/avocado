@@ -11,7 +11,7 @@ from django.core.cache import cache as dcache
 
 from avocado.conf import settings
 from avocado.models import Field
-from avocado.store.fields import PickledObjectField
+from avocado.store.fields import PickledField
 from avocado.modeltree import DEFAULT_MODELTREE_ALIAS, trees
 from avocado.fields import logictree
 from avocado.columns.cache import cache as column_cache
@@ -45,7 +45,7 @@ class Context(Descriptor):
     """A generic interface for storing an arbitrary context around the data
     model. The object defining the context must be serializable.
     """
-    store = PickledObjectField(default={})
+    store = PickledField(default={})
     definition = models.TextField(editable=False, null=True)
     timestamp = models.DateTimeField(editable=False, default=datetime.now())
 
@@ -207,6 +207,8 @@ class Perspective(Context):
 
         for x in store['columns']:
             c = column_cache.get(x)
+            if c is None:
+                continue
             o = {'id': x, 'name': c.name, 'direction': ''}
             for y, z in store['ordering']:
                 if x == y:

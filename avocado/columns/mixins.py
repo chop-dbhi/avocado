@@ -18,6 +18,6 @@ fields = {}
 for name in settings.FORMATTER_TYPES:
     fn = name + settings.FORMATTER_FIELD_SUFFIX
     fields[fn] = models.CharField('%s formatter' % name, max_length=100,
-        choices=library.choices(name), blank=True)
+        choices=sorted(library.choices(name)))
 
 Mixin = create_mixin('Mixin', __name__, bases=(Mixin,), fields=fields)

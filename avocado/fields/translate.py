@@ -91,7 +91,7 @@ class AbstractTranslator(object):
         return ff.clean(value)
 
     def _get_not_null_pk(self, field, using):
-        # HACK: the below logic is required to get the expected results back
+        # XXX the below logic is required to get the expected results back
         # when querying for NULL values. since NULL can be a value and a
         # placeholder for non-existent values, then a condition to ensure
         # the row's primary key is also NOT NULL must be added. Django

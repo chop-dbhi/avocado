@@ -29,7 +29,7 @@ def dbsafe_encode(value, compress_object=False):
     """
     We use deepcopy() here to avoid a problem with cPickle, where dumps
     can generate different character streams for same lookup value if
-    they are referenced differently. 
+    they are referenced differently.
 
     The reason this is important is because we do all of our lookups as
     simple string matches, thus the character streams must be the same
@@ -48,10 +48,10 @@ def dbsafe_decode(value, compress_object=False):
         value = loads(decompress(b64decode(value)))
     return value
 
-class PickledObjectField(models.Field):
+class PickledField(models.Field):
     """
     A field that will accept *any* python object and store it in the
-    database. PickledObjectField will optionally compress it's values if
+    database. PickledField will optionally compress it's values if
     declared with the keyword argument ``compress=True``.
 
     Does not actually encode and compress ``None`` objects (although you
@@ -68,7 +68,7 @@ class PickledObjectField(models.Field):
         self.protocol = kwargs.pop('protocol', 2)
         kwargs.setdefault('null', True)
         kwargs.setdefault('editable', False)
-        super(PickledObjectField, self).__init__(*args, **kwargs)
+        super(PickledField, self).__init__(*args, **kwargs)
 
     def get_default(self):
         """
@@ -87,7 +87,7 @@ class PickledObjectField(models.Field):
                 return self.default()
             return self.default
         # If the field doesn't have a default, then we punt to models.Field.
-        return super(PickledObjectField, self).get_default()
+        return super(PickledField, self).get_default()
 
     def to_python(self, value):
         """
@@ -117,7 +117,7 @@ class PickledObjectField(models.Field):
         rather than as -1 or HIGHEST_PROTOCOL, because we don't want the
         protocol to change over time. If it did, ``exact`` and ``in``
         lookups would likely fail, since pickle would now be generating
-        a different string. 
+        a different string.
 
         """
         if value is not None and not isinstance(value, PickledObject):
@@ -134,7 +134,7 @@ class PickledObjectField(models.Field):
         value = self._get_val_from_obj(obj)
         return self.get_db_prep_value(value)
 
-    def get_internal_type(self): 
+    def get_internal_type(self):
         return 'TextField'
 
     def get_db_prep_lookup(self, lookup_type, value):
@@ -142,5 +142,23 @@ class PickledObjectField(models.Field):
             raise TypeError('Lookup type %s is not supported.' % lookup_type)
         # The Field model already calls get_db_prep_value before doing the
         # actual lookup, so all we need to do is limit the lookup types.
-        return super(PickledObjectField, self).get_db_prep_lookup(lookup_type, value)
+        return super(PickledField, self).get_db_prep_lookup(lookup_type, value)
 
+
+# support for South
+try:
+    from south.modelsinspector import add_introspection_rules
+    add_introspection_rules([
+        (
+            (PickledField,),
+            [],
+            {
+                'compress': ['compress', {'default': False}],
+                'protocol': ['protocol', {'default': 2}],
+                'null': ['null', {'default': True}],
+                'editable': ['editable', {'editable': False}]
+            }
+        )
+    ], ['^avocado\.store\.fields'])
+except ImportError:
+    pass

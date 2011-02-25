@@ -10,7 +10,7 @@ __all__ = ('Criterion', 'CriterionField')
 
 class Criterion(Concept, mixins.Mixin):
     fields = models.ManyToManyField(Field, through='CriterionField')
-    viewset = models.CharField(max_length=100, choices=library.choices())
+    viewset = models.CharField(max_length=100, choices=sorted(library.choices()))
 
     class Meta(Concept.Meta):
         verbose_name_plural = 'criteria'
