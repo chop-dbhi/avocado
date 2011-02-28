@@ -24,6 +24,7 @@ REVIEW_CHOICES = (
     ('Unreviewed', 'Unreviewed'),
     ('Embargoed', 'Embargoed'),
     ('Deprecated', 'Deprecated'),
+    ('Waiting', 'Waiting'),
     ('Curation Required', 'Curation Required'),
     ('Curation Pending', 'Curation Pending'),
     ('Integration Required', 'Integration Required'),
