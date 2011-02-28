@@ -45,7 +45,7 @@ class Column(Concept, mixins.Mixin):
         # TODO test if column being added is nullable? see
         # django/db/models/sql/query.py#L818
 
-        fields = self.fields.all()
+        fields = self.fields.order_by('columnfield__order')
         aliases = []
         for f in fields:
             queryset = modeltree.add_joins(f.model, queryset, **kwargs)
