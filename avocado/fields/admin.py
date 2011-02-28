@@ -74,8 +74,7 @@ class FieldAdmin(ConceptAdmin):
     @transaction.commit_on_success
     def _create_concept(self, model, request, queryset):
         for f in queryset:
-            concept = model(name=f.name, description=f.description,
-                keywords=f.keywords, is_public=False)
+            concept = model(name=f.name, is_public=False)
             concept.save()
 
             conceptfield = concept.conceptfields.model(field=f,
