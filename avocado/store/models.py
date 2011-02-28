@@ -3,7 +3,7 @@ from hashlib import md5
 from datetime import datetime
 from functools import partial
 
-from django.db import models, DEFAULT_DB_ALIAS
+from django.db import models, router
 from django.db.models.sql import RawQuery
 from django.core.paginator import EmptyPage, InvalidPage
 from django.contrib.auth.models import User
@@ -276,8 +276,9 @@ class Report(Descriptor):
         """Take a ``QuerySet`` object and executes it. No customization or
         processing of the query should take place here.
         """
-        sql, params = queryset.query.get_compiler(DEFAULT_DB_ALIAS).as_sql()
-        raw = RawQuery(sql, DEFAULT_DB_ALIAS, params)
+        using = router.db_for_read(queryset.model)
+        sql, params = queryset.query.get_compiler(using).as_sql()
+        raw = RawQuery(sql, using, params)
         raw._execute_query()
         return raw.cursor.fetchall()
 
