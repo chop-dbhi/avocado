@@ -21,7 +21,7 @@ class FieldAdmin(ConceptAdmin):
     list_display = ('name', 'is_public', 'show_orphan_reason', 'model_name',
         'enable_choices', 'status', 'note', 'reviewed', 'criterion_relations',
         'column_relations')
-    list_filter = ('is_public', 'model_name', 'status')
+    list_filter = ('is_public', 'model_name', 'status', 'sites')
     list_editable = ('is_public', 'enable_choices', 'status', 'note')
 
     actions = ('create_criterion', 'create_column')
@@ -32,12 +32,20 @@ class FieldAdmin(ConceptAdmin):
                 'status', 'reviewed', 'note'),
         }),
 
-        ('Special Attributes', {
+        ('Query Representation', {
             'classes': ('collapse',),
-            'fields': ('group', 'translator', 'enable_choices')
+            'fields': ('translator', 'enable_choices')
+        }),
+
+        ('Permissions', {
+            'classes': ('collapse',),
+            'fields': ('group', 'sites')
         }),
 
         ('Metadata', {
+            'description': ('These fields should not be altered in-place. '
+                'If where this field is located has changed, change these '
+                ' values and create a new field by using "Save as new".'),
             'classes': ('collapse',),
             'fields': ('app_name', 'model_name', 'field_name'),
         }),

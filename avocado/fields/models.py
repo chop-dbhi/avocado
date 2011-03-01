@@ -73,7 +73,7 @@ class Field(mixins.Mixin):
 
     is_public = models.BooleanField(default=False)
     group = models.ForeignKey(Group, null=True, blank=True)
-    sites = models.ManyToManyFIeld(Site)
+    sites = models.ManyToManyField(Site)
 
     translator = models.CharField(max_length=100, choices=library.choices(),
         blank=True, null=True)
@@ -117,18 +117,21 @@ class Field(mixins.Mixin):
         return self._module
     module = property(_get_module)
 
-    def _get_model(self):
+    def _get_model(self, app_name=None, model_name=None):
         "Returns the model class this field is associated with."
-        if not hasattr(self, '_model'):
-            self._model = models.get_model(self.app_name, self.model_name)
+        if not hasattr(self, '_model') or (app_name and model_name):
+            app_name = app_name or self.app_name
+            model_name = model_name or self.model_name
+            self._model = models.get_model(app_name, model_name)
         return self._model
     model = property(_get_model)
 
-    def _get_field(self):
+    def _get_field(self, field_name=None):
         "Returns the field object from model."
-        if not hasattr(self, '_field'):
+        if not hasattr(self, '_field') or field_name:
+            field_name = field_name or self.field_name
             try:
-                self._field = self.model._meta.get_field_by_name(self.field_name)[0]
+                self._field = self.model._meta.get_field_by_name(field_name)[0]
             except FieldDoesNotExist:
                 self._field = None
         return self._field
@@ -148,7 +151,7 @@ class Field(mixins.Mixin):
         return self._datatype
     datatype = property(_get_datatype)
 
-    def _get_choices(self):
+    def _get_choices(self, choices_handler=None):
         """Returns a distinct set of choices for this field.
 
         If a ``choices_handler`` is not defined, a distinct list of values are
@@ -157,7 +160,7 @@ class Field(mixins.Mixin):
         If ``choices_handler`` is defined, the handler is passed through a series
         of evaluators to try and convert it into a native object.
         """
-        if not hasattr(self, '_choices'):
+        if not hasattr(self, '_choices') or choices_handler:
             choices = None
 
             # override boolean type fields
@@ -168,8 +171,10 @@ class Field(mixins.Mixin):
                 choices = tuple(choices)
 
             elif self.enable_choices:
+                choices_handler = choices_handler or self.choices_handler
+
                 # use introspection
-                if not self.choices_handler:
+                if not choices_handler:
                     name = self.field_name
                     choices = list(self.model.objects.values_list(name,
                         flat=True).order_by(name).distinct())
