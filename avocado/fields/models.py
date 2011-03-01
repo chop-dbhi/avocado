@@ -72,7 +72,7 @@ class Field(mixins.Mixin):
 
     is_public = models.BooleanField(default=False)
     group = models.ForeignKey(Group, null=True, blank=True)
-    sites = models.ManyToManyField(Site)
+    sites = models.ManyToManyField(Site, blank=True)
 
     translator = models.CharField(max_length=100, choices=library.choices(),
         blank=True, null=True)
