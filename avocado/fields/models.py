@@ -6,7 +6,6 @@ from django.db import models
 from django.db.models import Count
 from django.contrib.auth.models import Group
 from django.contrib.sites.models import Site
-from django.contrib.sites.managers import CurrentSiteManager
 from django.db.models.fields import FieldDoesNotExist
 
 from avocado.modeltree import DEFAULT_MODELTREE_ALIAS, trees
@@ -89,7 +88,6 @@ class Field(mixins.Mixin):
     """)
 
     objects = FieldManager()
-    on_site = CurrentSiteManager()
 
     class Meta(object):
         app_label = 'avocado'

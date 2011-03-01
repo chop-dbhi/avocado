@@ -103,11 +103,7 @@ class Context(Descriptor):
         if not field_ids:
             return True
 
-        if user and settings.FIELD_GROUP_PERMISSIONS:
-            groups = user.groups.all()
-            fields = Field.objects.restrict_by_group(groups)
-        else:
-            fields = Field.objects.public()
+        fields = Field.objects.public(user)
 
         # filter down to requested fields
         ids = set(fields.values('id').filter(id__in=field_ids).values_list('id', flat=True))

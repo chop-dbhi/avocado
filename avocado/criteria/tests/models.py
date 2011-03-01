@@ -41,6 +41,6 @@ class CriterionSearchTestCase(TestCase):
 
     def test_restricted(self):
         user = User.objects.get(pk=1)
-        restricted_objects = Criterion.objects.restrict_by_group(user.groups.all())
+        restricted_objects = Criterion.objects.public(user)
         self.assertEqual(restricted_objects.count(), 2)
         self.assertEqual(list(restricted_objects.values_list('id', flat=True)), [2, 3])

@@ -4,8 +4,8 @@ from django.db import models, database
 from django.db.models import Q
 from django.db.models.query import QuerySet
 from django.utils import stopwords
+from django.conf import settings
 
-from avocado.conf import settings
 from avocado.concepts import db
 
 BACKEND = database['ENGINE'].split('.')[-1]
@@ -24,54 +24,51 @@ def _tokenize(search_str):
 class ConceptManager(models.Manager):
     use_for_related_fields = True
 
-    def public(self):
-        """Translates to::
+    def _get_not_for_site(self):
+        return Q(fields__sites__isnull=False) & ~Q(fields__sites__exact=settings.SITE_ID)
 
-            'return all concepts which are public, all fields associated with
-            them are public and all fields are not part of a group.'
-        """
+    def _public_for_auth_user(self, user):
+        groups = list(user.groups.all())
+        # resolve groups to take a length; this will greatly reduce
+        # the complexity of the later query
+        if len(groups) == 0:
+            return self._public_for_anon_user()
+
         queryset = self.get_query_set()
-
         # all public columns
         public = queryset.filter(is_public=True)
-
         # columns that contain at least one non-public field
         shadowed = queryset.filter(fields__is_public=False)
+        # columns that contain fields associated with a group
+        grouped = queryset.filter(Q(fields__group__isnull=False) & \
+            ~Q(fields__group__in=groups))
+        # columns that are not in the current site (or not associated with
+        # a site)
+        sites = queryset.filter(self._get_not_for_site())
 
+        return public.exclude(pk__in=shadowed).exclude(pk__in=grouped)\
+            .exclude(pk__in=sites).distinct()
+
+    def _public_for_anon_user(self):
+        queryset = self.get_query_set()
+        # all public columns
+        public = queryset.filter(is_public=True)
+        # columns that contain at least one non-public field
+        shadowed = queryset.filter(fields__is_public=False)
         # columns that contain fields associated with a group
         grouped = queryset.filter(fields__group__isnull=False)
+        # columns that are not in the current site (or not associated with
+        # a site)
+        sites = queryset.filter(self._get_not_for_site())
 
-        return public.exclude(pk__in=shadowed).exclude(pk__in=grouped)
+        return public.exclude(pk__in=shadowed).exclude(pk__in=grouped)\
+            .exclude(pk__in=sites).distinct()
 
-    if settings.FIELD_GROUP_PERMISSIONS:
-        def restrict_by_group(self, groups=None):
-            """Translates to::
-
-                'return all concepts which are public, all fields associated with
-                them are public and all fields per column are either not part of
-                a group or are within any of the groups specified by ``groups``.
-            """
-            # resolve groups to take a length; this will greatly reduce
-            # the complexity of the later query
-            groups = list(groups or [])
-
-            if len(groups) == 0:
-                return self.public()
-
-            queryset = self.get_query_set()
-
-            # all public columns
-            public = queryset.filter(is_public=True)
-
-            # columns that contain at least one non-public field
-            shadowed = queryset.filter(fields__is_public=False)
-
-            condition = Q(fields__group__isnull=False) & ~Q(fields__group__in=groups)
-
-            # columns that contain fields not in the groups defined or 
-            grouped = queryset.filter(condition)
-
-            return public.exclude(pk__in=shadowed).exclude(pk__in=grouped)
+    def public(self, user=None):
+        "Returns all publically available fields given a user."
+        if user and user.is_authenticated():
+            return self._public_for_auth_user(user)
+        return self._public_for_anon_user()
 
     def fulltext_search(self, search_str, base_queryset=None, use_icontains=False):
         """Performs a fulltext search provided the database backend supports

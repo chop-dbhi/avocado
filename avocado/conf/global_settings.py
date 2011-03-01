@@ -2,10 +2,6 @@
 # introspected per app for registered translators
 TRANSLATOR_MODULE_NAME = 'translate'
 
-# Enables a many-to-many relationship between ``Field`` and ``Group`` to allow
-# for user-specific authorization to certain fields.
-FIELD_GROUP_PERMISSIONS =  False
-
 # Defines an abstract base class to extend the Field model. It should be
 # ``None`` or a path string to the class e.g. 'path.to.my.field.Mixin'
 FIELD_MIXIN_PATH = None
