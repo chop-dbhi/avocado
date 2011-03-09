@@ -1,4 +1,5 @@
 import re
+from warnings import warn
 from datetime import datetime
 
 from django import forms
@@ -189,7 +190,7 @@ class Field(mixins.Mixin):
 
     def _get_distinct_choices(self):
         "Returns a list of the raw values."
-        raise DeprecationWarning, 'use Field.values instead'
+        warn('Use Field.values instead', DeprecationWarning)
         return self.values
     distinct_choices = property(_get_distinct_choices)
 
