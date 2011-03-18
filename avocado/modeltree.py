@@ -180,6 +180,18 @@ class ModelTree(object):
         raise TypeError, 'model "%s" could not be found' % label
 
     def _build_routes(self, routes):
+        """
+        Routes provide a means of specifying JOINs between two tables.
+
+        The minimum information necessary to define an explicit JOIN is as
+        follows:
+
+            'from_label' - defines the model on the right side of the join
+            'to_label' - defines the model on the left side of the join
+            'join_field' - defines the field in which the join will occur
+            'symmetrical' - defines whether the same join will be constructed
+                if the 'from_model' and 'to_model' are reversed
+        """
         rts = {}
         tos = {}
 
@@ -219,6 +231,10 @@ class ModelTree(object):
 
 
     def _filter_one2one(self, field):
+        """Tests if this field is a OneToOneField. If a route exists for this
+        field's model and it's target model, ensure this is the field that
+        should be used to join the the two tables.
+        """
         if isinstance(field, models.OneToOneField):
             # route has been defined with a specific field required
             tup = (field.model, field.rel.to)
@@ -228,6 +244,10 @@ class ModelTree(object):
             return field
 
     def _filter_related_one2one(self, rel):
+        """Tests if this RelatedObject represents a OneToOneField. If a route
+        exists for this field's model and it's target model, ensure this is
+        the field that should be used to join the the two tables.
+        """
         field = rel.field
         if isinstance(field, models.OneToOneField):
             # route has been defined with a specific field required
@@ -238,6 +258,10 @@ class ModelTree(object):
             return rel
 
     def _filter_fk(self, field):
+        """Tests if this field is a ForeignKey. If a route exists for this
+        field's model and it's target model, ensure this is the field that
+        should be used to join the the two tables.
+        """
         if isinstance(field, models.ForeignKey):
             # route has been defined with a specific field required
             tup = (field.model, field.rel.to)
@@ -247,6 +271,10 @@ class ModelTree(object):
             return field
 
     def _filter_related_fk(self, rel):
+        """Tests if this RelatedObject represents a ForeignKey. If a route
+        exists for this field's model and it's target model, ensure this is
+        the field that should be used to join the the two tables.
+        """
         field = rel.field
         if isinstance(field, models.ForeignKey):
             # route has been defined with a specific field required
@@ -257,6 +285,10 @@ class ModelTree(object):
             return rel
 
     def _filter_m2m(self, field):
+        """Tests if this field is a ManyToManyField. If a route exists for this
+        field's model and it's target model, ensure this is the field that
+        should be used to join the the two tables.
+        """
         if isinstance(field, models.ManyToManyField):
             # route has been defined with a specific field required
             tup = (field.model, field.rel.to)
@@ -266,6 +298,10 @@ class ModelTree(object):
             return field
 
     def _filter_related_m2m(self, rel):
+        """Tests if this RelatedObject represents a ManyToManyField. If a route
+        exists for this field's model and it's target model, ensure this is
+        the field that should be used to join the the two tables.
+        """
         field = rel.field
         if isinstance(field, models.ManyToManyField):
             # route has been defined with a specific field required
@@ -284,12 +320,11 @@ class ModelTree(object):
         Conditions in which the node will fail to be added:
 
             - the model is excluded completely
-            - the model is going back the same path is came
+            - the model is going back the same path it came from
             - the model is circling back to the root_model
             - the model does not come from the parent.model (via _tos)
         """
         exclude = set(self.exclude + [parent.parent_model, self.root_model])
-
 
         # ignore excluded models and prevent circular paths
         if model in exclude:
@@ -300,8 +335,13 @@ class ModelTree(object):
         if self._tos.has_key(model) and self._tos.get(model) is not parent.model:
             return
 
-        # don't add node if a path with a shorter depth exists
         node_hash = self._tree_hash.get(model, None)
+
+        # don't add node if a path with a shorter depth exists. this is applied
+        # after the correct join has been determined. generally if a route is
+        # defined for relation, this will never be an issue since there would
+        # only be one path available. if a route is not defined, the shorter
+        # path will be found
         if not node_hash or node_hash['depth'] > depth:
             if node_hash:
                 node_hash['parent'].remove_child(model)
