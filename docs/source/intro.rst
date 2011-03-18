@@ -28,7 +28,7 @@ What do I mean *at runtime*?
 ----------------------------
 
 A typical way researchers "ask" questions is by getting a SQL data dump with
-tons of information, then attempt to filter and anaylyze the data in a
+tons of information, then attempt to filter and analyze the data in a
 spreadsheet. This can be very time consuming and the spreadsheet quickly
 becomes difficult to manage and maintain.
 
@@ -39,12 +39,13 @@ again. The process becomes tedious.
 
 Being able to ask any question at any time is quite convenient. Implementing
 this feature programmatically can be thought as being able to "ask questions
-at runtime", runtime meaning *on-the-fly*. 
+at runtime", runtime meaning *on-demand*. 
 
 Avocado uses the Django Object-Relational Mapping (ORM) API to incrementally
 build SQL queries. Again, the problem here is needing to know what queries to
 construct ahead of time. Avocado provides an API to write server and/or client
 applications to present the queryable fields in a non-relational way to the
 end-user. The end-user should not have to know how your data model is put
-together; they simply want to ask questions about the data.
+together; they should be able to easily ask questions through simple
+interfaces.
 
