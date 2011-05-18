@@ -220,11 +220,11 @@ class Perspective(Context):
 
         for x in store['columns']:
             c = column_cache.get(x)
-            fields = c.fields.order_by('columnfield__order')
-            if len(fields) == 1:
+            cfields = c.conceptfields.select_related('field').order_by('order')
+            if len(cfields) == 1:
                 header.append(c.name)
             else:
-                header.extend([x.name for x in fields])
+                header.extend([x.name or x.field.name for x in cfields])
         return header
 
     def format(self, iterable, format_type):
