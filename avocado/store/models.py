@@ -45,7 +45,7 @@ class Context(Descriptor):
     """A generic interface for storing an arbitrary context around the data
     model. The object defining the context must be serializable.
     """
-    store = PickledField(default={})
+    store = PickledField(null=True)
     definition = models.TextField(editable=False, null=True)
     timestamp = models.DateTimeField(editable=False, default=datetime.now())
 
@@ -158,7 +158,7 @@ class Perspective(Context):
         if self.store is not None:
             copy = self.store.copy()
         else:
-            copy - {}
+            copy = {}
 
         copy.update(obj)
 
