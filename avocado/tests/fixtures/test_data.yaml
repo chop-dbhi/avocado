@@ -1,0 +1,18 @@
+- model: tests.domain
+    pk: 1
+    fields:
+        name: Employee
+        parent: null
+
+- model: tests.domain
+    pk: 2
+    fields:
+        name: Project
+        parent: null
+
+- model: tests.domain
+    pk: 3
+    fields:
+        name: Meeting
+        parent: null
+
