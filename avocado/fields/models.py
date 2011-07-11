@@ -1,6 +1,7 @@
 import re
 from warnings import warn
 from datetime import datetime
+from math import ceil, floor, pow
 
 from django import forms
 from django.db import models
@@ -201,7 +202,7 @@ class Field(mixins.Mixin):
         return ()
     values = property(_get_values)
 
-    def distribution(self, exclude=[], min_count=None, max_points=20,
+    def distribution(self, exclude=[], min_count=None, max_points=100,
         order_by='field', smooth=0.01, annotate_by='id', **filters):
 
         """Builds a GROUP BY queryset for use as a value distribution.
@@ -216,12 +217,9 @@ class Field(mixins.Mixin):
             a custom behavior of IS NOT NULL and will be removed from the IN
             clause. default is to include all values
 
-        ``min_count`` - the minimum count for a particular value to be included
-        in the distribution.
-
         ``max_points`` - the maximum number of points to be include in the
         distribution. the min and max values are always included, then a random
-        sample is taken from the distribution. default is 30
+        sample is taken from the distribution. default is 100
 
         ``order_by`` - specify an ordering for the distribution. the choices are
         'count', 'field', or None. default is 'count'
@@ -252,54 +250,79 @@ class Field(mixins.Mixin):
             dist = dist.filter(**filters)
 
         # apply annotation
-        dist = dist.annotate(count=Count(annotate_by))
+        # dist = dist.annotate(count=Count(annotate_by))
 
-        if min_count is not None and min_count > 0:
-            dist = dist.exclude(count__lt=min_count)
-
-        # evaluate
-        dist = dist.values_list(name, 'count')
-
-        # apply ordering
-        if order_by == 'count':
-            dist = dist.order_by('count')
-        elif order_by == 'field':
-            dist = dist.order_by(name)
+        # raw ordered data
+        dist = dist.order_by(name)
 
         dist = list(dist)
-
+#############################################################
+######### NEW STUFF HERE ####################################
+#############################################################
         if len(dist) < 3:
             return tuple(dist)
 
-        minx = dist.pop(0)
-        maxx = dist.pop()
-
         if self.datatype == 'number' and smooth > 0:
-            maxy = dist[0][1]
-            for x, y in dist[1:]:
-                maxy = max(y, maxy)
-            maxy = float(maxy)
-            smooth_dist  = []
-            for x, y in dist:
-                if y / maxy >= smooth:
-                    smooth_dist.append((x, y))
-            dist = smooth_dist
+            ##### ADD BINNING HERE #####
+            n = len(dist)
+            min = dist[0].values()[0]
+            q1 = dist[int(ceil(n*.25))].values()[0]
+            q3 = dist[int(floor(n*.75))].values()[0]
+            iqr = q3-q1
+            h = 2 * iqr * pow(n, -(1.0/3.0))
+            # print "n:{0} h:{1}".format(n, h) 
+            bin_data = []
+            bin = min + h
+            bin_height = 0
+            for data_pt in dist:
+                point = data_pt.values()[0]
+                if point < bin:
+                    bin_height += 1
+                else:
+                    if bin_height < 2:
+                        bin_data.append(('Small', bin, bin_height))
+                        bin_height = 0
+                    else:
+                        bin_data.append((bin, bin_height))
+                        bin_height = 0
+                    while point > bin:
+                        bin += h
+                    bin_height += 1
+            # Add Last bin.
+            if bin_height >= 2:
+                bin_data.append((bin, bin_height))
+            else:
+                bin_data.append(('Small', bin, bin_height))
+            #Create List of Coordinates
+            dist = []
+            for i, d in enumerate(bin_data):
+                if d[0] != 'Small':
+                    x = d[0]
+                    y = d[1]
+                    if i == 0 or dist[-1][0] != x-h:
+                        dist.append((x-(h/2), y))
+                else:
+                    x = d[1]
+                    y = d[2]
+                    if i != 0 and bin_data[i-1][0] != 'Small':
+                        prev = bin_data[i-1]
+                        if prev[1] > 10*y:
+                            dist.pop()
+                            fact = (y/prev[1])
+                            dist.append((prev[0]+fact, prev[1]+y))
+                        else:
+                            dist.append((x-(h/2), y))
+                    elif i+1 != len(bin_data) and bin_data[i+1][0] != 'Small':
+                        future = bin_data[i+1]
+                        if future[1] > 10*y:
+                            fact = (y/future[1])
+                            dist.append((future[0]-fact, future[1]+y))
+                        else:
+                            dist.append((x-(h/2), y))
+                    else:
+                        dist.append((x-(h/2), y))
 
-        if max_points is not None:
-            # TODO faster to do count or len?
-            dist_len = len(dist)
-            step = int(dist_len/float(max_points))
 
-            if step > 1:
-                # we can safely assume that this is NOT categorical data when
-                # ``max_points`` is set and/or the condition where the count will
-                # be greater than max_points will usually never be true
-
-                # sample by step value
-                dist = dist[::step]
-
-        dist.insert(0, minx)
-        dist.append(maxx)
 
         return tuple(dist)
 
