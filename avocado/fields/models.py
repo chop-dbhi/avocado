@@ -252,78 +252,111 @@ class Field(mixins.Mixin):
         # apply annotation
         # dist = dist.annotate(count=Count(annotate_by))
 
-        # evaluate
-        dist = dist.values_list(name, flat=True)
-
-        # raw ordered data
-        dist = dist.order_by(name)
-
-        dist = list(dist)
+        
 #############################################################
 ######### NEW STUFF HERE ####################################
 #############################################################
-        if len(dist) < 3:
-            return tuple(dist)
+        
 
-        if self.datatype == 'number' and smooth > 0:
-            ##### ADD BINNING HERE #####
+        if self.datatype == 'number' and smooth >= 0:
+            print name
+            exclude_neg = name + '__lt'
+            # evaluate
+            dist = dist.values_list(name, flat=True).exclude(**{exclude_neg: 0})
+
+            # raw ordered data
+            dist = dist.order_by(name)
+
+            dist = list(dist)
+
             n = len(dist)
             min = dist[0]
-            # print min
-            q1 = dist[int(ceil(n*.25))]
-            q3 = dist[int(floor(n*.75))]
-            iqr = q3-q1
-            h = 2 * iqr * pow(n, -(1.0/3.0))
-            # print "n:{0} h:{1}".format(n, h) 
+            print type(min)
+            # if n is over 1 million use simpler functon to get 
+            # bin width. REVISIT THIS... 
+            if n >= 1000000:
+                max = dist[-1]
+                h = float(max)/ceil(pow(n, (1.0/2.0)))
+            else:
+                q1 = dist[int(ceil(n*.25))]
+                q3 = dist[int(floor(n*.75))]
+                iqr = q3-q1
+                h = 2 * float(iqr) * pow(n, -(1.0/3.0))
+            print "n:{0} h:{1} iqr:{2}".format(n, h, iqr) 
             bin_data = []
-            bin = min + h
+            bin = float(min) + h
             bin_height = 0
             for data_pt in dist:
+                data_pt = float(data_pt)
                 if data_pt < bin:
                     bin_height += 1
                 else:
-                    if bin_height < 2:
-                        bin_data.append(('Small', bin, bin_height))
-                        bin_height = 0
-                    else:
-                        bin_data.append((bin, bin_height))
-                        bin_height = 0
+                    bin_data.append((bin, bin_height))
+                    bin_height = 0
                     while data_pt > bin:
                         bin += h
                     bin_height += 1
-            # Add Last bin.
-            if bin_height >= 2:
-                bin_data.append((bin, bin_height))
-            else:
-                bin_data.append(('Small', bin, bin_height))
+            bin_data.append((bin, bin_height))
+
             #Create List of Coordinates
             dist = []
             for i, d in enumerate(bin_data):
-                if d[0] != 'Small':
-                    x = d[0]
-                    y = d[1]
-                    if i == 0 or dist[-1][0] != x-h:
-                        dist.append((x-(h/2), y))
+                x = d[0]
+                y = d[1]
+                prev = (0,0)
+                if i != 0:
+                    prev = dist.pop() 
+                if (y*smooth) > prev[1]:
+                    fact = prev[1]/y
+                    dist.append((x-(h/2)-fact, y+prev[1]))
+                elif (prev[1]*smooth) > y:
+                    fact = y/prev[1]
+                    dist.append((prev[0]+fact, y+prev[1]))
                 else:
-                    x = d[1]
-                    y = d[2]
-                    if i != 0 and bin_data[i-1][0] != 'Small':
-                        prev = bin_data[i-1]
-                        if prev[1] > 10*y:
-                            dist.pop()
-                            fact = (y/prev[1])
-                            dist.append((prev[0]+fact, prev[1]+y))
-                        else:
-                            dist.append((x-(h/2), y))
-                    elif i+1 != len(bin_data) and bin_data[i+1][0] != 'Small':
-                        future = bin_data[i+1]
-                        if future[1] > 10*y:
-                            fact = (y/future[1])
-                            dist.append((future[0]-fact, future[1]+y))
-                        else:
-                            dist.append((x-(h/2), y))
-                    else:
-                        dist.append((x-(h/2), y))
+                    dist.append(prev)
+                    dist.append((x-(h/2), y))
+            print len(dist)
+        else:   
+            # apply annotation
+            dist = dist.annotate(count=Count(annotate_by))
+
+            # evaluate
+            dist = dist.values_list(name, 'count')
+            
+                        
+            # apply ordering
+            if order_by == 'count':
+                dist = dist.order_by('count')
+            elif order_by == 'field':
+                dist = dist.order_by(name)
+
+        if len(dist) < 3:
+            return tuple(dist)
+#                if d[0] != 'Small':
+#                    x = d[0]
+#                    y = d[1]
+#                    if i == 0 or dist[-1][0] != x-h:
+#                        dist.append((x-(h/2), y))
+#                else:
+#                    x = d[1]
+#                    y = d[2]
+#                    if i != 0 and bin_data[i-1][0] != 'Small':
+#                        prev = bin_data[i-1]
+#                        if prev[1] > 10*y:
+#                            dist.pop()
+#                            fact = (y/prev[1])
+#                            dist.append((prev[0]+fact, prev[1]+y))
+#                        else:
+#                            dist.append((x-(h/2), y))
+#                    elif i+1 != len(bin_data) and bin_data[i+1][0] != 'Small':
+#                        future = bin_data[i+1]
+#                        if future[1] > 10*y:
+#                            fact = (y/future[1])
+#                            dist.append((future[0]-fact, future[1]+y))
+#                        else:
+#                            dist.append((x-(h/2), y))
+#                    else:
+#                        dist.append((x-(h/2), y))
 
 
 
