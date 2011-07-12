@@ -252,6 +252,9 @@ class Field(mixins.Mixin):
         # apply annotation
         # dist = dist.annotate(count=Count(annotate_by))
 
+        # evaluate
+        dist = dist.values_list(name, flat=True)
+
         # raw ordered data
         dist = dist.order_by(name)
 
@@ -265,9 +268,10 @@ class Field(mixins.Mixin):
         if self.datatype == 'number' and smooth > 0:
             ##### ADD BINNING HERE #####
             n = len(dist)
-            min = dist[0].values()[0]
-            q1 = dist[int(ceil(n*.25))].values()[0]
-            q3 = dist[int(floor(n*.75))].values()[0]
+            min = dist[0]
+            # print min
+            q1 = dist[int(ceil(n*.25))]
+            q3 = dist[int(floor(n*.75))]
             iqr = q3-q1
             h = 2 * iqr * pow(n, -(1.0/3.0))
             # print "n:{0} h:{1}".format(n, h) 
@@ -275,8 +279,7 @@ class Field(mixins.Mixin):
             bin = min + h
             bin_height = 0
             for data_pt in dist:
-                point = data_pt.values()[0]
-                if point < bin:
+                if data_pt < bin:
                     bin_height += 1
                 else:
                     if bin_height < 2:
@@ -285,7 +288,7 @@ class Field(mixins.Mixin):
                     else:
                         bin_data.append((bin, bin_height))
                         bin_height = 0
-                    while point > bin:
+                    while data_pt > bin:
                         bin += h
                     bin_height += 1
             # Add Last bin.
