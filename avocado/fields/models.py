@@ -1,11 +1,11 @@
 import re
 from warnings import warn
 from datetime import datetime
-from math import ceil, floor, pow
+from math import ceil, floor, pow, fabs
 
 from django import forms
 from django.db import models
-from django.db.models import Count
+from django.db.models import Count, Min, Max
 from django.contrib.auth.models import Group
 from django.contrib.sites.models import Site
 from django.db.models.fields import FieldDoesNotExist
@@ -250,33 +250,31 @@ class Field(mixins.Mixin):
             dist = dist.filter(**filters)
 
         # apply annotation
-        # dist = dist.annotate(count=Count(annotate_by))
-
+        #    dist = dist.annotate(count=Count(annotate_by))
         
 #############################################################
 ######### NEW STUFF HERE ####################################
 #############################################################
-        
-
         if self.datatype == 'number' and smooth >= 0:
-            print name
-            exclude_neg = name + '__lt'
+            
             # evaluate
-            dist = dist.values_list(name, flat=True).exclude(**{exclude_neg: 0})
-
+            dist = dist.values_list(name, flat=True)
+            
             # raw ordered data
             dist = dist.order_by(name)
 
-            dist = list(dist)
-
-            n = len(dist)
-            min = dist[0]
-            print type(min)
+            ncount = self.model.objects.aggregate(**{'nn':Count(name),
+                'min':Min(name), 'max':Max(name)})
+            n = ncount['nn']
+            minx = ncount['min']
+            maxx = ncount['max']
             # if n is over 1 million use simpler functon to get 
             # bin width. REVISIT THIS... 
+            # Change this so that when n is too large
+            # data isn't stored in memory.
             if n >= 1000000:
-                max = dist[-1]
-                h = float(max)/ceil(pow(n, (1.0/2.0)))
+                max_min = maxx-minx
+                h = float(maxx)/ceil(pow(n, (1.0/2.0)))
             else:
                 q1 = dist[int(ceil(n*.25))]
                 q3 = dist[int(floor(n*.75))]
@@ -284,38 +282,46 @@ class Field(mixins.Mixin):
                 h = 2 * float(iqr) * pow(n, -(1.0/3.0))
             print "n:{0} h:{1} iqr:{2}".format(n, h, iqr) 
             bin_data = []
-            bin = float(min) + h
+            bin = float(minx) + h
             bin_height = 0
+            # Set up an empty list, the first bin, and
+            # initate bin_height to 0
             for data_pt in dist:
                 data_pt = float(data_pt)
-                if data_pt < bin:
+                # If data point is less than the bin
+                # add 1 to the bin height
+                if data_pt <= bin:
                     bin_height += 1
-                else:
-                    bin_data.append((bin, bin_height))
-                    bin_height = 0
-                    while data_pt > bin:
-                        bin += h
-                    bin_height += 1
-            bin_data.append((bin, bin_height))
+                if data_pt > bin or data_pt == maxx :
+                    x = bin
+                    y = bin_height
+                    prev = (0,0)
+                    if bin_data:
+                        prev = bin_data.pop()
 
-            #Create List of Coordinates
-            dist = []
-            for i, d in enumerate(bin_data):
-                x = d[0]
-                y = d[1]
-                prev = (0,0)
-                if i != 0:
-                    prev = dist.pop() 
-                if (y*smooth) > prev[1]:
-                    fact = prev[1]/y
-                    dist.append((x-(h/2)-fact, y+prev[1]))
-                elif (prev[1]*smooth) > y:
-                    fact = y/prev[1]
-                    dist.append((prev[0]+fact, y+prev[1]))
-                else:
-                    dist.append(prev)
-                    dist.append((x-(h/2), y))
-            print len(dist)
+                    # compare current bin to previous 
+                    # if prev bin is too small, the current
+                    # bin takes in previous.
+                    # Previous bin takes in current bin, 
+                    # if current bin is too small
+                    if (y*smooth) > prev[1]:
+                        fact = prev[1]/y
+                        bin_data.append(((x-(h/2)-fact), y+prev[1]))
+                    elif prev[1]*smooth > y:
+                        fact = y/prev[1]
+                        bin_data.append((prev[0]+fact, y+prev[1]))
+                    else:
+                        bin_data.append(prev)
+                        bin_data.append((x-(h/2), y))                   
+                    bin_height = 0
+                    if data_pt != maxx:
+                        # increment to next bin until data_pt
+                        # is within the bin. Add 1 to height and 
+                        # move to next data_pt
+                        while data_pt > bin:
+                            bin += h
+                        bin_height += 1
+            dist = bin_data
         else:   
             # apply annotation
             dist = dist.annotate(count=Count(annotate_by))
@@ -332,33 +338,6 @@ class Field(mixins.Mixin):
 
         if len(dist) < 3:
             return tuple(dist)
-#                if d[0] != 'Small':
-#                    x = d[0]
-#                    y = d[1]
-#                    if i == 0 or dist[-1][0] != x-h:
-#                        dist.append((x-(h/2), y))
-#                else:
-#                    x = d[1]
-#                    y = d[2]
-#                    if i != 0 and bin_data[i-1][0] != 'Small':
-#                        prev = bin_data[i-1]
-#                        if prev[1] > 10*y:
-#                            dist.pop()
-#                            fact = (y/prev[1])
-#                            dist.append((prev[0]+fact, prev[1]+y))
-#                        else:
-#                            dist.append((x-(h/2), y))
-#                    elif i+1 != len(bin_data) and bin_data[i+1][0] != 'Small':
-#                        future = bin_data[i+1]
-#                        if future[1] > 10*y:
-#                            fact = (y/future[1])
-#                            dist.append((future[0]-fact, future[1]+y))
-#                        else:
-#                            dist.append((x-(h/2), y))
-#                    else:
-#                        dist.append((x-(h/2), y))
-
-
 
         return tuple(dist)
 
