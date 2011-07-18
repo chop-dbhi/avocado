@@ -249,25 +249,25 @@ class Field(mixins.Mixin):
         if filters:
             dist = dist.filter(**filters)
 
-        # apply annotation
-        #    dist = dist.annotate(count=Count(annotate_by))
         
 #############################################################
 ######### NEW STUFF HERE ####################################
 #############################################################
         if self.datatype == 'number' and smooth >= 0:
-            
+            # get data from queryset
+            ncount = self.model.objects.aggregate(**{'nn':Count(name),
+                'min':Min(name), 'max':Max(name)})
+            n = ncount['nn']
+            minx = ncount['min']
+            maxx = ncount['max']
+
             # evaluate
             dist = dist.values_list(name, flat=True)
             
             # raw ordered data
             dist = dist.order_by(name)
 
-            ncount = self.model.objects.aggregate(**{'nn':Count(name),
-                'min':Min(name), 'max':Max(name)})
-            n = ncount['nn']
-            minx = ncount['min']
-            maxx = ncount['max']
+
             # if n is over 1 million use simpler functon to get 
             # bin width. REVISIT THIS... 
             # Change this so that when n is too large
@@ -284,18 +284,18 @@ class Field(mixins.Mixin):
             bin_data = []
             bin = float(minx) + h
             bin_height = 0
-            # Set up an empty list, the first bin, and
-            # initate bin_height to 0
-            for data_pt in dist:
-                data_pt = float(data_pt)
-                # If data point is less than the bin
-                # add 1 to the bin height
-                if data_pt <= bin:
-                    bin_height += 1
-                if data_pt > bin or data_pt == maxx :
+
+            from time import clock
+
+            t1 = clock()
+            while bin <= maxx:
+                filt_range = {name+'__lte': bin, name+'__gt': bin-h}
+                cnt = dist.filter(**filt_range)#.aggregate(**{'y':Count(name)})
+                if cnt: 
                     x = bin
-                    y = bin_height
+                    y = len(cnt)
                     prev = (0,0)
+                    # print x,y
                     if bin_data:
                         prev = bin_data.pop()
 
@@ -308,19 +308,54 @@ class Field(mixins.Mixin):
                         fact = prev[1]/y
                         bin_data.append(((x-(h/2)-fact), y+prev[1]))
                     elif prev[1]*smooth > y:
-                        fact = y/prev[1]
-                        bin_data.append((prev[0]+fact, y+prev[1]))
+                            fact = y/prev[1]
+                            bin_data.append((prev[0]+fact, y+prev[1]))
                     else:
                         bin_data.append(prev)
                         bin_data.append((x-(h/2), y))                   
-                    bin_height = 0
-                    if data_pt != maxx:
-                        # increment to next bin until data_pt
-                        # is within the bin. Add 1 to height and 
-                        # move to next data_pt
-                        while data_pt > bin:
-                            bin += h
-                        bin_height += 1
+                bin = bin + h 
+            print clock()-t1
+
+            # Set up an empty list, the first bin, and
+            # initate bin_height to 0
+#            t1 = clock()
+#            for data_pt in dist:
+#                data_pt = float(data_pt)
+#                # If data point is less than the bin
+#                # add 1 to the bin height
+#                if data_pt <= bin:
+#                    bin_height += 1
+#                if data_pt > bin or data_pt == maxx :
+#                    x = bin
+#                    y = bin_height
+#                    prev = (0,0)
+#                    if bin_data:
+#                        prev = bin_data.pop()
+#
+#                    # compare current bin to previous 
+#                    # if prev bin is too small, the current
+#                    # bin takes in previous.
+#                    # Previous bin takes in current bin, 
+#                    # if current bin is too small
+#                    if (y*smooth) > prev[1]:
+#                        fact = prev[1]/y
+#                        bin_data.append(((x-(h/2)-fact), y+prev[1]))
+#                    elif prev[1]*smooth > y:
+#                        fact = y/prev[1]
+#                        bin_data.append((prev[0]+fact, y+prev[1]))
+#                    else:
+#                        bin_data.append(prev)
+#                        bin_data.append((x-(h/2), y))                   
+#                    bin_height = 0
+#                    if data_pt != maxx:
+#                        # increment to next bin until data_pt
+#                        # is within the bin. Add 1 to height and 
+#                        # move to next data_pt
+#                        while data_pt > bin:
+#                            bin += h
+#                        bin_height += 1
+#            print clock()-t1 
+
             dist = bin_data
         else:   
             # apply annotation
