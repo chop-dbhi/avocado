@@ -1,0 +1,27 @@
+while bin < maxx:
+    filt = {name+'__lte': bin}
+    filtered = dist.filter(**filt)
+    while not filtered:
+        bin += h
+        filt = {name+'__lte': bin}
+        filtered = dist.filter(**filt)
+
+    dist = dist.exclude(**filt)
+    for data_pt in filtered:
+        bin_height += data_pt[1]
+    x = bin
+    y = bin_height
+    prev = (0,0)
+    if bin_data:
+        prev = bin_data.pop()
+    if (y*smooth) > prev[1]:
+        fact = prev[1]/y
+        bin_data.append(((x-(h/2)-fact), y+prev[1]))
+    elif prev[1]*smooth > y:
+        fact = y/prev[1]
+        bin_data.append((prev[0]+fact, y+prev[1]))
+    else:
+        bin_data.append(prev)
+        bin_data.append((x-(h/2), y))                   
+    bin_height = 0
+    bin += h
