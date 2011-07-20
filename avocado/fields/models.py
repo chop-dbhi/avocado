@@ -1,11 +1,11 @@
 import re
 from warnings import warn
 from datetime import datetime
-from math import ceil, floor, pow, fabs
+from math import ceil, floor, pow
 
 from django import forms
 from django.db import models
-from django.db.models import Count, Min, Max
+from django.db.models import Count
 from django.contrib.auth.models import Group
 from django.contrib.sites.models import Site
 from django.db.models.fields import FieldDoesNotExist
@@ -206,6 +206,13 @@ class Field(mixins.Mixin):
         order_by='field', smooth=0.01, annotate_by='id', **filters):
 
         """Builds a GROUP BY queryset for use as a value distribution.
+        Data is binned according to a bin width specified by the 
+        Freedman-Diaconis Rule of h = 2 * IQR / n^(1/3) where
+        h = bin width, IQR = Interquartile range, n = number of observations.
+        Citation:
+        Freedman, David; Diaconis, Persi (December 1981). "On the
+        histogram as a density estimator: L2 theory" Probability
+        Theory and Related Fields 57 (4): 453-476. ISSN 0178-8951.
 
         ``exclude`` - a list of values to be excluded from the distribution. it
         may be desired to exclude NULL values or the empty string.
@@ -251,32 +258,34 @@ class Field(mixins.Mixin):
 
         # New Binning Technique  
         if self.datatype == 'number' and smooth >= 0:
-            # get data from database
-            ncount = self.model.objects.aggregate(**{'nn':Count(name)})
-            n = ncount['nn']
-
+        
             # evaluate
             dist = dist.values_list(name, flat=True)
-            
+            n = dist.count()
+
             # raw ordered data
             dist = dist.order_by(name)
 
-
-            # Bins are calculated using the 
-            # Freedman-Diaconis' method.
+            # Bins are calculated using the Freedman-Diaconis' method.
             # F-D Method is:
-            # h = 2 * Interquartile Region / n^(1/3)
-            # IQR is the third quartile - the first quartile
-            # n is the number of data points.
+            # h = 2 * (IQR / n^(1/3)) where
+            # h = bin width
+            # IQR is the interquartile region. Iqr = the differenc in 
+            # the third and first quartiles. 
+            # n is the number of data points
             # This can be changed if a better
             # method is found or could be a
             # parameter choice.
+            # Citation:
+            # Freedman, David; Diaconis, Persi (December 1981). "On the
+            # histogram as a density estimator: L2 theory" Probability
+            # Theory and Related Fields 57 (4): 453-476. ISSN 0178-8951.
             first_quartile = 0.25
             third_quartile = 0.75
             q1 = dist[int(ceil(n * first_quartile))]
             q3 = dist[int(floor(n * third_quartile))]
             iqr = q3 - q1
-            h = 2 * float(iqr) * pow(n, -(1.0/3.0))
+            h = 2 * (float(iqr) * pow(n, -(1.0 / 3.0)))
             
             dist = dist.annotate(count=Count(name)).values_list(name, 'count')
             minimum_pt = dist[0]
@@ -288,8 +297,8 @@ class Field(mixins.Mixin):
                 if data_pt in [minimum_pt, maximum_pt]:
                     continue
                 pt = float(data_pt[0])
-                # If data point is less than the bin
-                # add 1 to the bin height
+                # If data point is less than the current bin
+                # add to the bin height
                 if pt <= bin:
                     bin_height += data_pt[1]
                 if pt > bin:
@@ -304,53 +313,52 @@ class Field(mixins.Mixin):
                     # bin takes in previous.
                     # Previous bin takes in current bin, 
                     # if current bin is too small
-                    if (y*smooth) > prev[1]:
-                        fact = prev[1] / y
-                        bin_x = x-(h/2)-fact
-                        bin_y = y + prev[1]
-                        xy = (bin_x, bin_y)
-                    elif prev[1]*smooth > y:
-                        fact = y / prev[1]
-                        bin_x = prev[0] + fact
-                        bin_y = y + prev[1]
-                        xy = (bin_x, bin_y)
-                    else:
-                        xy = ()
-                        if prev != (0, 0):
+                    if y > 0:
+                        if (y*smooth) > prev[1]:
+                            fact = prev[1] / y
+                            bin_x = x - (h / 2) - fact
+                            bin_y = y + prev[1]
+                            xy = (bin_x, bin_y)
+                        elif prev[1]*smooth > y:
+                            fact = y / prev[1]
+                            bin_x = prev[0] + fact
+                            bin_y = y + prev[1]
+                            xy = (bin_x, bin_y)
+                        else:
                             bin_data.append(prev)
-                            bin_x = x-(h/2)
+                            bin_x = x - (h / 2)
                             xy = (bin_x, y) 
-                    if xy:
                         bin_data.append(xy)
                     bin_height = 0
                    
                     # increment to next bin until data_pt
-                    # is within the bin. Add 1 to height and 
+                    # is within a bin. Add to height and 
                     # move to next data_pt
                     if h == 0:
-                        return [(0,0)]
+                        return [(0, 0)]
                     while pt > bin:
                         bin += h
                     bin_height += data_pt[1] 
+            # Add back the min and max points and return the
+            # list of X, Y coordinates.
             bin_data.insert(0, (float(minimum_pt[0]), minimum_pt[1]))
             bin_data.append((float(maximum_pt[0]), maximum_pt[1]))
             return bin_data
-        else:   
-            # apply annotation
-            dist = dist.annotate(count=Count(annotate_by))
+    
 
-            # evaluate
-            dist = dist.values_list(name, 'count')
-            
-                        
-            # apply ordering
-            if order_by == 'count':
-                dist = dist.order_by('count')
-            elif order_by == 'field':
-                dist = dist.order_by(name)
+        # This only applies to catagorical data
+        
+        # apply annotation
+        dist = dist.annotate(count=Count(annotate_by))
 
-        #if len(dist) < 3:
-        #    return tuple(dist)
+        # evaluate
+        dist = dist.values_list(name, 'count')
+                    
+        # apply ordering
+        if order_by == 'count':
+            dist = dist.order_by('count')
+        elif order_by == 'field':
+            dist = dist.order_by(name)
 
         return tuple(dist)
 
