@@ -258,7 +258,7 @@ class Field(mixins.Mixin):
 
         # New Binning Technique  
         if self.datatype == 'number' and smooth >= 0:
-        
+
             # evaluate
             dist = dist.values_list(name, flat=True)
             n = dist.count()
@@ -286,12 +286,12 @@ class Field(mixins.Mixin):
             q3 = dist[int(floor(n * third_quartile))]
             iqr = q3 - q1
             h = 2 * (float(iqr) * pow(n, -(1.0 / 3.0)))
-            
+
             dist = dist.annotate(count=Count(name)).values_list(name, 'count')
             minimum_pt = dist[0]
             maximum_pt = dist.reverse()[0]
             bin_data = []
-            bin = float(minimum_pt[0]) + h
+            current_bin = float(minimum_pt[0]) + h
             bin_height = 0
             for data_pt in dist.iterator():
                 if data_pt in [minimum_pt, maximum_pt]:
@@ -299,10 +299,10 @@ class Field(mixins.Mixin):
                 pt = float(data_pt[0])
                 # If data point is less than the current bin
                 # add to the bin height
-                if pt <= bin:
+                if pt <= current_bin:
                     bin_height += data_pt[1]
-                if pt > bin:
-                    x = bin
+                if pt > current_bin:
+                    x = current_bin
                     y = bin_height
                     prev = (0, 0)
                     if bin_data:
@@ -327,33 +327,33 @@ class Field(mixins.Mixin):
                         else:
                             bin_data.append(prev)
                             bin_x = x - (h / 2)
-                            xy = (bin_x, y) 
+                            xy = (bin_x, y)
                         bin_data.append(xy)
                     bin_height = 0
-                   
+
                     # increment to next bin until data_pt
                     # is within a bin. Add to height and 
                     # move to next data_pt
                     if h == 0:
                         return [(0, 0)]
-                    while pt > bin:
-                        bin += h
-                    bin_height += data_pt[1] 
+                    while pt > current_bin:
+                        current_bin += h
+                    bin_height += data_pt[1]
             # Add back the min and max points and return the
             # list of X, Y coordinates.
             bin_data.insert(0, (float(minimum_pt[0]), minimum_pt[1]))
             bin_data.append((float(maximum_pt[0]), maximum_pt[1]))
             return bin_data
-    
+
 
         # This only applies to catagorical data
-        
+
         # apply annotation
         dist = dist.annotate(count=Count(annotate_by))
 
         # evaluate
         dist = dist.values_list(name, 'count')
-                    
+
         # apply ordering
         if order_by == 'count':
             dist = dist.order_by('count')
