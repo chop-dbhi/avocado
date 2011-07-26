@@ -67,7 +67,7 @@ class Translator(object):
         # the conversion differently. simply ignore the cleaning if ``None``,
         # this scenario occurs when a list of values are being queried and one
         # of them is to lookup NULL values
-        if ins(value):
+        if hasattr(value, '__iter__'):
             new_value = []
             for x in value:
                 if x is not None:
