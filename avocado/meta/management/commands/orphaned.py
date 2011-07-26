@@ -4,17 +4,21 @@ from django.core.management.base import NoArgsCommand
 from avocado.meta.models import Definition
 
 class Command(NoArgsCommand):
-    """Determines if any ``Definitions`` are no longer valid. This is typically
-    only necessary when a data model change occurs. Orphaned Definitions
-    will be marked if they are currently published (``[P]``).
+    """
+    SYNOPSIS::
 
-    Usage::
+        python manage.py avocado orphaned [options...]
 
-        python manage.py orphaned
+    DESCRIPTION:
 
-    Options:
+        Determines if any ``Definitions`` are no longer valid. This is
+        typically only necessary when a data model change occurs. An orphaned
+        ``Definition`` will be marked if they are currently published
+        (``[P]``).
 
-        ``--unpublish`` - unpublishes orphaned Definitions if currently
+    OPTIONS:
+
+        ``--unpublish`` - unpublishes orphaned ``Definition`` if currently
         published
 
     """
