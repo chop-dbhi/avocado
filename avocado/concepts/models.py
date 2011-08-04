@@ -16,14 +16,14 @@ REVIEW_CHOICES = (
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
-    icon = models.FileField(upload_to='uploads/categories/', blank=True)
     parent = models.ForeignKey('self', null=True, blank=True,
         related_name='children')
+    order = models.FloatField(default=0)
 
     class Meta(object):
         verbose_name_plural = 'categories'
         app_label = 'avocado'
-        ordering = ('name',)
+        ordering = ('order', 'name')
 
     def __unicode__(self):
         return u'%s' % self.name

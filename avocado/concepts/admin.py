@@ -31,4 +31,10 @@ class EditorsConceptAdmin(admin.ModelAdmin):
         }),
     )
 
-admin.site.register(Category)
+
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ('name', 'parent', 'order')
+    list_editable = ('parent', 'order')
+
+
+admin.site.register(Category, CategoryAdmin)
