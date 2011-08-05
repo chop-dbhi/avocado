@@ -6,21 +6,24 @@ from django.core.management.base import LabelCommand
 from avocado.meta.models import Definition, Domain
 
 class Command(LabelCommand):
-    """Finds all models in the listed app(s) and attempts to create a
-    ``Definition`` instance per model field. Definitions already declared will
-    not be altered.
+    """
+    SYNOPSIS::
 
-    Usage::
+        python manage.py avocado sync [options...] labels...
 
-        python manage.py syncdefinitions <app app.model ...>
+    DESCRIPTION:
 
-    Options:
+        Finds all models referenced by the app or model ``labels`` and
+        attempts to create a ``Definition`` instance per model field.
+        Any ``Definition`` already loaded will not be altered in any way.
+
+    OPTIONS:
 
         ``--create-domains`` - create a single ``Domain`` corresponding to each
         model that is evaluated
 
-        ``--include-non-editable`` - creates Definitions for fields that are not
-        editable in the admin
+        ``--include-non-editable`` - create ``Definition`` for fields that are
+        not editable in the admin
 
     """
 

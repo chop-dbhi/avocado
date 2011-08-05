@@ -1,11 +1,12 @@
 from django.db.models import Q
 from django.core.exceptions import ValidationError
 
+from avocado.conf import settings
 from avocado.meta import operators
-from avocado.utils.iter import ins
 from avocado.utils import loader
 
 DEFAULT_OPERATOR = 'exact'
+DATATYPE_OPERATOR_MAP = settings.DATATYPE_OPERATOR_MAP
 
 class OperatorNotPermitted(Exception):
     pass
@@ -27,9 +28,14 @@ class Translator(object):
         return self.translate(*args, **kwargs)
 
     def _validate_operator(self, definition, operator, **kwargs):
-        # default 
-        if operator is None:
-            operator = DEFAULT_OPERATOR
+
+        if not operator:
+            # get the first operator in the list
+            try:
+                operator = DATATYPE_OPERATOR_MAP[definition.datatype][0]
+            except (KeyError, IndexError):
+                operator = DEFAULT_OPERATOR
+
         # attempt to retrieve the operator. no exception handling for
         # this step exists since this should never fail
         operator = operators.get(operator)
@@ -67,7 +73,7 @@ class Translator(object):
         # the conversion differently. simply ignore the cleaning if ``None``,
         # this scenario occurs when a list of values are being queried and one
         # of them is to lookup NULL values
-        if ins(value):
+        if hasattr(value, '__iter__'):
             new_value = []
             for x in value:
                 if x is not None:
