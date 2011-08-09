@@ -32,10 +32,18 @@ class Descriptor(models.Model):
     name = models.CharField(max_length=100, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     keywords = models.CharField(max_length=100, null=True, blank=True)
+    created = models.DateTimeField()
+    modified = models.DateTimeField()
 
     class Meta(object):
         abstract = True
         app_label = 'avocado'
+
+    def save(self):
+        self.modified = datetime.now()
+        if not self.created:
+            self.created = self.modified
+        super(Descriptor, self).save()
 
     def __unicode__(self):
         return u'%s' % self.name
@@ -431,8 +439,6 @@ class ObjectSet(Descriptor):
     to the "object" of interest.
     """
     scope = models.OneToOneField(Scope, editable=False)
-    created = models.DateTimeField(editable=False)
-    modified = models.DateTimeField(editable=False)
     cnt = models.PositiveIntegerField('count', default=0, editable=False)
 
     class Meta(object):
