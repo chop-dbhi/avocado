@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from django.db import models
+from django.db.models import Q
 from django.template import Template, Context
 from avocado.concepts.managers import ConceptManager
 
@@ -17,7 +18,7 @@ REVIEW_CHOICES = (
 class Category(models.Model):
     name = models.CharField(max_length=100)
     parent = models.ForeignKey('self', null=True, blank=True,
-        related_name='children')
+            related_name='children', limit_choices_to={'parent__isnull': True})
     order = models.FloatField(default=0)
 
     class Meta(object):
@@ -30,10 +31,14 @@ class Category(models.Model):
 
 
 class Concept(models.Model):
+    # categories that do not have children or have a parent
+    category_lookup = Q(children__isnull=True) | Q(parent__isnull=False)
+
     name = models.CharField(max_length=100)
     description = models.TextField(null=True, blank=True)
     keywords = models.CharField(max_length=100, null=True, blank=True)
-    category = models.ForeignKey(Category, null=True, blank=True)
+    category = models.ForeignKey(Category, null=True, blank=True,
+        limit_choices_to=category_lookup)
     is_public = models.BooleanField(default=False)
     order = models.FloatField(default=0, help_text='This ' \
         'ordering is relative to the category this concept belongs to.')
