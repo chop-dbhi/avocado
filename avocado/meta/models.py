@@ -218,7 +218,7 @@ class Definition(Base):
             return zip(values, svalues)
 
     def translate(self, operator=None, value=None, using=None, **context):
-        trans = translators.registry[self.translator]
+        trans = translators.registry[self.translator]()
         return trans(self, operator, value, using, **context)
 
     def query_string(self, operator=None, using=None):
