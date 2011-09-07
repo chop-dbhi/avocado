@@ -7,57 +7,45 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        
-        # Adding field 'Perspective.created'
-        db.add_column('avocado_perspective', 'created', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime(2011, 8, 9, 17, 36, 9, 293249)), keep_default=False)
 
-        # Adding field 'Perspective.modified'
-        db.add_column('avocado_perspective', 'modified', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime(2011, 8, 9, 17, 36, 17, 501402)), keep_default=False)
+        # Adding field 'Perspective.session'
+        db.add_column('avocado_perspective', 'session', self.gf('django.db.models.fields.BooleanField')(default=False), keep_default=False)
 
-        # Changing field 'Perspective.store'
-        db.alter_column('avocado_perspective', 'store', self.gf('avocado.store.fields.JSONField')(editable=False))
+        # Adding field 'Perspective.reference'
+        db.add_column('avocado_perspective', 'reference', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['avocado.Perspective'], null=True), keep_default=False)
 
-        # Adding field 'Report.created'
-        db.add_column('avocado_report', 'created', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime(2011, 8, 9, 17, 36, 22, 805747)), keep_default=False)
+        # Adding field 'Report.reference'
+        db.add_column('avocado_report', 'reference', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['avocado.Report'], null=True), keep_default=False)
 
-        # Adding field 'Report.modified'
-        db.add_column('avocado_report', 'modified', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime(2011, 8, 9, 17, 36, 32, 445973)), keep_default=False)
+        # Adding field 'Report.session'
+        db.add_column('avocado_report', 'session', self.gf('django.db.models.fields.BooleanField')(default=False), keep_default=False)
 
-        # Adding field 'Scope.created'
-        db.add_column('avocado_scope', 'created', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime(2011, 8, 9, 17, 36, 42, 598399)), keep_default=False)
+        # Adding field 'Scope.session'
+        db.add_column('avocado_scope', 'session', self.gf('django.db.models.fields.BooleanField')(default=False), keep_default=False)
 
-        # Adding field 'Scope.modified'
-        db.add_column('avocado_scope', 'modified', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime(2011, 8, 9, 17, 36, 46, 950524)), keep_default=False)
-
-        # Changing field 'Scope.store'
-        db.alter_column('avocado_scope', 'store', self.gf('avocado.store.fields.JSONField')(editable=False))
+        # Adding field 'Scope.reference'
+        db.add_column('avocado_scope', 'reference', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['avocado.Scope'], null=True), keep_default=False)
 
 
     def backwards(self, orm):
-        
-        # Deleting field 'Perspective.created'
-        db.delete_column('avocado_perspective', 'created')
 
-        # Deleting field 'Perspective.modified'
-        db.delete_column('avocado_perspective', 'modified')
+        # Deleting field 'Perspective.session'
+        db.delete_column('avocado_perspective', 'session')
 
-        # Changing field 'Perspective.store'
-        db.alter_column('avocado_perspective', 'store', self.gf('avocado.store.fields.JSONField')(null=True, editable=False))
+        # Deleting field 'Perspective.reference'
+        db.delete_column('avocado_perspective', 'reference_id')
 
-        # Deleting field 'Report.created'
-        db.delete_column('avocado_report', 'created')
+        # Deleting field 'Report.reference'
+        db.delete_column('avocado_report', 'reference_id')
 
-        # Deleting field 'Report.modified'
-        db.delete_column('avocado_report', 'modified')
+        # Deleting field 'Report.session'
+        db.delete_column('avocado_report', 'session')
 
-        # Deleting field 'Scope.created'
-        db.delete_column('avocado_scope', 'created')
+        # Deleting field 'Scope.session'
+        db.delete_column('avocado_scope', 'session')
 
-        # Deleting field 'Scope.modified'
-        db.delete_column('avocado_scope', 'modified')
-
-        # Changing field 'Scope.store'
-        db.alter_column('avocado_scope', 'store', self.gf('avocado.store.fields.JSONField')(null=True, editable=False))
+        # Deleting field 'Scope.reference'
+        db.delete_column('avocado_scope', 'reference_id')
 
 
     models = {
@@ -172,42 +160,50 @@ class Migration(SchemaMigration):
         },
         'avocado.perspective': {
             'Meta': {'object_name': 'Perspective'},
-            'created': ('django.db.models.fields.DateTimeField', [], {}),
+            'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'definition': ('django.db.models.fields.TextField', [], {'null': 'True'}),
-            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'description': ('django.db.models.fields.TextField', [], {'null': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'keywords': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
-            'store': ('avocado.store.fields.JSONField', [], {'editable': 'False'}),
-            'timestamp': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2011, 8, 9, 17, 35, 47, 433504)'}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']", 'null': 'True', 'blank': 'True'})
+            'keywords': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True'}),
+            'modified': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True'}),
+            'previous': ('avocado.store.fields.JSONField', [], {'null': 'True'}),
+            'reference': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['avocado.Perspective']", 'null': 'True'}),
+            'session': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'store': ('avocado.store.fields.JSONField', [], {'null': 'True'}),
+            'timestamp': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']", 'null': 'True'})
         },
         'avocado.report': {
             'Meta': {'object_name': 'Report'},
-            'created': ('django.db.models.fields.DateTimeField', [], {}),
-            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
+            'description': ('django.db.models.fields.TextField', [], {'null': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'keywords': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
+            'keywords': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True'}),
+            'modified': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True'}),
             'perspective': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['avocado.Perspective']", 'unique': 'True'}),
+            'reference': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['avocado.Report']", 'null': 'True'}),
             'scope': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['avocado.Scope']", 'unique': 'True'}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']", 'null': 'True', 'blank': 'True'})
+            'session': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']", 'null': 'True'})
         },
         'avocado.scope': {
             'Meta': {'object_name': 'Scope'},
             'cnt': ('django.db.models.fields.PositiveIntegerField', [], {}),
-            'created': ('django.db.models.fields.DateTimeField', [], {}),
+            'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'definition': ('django.db.models.fields.TextField', [], {'null': 'True'}),
-            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'description': ('django.db.models.fields.TextField', [], {'null': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'keywords': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
-            'store': ('avocado.store.fields.JSONField', [], {'editable': 'False'}),
-            'timestamp': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2011, 8, 9, 17, 35, 47, 433504)'}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']", 'null': 'True', 'blank': 'True'})
+            'keywords': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True'}),
+            'modified': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True'}),
+            'previous': ('avocado.store.fields.JSONField', [], {'null': 'True'}),
+            'reference': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['avocado.Scope']", 'null': 'True'}),
+            'session': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'store': ('avocado.store.fields.JSONField', [], {'null': 'True'}),
+            'timestamp': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']", 'null': 'True'})
         },
         'contenttypes.contenttype': {
             'Meta': {'ordering': "('name',)", 'unique_together': "(('app_label', 'model'),)", 'object_name': 'ContentType', 'db_table': "'django_content_type'"},

@@ -1,4 +1,5 @@
 import cPickle as pickle
+from copy import deepcopy
 from hashlib import md5
 from datetime import datetime
 from functools import partial
@@ -9,9 +10,11 @@ from django.core.paginator import EmptyPage, InvalidPage
 from django.contrib.auth.models import User
 from django.core.cache import cache as dcache
 
+from data_proxy.models import DataProxyModel
+
 from avocado.conf import settings
 from avocado.models import Field
-from avocado.store.fields import PickledField
+from avocado.store.fields import JSONField
 from avocado.modeltree import DEFAULT_MODELTREE_ALIAS, trees
 from avocado.fields import logictree
 from avocado.columns.cache import cache as column_cache
@@ -27,35 +30,40 @@ CACHE_CHUNK_SIZE = 500
 DEFAULT_COLUMNS = getattr(settings, 'COLUMNS', ())
 DEFAULT_ORDERING = getattr(settings, 'COLUMN_ORDERING', ())
 
-class Descriptor(models.Model):
-    user = models.ForeignKey(User, blank=True, null=True)
-    name = models.CharField(max_length=100, blank=True, null=True)
-    description = models.TextField(blank=True, null=True)
-    keywords = models.CharField(max_length=100, null=True, blank=True)
-    created = models.DateTimeField()
-    modified = models.DateTimeField()
+class Descriptor(DataProxyModel):
+    user = models.ForeignKey(User, null=True)
+    name = models.CharField(max_length=100, null=True)
+    description = models.TextField(null=True)
+    keywords = models.CharField(max_length=100, null=True)
+    created = models.DateTimeField(default=datetime.now)
+    modified = models.DateTimeField(default=datetime.now)
+    # explicitly denotes an instance for use in a session
+    session = models.BooleanField(default=False)
 
     class Meta(object):
         abstract = True
         app_label = 'avocado'
 
-    def save(self):
+    def save(self, *args, **kwargs):
         self.modified = datetime.now()
-        if not self.created:
-            self.created = self.modified
-        super(Descriptor, self).save()
+        super(Descriptor, self).save(*args, **kwargs)
 
     def __unicode__(self):
-        return u'%s' % self.name
+        return u'<%s: %s>' % (self.__class__.__name__, self.name or self.pk)
+
+    def references(self, pk):
+        "Returns the referenced object's ``pk`` is one exists."
+        if self.reference:
+            return self.reference.pk == int(pk)
 
 
 class Context(Descriptor):
     """A generic interface for storing an arbitrary context around the data
     model. The object defining the context must be serializable.
     """
-    store = PickledField(null=True)
-    definition = models.TextField(editable=False, null=True)
-    timestamp = models.DateTimeField(editable=False, default=datetime.now())
+    store = JSONField(null=True)
+    previous = JSONField(null=True)
+    timestamp = models.DateTimeField(editable=False, default=datetime.now)
 
     class Meta(object):
         abstract = True
@@ -81,6 +89,9 @@ class Context(Descriptor):
         returns a function that takes a queryset and returns a queryset.
         """
         pass
+
+    def has_changed(self):
+        return self.store != self.previous
 
     def cache_is_valid(self, timestamp=None):
         if timestamp and timestamp > self.timestamp:
@@ -131,11 +142,21 @@ class Context(Descriptor):
         queryset = func(queryset, *args, **kwargs)
         return queryset
 
+    def save(self, *args, **kwargs):
+        explicit = kwargs.pop('explicit', False)
+        if explicit:
+            self.previous = deepcopy(self.store)
+        super(Context, self).save(*args, **kwargs)
+
 
 class Scope(Context):
     "Stores information needed to provide scope to data."
 
     cnt = models.PositiveIntegerField('count', editable=False)
+    # used for book keeping. if a reference exists, this implies this instance
+    # has represents another context.
+    reference = models.ForeignKey('self', null=True)
+
 
     def _get_contents(self, obj):
         self._node = logictree.transform(obj)
@@ -150,9 +171,9 @@ class Scope(Context):
             del self._node
         return super(Scope, self).is_valid(obj)
 
-    def save(self):
+    def save(self, *args, **kwargs):
         self.cnt = self.get_queryset().distinct().count()
-        super(Scope, self).save()
+        super(Scope, self).save(*args, **kwargs)
 
     def get_text(self):
         node = logictree.transform(self._get_obj())
@@ -160,6 +181,9 @@ class Scope(Context):
 
 
 class Perspective(Context):
+    # used for book keeping. if a reference exists, this implies this instance
+    # has represents another context.
+    reference = models.ForeignKey('self', null=True)
 
     def _get_obj(self, obj=None):
         obj = obj or {}
@@ -247,6 +271,9 @@ class Report(Descriptor):
 
     scope = models.OneToOneField(Scope)
     perspective = models.OneToOneField(Perspective)
+    # used for book keeping. if a reference exists, this implies this instance
+    # has represents another context.
+    reference = models.ForeignKey('self', null=True)
 
     def _center_cache_offset(self, count, offset, buf_size=CACHE_CHUNK_SIZE):
         """The ``offset`` will be relative to the next requested row. To ensure
@@ -398,6 +425,9 @@ class Report(Descriptor):
         tmp.query.clear_ordering(True)
         return tmp.count()
 
+    def has_changed(self):
+        return self.scope.has_changed() or self.perspective.has_changed()
+
     def get_queryset(self, timestamp=None, using=DEFAULT_MODELTREE_ALIAS, **context):
         """Returns a ``QuerySet`` object that is generated from the ``scope``
         and ``perspective`` objects bound to this report. This should not be
@@ -424,6 +454,9 @@ class Report(Descriptor):
             return True
         return False
 
+    def save(self, *args, **kwargs):
+        super(Report, self).save()
+
 
 class ObjectSet(Descriptor):
     """
@@ -444,11 +477,11 @@ class ObjectSet(Descriptor):
     class Meta(object):
         abstract = True
 
-    def save(self):
+    def save(self, *args, **kwargs):
         if not self.created:
             self.created = datetime.now()
         self.modified = datetime.now()
-        super(ObjectSet, self).save()
+        super(ObjectSet, self).save(*args, **kwargs)
 
 
 class ObjectSetJoinThrough(models.Model):

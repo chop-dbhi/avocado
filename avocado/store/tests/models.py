@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.core.cache import cache as mcache
 from django.contrib.auth.models import User
+from django.core.urlresolvers import reverse
 
 from avocado.store.models import Scope, Perspective, Report
 
@@ -136,3 +137,9 @@ class ReportTestCase(TestCase):
 
         self.report.resolve(self.request, 'html', per_page=1, page_num=1)
         ts5 = cache['timestamp']
+
+
+class SessionFlowTestCase(TestCase):
+    def test_new_session(self):
+        resp = self.client.get(reverse('workspace'))
+        print resp.request.session

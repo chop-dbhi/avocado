@@ -7,57 +7,33 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        
-        # Adding field 'Perspective.created'
-        db.add_column('avocado_perspective', 'created', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime(2011, 8, 9, 17, 36, 9, 293249)), keep_default=False)
 
-        # Adding field 'Perspective.modified'
-        db.add_column('avocado_perspective', 'modified', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime(2011, 8, 9, 17, 36, 17, 501402)), keep_default=False)
+        # Adding field 'Perspective.previous'
+        db.add_column('avocado_perspective', 'previous', self.gf('avocado.store.fields.JSONField')(null=True), keep_default=False)
 
         # Changing field 'Perspective.store'
-        db.alter_column('avocado_perspective', 'store', self.gf('avocado.store.fields.JSONField')(editable=False))
+        db.alter_column('avocado_perspective', 'store', self.gf('avocado.store.fields.JSONField')(null=True))
 
-        # Adding field 'Report.created'
-        db.add_column('avocado_report', 'created', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime(2011, 8, 9, 17, 36, 22, 805747)), keep_default=False)
-
-        # Adding field 'Report.modified'
-        db.add_column('avocado_report', 'modified', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime(2011, 8, 9, 17, 36, 32, 445973)), keep_default=False)
-
-        # Adding field 'Scope.created'
-        db.add_column('avocado_scope', 'created', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime(2011, 8, 9, 17, 36, 42, 598399)), keep_default=False)
-
-        # Adding field 'Scope.modified'
-        db.add_column('avocado_scope', 'modified', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime(2011, 8, 9, 17, 36, 46, 950524)), keep_default=False)
+        # Adding field 'Scope.previous'
+        db.add_column('avocado_scope', 'previous', self.gf('avocado.store.fields.JSONField')(null=True), keep_default=False)
 
         # Changing field 'Scope.store'
-        db.alter_column('avocado_scope', 'store', self.gf('avocado.store.fields.JSONField')(editable=False))
+        db.alter_column('avocado_scope', 'store', self.gf('avocado.store.fields.JSONField')(null=True))
 
 
     def backwards(self, orm):
-        
-        # Deleting field 'Perspective.created'
-        db.delete_column('avocado_perspective', 'created')
 
-        # Deleting field 'Perspective.modified'
-        db.delete_column('avocado_perspective', 'modified')
+        # Deleting field 'Perspective.previous'
+        db.delete_column('avocado_perspective', 'previous')
 
-        # Changing field 'Perspective.store'
-        db.alter_column('avocado_perspective', 'store', self.gf('avocado.store.fields.JSONField')(null=True, editable=False))
+        # User chose to not deal with backwards NULL issues for 'Perspective.store'
+        raise RuntimeError("Cannot reverse this migration. 'Perspective.store' and its values cannot be restored.")
 
-        # Deleting field 'Report.created'
-        db.delete_column('avocado_report', 'created')
+        # Deleting field 'Scope.previous'
+        db.delete_column('avocado_scope', 'previous')
 
-        # Deleting field 'Report.modified'
-        db.delete_column('avocado_report', 'modified')
-
-        # Deleting field 'Scope.created'
-        db.delete_column('avocado_scope', 'created')
-
-        # Deleting field 'Scope.modified'
-        db.delete_column('avocado_scope', 'modified')
-
-        # Changing field 'Scope.store'
-        db.alter_column('avocado_scope', 'store', self.gf('avocado.store.fields.JSONField')(null=True, editable=False))
+        # User chose to not deal with backwards NULL issues for 'Scope.store'
+        raise RuntimeError("Cannot reverse this migration. 'Scope.store' and its values cannot be restored.")
 
 
     models = {
@@ -179,8 +155,9 @@ class Migration(SchemaMigration):
             'keywords': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'modified': ('django.db.models.fields.DateTimeField', [], {}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
-            'store': ('avocado.store.fields.JSONField', [], {'editable': 'False'}),
-            'timestamp': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2011, 8, 9, 17, 35, 47, 433504)'}),
+            'previous': ('avocado.store.fields.JSONField', [], {'null': 'True'}),
+            'store': ('avocado.store.fields.JSONField', [], {'null': 'True'}),
+            'timestamp': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2011, 8, 12, 11, 46, 58, 295052)'}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']", 'null': 'True', 'blank': 'True'})
         },
         'avocado.report': {
@@ -205,8 +182,9 @@ class Migration(SchemaMigration):
             'keywords': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'modified': ('django.db.models.fields.DateTimeField', [], {}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
-            'store': ('avocado.store.fields.JSONField', [], {'editable': 'False'}),
-            'timestamp': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2011, 8, 9, 17, 35, 47, 433504)'}),
+            'previous': ('avocado.store.fields.JSONField', [], {'null': 'True'}),
+            'store': ('avocado.store.fields.JSONField', [], {'null': 'True'}),
+            'timestamp': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2011, 8, 12, 11, 46, 58, 295052)'}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']", 'null': 'True', 'blank': 'True'})
         },
         'contenttypes.contenttype': {
