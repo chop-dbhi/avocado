@@ -86,7 +86,6 @@ class Concept(models.Model):
             {% load markup %}
             {% spaceless %}
             {% for field in fields %}
-                <b>{{ field.name }}</b>
                 {{ field.description|markdown }}
             {% endfor %}
             {% endspaceless %}
