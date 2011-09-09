@@ -1,5 +1,4 @@
 import cPickle as pickle
-from copy import deepcopy
 from hashlib import md5
 from datetime import datetime
 from functools import partial
@@ -10,7 +9,7 @@ from django.core.paginator import EmptyPage, InvalidPage
 from django.contrib.auth.models import User
 from django.core.cache import cache as dcache
 
-from data_proxy.models import DataProxyModel
+from forkit.models import ForkableModel
 
 from avocado.conf import settings
 from avocado.models import Field
@@ -30,7 +29,7 @@ CACHE_CHUNK_SIZE = 500
 DEFAULT_COLUMNS = getattr(settings, 'COLUMNS', ())
 DEFAULT_ORDERING = getattr(settings, 'COLUMN_ORDERING', ())
 
-class Descriptor(DataProxyModel):
+class Descriptor(ForkableModel):
     user = models.ForeignKey(User, null=True)
     name = models.CharField(max_length=100, null=True)
     description = models.TextField(null=True)
@@ -51,10 +50,24 @@ class Descriptor(DataProxyModel):
     def __unicode__(self):
         return u'<%s: %s>' % (self.__class__.__name__, self.name or self.pk)
 
+    def get_reference_pk(self):
+        if self.reference:
+            return self.reference.pk
+
     def references(self, pk):
         "Returns the referenced object's ``pk`` is one exists."
         if self.reference:
             return self.reference.pk == int(pk)
+
+    def diff(self, target=None, *args, **kwargs):
+        if not target:
+            target = self.reference
+        if not target:
+            return False
+        return super(Descriptor, self).diff(target, *args, **kwargs)
+
+    def has_changed(self):
+        return bool(self.diff())
 
 
 class Context(Descriptor):
@@ -62,7 +75,6 @@ class Context(Descriptor):
     model. The object defining the context must be serializable.
     """
     store = JSONField(null=True)
-    previous = JSONField(null=True)
     timestamp = models.DateTimeField(editable=False, default=datetime.now)
 
     class Meta(object):
@@ -89,9 +101,6 @@ class Context(Descriptor):
         returns a function that takes a queryset and returns a queryset.
         """
         pass
-
-    def has_changed(self):
-        return self.store != self.previous
 
     def cache_is_valid(self, timestamp=None):
         if timestamp and timestamp > self.timestamp:
@@ -141,12 +150,6 @@ class Context(Descriptor):
         func = self._parse_contents(obj, using=using, *args, **kwargs)
         queryset = func(queryset, *args, **kwargs)
         return queryset
-
-    def save(self, *args, **kwargs):
-        explicit = kwargs.pop('explicit', False)
-        if explicit:
-            self.previous = deepcopy(self.store)
-        super(Context, self).save(*args, **kwargs)
 
 
 class Scope(Context):
@@ -425,9 +428,6 @@ class Report(Descriptor):
         tmp.query.clear_ordering(True)
         return tmp.count()
 
-    def has_changed(self):
-        return self.scope.has_changed() or self.perspective.has_changed()
-
     def get_queryset(self, timestamp=None, using=DEFAULT_MODELTREE_ALIAS, **context):
         """Returns a ``QuerySet`` object that is generated from the ``scope``
         and ``perspective`` objects bound to this report. This should not be
@@ -453,9 +453,6 @@ class Report(Descriptor):
         if self.scope.has_permission(user=user) and self.perspective.has_permission(user=user):
             return True
         return False
-
-    def save(self, *args, **kwargs):
-        super(Report, self).save()
 
 
 class ObjectSet(Descriptor):
