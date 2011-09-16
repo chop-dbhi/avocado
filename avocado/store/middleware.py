@@ -29,5 +29,7 @@ class SessionReportMiddleware(object):
 
             modified = True
             request.session['report'] = report
+            request.session['scope'] = report.scope
+            request.session['perspective'] = report.perspective
 
         request.session.modified = modified
