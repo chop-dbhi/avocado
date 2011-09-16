@@ -55,16 +55,22 @@ class Descriptor(ForkableModel):
             return self.reference.pk
 
     def references(self, pk):
-        "Returns the referenced object's ``pk`` is one exists."
+        "Compares the reference primary key to the one passed."
         if self.reference:
             return self.reference.pk == int(pk)
 
-    def diff(self, target=None, *args, **kwargs):
+    def diff(self, target=None):
+        "Override diff to default to ``reference`` if no target is sepcified."
         if not target:
             target = self.reference
         if not target:
-            return False
-        return super(Descriptor, self).diff(target, *args, **kwargs)
+            return {}
+        exclude=('pk', 'reference', 'session', 'modified', 'created')
+        return super(Descriptor, self).diff(target, exclude=exclude)
+
+    def push(self):
+        "Pushes changes from this object to the reference, if one exists."
+        self.reset(self.reference, exclude=('pk', 'reference', 'session'), commit=True)
 
     def has_changed(self):
         return bool(self.diff())
@@ -178,9 +184,9 @@ class Scope(Context):
         self.cnt = self.get_queryset().distinct().count()
         super(Scope, self).save(*args, **kwargs)
 
-    def get_text(self):
-        node = logictree.transform(self._get_obj())
-        return node.text
+    @property
+    def conditions(self):
+        return logictree.transform(self._get_obj()).text
 
 
 class Perspective(Context):
@@ -315,6 +321,21 @@ class Report(Descriptor):
         raw = RawQuery(sql, using, params)
         raw._execute_query()
         return raw.cursor.fetchall()
+
+    def diff(self, target=None):
+        "Override diff to default to ``reference`` if no target is sepcified."
+        if not target:
+            target = self.reference
+        if not target:
+            return {}
+        fields = ('name', 'description', 'keywords', 'scope', 'perspective')
+        return super(Descriptor, self).diff(target, fields=fields, deep=True)
+
+    def push(self):
+        "Pushes changes from this object to the reference, if one exists."
+        self.scope.reset(self.reference.scope, exclude=('pk', 'reference', 'session'), commit=True)
+        self.perspective.reset(self.reference.perspective, exclude=('pk', 'reference', 'session'), commit=True)
+        self.reset(self.reference, exclude=('pk', 'reference', 'session'), commit=True)
 
     def paginator_and_page(self, cache, buf_size=CACHE_CHUNK_SIZE):
         paginator = BufferedPaginator(count=cache['count'], offset=cache['offset'],
@@ -454,6 +475,8 @@ class Report(Descriptor):
             return True
         return False
 
+    def has_changed(self):
+        return self.scope.has_changed() or self.perspective.has_changed()
 
 class ObjectSet(Descriptor):
     """
