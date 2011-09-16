@@ -31,18 +31,18 @@ def objectset_scope_sync_pre_save(instance, **kwargs):
         objectset_manager.remove(*removed)
 
 def objectset_incr_count_pre_save(instance, action, pk_set, **kwargs):
-    """Handlers syncing `cnt` based on the number of objects are being
+    """Handlers syncing `count` based on the number of objects are being
     added or removed from the m2m relationship.
     """
     if action in ('pre_add', 'pre_remove', 'pre_clear'):
         if action == 'pre_clear':
-            count = -instance.cnt
+            count = -instance.count
         else:
             count = len(pk_set)
             if action == 'pre_remove':
                 count = -count
 
-        instance.cnt += count
+        instance.count += count
         instance.save()
 
 

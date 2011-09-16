@@ -161,7 +161,7 @@ class Context(Descriptor):
 class Scope(Context):
     "Stores information needed to provide scope to data."
 
-    cnt = models.PositiveIntegerField('count', editable=False)
+    count = models.PositiveIntegerField(null=True, editable=False, db_column='cnt')
     # used for book keeping. if a reference exists, this implies this instance
     # has represents another context.
     reference = models.ForeignKey('self', null=True)
@@ -181,7 +181,7 @@ class Scope(Context):
         return super(Scope, self).is_valid(obj)
 
     def save(self, *args, **kwargs):
-        self.cnt = self.get_queryset().distinct().count()
+        self.count = self.get_queryset().distinct().count()
         super(Scope, self).save(*args, **kwargs)
 
     @property
@@ -492,7 +492,7 @@ class ObjectSet(Descriptor):
     to the "object" of interest.
     """
     scope = models.OneToOneField(Scope, editable=False)
-    cnt = models.PositiveIntegerField('count', default=0, editable=False)
+    count = models.PositiveIntegerField(null=True, editable=False, db_column='cnt')
 
     class Meta(object):
         abstract = True
