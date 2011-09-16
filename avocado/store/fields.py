@@ -22,8 +22,8 @@ class JSONField(models.TextField):
     def _dumps(self, data):
         return JSONDateEncoder().encode(data)
 
-    def _loads(self, str):
-        return json.loads(str, encoding=settings.DEFAULT_CHARSET)
+    def _loads(self, string):
+        return json.loads(string, encoding=settings.DEFAULT_CHARSET)
 
     def pre_save(self, model_instance, add):
         value = getattr(model_instance, self.attname, None)
