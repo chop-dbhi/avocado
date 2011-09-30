@@ -73,9 +73,15 @@ class Descriptor(ForkableModel):
         self.reset(self.reference, commit=True)
 
     def reset(self, *args, **kwargs):
-        kwargs.setdefault('exclude', ('pk', 'reference', 'session'))
-        kwargs.setdefault('commit', True)
-        return super(Report, self).reset(*args, **kwargs)
+        kwargs.setdefault('exclude', ('pk', 'reference', 'session', 'user'))
+        kwargs['deep'] = False
+        commit = kwargs.pop('commit', True)
+        target = super(Descriptor, self).reset(*args, commit=False, **kwargs)
+        # reference
+        target.user = self.user
+        if commit:
+            target.commit()
+        return target
 
     def has_changed(self):
         return bool(self.diff())
@@ -343,10 +349,13 @@ class Report(Descriptor):
         self.reset(self.reference, exclude=('pk', 'reference', 'session'), commit=True)
 
     def reset(self, *args, **kwargs):
-        target = super(Report, self).reset(*args, commit=False, **kwargs)
-        self.scope.reset(target.scope)
-        self.perspective.reset(target.perspective)
-        if kwargs.get('commit', False):
+        kwargs.setdefault('exclude', ('pk', 'reference', 'session', 'user'))
+        kwargs.setdefault('deep', True)
+        commit = kwargs.pop('commit', False)
+        target = super(Descriptor, self).reset(*args, commit=False, **kwargs)
+        # reference
+        target.user = self.user
+        if commit:
             target.commit()
         return target
 
