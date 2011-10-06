@@ -172,7 +172,7 @@ class Context(Descriptor):
 class Scope(Context):
     "Stores information needed to provide scope to data."
 
-    count = models.PositiveIntegerField(null=True, editable=False, db_column='cnt')
+    count = models.IntegerField(null=True, editable=False, db_column='cnt')
     # used for book keeping. if a reference exists, this implies this instance
     # has represents another context.
     reference = models.ForeignKey('self', null=True)
