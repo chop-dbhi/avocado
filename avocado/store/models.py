@@ -10,6 +10,7 @@ from django.contrib.auth.models import User
 from django.core.cache import cache as dcache
 
 from forkit.models import ForkableModel
+from forkit import signals
 
 from avocado.conf import settings
 from avocado.models import Field
@@ -19,6 +20,7 @@ from avocado.fields import logictree
 from avocado.columns.cache import cache as column_cache
 from avocado.columns import utils, format
 from avocado.utils.paginator import BufferedPaginator
+from avocado.store import receivers
 
 __all__ = ('Scope', 'Perspective', 'Report', 'ObjectSet',
     'ObjectSetJoinThrough')
@@ -48,7 +50,7 @@ class Descriptor(ForkableModel):
         super(Descriptor, self).save(*args, **kwargs)
 
     def __unicode__(self):
-        return u'<%s: %s>' % (self.__class__.__name__, self.name or self.pk)
+        return u'{0}'.format(self.name or self.pk)
 
     def get_reference_pk(self):
         if self.reference:
@@ -59,29 +61,24 @@ class Descriptor(ForkableModel):
         if self.reference:
             return self.reference.pk == int(pk)
 
-    def diff(self, target=None):
-        "Override diff to default to ``reference`` if no target is sepcified."
-        if not target:
-            target = self.reference
-        if not target:
-            return {}
-        exclude=('pk', 'reference', 'session', 'modified', 'created')
-        return super(Descriptor, self).diff(target, exclude=exclude)
+    def deference(self, delete=False):
+        if self.reference:
+            if delete:
+                self.reference.delete()
+            self.reference = None
+            self.save()
+
+    def diff(self, instance=None):
+        "Override diff to default to ``reference`` if no instance is sepcified."
+        if not instance:
+            if not self.reference:
+                return None
+            instance = self.reference
+        return super(Descriptor, self).diff(instance)
 
     def push(self):
         "Pushes changes from this object to the reference, if one exists."
         self.reset(self.reference, commit=True)
-
-    def reset(self, *args, **kwargs):
-        kwargs.setdefault('exclude', ('pk', 'reference', 'session', 'user'))
-        kwargs['deep'] = False
-        commit = kwargs.pop('commit', True)
-        target = super(Descriptor, self).reset(*args, commit=False, **kwargs)
-        # reference
-        target.user = self.user
-        if commit:
-            target.commit()
-        return target
 
     def has_changed(self):
         return bool(self.diff())
@@ -333,31 +330,14 @@ class Report(Descriptor):
         raw._execute_query()
         return raw.cursor.fetchall()
 
-    def diff(self, target=None):
-        "Override diff to default to ``reference`` if no target is sepcified."
-        if not target:
-            target = self.reference
-        if not target:
-            return {}
-        fields = ('name', 'description', 'keywords', 'scope', 'perspective')
-        return super(Descriptor, self).diff(target, fields=fields, deep=True)
-
-    def push(self):
-        "Pushes changes from this object to the reference, if one exists."
-        self.scope.reset(self.reference.scope, exclude=('pk', 'reference', 'session'), commit=True)
-        self.perspective.reset(self.reference.perspective, exclude=('pk', 'reference', 'session'), commit=True)
-        self.reset(self.reference, exclude=('pk', 'reference', 'session'), commit=True)
-
-    def reset(self, *args, **kwargs):
-        kwargs.setdefault('exclude', ('pk', 'reference', 'session', 'user'))
-        kwargs.setdefault('deep', True)
-        commit = kwargs.pop('commit', False)
-        target = super(Descriptor, self).reset(*args, commit=False, **kwargs)
-        # reference
-        target.user = self.user
-        if commit:
-            target.commit()
-        return target
+    def deference(self, delete=False):
+        if self.reference:
+            if delete:
+                self.reference.delete()
+            self.reference = None
+            self.scope.deference(delete)
+            self.perspective.deference(delete)
+            self.save()
 
     def paginator_and_page(self, cache, buf_size=CACHE_CHUNK_SIZE):
         paginator = BufferedPaginator(count=cache['count'], offset=cache['offset'],
@@ -545,3 +525,22 @@ class ObjectSetJoinThrough(models.Model):
 
     class Meta(object):
         abstract = True
+
+
+signals.pre_diff.connect(receivers.descriptor_pre_diff, sender=Scope)
+signals.pre_reset.connect(receivers.descriptor_pre_reset, sender=Scope)
+signals.pre_fork.connect(receivers.descriptor_pre_fork, sender=Scope)
+signals.post_fork.connect(receivers.descriptor_post_fork, sender=Scope)
+signals.post_commit.connect(receivers.descriptor_post_commit, sender=Scope)
+
+signals.pre_diff.connect(receivers.descriptor_pre_diff, sender=Perspective)
+signals.pre_reset.connect(receivers.descriptor_pre_reset, sender=Perspective)
+signals.pre_fork.connect(receivers.descriptor_pre_fork, sender=Perspective)
+signals.post_fork.connect(receivers.descriptor_post_fork, sender=Perspective)
+signals.post_commit.connect(receivers.descriptor_post_commit, sender=Perspective)
+
+signals.pre_diff.connect(receivers.report_pre_diff, sender=Report)
+signals.pre_reset.connect(receivers.report_pre_reset, sender=Report)
+signals.pre_fork.connect(receivers.report_pre_fork, sender=Report)
+signals.post_fork.connect(receivers.descriptor_post_fork, sender=Report)
+signals.post_commit.connect(receivers.descriptor_post_commit, sender=Report)
