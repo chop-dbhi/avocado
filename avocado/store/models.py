@@ -5,6 +5,7 @@ from functools import partial
 
 from django.db import models, router
 from django.db.models.sql import RawQuery
+from django.db.models import signals as model_signals
 from django.core.paginator import EmptyPage, InvalidPage
 from django.contrib.auth.models import User
 from django.core.cache import cache as dcache
@@ -66,6 +67,7 @@ class Descriptor(ForkableModel):
             if delete:
                 self.reference.delete()
             self.reference = None
+            self.__class__().reset(self)
             self.save()
 
     def diff(self, instance=None):
@@ -332,11 +334,14 @@ class Report(Descriptor):
 
     def deference(self, delete=False):
         if self.reference:
+            # don't pass `delete' param since a signal receiver cleans up the
+            # database
+            self.scope.deference()
+            self.perspective.deference()
             if delete:
                 self.reference.delete()
             self.reference = None
-            self.scope.deference(delete)
-            self.perspective.deference(delete)
+            self.__class__().reset(self)
             self.save()
 
     def paginator_and_page(self, cache, buf_size=CACHE_CHUNK_SIZE):
@@ -531,16 +536,21 @@ signals.pre_diff.connect(receivers.descriptor_pre_diff, sender=Scope)
 signals.pre_reset.connect(receivers.descriptor_pre_reset, sender=Scope)
 signals.pre_fork.connect(receivers.descriptor_pre_fork, sender=Scope)
 signals.post_fork.connect(receivers.descriptor_post_fork, sender=Scope)
+signals.pre_commit.connect(receivers.descriptor_pre_commit, sender=Scope)
 signals.post_commit.connect(receivers.descriptor_post_commit, sender=Scope)
 
 signals.pre_diff.connect(receivers.descriptor_pre_diff, sender=Perspective)
 signals.pre_reset.connect(receivers.descriptor_pre_reset, sender=Perspective)
 signals.pre_fork.connect(receivers.descriptor_pre_fork, sender=Perspective)
 signals.post_fork.connect(receivers.descriptor_post_fork, sender=Perspective)
+signals.pre_commit.connect(receivers.descriptor_pre_commit, sender=Perspective)
 signals.post_commit.connect(receivers.descriptor_post_commit, sender=Perspective)
 
 signals.pre_diff.connect(receivers.report_pre_diff, sender=Report)
 signals.pre_reset.connect(receivers.report_pre_reset, sender=Report)
 signals.pre_fork.connect(receivers.report_pre_fork, sender=Report)
 signals.post_fork.connect(receivers.descriptor_post_fork, sender=Report)
+signals.pre_commit.connect(receivers.descriptor_pre_commit, sender=Report)
 signals.post_commit.connect(receivers.descriptor_post_commit, sender=Report)
+
+model_signals.post_delete.connect(receivers.report_post_delete, sender=Report)
