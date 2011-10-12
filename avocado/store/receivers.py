@@ -1,5 +1,5 @@
 def descriptor_pre_diff(sender, reference, instance, config, **kwargs):
-    config['exclude'] = ('pk', 'reference', 'session', 'modified', 'created')
+    config['exclude'] = ('pk', 'reference', 'session', 'modified', 'created', 'timestamp')
 
 def descriptor_pre_reset(sender, reference, instance, config, **kwargs):
     config['exclude'] = ('pk', 'reference', 'session')

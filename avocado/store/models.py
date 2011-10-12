@@ -91,7 +91,7 @@ class Context(Descriptor):
     model. The object defining the context must be serializable.
     """
     store = JSONField(null=True)
-    timestamp = models.DateTimeField(editable=False, default=datetime.now)
+    timestamp = models.DateTimeField(editable=False, auto_now=True, default=datetime.now)
 
     class Meta(object):
         abstract = True
