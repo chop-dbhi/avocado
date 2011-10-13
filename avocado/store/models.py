@@ -66,8 +66,8 @@ class Descriptor(ForkableModel):
         if self.reference:
             if delete:
                 self.reference.delete()
-            self.reference = None
             self.__class__().reset(self)
+            self.reference = None
             self.save()
 
     def diff(self, instance=None):
@@ -340,8 +340,8 @@ class Report(Descriptor):
             self.perspective.deference()
             if delete:
                 self.reference.delete()
-            self.reference = None
             self.__class__().reset(self)
+            self.reference = None
             self.save()
 
     def paginator_and_page(self, cache, buf_size=CACHE_CHUNK_SIZE):
