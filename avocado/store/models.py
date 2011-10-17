@@ -293,6 +293,7 @@ class Report(Descriptor):
     # used for book keeping. if a reference exists, this implies this instance
     # has represents another context.
     reference = models.ForeignKey('self', null=True)
+    count = models.IntegerField(null=True, editable=False, db_column='cnt')
 
     def _center_cache_offset(self, count, offset, buf_size=CACHE_CHUNK_SIZE):
         """The ``offset`` will be relative to the next requested row. To ensure
@@ -471,6 +472,10 @@ class Report(Descriptor):
 
         queryset = self.perspective.get_queryset(None, queryset, using=using)
         count = self._get_count(queryset)
+
+        if self.count != count:
+            self.count = count
+            self.save()
 
         return queryset, unique, count
 
