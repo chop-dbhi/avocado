@@ -1,0 +1,4 @@
+exclude-recursive .DS_Store
+
+prune avocado/fixtures
+prune avocado/tests

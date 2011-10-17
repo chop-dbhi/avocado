@@ -55,8 +55,8 @@ if root_dir != '':
 for dirpath, dirnames, filenames in os.walk(BASE_PACKAGE):
     # Ignore dirnames that start with '.'
     for i, dirname in enumerate(dirnames):
-        if dirname.startswith('.'): del dirnames[i]
-        elif dirname in ('tests', 'fixtures'): del dirnames[i]
+        if dirname.startswith('.'):
+            del dirnames[i]
     if '__init__.py' in filenames:
         packages.append('.'.join(fullsplit(dirpath)))
     elif filenames:
@@ -68,10 +68,10 @@ if len(sys.argv) > 1 and sys.argv[1] == 'bdist_wininst':
     for file_info in data_files:
         file_info[0] = '\\PURELIB\\%s' % file_info[0]
 
-version = __import__(BASE_PACKAGE).__version__
+version = __import__(BASE_PACKAGE).get_version()
 
 setup(
-    version = version.replace(' ', '-'),
+    version = version,
     name = 'django-avocado',
     author = 'Byron Ruth',
     author_email = 'ruthb@email.chop.edu',
