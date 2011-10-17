@@ -70,13 +70,13 @@ class Descriptor(ForkableModel):
             self.reference = None
             self.save()
 
-    def diff(self, instance=None):
+    def diff(self, instance=None, **kwargs):
         "Override diff to default to ``reference`` if no instance is sepcified."
         if not instance:
             if not self.reference:
                 return None
             instance = self.reference
-        return super(Descriptor, self).diff(instance)
+        return super(Descriptor, self).diff(instance, **kwargs)
 
     def push(self):
         "Pushes changes from this object to the reference, if one exists."

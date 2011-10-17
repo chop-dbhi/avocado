@@ -26,7 +26,8 @@ def descriptor_post_commit(sender, reference, instance, **kwargs):
 
 
 def report_pre_diff(sender, reference, instance, config, **kwargs):
-    config['fields'] = ('name', 'description', 'keywords', 'scope', 'perspective')
+    if not config.get('fields', None):
+        config['fields'] = ('name', 'description', 'keywords', 'scope', 'perspective')
     config['deep'] = True
 
 def report_pre_reset(sender, reference, instance, config, **kwargs):
