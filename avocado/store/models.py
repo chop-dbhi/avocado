@@ -51,6 +51,8 @@ class Descriptor(ForkableModel):
         super(Descriptor, self).save(*args, **kwargs)
 
     def __unicode__(self):
+        if self.session:
+            return u'{0} (session)'.format(self.name or self.pk)
         return u'{0}'.format(self.name or self.pk)
 
     def get_reference_pk(self):
@@ -80,7 +82,7 @@ class Descriptor(ForkableModel):
 
     def push(self):
         "Pushes changes from this object to the reference, if one exists."
-        self.reset(self.reference, commit=True)
+        self.reset(self.reference)
 
     def has_changed(self):
         return bool(self.diff())
