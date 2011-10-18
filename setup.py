@@ -72,12 +72,13 @@ version = __import__(BASE_PACKAGE).get_version()
 
 setup(
     version = version,
-    name = 'django-avocado',
+    name = 'avocado',
     author = 'Byron Ruth',
     author_email = 'ruthb@email.chop.edu',
     description = 'A data-driven query engine',
     license = 'BSD',
     keywords = 'snippets tools utilities',
+    url = 'https://github.com/cbmi/django-avocado',
 
     packages = packages,
     cmdclass = cmdclasses,
