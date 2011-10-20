@@ -65,12 +65,11 @@ class Descriptor(ForkableModel):
             return self.reference.pk == int(pk)
 
     def deference(self, delete=False):
-        if self.reference:
-            if delete:
-                self.reference.delete()
-            self.__class__().reset(self)
-            self.reference = None
-            self.save()
+        if self.reference and delete:
+            self.reference.delete()
+        self.__class__().reset(self)
+        self.reference = None
+        self.save()
 
     def diff(self, instance=None, **kwargs):
         "Override diff to default to ``reference`` if no instance is sepcified."
@@ -336,16 +335,15 @@ class Report(Descriptor):
         return raw.cursor.fetchall()
 
     def deference(self, delete=False):
-        if self.reference:
-            # don't pass `delete' param since a signal receiver cleans up the
-            # database
-            self.scope.deference()
-            self.perspective.deference()
-            if delete:
-                self.reference.delete()
-            self.__class__().reset(self)
-            self.reference = None
-            self.save()
+        self.scope.deference()
+        self.perspective.deference()
+        if self.reference and delete:
+            # don't pass `delete' param since a signal receiver cleans
+            # up the database
+            self.reference.delete()
+        self.__class__().reset(self)
+        self.reference = None
+        self.save()
 
     def paginator_and_page(self, cache, buf_size=CACHE_CHUNK_SIZE):
         paginator = BufferedPaginator(count=cache['count'], offset=cache['offset'],
