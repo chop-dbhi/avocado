@@ -15,10 +15,10 @@ class SessionContextForm(ContextForm):
     @transaction.commit_on_success
     def save(self, commit=True):
         # shortcut for deferencing and clearing the session instance
-        if not self.data:
+        if not self.data and self.instance:
             # deference already saves the instance
-            instance.deference()
-            return instance
+            self.instance.deference()
+            return self.instance
 
         # apply changes to the session object
         instance = super(SessionContextForm, self).save(commit=False)
