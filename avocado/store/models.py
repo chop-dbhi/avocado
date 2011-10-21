@@ -47,7 +47,12 @@ class Descriptor(ForkableModel):
         app_label = 'avocado'
 
     def save(self, *args, **kwargs):
-        self.modified = datetime.now()
+        # since we want to mimic the reference object, we don't want to
+        # update the modified date on save, otherwise they would not be
+        # in a consistent state. this condition will never be true for
+        # object's without a reference.
+        if self.has_changed():
+            self.modified = datetime.now()
         super(Descriptor, self).save(*args, **kwargs)
 
     def __unicode__(self):
