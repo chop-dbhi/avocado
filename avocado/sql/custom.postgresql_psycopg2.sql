@@ -13,7 +13,10 @@
 
 begin;
 
-create language plpgsql;
+-- There is no OR REPLACE or IF NOT EXISTS for CREATE LANGUAGE, so this
+-- must be setup ahead of time. Attempting to create the language causes
+-- an error.
+-- create language plpgsql;
 
 -- Field Concept
 
