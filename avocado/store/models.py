@@ -469,7 +469,8 @@ class Report(Descriptor):
         layer.
         """
         unique = count = None
-        queryset = trees[using].get_queryset().values('id').distinct()
+        queryset = trees[using].get_queryset()
+        queryset = queryset.values(queryset.model._meta.pk.name).distinct()
 
         # first argument is ``None`` since we want to use the session objects
         queryset = self.scope.get_queryset(None, queryset, using=using, **context)
