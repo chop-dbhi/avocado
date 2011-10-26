@@ -256,13 +256,11 @@ class Field(mixins.Mixin):
         if filters:
             dist = dist.filter(**filters)
 
-        # New Binning Technique  
-        if self.datatype == 'number' and smooth >= 0:
+        n = dist.count()
 
+        if n >= 2 and self.datatype == 'number' and smooth >= 0:
             # evaluate
             dist = dist.values_list(name, flat=True)
-            n = dist.count()
-
             # raw ordered data
             dist = dist.order_by(name)
 
