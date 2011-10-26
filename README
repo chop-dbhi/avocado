@@ -1,0 +1,5 @@
+Avocado is a metadata-driven query engine which utilizes Django's
+Object-Relational Mapping (ORM) to construct queries at runtime. It was
+developed within a research environment for secondary use of clinical data,
+where data discovery is important for understanding the quality and contents
+of the data.
