@@ -2,7 +2,6 @@ import re
 
 from django.db import models, database
 from django.db.models import Q
-from django.db.models.query import QuerySet
 from django.utils import stopwords
 from django.conf import settings
 
@@ -36,7 +35,7 @@ class ConceptManager(models.Manager):
 
         queryset = self.get_query_set()
         # all public columns
-        public = queryset.filter(is_public=True)
+        public = queryset.filter(is_public=True, category__isnull=False)
         # columns that contain at least one non-public field
         shadowed = queryset.filter(fields__is_public=False)
         # columns that contain fields associated with a group
@@ -52,7 +51,7 @@ class ConceptManager(models.Manager):
     def _public_for_anon_user(self):
         queryset = self.get_query_set()
         # all public columns
-        public = queryset.filter(is_public=True)
+        public = queryset.filter(is_public=True, category__isnull=False)
         # columns that contain at least one non-public field
         shadowed = queryset.filter(fields__is_public=False)
         # columns that contain fields associated with a group
