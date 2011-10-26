@@ -1,0 +1,25 @@
+2011-08-05  Byron Ruth  <b@devel.io>
+
+	* Implemented API to wrap the ModelTree library to be database-driven
+
+		* Defined the Definition model which represents a single unique
+		component of the data model.
+
+	* Defined the INTERNAL_DATATYPE_MAP which is a mapping for Django
+	model fields to a simple datatype.
+
+	* Defined the DATATYPE_OPERATOR_MAP which is a mapping for simple
+	datatypes and QuerySet field lookups.
+	
+	* Defined the DATA_CHOICES_MAP which maps raw data values to human
+	readable string representations.
+
+	* Defined the INTERNAL_DATATYPE_FORMFIELDS which is a mapping for
+	Django model fields and formfield subclasses that will be used for
+	validation.
+
+	* Defined a base Operator class which provides a mechanism for
+	defining operator classes for each the QuerySet field lookups.
+
+	* Defined a simple Registry class that enables auto-discovering of
+	registered classes.

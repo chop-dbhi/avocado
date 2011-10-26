@@ -5,6 +5,8 @@ from distutils.command.install import INSTALL_SCHEMES
 import os
 import sys
 
+BASE_PACKAGE = 'avocado'
+
 class osx_install_data(install_data):
     # On MacOS, the platform-specific lib dir is /System/Library/Framework/Python/.../
     # which is wrong. Python 2.5 supplied with MacOS 10.5 has an Apple-specific fix
@@ -49,13 +51,12 @@ packages, data_files = [], []
 root_dir = os.path.dirname(__file__)
 if root_dir != '':
     os.chdir(root_dir)
-package_dir = 'avocado'
 
-for dirpath, dirnames, filenames in os.walk(package_dir):
+for dirpath, dirnames, filenames in os.walk(BASE_PACKAGE):
     # Ignore dirnames that start with '.'
     for i, dirname in enumerate(dirnames):
-        if dirname.startswith('.'): del dirnames[i]
-        elif dirname in ('tests', 'fixtures'): del dirnames[i]
+        if dirname.startswith('.'):
+            del dirnames[i]
     if '__init__.py' in filenames:
         packages.append('.'.join(fullsplit(dirpath)))
     elif filenames:
@@ -67,29 +68,29 @@ if len(sys.argv) > 1 and sys.argv[1] == 'bdist_wininst':
     for file_info in data_files:
         file_info[0] = '\\PURELIB\\%s' % file_info[0]
 
-version = __import__('avocado').get_version()
+version = __import__(BASE_PACKAGE).get_version()
 
 setup(
     version = version,
     name = 'avocado',
     author = 'Byron Ruth',
-    author_email = 'bruth@codeomics.com',
-    description = '',
-    license = 'AGPLv3',
-    keywords = 'django modeltree domain concept definition meta dynamic',
-
-    install_requires = ['modeltree'],
+    author_email = 'ruthb@email.chop.edu',
+    description = 'A metadata and data-driven query engine',
+    license = 'BSD',
+    keywords = 'query metadata',
+    url = 'https://github.com/cbmi/avocado/',
 
     packages = packages,
     cmdclass = cmdclasses,
+
+    requires = ['django', 'modeltree'],
 
     data_files = data_files,
     classifiers = [
         'Development Status :: 4 - Beta',
         'Framework :: Django',
         'Intended Audience :: Developers',
-        'Intended Audience :: System Administrators',
-        'License :: OSI Approved :: GNU Affero General Public License v3',
+        'License :: OSI Approved :: BSD License',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Topic :: Internet :: WWW/HTTP',
