@@ -6,8 +6,6 @@ Each class must provide a `clean' method that checks a given `value' is of
 the right length and in some cases, type.
 """
 
-from avocado.utils.iter import ins
-
 class Operator(object):
     operator = ''
     short_name = ''
@@ -52,7 +50,7 @@ class Operator(object):
 
 class PrimitiveOperator(Operator):
     def check(self, value):
-        if ins(value):
+        if hasattr(value, '__iter__'):
             return False
         return True
 
