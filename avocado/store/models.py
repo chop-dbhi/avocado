@@ -91,6 +91,12 @@ class Descriptor(ForkableModel):
     def has_changed(self):
         return bool(self.diff())
 
+    def model_name(self, using=DEFAULT_MODELTREE_ALIAS):
+        return trees[using].root_model._meta.verbose_name.format()
+
+    def model_name_plural(self, using=DEFAULT_MODELTREE_ALIAS):
+        return trees[using].root_model._meta.verbose_name_plural.format()
+
 
 class Context(Descriptor):
     """A generic interface for storing an arbitrary context around the data
