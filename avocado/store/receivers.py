@@ -38,7 +38,3 @@ def report_pre_fork(sender, reference, instance, config, **kwargs):
     # reference and report_set are the same things, due to the self reference..
     config['exclude'] = ('pk', 'reference', 'session', 'user', 'report_set')
     config['deep'] = True
-
-def report_post_delete(sender, instance, **kwargs):
-    instance.scope.delete()
-    instance.perspective.delete()

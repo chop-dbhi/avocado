@@ -5,7 +5,6 @@ from functools import partial
 
 from django.db import models, router
 from django.db.models.sql import RawQuery
-from django.db.models import signals as model_signals
 from django.core.paginator import EmptyPage, InvalidPage
 from django.contrib.auth.models import User
 from django.core.cache import cache as dcache
@@ -51,7 +50,7 @@ class Descriptor(ForkableModel):
         # update the modified date on save, otherwise they would not be
         # in a consistent state. this condition will never be true for
         # object's without a reference.
-        if self.has_changed():
+        if not self.session or self.has_changed():
             self.modified = datetime.now()
         super(Descriptor, self).save(*args, **kwargs)
 
@@ -349,9 +348,7 @@ class Report(Descriptor):
         self.scope.deference()
         self.perspective.deference()
         if self.reference and delete:
-            # don't pass `delete' param since a signal receiver cleans
-            # up the database
-            self.reference.delete()
+            self.reference.delete(delete=delete)
         self.__class__().reset(self)
         self.reference = None
         self.save()
@@ -569,5 +566,3 @@ signals.pre_fork.connect(receivers.report_pre_fork, sender=Report)
 signals.post_fork.connect(receivers.descriptor_post_fork, sender=Report)
 signals.pre_commit.connect(receivers.descriptor_pre_commit, sender=Report)
 signals.post_commit.connect(receivers.descriptor_post_commit, sender=Report)
-
-model_signals.post_delete.connect(receivers.report_post_delete, sender=Report)
