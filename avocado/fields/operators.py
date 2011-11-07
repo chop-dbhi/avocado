@@ -154,6 +154,8 @@ class InList(SequenceOperator):
     def text(self, value):
         value = map(self.stringify, value)
         if len(value) == 1:
+            if self.negated:
+                return '%s %s' % (NotExact.verbose_name, value[0])
             return '%s %s' % (Exact.verbose_name, value[0])
         value = ', '.join(value[:-1]) + ' or %s' % value[-1]
         return '%s %s' % (self.verbose_name, value)
