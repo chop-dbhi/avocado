@@ -173,11 +173,13 @@ class ModelTree(object):
             return label
         # passed as a label string
         elif isinstance(label, basestring):
-            app_label, model_label = label.lower().split('.')
-            model = models.get_model(app_label, model_label)
+            model = None
+            if '.' in label:
+                app_label, model_label = label.lower().split('.')
+                model = models.get_model(app_label, model_label)
             if model:
                 return model
-        raise TypeError, 'model "%s" could not be found' % label
+        raise ImproperlyConfigured('The model "{0}" could not be found'.format(label))
 
     def _build_routes(self, routes):
         """
