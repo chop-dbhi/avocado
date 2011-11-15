@@ -13,23 +13,17 @@ __all__ = ('FieldAdmin', 'EditorsFieldAdmin')
 
 class FieldAdmin(ConceptAdmin):
     form = FieldAdminForm
-    formfield_overrides = {
-        models.TextField: {'widget': forms.Textarea(attrs={'cols': 30, 'rows': 3}),
-            'required': False}
-    }
 
     list_display = ('name', 'is_public', 'show_orphan_reason', 'model_name',
-        'enable_choices', 'status', 'note', 'reviewed', 'criterion_relations',
-        'column_relations')
-    list_filter = ('is_public', 'model_name', 'status', 'sites')
-    list_editable = ('is_public', 'enable_choices', 'status', 'note')
+        'enable_choices', 'criterion_relations', 'column_relations')
+    list_filter = ('is_public', 'model_name', 'sites')
+    list_editable = ('is_public', 'enable_choices')
 
     actions = ('create_criterion', 'create_column')
 
     fieldsets = (
         (None, {
-            'fields': ('name', 'description', 'keywords', 'is_public',
-                'status', 'reviewed', 'note'),
+            'fields': ('name', 'description', 'keywords', 'is_public'),
         }),
 
         ('Query Representation', {

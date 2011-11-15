@@ -1,19 +1,9 @@
-from datetime import datetime
-
 from django.db import models
 from django.db.models import Q
 from django.template import Template, Context
 from avocado.concepts.managers import ConceptManager
 
 __all__ = ('Category',)
-
-REVIEW_CHOICES = (
-    ('Unreviewed', 'Unreviewed'),
-    ('Waiting', 'Waiting'),
-    ('Integration Required', 'Integration Required'),
-    ('Integration Pending', 'Integration Pending'),
-    ('Finalized', 'Finalized'),
-)
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
@@ -46,11 +36,6 @@ class Concept(models.Model):
     # search optimizations
     search_doc = models.TextField(editable=False, null=True)
 
-    # review 
-    status = models.CharField('review status', max_length=40, choices=REVIEW_CHOICES)
-    note = models.TextField('review note', null=True)
-    reviewed = models.DateTimeField('last reviewed')
-
     objects = ConceptManager()
 
     class Meta(object):
@@ -60,10 +45,6 @@ class Concept(models.Model):
 
     def __unicode__(self):
         return u'%s' % self.name
-
-    def save(self):
-        self.reviewed = datetime.now()
-        super(Concept, self).save()
 
     def full_description(self):
         if self.description:

@@ -1,6 +1,5 @@
 import re
 from warnings import warn
-from datetime import datetime
 from math import ceil, floor, pow
 
 from django import forms
@@ -20,18 +19,6 @@ __all__ = ('Field',)
 COERCED_DATATYPES = (
     (re.compile(r'^integer|float|decimal|big|positive|small|auto'), 'number'),
     (re.compile(r'^char|text|file|ipaddress|slug'), 'string'),
-)
-
-REVIEW_CHOICES = (
-    ('Unreviewed', 'Unreviewed'),
-    ('Embargoed', 'Embargoed'),
-    ('Deprecated', 'Deprecated'),
-    ('Waiting', 'Waiting'),
-    ('Curation Required', 'Curation Required'),
-    ('Curation Pending', 'Curation Pending'),
-    ('Integration Required', 'Integration Required'),
-    ('Integration Pending', 'Integration Pending'),
-    ('Finalized', 'Finalized'),
 )
 
 class Field(mixins.Mixin):
@@ -67,11 +54,6 @@ class Field(mixins.Mixin):
     # by the fulltext indexing to construct the search index
     search_doc = models.TextField(null=True, db_index=True, editable=False)
 
-    status = models.CharField('review status', max_length=40,
-        choices=REVIEW_CHOICES, blank=True, null=True)
-    note = models.TextField('review note', null=True)
-    reviewed = models.DateTimeField('last reviewed', null=True)
-
     is_public = models.BooleanField(default=False)
     group = models.ForeignKey(Group, null=True, blank=True)
     sites = models.ManyToManyField(Site, blank=True)
@@ -102,10 +84,6 @@ class Field(mixins.Mixin):
         else:
             name = '.'.join([self.app_name, self.model_name, self.field_name])
         return u'%s' % name
-
-    def save(self):
-        self.reviewed = datetime.now()
-        super(Field, self).save()
 
     def natural_key(self):
         return (self.app_name, self.model_name, self.field_name)

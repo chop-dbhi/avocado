@@ -5,10 +5,9 @@ from avocado.concepts.models import Category
 __all__ = ('ConceptAdmin', 'EditorsConceptAdmin')
 
 class ConceptAdmin(admin.ModelAdmin):
-    list_display = ('name', 'category', 'is_public', 'order', 'status',
-        'note', 'reviewed', 'field_relations')
-    list_filter = ('is_public', 'category', 'status')
-    list_editable = ('category', 'is_public', 'order', 'status', 'note')
+    list_display = ('name', 'category', 'is_public', 'order', 'field_relations')
+    list_filter = ('is_public', 'category')
+    list_editable = ('category', 'is_public', 'order')
     search_fields = ('name', 'description', 'keywords')
     ordering = ('name',)
     list_per_page = 25
