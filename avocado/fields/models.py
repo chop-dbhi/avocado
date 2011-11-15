@@ -167,12 +167,6 @@ class Field(mixins.Mixin):
         return self._choices
     choices = property(_get_choices)
 
-    def _get_distinct_choices(self):
-        "Returns a list of the raw values."
-        warn('Use Field.values instead', DeprecationWarning)
-        return self.values
-    distinct_choices = property(_get_distinct_choices)
-
     def _get_values(self):
         "Returns a list of the values."
         if self.choices is not None:
