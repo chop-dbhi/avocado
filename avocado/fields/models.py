@@ -1,6 +1,5 @@
 import re
-from warnings import warn
-from math import ceil, floor, pow
+import math
 
 from django import forms
 from django.db import models
@@ -252,8 +251,8 @@ class Field(mixins.Mixin):
             # Theory and Related Fields 57 (4): 453-476. ISSN 0178-8951.
             first_quartile = 0.25
             third_quartile = 0.75
-            q1 = dist[int(ceil(n * first_quartile))]
-            q3 = dist[int(floor(n * third_quartile))]
+            q1 = dist[int(math.ceil(n * first_quartile))]
+            q3 = dist[int(math.floor(n * third_quartile))]
             iqr = q3 - q1
             h = 2 * (float(iqr) * pow(n, -(1.0 / 3.0)))
 
