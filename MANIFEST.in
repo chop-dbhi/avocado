@@ -1,5 +1,5 @@
 include LICENSE
-exclude-recursive .DS_Store
+global-exclude .DS_Store
 prune avocado/fixtures
 prune avocado/tests
 prune avocado/*/tests
