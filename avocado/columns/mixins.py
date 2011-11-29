@@ -14,10 +14,15 @@ if settings.COLUMN_MIXIN_PATH is not None:
 else:
     Mixin = models.Model
 
+# XXX ghetto...
+default = None
+if library.default:
+    default = library._get_class_name(library.default.__class__)
+
 fields = {}
 for name in settings.FORMATTER_TYPES:
     fn = name + settings.FORMATTER_FIELD_SUFFIX
     fields[fn] = models.CharField('%s formatter' % name, max_length=100,
-        choices=sorted(library.choices(name)))
+        choices=sorted(library.choices(name)), default=default)
 
 Mixin = create_mixin('Mixin', __name__, bases=(Mixin,), fields=fields)

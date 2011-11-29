@@ -8,9 +8,14 @@ from avocado.criteria.viewset import library
 
 __all__ = ('Criterion', 'CriterionField')
 
+default = None
+if library.default:
+    default = library._get_class_name(library.default.__class__)
+
 class Criterion(Concept, mixins.Mixin):
     fields = models.ManyToManyField(Field, through='CriterionField')
-    viewset = models.CharField(max_length=100, choices=sorted(library.choices()))
+    viewset = models.CharField(max_length=100, choices=sorted(library.choices()),
+        default=default)
 
     class Meta(Concept.Meta):
         verbose_name_plural = 'criteria'

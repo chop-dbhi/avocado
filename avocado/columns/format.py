@@ -1,5 +1,5 @@
 from copy import deepcopy
-
+from django.template import defaultfilters as filters
 from avocado.conf import settings
 from avocado.exceptions import AlreadyRegisteredError
 from avocado.concepts.library import Library
@@ -56,6 +56,22 @@ class PassFormatter(AbstractFormatter):
 
     def __call__(self, ftype, *args):
         return args
+
+
+class DefaultFormatter(AbstractFormatter):
+    def html(self, *args):
+        toks = []
+        for x in args:
+            if x is None: continue
+            if type(x) is float:
+                t = filters.floatformat(x)
+            else:
+                t = str(x)
+            toks.append(t)
+        return ' '.join(toks) or None
+
+    def csv(self, *args):
+        return args or None
 
 
 class FormatterLibrary(Library):
@@ -214,5 +230,8 @@ library = FormatterLibrary()
 
 library.register(RemoveFormatter)
 library.register(PassFormatter)
+library.register(DefaultFormatter)
+
+library.default = DefaultFormatter()
 
 library.autodiscover()
