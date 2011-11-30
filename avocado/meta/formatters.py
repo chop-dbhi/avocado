@@ -17,12 +17,12 @@ class Formatter(object):
                 'first_name': {
                     'name': 'First Name',
                     'value': 'Bob',
-                    'definition': <Definition "First Name">),
+                    'definition': <Field "First Name">),
                 },
                 'last_name': {
                     'name': 'Last Name',
                     'value': 'Smith',
-                    'definition': <Definition "Last Name">),
+                    'definition': <Field "Last Name">),
                 },
             })
 

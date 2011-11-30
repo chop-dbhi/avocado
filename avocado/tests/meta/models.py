@@ -1,9 +1,9 @@
 from django.test import TestCase
 from avocado.tests.base import BaseTestCase
 
-__all__ = ('DefinitionTestCase', 'ConceptTestCase', 'DomainTestCase')
+__all__ = ('FieldTestCase', 'ConceptTestCase', 'DomainTestCase')
 
-class DefinitionTestCase(BaseTestCase):
+class FieldTestCase(BaseTestCase):
 
     def test_boolean(self):
         self.assertTrue(self.is_manager.model)

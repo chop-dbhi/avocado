@@ -12,7 +12,7 @@ from modeltree.tree import trees
 from avocado.conf import settings
 from avocado.meta import managers, translators, formatters
 
-__all__ = ('Domain', 'Concept', 'Definition')
+__all__ = ('Domain', 'Concept', 'Field')
 
 DATA_CHOICES_MAP = settings.DATA_CHOICES_MAP
 INTERNAL_DATATYPE_MAP = settings.INTERNAL_DATATYPE_MAP
@@ -74,7 +74,7 @@ class Base(models.Model):
         super(Base, self).save()
 
 
-class Definition(Base):
+class Field(Base):
     """Describes the significance and/or meaning behind some data. In addition,
     it defines the natural key of the Django field that represents the location
     of that data e.g. ``library.book.title``.
@@ -107,7 +107,7 @@ class Definition(Base):
     # is false, it is globally not accessible.
     published = models.BooleanField(default=False)
 
-    objects = managers.DefinitionManager()
+    objects = managers.FieldManager()
 
     class Meta(object):
         app_label = 'avocado'
@@ -131,7 +131,7 @@ class Definition(Base):
 
     @transaction.commit_on_success
     def create_concept(self, save=False, **kwargs):
-        """Derives a Concept from this Definition's descriptors. Additional
+        """Derives a Concept from this Field's descriptors. Additional
         keyword arguments can be passed in to customize the new Concept object.
         The Concept can also be optionally saved by setting the ``save`` flag.
         """
@@ -294,7 +294,7 @@ class Concept(Base):
 
     # the associated definitions for this concept. definitions can be
     # associated with multiple concepts, thus the M2M
-    definitions = models.ManyToManyField(Definition,
+    definitions = models.ManyToManyField(Field,
         through='ConceptDefintion')
 
     order = models.FloatField(default=0,
@@ -394,7 +394,7 @@ class ConceptDefintion(models.Model):
     name = models.CharField(max_length=50, null=True, blank=True)
     order = models.FloatField(null=True)
 
-    definition = models.ForeignKey(Definition)
+    definition = models.ForeignKey(Field)
     concept = models.ForeignKey(Concept)
 
     created = models.DateTimeField(editable=False)

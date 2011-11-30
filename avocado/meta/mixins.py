@@ -9,7 +9,7 @@ class SearchInterface(models.Model):
 class ReviewInterface(models.Model):
     """Provides an interface for setting a review status and note for
     representing various stages of integration for an Ontology or
-    Definition.
+    Field.
     """
     REVIEW_CHOICES = (
         (u'Unreviewed', u'Unreviewed'),

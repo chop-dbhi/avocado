@@ -80,7 +80,7 @@ Default::
 
 Contains a mapping from Python values to a corresponding human readable
 representation. This will only ever be applicable when values are being
-presented to clients as a list of choices when ``Definition.enable_choices``
+presented to clients as a list of choices when ``Field.enable_choices``
 is ``True``.
 
 

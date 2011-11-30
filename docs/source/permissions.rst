@@ -19,7 +19,7 @@ on a per-site basis. For our needs, we had an internal deployment (behind the
 firewall) of our application which made available operational data not allowed
 on our external deployment (accessible from the Internet).
 
-Since the ``Definition`` model is the "closest to the data", permissions are
+Since the ``Field`` model is the "closest to the data", permissions are
 applied here. A definition can be associated to one or more sites.
 
 ::

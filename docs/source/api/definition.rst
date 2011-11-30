@@ -1,5 +1,5 @@
-Definition
+Field
 ==========
 
-.. autoclass:: avocado.meta.models.Definition
+.. autoclass:: avocado.meta.models.Field
     :members:

@@ -3,7 +3,7 @@ from optparse import make_option
 from django.db import models
 from django.core.management.base import LabelCommand
 
-from avocado.meta.models import Definition, Domain
+from avocado.meta.models import Field, Domain
 
 class Command(LabelCommand):
     """
@@ -14,21 +14,21 @@ class Command(LabelCommand):
     DESCRIPTION:
 
         Finds all models referenced by the app or model ``labels`` and
-        attempts to create a ``Definition`` instance per model field.
-        Any ``Definition`` already loaded will not be altered in any way.
+        attempts to create a ``Field`` instance per model field.
+        Any ``Field`` already loaded will not be altered in any way.
 
     OPTIONS:
 
         ``--create-domains`` - create a single ``Domain`` corresponding to each
         model that is evaluated
 
-        ``--include-non-editable`` - create ``Definition`` for fields that are
+        ``--include-non-editable`` - create ``Field`` for fields that are
         not editable in the admin
 
     """
 
     help = """Finds all models in the listed app(s) and attempts to create a
-    ``Definition`` instance per model field. Definitions already declared will
+    ``Field`` instance per model field. Fields already declared will
     not be altered.
     """
 
@@ -120,14 +120,14 @@ class Command(LabelCommand):
                 }
 
                 # do initial lookup to see if it already exists, skip if it does
-                if Definition.objects.filter(**kwargs).exists():
+                if Field.objects.filter(**kwargs).exists():
                     print '%s.%s already exists. Skipping...' % (model_name, field.name)
                     continue
 
                 # add verbose name
                 kwargs['name'] = field.verbose_name.title()
 
-                definition = Definition(**kwargs)
+                definition = Field(**kwargs)
 
                 if create_domains:
                     definition.domain = domain

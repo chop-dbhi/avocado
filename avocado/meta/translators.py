@@ -103,11 +103,11 @@ class Translator(object):
         if definition.field.primary_key:
             return Q()
 
-        from avocado.meta.models import Definition
+        from avocado.meta.models import Field
         name = definition.model._meta.pk.name
 
         # instantiate a new object to utilize the shortcut methods
-        _definition = Definition(app_name=definition.app_name,
+        _definition = Field(app_name=definition.app_name,
             model_name=definition.model_name, field_name=name)
 
         key = _definition.query_string('isnull', using=using)

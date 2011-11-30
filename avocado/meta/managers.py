@@ -2,15 +2,15 @@ from django.db import models
 from django.db.models import Q, query
 from django.conf import settings
 
-class DefinitionQuerySet(query.QuerySet):
+class FieldQuerySet(query.QuerySet):
     pass
 
 
-class DefinitionManager(models.Manager):
+class FieldManager(models.Manager):
     use_for_related_fields = True
 
     def get_query_set(self):
-        return DefinitionQuerySet(self.model, using=self._db)
+        return FieldQuerySet(self.model, using=self._db)
 
     def get_by_natural_key(self, app_name, model_name, field_name):
         "Implemented for serialization by natural key."

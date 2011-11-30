@@ -11,29 +11,13 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys, os
-
-# absolute path to the library
-PROJECT_MODULE_PATH = os.path.realpath(os.path.join(os.path.realpath(__file__), '../../..'))
-
-# lop off [project] name
-PROJECT_ROOT, PROJECT_MODULE_NAME = os.path.split(PROJECT_MODULE_PATH)
-
-# environment path
-ENV_PATH = os.path.realpath(os.path.join(PROJECT_ROOT, '..'))
-
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
-activate_this = os.path.join(ENV_PATH, 'bin/activate_this.py')
-execfile(activate_this, dict(__file__=activate_this))
-
-sys.path.insert(0, PROJECT_ROOT)
-sys.path.insert(0, os.path.abspath('.'))
-
-os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
-
 # -- General configuration -----------------------------------------------------
+
+import os
+
+parent_dir = os.chdir(os.path.join(os.path.dirname(__file__), '../..'))
+
+sys.path.insert(0, parent_dir)
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #needs_sphinx = '1.0'
@@ -61,11 +45,11 @@ copyright = u'2011, The Children\'s Hospital of Philadelphia'
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
-#
+
 # The short X.Y version.
-version = '0.9'
+version = avocado.get_version(short=True)
 # The full version, including alpha/beta/rc tags.
-release = '0.9'
+release = avocado.__version__
 
 todo_include_todos = True
 

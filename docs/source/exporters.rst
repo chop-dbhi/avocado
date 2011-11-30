@@ -18,7 +18,7 @@ the job of the any given exporter is to define a list of preferred formats
 data should be represented.
 
 The interface between the Exporter and the data are the Concepts. Every piece
-of data has a Concept (and thus a Definition) associated with it. A Concept has
+of data has a Concept (and thus a Field) associated with it. A Concept has
 the option of specifying a custom ``Formatter`` class for the associated data.
 
 The ``Formatter`` class has the job of formatting, coercing, mapping, etc. the

@@ -1,7 +1,7 @@
 from optparse import make_option
 from django.core.management.base import NoArgsCommand
 
-from avocado.meta.models import Definition
+from avocado.meta.models import Field
 
 class Command(NoArgsCommand):
     """
@@ -11,24 +11,24 @@ class Command(NoArgsCommand):
 
     DESCRIPTION:
 
-        Determines if any ``Definitions`` are no longer valid. This is
+        Determines if any ``Fields`` are no longer valid. This is
         typically only necessary when a data model change occurs. An orphaned
-        ``Definition`` will be marked if they are currently published
+        ``Field`` will be marked if they are currently published
         (``[P]``).
 
     OPTIONS:
 
-        ``--unpublish`` - unpublishes orphaned ``Definition`` if currently
+        ``--unpublish`` - unpublishes orphaned ``Field`` if currently
         published
 
     """
 
-    help = "Determines outdated or orphaned Definitions."
+    help = "Determines outdated or orphaned Fields."
 
     option_list = NoArgsCommand.option_list + (
         make_option('--unpublish', action='store_true',
             dest='unpublish', default=False,
-            help='Unpublishes orphaned Definitions'),
+            help='Unpublishes orphaned Fields'),
     )
 
     def _print(self, objs, msg, unpublish=False):
@@ -49,7 +49,7 @@ class Command(NoArgsCommand):
         unpublish = options.get('unpublish')
         verbosity = options.get('verbosity')
 
-        definitions = Definition.objects.all()
+        definitions = Field.objects.all()
 
         unknown_models = []
         unknown_fields = []
@@ -65,6 +65,6 @@ class Command(NoArgsCommand):
                 print '0 definitions orphaned'
             else:
                 if unknown_models:
-                    self._print(unknown_models, 'The following Definitions have an unknown model', unpublish)
+                    self._print(unknown_models, 'The following Fields have an unknown model', unpublish)
                 if unknown_fields:
-                    self._print(unknown_fields, 'The following Definitions have an unknown field', unpublish)
+                    self._print(unknown_fields, 'The following Fields have an unknown field', unpublish)
