@@ -41,11 +41,11 @@ class Command(LabelCommand):
 
         make_option('--include-non-editable', action='store_true',
             dest='include_non_editable', default=False,
-            help='Create definitions for non-editable fields')
+            help='Create fields for non-editable fields')
     )
 
     # these are ignored since these join fields will be determined at runtime
-    # using the modeltree library. definitions can be created for any other
+    # using the modeltree library. fields can be created for any other
     # these field types manually
     ignored_field_types = (
         models.AutoField,
@@ -127,19 +127,19 @@ class Command(LabelCommand):
                 # add verbose name
                 kwargs['name'] = field.verbose_name.title()
 
-                definition = Field(**kwargs)
+                field = Field(**kwargs)
 
                 if create_domains:
-                    definition.domain = domain
+                    field.domain = domain
 
-                definition.published = False
-                definition.save()
+                field.published = False
+                field.save()
 
                 cnt += 1
 
             if cnt == 1:
-                print '1 definition added for %s' % model_name
+                print '1 field added for %s' % model_name
             else:
-                print '%d definitions added for %s' % (cnt, model_name)
+                print '%d fields added for %s' % (cnt, model_name)
 
 

@@ -14,7 +14,7 @@ Table of Contents:
    introduction
    domains
    concepts
-   definitions
+   fields
    commands
    operators
    permissions
@@ -25,7 +25,7 @@ API Reference:
 .. toctree::
     :maxdepth: 2
 
-    api/definition
+    api/field
     api/concept
     api/domain
 

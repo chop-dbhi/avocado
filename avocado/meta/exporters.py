@@ -19,7 +19,7 @@ class Exporter(object):
         fields = []
 
         for c in concepts:
-            fields.extend([d.field for d in c.definitions.all()])
+            fields.extend([d.field for d in c.fields.all()])
 
         raw_query = self.queryset.select(*fields)
 

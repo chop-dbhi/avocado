@@ -49,12 +49,12 @@ class Command(NoArgsCommand):
         unpublish = options.get('unpublish')
         verbosity = options.get('verbosity')
 
-        definitions = Field.objects.all()
+        fields = Field.objects.all()
 
         unknown_models = []
         unknown_fields = []
 
-        for d in definitions:
+        for d in fields:
             if d.model is None:
                 unknown_models.append(d)
             elif d.field is None:
@@ -62,7 +62,7 @@ class Command(NoArgsCommand):
 
         if verbosity:
             if not unknown_models and not unknown_fields:
-                print '0 definitions orphaned'
+                print '0 fields orphaned'
             else:
                 if unknown_models:
                     self._print(unknown_models, 'The following Fields have an unknown model', unpublish)

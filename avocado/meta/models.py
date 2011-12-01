@@ -39,7 +39,7 @@ class Base(models.Model):
 
         ``name`` - the name _should_ be unique in practice, but is not enforced
         since in certain cases the name differs relative to the model and/or
-        concepts these definitions are asssociated with
+        concepts these fields are asssociated with
 
         ``description`` - will tend to be exposed in client applications since
         it provides context to the end-users
@@ -81,16 +81,16 @@ class Field(Base):
     """
     # these may vary between implementations, but the underlying field they
     # reference must be the same across implementations to ensure consistent
-    # behavior of this definition
+    # behavior of this field
     app_name = models.CharField(max_length=50)
     model_name = models.CharField(max_length=50)
     field_name = models.CharField(max_length=50)
 
-    # certain definitions may not be relevant or appropriate for all
+    # certain fields may not be relevant or appropriate for all
     # sites being deployed. this is primarily for preventing exposure of
     # private data from certain sites. for example, there may and internal
     # and external deployment of the same site. the internal site has full
-    # access to all definitions, while the external may have a limited set.
+    # access to all fields, while the external may have a limited set.
     sites = models.ManyToManyField(Site, blank=True)
 
     # an optional translator which customizes input query conditions
@@ -98,12 +98,12 @@ class Field(Base):
     translator = models.CharField(max_length=100, blank=True, null=True,
         choices=TRANSLATOR_CHOICES)
 
-    # explicitly enable this definition to be choice-based. this should
+    # explicitly enable this field to be choice-based. this should
     # only be enabled for data that contains a discrete vocabulary, i.e.
     # no full text data, most numerical data or datetime data
     enable_choices = models.BooleanField(default=False)
 
-    # enables this definition to be accessible for use. when ``published``
+    # enables this field to be accessible for use. when ``published``
     # is false, it is globally not accessible.
     published = models.BooleanField(default=False)
 
@@ -114,7 +114,7 @@ class Field(Base):
         unique_together = ('app_name', 'model_name', 'field_name')
         ordering = ('name',)
         permissions = (
-            ('view_definition', 'Can view definition'),
+            ('view_field', 'Can view field'),
         )
 
     def __unicode__(self):
@@ -122,7 +122,7 @@ class Field(Base):
             return u'%s [%s]' % (self.name, self.model_name)
         return u'.'.join([self.app_name, self.model_name, self.field_name])
 
-    # the natural key should be used any time definitions are being exported
+    # the natural key should be used any time fields are being exported
     # for integration in another system. it makes it trivial to map to new
     # data models since there are discrete parts (as suppose to using the
     # primary key)
@@ -142,21 +142,21 @@ class Field(Base):
 
         if save:
             concept.save()
-            condef = ConceptDefintion(definition=self, concept=concept)
-            concept.conceptdefinitions.add(condef)
+            condef = ConceptDefintion(field=self, concept=concept)
+            concept.conceptfields.add(condef)
 
         return concept
 
     @property
     def model(self):
-        "Returns the model class this definition is associated with."
+        "Returns the model class this field is associated with."
         if not hasattr(self, '_model'):
             self._model = models.get_model(self.app_name, self.model_name)
         return self._model
 
     @property
     def field(self):
-        "Returns the field object this definition represents."
+        "Returns the field object this field represents."
         if not hasattr(self, '_field'):
             try:
                 self._field = self.model._meta.get_field_by_name(self.field_name)[0]
@@ -173,7 +173,7 @@ class Field(Base):
 
     @property
     def datatype(self):
-        """Returns the datatype of the field this definition represents.
+        """Returns the datatype of the field this field represents.
 
         By default, it will use the field's internal type, but can be overridden
         by the ``INTERNAL_DATATYPE_MAP`` setting.
@@ -292,20 +292,20 @@ class Concept(Base):
     # domain when the concept is published
     domain = models.ForeignKey(Domain, null=True)
 
-    # the associated definitions for this concept. definitions can be
+    # the associated fields for this concept. fields can be
     # associated with multiple concepts, thus the M2M
-    definitions = models.ManyToManyField(Field,
+    fields = models.ManyToManyField(Field,
         through='ConceptDefintion')
 
     order = models.FloatField(default=0,
         help_text=u'Ordering should be relative to the domain')
 
-    # enables this definition to be accessible for use. when ``published``
+    # enables this field to be accessible for use. when ``published``
     # is false, it is globally not accessible.
     published = models.BooleanField(default=False)
 
     # an optional formatter which provides custom formatting for this
-    # concept relative to the associated definitions
+    # concept relative to the associated fields
     formatter = models.CharField(max_length=100, blank=True, null=True,
         choices=FORMATTER_CHOICES)
 
@@ -321,7 +321,7 @@ class Concept(Base):
 
     # denotes whether this concept will be exposed as an interface to define
     # conditions against. concepts composed of inter-related or contextually
-    # simliar definitions are usually most appropriate for this option
+    # simliar fields are usually most appropriate for this option
     where_enabled = models.BooleanField(default=True)
 
     class Meta(object):
@@ -336,7 +336,7 @@ class Concept(Base):
         return u'{}'.format(self.name)
 
     def __len__(self):
-        return self.definitions.count()
+        return self.fields.count()
 
     def get_formatter(self, preferred_formats=None):
         """Returns a partially evaluated formatter function given a list of
@@ -355,28 +355,28 @@ class Concept(Base):
         formatter.length = len(self)
         return formatter
 
-    def _get_formatter_value(self, cdefinition, value, name=None):
-        definition = cdefinition.definition
+    def _get_formatter_value(self, cfield, value, name=None):
+        field = cfield.field
 
-        key = '{}' % definition.field_name
+        key = '{}' % field.field_name
 
         if name is None:
-            name = cdefinition.name or definition.name
+            name = cfield.name or field.name
 
         data = {
             'name': name,
             'value': value,
-            'definition': definition,
+            'field': field,
         }
 
         return key, data
 
     def get_formatter_values(self, values):
         """Returns an ``OrderedDict`` representing a mapping between the
-        associated definitions and the given values.
+        associated fields and the given values.
         """
         new_values = OrderedDict()
-        cdefs = self.conceptdefinitions.select_related('definition')
+        cdefs = self.conceptfields.select_related('field')
 
         if len(cdefs) == 1:
             tup = self._get_formatter_value(cdefs[0], value=values[0],
@@ -394,7 +394,7 @@ class ConceptDefintion(models.Model):
     name = models.CharField(max_length=50, null=True, blank=True)
     order = models.FloatField(null=True)
 
-    definition = models.ForeignKey(Field)
+    field = models.ForeignKey(Field)
     concept = models.ForeignKey(Concept)
 
     created = models.DateTimeField(editable=False)

@@ -17,12 +17,12 @@ class Formatter(object):
                 'first_name': {
                     'name': 'First Name',
                     'value': 'Bob',
-                    'definition': <Field "First Name">),
+                    'field': <Field "First Name">),
                 },
                 'last_name': {
                     'name': 'Last Name',
                     'value': 'Smith',
-                    'definition': <Field "Last Name">),
+                    'field': <Field "Last Name">),
                 },
             })
 
@@ -62,10 +62,10 @@ class Formatter(object):
             for key, data in values.iteritems():
                 name = data['name']
                 value = data['value']
-                definition = data['definition']
+                field = data['field']
 
                 fdd = data.copy()
-                fdata = method(name, value, definition, concept, **context)
+                fdata = method(name, value, field, concept, **context)
 
                 if type(fdata) is dict:
                     fdd.update(fdata)
@@ -83,7 +83,7 @@ class Formatter(object):
     def __unicode__(self):
         return u'%s' % self.name
 
-    def to_string(self, name, value, definition, concept, **context):
+    def to_string(self, name, value, field, concept, **context):
         # attempt to coerce non-strings to strings. depending on the data
         # types that are being passed into this, this may not be good
         # enough for certain datatypes or complext data structures
@@ -99,7 +99,7 @@ class Formatter(object):
         for key, data in values.iteritems():
             name = data['name']
             value = data['value']
-            definition = data['definition']
+            field = data['field']
 
             # representing None is HTML needs to be distinct, so we include a
             # special style for it
@@ -111,12 +111,12 @@ class Formatter(object):
                 tok = 'yes' if value else 'no'
 
             else:
-                tok = self.to_string(name, value, definition, concept, **context)
+                tok = self.to_string(name, value, field, concept, **context)
 
             new_values.append(tok)
 
         return OrderedDict({'name': {'name': concept.name,
-            'value': ' '.join(new_values), 'definition': definition}})
+            'value': ' '.join(new_values), 'field': field}})
 
     to_html.none = '<span class="no-data">{no data}</span>'
 
