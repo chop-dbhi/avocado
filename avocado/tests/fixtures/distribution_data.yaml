@@ -1,0 +1,52 @@
+- model: tests.Office
+  pk: null
+  fields:
+    location: 3535 Market
+
+- model: tests.Title
+  pk: null
+  fields:
+    name: Programmer
+    salary: 15
+
+- model: tests.Title
+  pk: null
+  fields:
+    name: Analyst
+    salary: 15
+
+- model: tests.Title
+  pk: null
+  fields:
+    name: CEO
+    salary: 15
+
+- model: tests.Title
+  pk: null
+  fields:
+    name: IT
+    salary: 15
+
+- model: tests.Title
+  pk: null
+  fields:
+    name: Guard
+    salary: 15
+
+- model: tests.Title
+  pk: null
+  fields:
+    name: Lawyer
+    salary: 15
+
+- model: tests.Title
+  pk: null
+  fields:
+    name: another
+    salary: 10
+
+- model: tests.Title
+  pk: null
+  fields:
+    name: and_another
+    salary: 45

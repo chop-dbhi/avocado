@@ -1,6 +1,11 @@
 from functools import partial
-from collections import OrderedDict
 from datetime import datetime
+
+try:
+    from collections import OrderedDict
+except ImportError:
+    from ordereddict import OrderedDict
+
 from django import forms
 from django.db import models, transaction
 from django.contrib.sites.models import Site
@@ -10,7 +15,7 @@ from django.utils.importlib import import_module
 from modeltree.tree import trees
 
 from avocado.conf import settings
-from avocado.meta import managers, translators, formatters
+from avocado.meta import managers, translators, formatters, utils
 
 __all__ = ('Domain', 'Concept', 'Field')
 
@@ -225,9 +230,12 @@ class Field(Base):
         tree = trees[using]
         return tree.query_string_for_field(self.field, operator=operator)
 
-    def distribution(self, exclude=[], min_count=None, max_points=20,
-        order_by='field', smooth=0.01, annotate_by='id', **filters):
-        pass
+    def distribution(self, *args, **kwargs):
+        "calls the distribution from avocado.meta.utils"
+
+        name = self.field_name
+        queryset = self.model.objects.values(name)
+        return utils.distribution(queryset, name, self.data_type, *args, **kwargs)
 
     def formfield(self, **kwargs):
         """Returns the default formfield class for the represented field
