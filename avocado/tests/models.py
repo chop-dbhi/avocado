@@ -7,7 +7,7 @@ class Office(models.Model):
 class Title(models.Model):
     name = models.CharField(max_length=50)
     salary = models.IntegerField(null=True)
-
+    boss = models.NullBooleanField(default=False)
 
 class Employee(models.Model):
     first_name = models.CharField(max_length=50)
@@ -15,7 +15,6 @@ class Employee(models.Model):
     title = models.ForeignKey(Title, null=True)
     office = models.ForeignKey(Office)
     is_manager = models.NullBooleanField(default=False)
-
 
 class Meeting(models.Model):
     attendees = models.ManyToManyField(Employee)

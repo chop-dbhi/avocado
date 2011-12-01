@@ -24,7 +24,3 @@ INSTALLED_APPS = (
     'avocado.meta',
     'avocado.tests',
 )
-
-FIXTURE_DIRS = (
-    'avocado.tests.fixtures'
-)

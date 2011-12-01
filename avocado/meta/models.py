@@ -1,4 +1,3 @@
-from functools import partial
 from datetime import datetime
 
 try:
@@ -13,7 +12,6 @@ from django.utils.encoding import smart_unicode
 from django.db.models.fields import FieldDoesNotExist
 from django.utils.importlib import import_module
 from modeltree.tree import trees
-
 from avocado.conf import settings
 from avocado.meta import managers, translators, formatters, utils
 
@@ -147,8 +145,8 @@ class Field(Base):
 
         if save:
             concept.save()
-            condef = ConceptDefintion(field=self, concept=concept)
-            concept.conceptfields.add(condef)
+            cfield = ConceptField(field=self, concept=concept)
+            concept.conceptfields.add(cfield)
 
         return concept
 
@@ -222,6 +220,17 @@ class Field(Base):
             svalues = (smart_unicode(DATA_CHOICES_MAP.get(v, v)) for v in values)
             return zip(values, svalues)
 
+    @property
+    def coded_values(self):
+        "Returns a distinct set of coded values for this field"
+        if self.has_choices:
+            coded = []
+            nvalues = []
+            for i, v in enumerate(self.values):
+                coded.append(i)
+                nvalues.append(v)
+            return zip(nvalues, coded)
+
     def translate(self, operator=None, value=None, using=None, **context):
         trans = translators.registry[self.translator]()
         return trans(self, operator, value, using, **context)
@@ -280,7 +289,7 @@ class Domain(Base):
         ordering = ('name',)
 
     def __unicode__(self):
-        return u'{}'.format(self.name)
+        return u'{0}'.format(self.name)
 
 
 class Concept(Base):
@@ -303,7 +312,7 @@ class Concept(Base):
     # the associated fields for this concept. fields can be
     # associated with multiple concepts, thus the M2M
     fields = models.ManyToManyField(Field,
-        through='ConceptDefintion')
+        through='ConceptField')
 
     order = models.FloatField(default=0,
         help_text=u'Ordering should be relative to the domain')
@@ -341,32 +350,21 @@ class Concept(Base):
         )
 
     def __unicode__(self):
-        return u'{}'.format(self.name)
+        return u'{0}'.format(self.name)
 
     def __len__(self):
         return self.fields.count()
 
-    def get_formatter(self, preferred_formats=None):
-        """Returns a partially evaluated formatter function given a list of
-        ``preferred_formats``.
-        """
-        formatter = formatters.registry[self.formatter]
-
-        if preferred_formats:
-            for x in preferred_formats:
-                if x in formatter:
-                    formatter = partial(formatter, choice=x)
-                    break
-        else:
-            formatter = partial(formatter)
-
-        formatter.length = len(self)
-        return formatter
+    def get_formatter(self):
+        " Returns a formatter instance "
+        f = formatters.registry[self.name]()
+        f.length = len(self)
+        return f
 
     def _get_formatter_value(self, cfield, value, name=None):
         field = cfield.field
 
-        key = '{}' % field.field_name
+        key = '{0}'.format(field.field_name)
 
         if name is None:
             name = cfield.name or field.name
@@ -377,44 +375,45 @@ class Concept(Base):
             'field': field,
         }
 
-        return key, data
+        return {key: data}
 
     def get_formatter_values(self, values):
         """Returns an ``OrderedDict`` representing a mapping between the
         associated fields and the given values.
         """
         new_values = OrderedDict()
-        cdefs = self.conceptfields.select_related('field')
-
-        if len(cdefs) == 1:
-            tup = self._get_formatter_value(cdefs[0], value=values[0],
-                name=cdefs[0].name)
+        cfields = self.conceptfields.select_related('field')
+        if len(cfields) == 1:
+            tup = self._get_formatter_value(cfields[0], value=values[0],
+                name=cfields[0].name)
             new_values.update(tup)
         else:
-            for i, cdef in enumerate(cdefs):
-                tup = self._get_formatter_value(cdef, value=values[i])
+            for i, cfield in enumerate(cfields):
+                tup = self._get_formatter_value(cfield, value=values[i])
                 new_values.update(tup)
 
         return new_values
 
 
-class ConceptDefintion(models.Model):
+class ConceptField(models.Model):
     name = models.CharField(max_length=50, null=True, blank=True)
     order = models.FloatField(null=True)
 
-    field = models.ForeignKey(Field)
-    concept = models.ForeignKey(Concept)
-
+    field = models.ForeignKey(Field,
+            related_name="conceptfields")
+    concept = models.ForeignKey(Concept, related_name="conceptfields")
     created = models.DateTimeField(editable=False)
     modified = models.DateTimeField(editable=False)
 
     class Meta(object):
         app_label = 'avocado'
+        ordering = ('concept', 'order')
+        order_with_respect_to = 'concept'
 
     def save(self):
         now = datetime.now()
         if not self.created:
             self.created = now
         self.modified = now
-        super(ConceptDefintion, self).save()
+        super(ConceptField, self).save()
 

@@ -1,0 +1,70 @@
+- model: tests.office
+  pk: 1
+  fields:
+    location: 3535 Market
+
+- model: tests.Employee
+  pk: null
+  fields:
+    first_name: Eric
+    last_name: Smith
+    office: 1
+    title: 1
+    is_manager: True
+
+- model: tests.Employee
+  pk: null
+  fields:
+    first_name: Erin
+    last_name: Jones
+    office: 1
+    title: 2
+    is_manager: False
+
+- model: tests.Employee
+  pk: null
+  fields:
+    first_name: Erick
+    last_name: Smith
+    office: 1
+    title: 1
+    is_manager: False
+
+- model: tests.Employee
+  pk: null
+  fields:
+    first_name: Aaron
+    last_name: Harris
+    office: 1
+    title: 2
+    is_manager: False
+
+- model: tests.Employee
+  pk: null
+  fields:
+    first_name: Zac
+    last_name: Cook
+    office: 1
+    title: 1
+    is_manager: False
+
+- model: tests.Employee
+  pk: null
+  fields:
+    first_name: Mel
+    last_name: Brook
+    office: 1
+    title: 2
+    is_manager: False
+
+- model: tests.Title
+  pk: 1
+  fields:
+    name: Programmer
+    salary: 15000
+
+- model: tests.Title
+  pk: 2
+  fields:
+    name: Analyst
+    salary: 20000
