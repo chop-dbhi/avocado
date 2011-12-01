@@ -44,12 +44,13 @@ class Formatter(object):
     name = ''
 
     def __call__(self, values, concept, preferred_formats=None, **context):
-        preferred_formats = list(preferred_formats) + ['raw']
-
         if not values:
             raise ValueError('No values supplied')
 
-        output = deepcopy(values)
+        if preferred_formats:
+            preferred_formats = list(preferred_formats) + ['raw']
+        else:
+            preferred_formats = ['raw']
 
         # Iterate over all preferred formats and attempt to process the values.
         # For formatter methods that process all values must be tracked and
@@ -74,18 +75,18 @@ class Formatter(object):
             # each value is handled independently
             if getattr(method, 'process_multiple', False):
                 try:
-                    self.process_multiple(method, output, concept, **context)
-                    break
+                    return self._process_multiple(method, values, concept, **context)
                 # Remove from the preferred formats list since it failed
                 except Exception:
                     preferred_formats.pop(0)
 
-        # Attempt to process each 
+        output = deepcopy(values)
+        # Attempt to process each
         for key, data in output.iteritems():
             for f in preferred_formats:
                 method = getattr(self, 'to_{0}'.format(f))
                 try:
-                    self.process_single(method, data, concept, **context)
+                    self._process_single(method, data, concept, **context)
                     break
                 except:
                     pass
@@ -97,12 +98,13 @@ class Formatter(object):
     def __unicode__(self):
         return u'%s' % self.name
 
-    def process_single(self, method, data, concept, **context):
+    def _process_single(self, method, data, concept, **context):
         name = data['name']
         value = data['value']
         field = data['field']
 
-        fdata = method(name, value, field, concept, **context)
+        fdata = method(value, field=field, name=name,
+            concept=concept, **context)
 
         if type(fdata) is dict:
             data.update(fdata)
@@ -111,19 +113,18 @@ class Formatter(object):
             data['value'] = fdata
         return data
 
-    def process_multiple(self, method, values, concept, **context):
+    def _process_multiple(self, method, values, concept, **context):
         # The output of a method that process multiple values
         # must return an OrderedDict or a sequence of key-value
         # pairs that can be used to create an OrderedDict
         fdata = method(values, concept, **context)
-
         if not isinstance(fdata, OrderedDict):
-            values.update(fdata)
-        else:
-            values = fdata
-        return values
+            output = deepcopy(values)
+            ouput.update(fdata)
+            return output
+        return fdata
 
-    def to_string(self, name, value, field, concept, **context):
+    def to_string(self, value, field=None, name=None, concept=None, **context):
         # attempt to coerce non-strings to strings. depending on the data
         # types that are being passed into this, this may not be good
         # enough for certain datatypes or complext data structures
@@ -131,7 +132,7 @@ class Formatter(object):
             return u''
         return force_unicode(value, strings_only=False)
 
-    def to_bool(self, name, value, field, concept, **context):
+    def to_boolean(self, value, field=None, name=None, concept=None, **context):
         # if value is native True or False value, return it
         # Change value to bool if value is a string of false or true
         if type(value) is bool:
@@ -142,7 +143,7 @@ class Formatter(object):
             return False
         raise Exception('Cannot convert {0} to boolean'.format(value))
 
-    def to_number(self, name, value, field, concept, **context):
+    def to_number(self, value, field=None, name=None, concept=None, **context):
         # attempts to convert a number. Starting with ints and floats
         # Eventually create to_decimal using the decimal library.
         if type(value) is int or type(value) is float:
@@ -153,11 +154,11 @@ class Formatter(object):
             value = float(value)
         return value
 
-    def to_coded(self, name, value, field, concept, **context):
+    def to_coded(self, value, field, name=None, concept=None, **context):
         # attempts to convert value to its coded representation
         return field.coded_values[value]
 
-    def to_raw(self, name, value, field, concept, **context):
+    def to_raw(self, value, field, name=None, concept=None, **context):
         return value
 
 
