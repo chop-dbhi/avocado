@@ -1,13 +1,6 @@
-from django.conf.global_settings import *
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': '',                      # Or path to database file if using sqlite3.
-        'USER': '',                      # Not used with sqlite3.
-        'PASSWORD': '',                  # Not used with sqlite3.
-        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+        'ENGINE': 'django.db.backends.sqlite3',
     }
 }
 
@@ -18,9 +11,25 @@ MODELTREES = {
 }
 
 INSTALLED_APPS = (
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
     'avocado',
     'avocado.meta',
     'avocado.tests',
 )
+
+COVERAGE_MODULES = (
+    'avocado.meta.formatters',
+    'avocado.meta.exporters._base',
+    'avocado.meta.exporters._csv',
+    'avocado.meta.exporters._excel',
+    'avocado.meta.exporters._sas',
+    'avocado.meta.exporters._r',
+#    'avocado.meta.logictree',
+    'avocado.meta.managers',
+    'avocado.meta.mixins',
+    'avocado.meta.models',
+    'avocado.meta.operators',
+    'avocado.meta.translators',
+    'avocado.meta.utils',
+)
+
+TEST_RUNNER = 'avocado.tests.coverage_test.CoverageTestRunner'
