@@ -65,18 +65,22 @@ class ExportTestCase(TestCase):
         exporter.export(buff)
         buff.seek(0)
         self.assertEqual(buff.read(), 'name,salary,first_name,last_name,is_manager\r\nProgrammer,15000,Eric,Smith,1\r\nAnalyst,20000,Erin,Jones,0\r\nProgrammer,15000,Erick,Smith,0\r\nAnalyst,20000,Aaron,Harris,0\r\nProgrammer,15000,Zac,Cook,0\r\nAnalyst,20000,Mel,Brook,0\r\n')
+        os.remove('csv_export.csv')
 
     def test_excel(self):
         exporter = ExcelExporter(self.query, self.concepts)
         exporter.export('excel_export.xlsx', virtual=False)
         self.assertTrue(os.path.exists('excel_export.xlsx'))
+        os.remove('excel_export.xlsx')
 
     def test_sas(self):
         exporter = SasExporter(self.query, self.concepts)
         exporter.export('sas_export.zip')
         self.assertTrue(os.path.exists('sas_export.zip'))
+        os.remove('sas_export.zip')
 
     def test_r(self):
         exporter = RExporter(self.query, self.concepts)
         exporter.export('r_export.zip')
         self.assertTrue(os.path.exists('r_export.zip'))
+        os.remove('r_export.zip')
