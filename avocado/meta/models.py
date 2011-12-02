@@ -8,6 +8,7 @@ except ImportError:
 from django import forms
 from django.db import models, transaction
 from django.contrib.sites.models import Site
+from django.contrib.auth.models import Group
 from django.utils.encoding import smart_unicode
 from django.db.models.fields import FieldDoesNotExist
 from django.utils.importlib import import_module
@@ -89,13 +90,6 @@ class Field(Base):
     model_name = models.CharField(max_length=50)
     field_name = models.CharField(max_length=50)
 
-    # certain fields may not be relevant or appropriate for all
-    # sites being deployed. this is primarily for preventing exposure of
-    # private data from certain sites. for example, there may and internal
-    # and external deployment of the same site. the internal site has full
-    # access to all fields, while the external may have a limited set.
-    sites = models.ManyToManyField(Site, blank=True)
-
     # an optional translator which customizes input query conditions
     # to a format which is suitable for the database
     translator = models.CharField(max_length=100, blank=True, null=True,
@@ -109,6 +103,15 @@ class Field(Base):
     # enables this field to be accessible for use. when ``published``
     # is false, it is globally not accessible.
     published = models.BooleanField(default=False)
+
+    # certain fields may not be relevant or appropriate for all
+    # sites being deployed. this is primarily for preventing exposure of
+    # private data from certain sites. for example, there may and internal
+    # and external deployment of the same site. the internal site has full
+    # access to all fields, while the external may have a limited set.
+    sites = models.ManyToManyField(Site, blank=True)
+
+    group = models.ForeignKey(Group, null=True, blank=True)
 
     objects = managers.FieldManager()
 
@@ -334,12 +337,14 @@ class Concept(Base):
     # denotes whether this concept should exposed for data exporting. this
     # should be decided based on the underlying data representing this
     # concept.
-    select_enabled = models.BooleanField(default=True)
+    exportable = models.BooleanField('Is this data exportable?', default=True)
 
     # denotes whether this concept will be exposed as an interface to define
     # conditions against. concepts composed of inter-related or contextually
     # simliar fields are usually most appropriate for this option
-    where_enabled = models.BooleanField(default=True)
+    conditional = models.BooleanField('Are these fields conditional?', default=True)
+
+    objects = managers.ConceptManager()
 
     class Meta(object):
         app_label = 'avocado'
@@ -356,10 +361,8 @@ class Concept(Base):
         return self.fields.count()
 
     def get_formatter(self):
-        " Returns a formatter instance "
-        f = formatters.registry[self.name]()
-        f.length = len(self)
-        return f
+        "Returns a formatter instance"
+        return formatters.registry[self.formatter]
 
     def _get_formatter_value(self, cfield, value, name=None):
         field = cfield.field
@@ -399,9 +402,8 @@ class ConceptField(models.Model):
     name = models.CharField(max_length=50, null=True, blank=True)
     order = models.FloatField(null=True)
 
-    field = models.ForeignKey(Field,
-            related_name="conceptfields")
-    concept = models.ForeignKey(Concept, related_name="conceptfields")
+    field = models.ForeignKey(Field, related_name='conceptfields')
+    concept = models.ForeignKey(Concept, related_name='conceptfields')
     created = models.DateTimeField(editable=False)
     modified = models.DateTimeField(editable=False)
 
