@@ -18,17 +18,29 @@ class BaseExporter(object):
         self.queryset = queryset
         self.concepts = concepts
 
-    def _get_raw_query(self, fields):
+    def _get_rows(self, fields):
         return self.queryset.select(*fields, inclue_pk=False)
 
-    def _read_row(self, row, params):
+    def _format_row(self, row, params):
         for i, (keys, length, formatter) in enumerate(params):
             part, row = row[:length], row[length:]
             values = OrderedDict(zip(keys, part))
             yield formatter(values, self.preferred_formats)
 
     def _get_keys(self, fields):
-        return [f.field_name for f in fields]
+        # Best case scenario, no conflicts, return as is. Otherwise
+        # duplicates found will be suffixed with a '_N' where N is the
+        # occurred position.
+        keys = [f.field_name for f in fields]
+
+        if len(set(keys)) != len(fields):
+            cnts = {}
+            for i, key in enumerate(keys):
+                if keys.count(key) > 1:
+                    cnts.setdefault(key, 0)
+                    keys[i] = '{}_{}'.format(key, cnts[key])
+                    cnts[key] += 1
+        return keys
 
     def read(self, concepts=None):
         concepts = concepts or self.concepts
@@ -42,8 +54,8 @@ class BaseExporter(object):
             formatter = registry[concept.formatter](cfields)
             params.append((self._get_keys(fields), len(cfields), formatter))
 
-        for row in iter(self._get_raw_query(select_fields)):
-            yield self._read_row(row, params)
+        for row in iter(self._get_rows(select_fields)):
+            yield self._format_row(row, params)
 
     def write(self, *args, **kwargs):
         raise NotImplemented
