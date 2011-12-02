@@ -5,7 +5,7 @@ from avocado.meta.exporters._base import BaseExporter
 class ExcelExporter(BaseExporter):
     preferred_formats = ('boolean', 'number', 'string')
 
-    def export(self, buff, virtual=True):
+    def write(self, buff, virtual=True):
         """ Creates an XML based excel spreadsheet
         `buff` - either a file name or a file-like object to be
             written to.

@@ -41,7 +41,7 @@ class RExporter(BaseExporter):
             level += ' ,'
         return factor, level
 
-    def export(self, buff):
+    def write(self, buff):
         zip_file = ZipFile(buff, 'w')
         script = StringIO()
 
@@ -79,7 +79,7 @@ class RExporter(BaseExporter):
         csv_file = StringIO()
         csv_export = CSVExporter(self.queryset, self.concepts)
         csv_export.preferred_formats = self.preferred_formats
-        zip_file.writestr('data.csv', csv_export.export(csv_file).getvalue())
+        zip_file.writestr('data.csv', csv_export.write(csv_file).getvalue())
         csv_file.close()
 
         zip_file.close()

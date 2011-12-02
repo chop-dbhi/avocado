@@ -4,7 +4,7 @@ from avocado.meta.exporters._base import BaseExporter
 class CSVExporter(BaseExporter):
     preferred_formats = ('number', 'string')
 
-    def export(self, buff):
+    def write(self, buff):
         """Export to csv method
         `buff` - file-like object that is being written to
         """

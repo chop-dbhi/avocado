@@ -45,5 +45,5 @@ class BaseExporter(object):
         for row in iter(self._get_raw_query(select_fields)):
             yield self._read_row(row, params)
 
-    def export(self, *args, **kwargs):
+    def write(self, *args, **kwargs):
         raise NotImplemented

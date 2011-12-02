@@ -8,6 +8,7 @@ from avocado.meta.exporters._csv import CSVExporter
 from avocado.meta.exporters._excel import ExcelExporter
 from avocado.meta.exporters._sas import SasExporter
 from avocado.meta.exporters._r import RExporter
+from avocado.meta.exporters._json import JSONExporter
 
 class ExportTestCase(TestCase):
     fixtures = ['export_data.yaml']
@@ -56,25 +57,32 @@ class ExportTestCase(TestCase):
     def test_csv(self):
         buff = open('csv_export.csv', 'wb+')
         exporter = CSVExporter(self.query, self.concepts)
-        exporter.export(buff)
+        exporter.write(buff)
         buff.seek(0)
         self.assertEqual(buff.read(), 'name,salary,first_name,last_name,is_manager\r\nProgrammer,15000,Eric,Smith,1\r\nAnalyst,20000,Erin,Jones,0\r\nProgrammer,15000,Erick,Smith,0\r\nAnalyst,20000,Aaron,Harris,0\r\nProgrammer,15000,Zac,Cook,0\r\nAnalyst,20000,Mel,Brook,0\r\n')
         os.remove('csv_export.csv')
 
     def test_excel(self):
         exporter = ExcelExporter(self.query, self.concepts)
-        exporter.export('excel_export.xlsx', virtual=False)
+        exporter.write('excel_export.xlsx', virtual=False)
         self.assertTrue(os.path.exists('excel_export.xlsx'))
         os.remove('excel_export.xlsx')
 
     def test_sas(self):
         exporter = SasExporter(self.query, self.concepts)
-        exporter.export('sas_export.zip')
+        exporter.write('sas_export.zip')
         self.assertTrue(os.path.exists('sas_export.zip'))
         os.remove('sas_export.zip')
 
     def test_r(self):
         exporter = RExporter(self.query, self.concepts)
-        exporter.export('r_export.zip')
+        exporter.write('r_export.zip')
         self.assertTrue(os.path.exists('r_export.zip'))
         os.remove('r_export.zip')
+
+    def test_json(self):
+        exporter = JSONExporter(self.query, self.concepts)
+        buff = open('json_export.json', 'wb+')
+        exporter.write(buff)
+        os.remove('json_export.json')
+
