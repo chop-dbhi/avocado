@@ -23,6 +23,7 @@ COVERAGE_MODULES = (
     'avocado.meta.exporters._excel',
     'avocado.meta.exporters._sas',
     'avocado.meta.exporters._r',
+    'avocado.meta.exporters._json',
 #    'avocado.meta.logictree',
     'avocado.meta.managers',
     'avocado.meta.mixins',
