@@ -1,5 +1,3 @@
-from copy import deepcopy
-
 try:
     from collections import OrderedDict
 except ImportError:
@@ -28,29 +26,26 @@ class Formatter(object):
         ::
 
             values = OrderedDict({
-                'first_name': {
-                    'name': 'First Name',
-                    'value': 'Bob',
-                    'field': <Field "First Name">),
-                },
-                'last_name': {
-                    'name': 'Last Name',
-                    'value': 'Smith',
-                    'field': <Field "Last Name">),
-                },
+                'first_name': 'Bob',
+                'last_name': 'Smith',
             })
 
     """
     name = ''
 
-    def __call__(self, values, concept, preferred_formats=None, **context):
-        if not values:
-            raise ValueError('No values supplied')
+    def __init__(self, cfields, **context):
+        self.cfields = OrderedDict((x.field.field_name, x) \
+            for x in cfields)
+        self.context = context
 
-        if preferred_formats:
-            preferred_formats = list(preferred_formats) + ['raw']
-        else:
-            preferred_formats = ['raw']
+    def __call__(self, values, preferred_formats=None):
+        # Create a copy of the preferred formats since each set values may
+        # be processed slightly differently (e.g. mixed data type in column)
+        # which could cause exceptions that would not be present during
+        # processing of other values
+        if not preferred_formats:
+            preferred_formats = []
+        preferred_formats = list(preferred_formats) + ['raw']
 
         # Iterate over all preferred formats and attempt to process the values.
         # For formatter methods that process all values must be tracked and
@@ -75,18 +70,25 @@ class Formatter(object):
             # each value is handled independently
             if getattr(method, 'process_multiple', False):
                 try:
-                    return self._process_multiple(method, values, concept, **context)
+                    return method(values, cfields=self.cfields, **self.context)
                 # Remove from the preferred formats list since it failed
-                except Exception:
+                except:
                     preferred_formats.pop(0)
 
-        output = deepcopy(values)
+        # The output is independent of the input. Formatters may output more
+        # or less values than what was entered.
+        output = OrderedDict()
+
         # Attempt to process each
-        for key, data in output.iteritems():
+        for i, (key, value) in enumerate(values.iteritems()):
             for f in preferred_formats:
                 method = getattr(self, 'to_{0}'.format(f))
                 try:
-                    self._process_single(method, data, concept, **context)
+                    fvalue = method(value, cfield=self.cfields[key], **self.context)
+                    if type(fvalue) is dict:
+                        output.update(fvalue)
+                    else:
+                        output[key] = fvalue
                     break
                 except:
                     pass
@@ -98,33 +100,7 @@ class Formatter(object):
     def __unicode__(self):
         return u'%s' % self.name
 
-    def _process_single(self, method, data, concept, **context):
-        name = data['name']
-        value = data['value']
-        field = data['field']
-
-        fdata = method(value, field=field, name=name,
-            concept=concept, **context)
-
-        if type(fdata) is dict:
-            data.update(fdata)
-        # assume single value
-        else:
-            data['value'] = fdata
-        return data
-
-    def _process_multiple(self, method, values, concept, **context):
-        # The output of a method that process multiple values
-        # must return an OrderedDict or a sequence of key-value
-        # pairs that can be used to create an OrderedDict
-        fdata = method(values, concept, **context)
-        if not isinstance(fdata, OrderedDict):
-            output = deepcopy(values)
-            ouput.update(fdata)
-            return output
-        return fdata
-
-    def to_string(self, value, field=None, name=None, concept=None, **context):
+    def to_string(self, value, cfield, **context):
         # attempt to coerce non-strings to strings. depending on the data
         # types that are being passed into this, this may not be good
         # enough for certain datatypes or complext data structures
@@ -132,7 +108,7 @@ class Formatter(object):
             return u''
         return force_unicode(value, strings_only=False)
 
-    def to_boolean(self, value, field=None, name=None, concept=None, **context):
+    def to_boolean(self, value, cfield, **context):
         # if value is native True or False value, return it
         # Change value to bool if value is a string of false or true
         if type(value) is bool:
@@ -143,7 +119,7 @@ class Formatter(object):
             return False
         raise Exception('Cannot convert {0} to boolean'.format(value))
 
-    def to_number(self, value, field=None, name=None, concept=None, **context):
+    def to_number(self, value, cfield, **context):
         # attempts to convert a number. Starting with ints and floats
         # Eventually create to_decimal using the decimal library.
         if type(value) is int or type(value) is float:
@@ -154,11 +130,14 @@ class Formatter(object):
             value = float(value)
         return value
 
-    def to_coded(self, value, field, name=None, concept=None, **context):
+    def to_coded(self, value, cfield, **context):
         # attempts to convert value to its coded representation
-        return field.coded_values[value]
+        for key, cvalue in cfield.field.coded_values:
+            if key == value:
+                return cvalue
+        raise ValueError('No coded value for {}'.format(value))
 
-    def to_raw(self, value, field, name=None, concept=None, **context):
+    def to_raw(self, value, cfield, **context):
         return value
 
 

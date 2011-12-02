@@ -208,12 +208,6 @@ class Field(Base):
         return self.enable_choices or self.datatype == 'boolean'
 
     @property
-    def values(self):
-        "Introspects the data and returns a distinct list of the values."
-        return self.model.objects.values_list(self.field_name,
-            flat=True).order_by(self.field_name).distinct()
-
-    @property
     def choices(self):
         "Returns a distinct set of choices for this field."
         if self.has_choices:
@@ -223,17 +217,6 @@ class Field(Base):
             svalues = (smart_unicode(DATA_CHOICES_MAP.get(v, v)) for v in values)
             return zip(values, svalues)
 
-    @property
-    def coded_values(self):
-        "Returns a distinct set of coded values for this field"
-        if self.has_choices:
-            coded = []
-            nvalues = []
-            for i, v in enumerate(self.values):
-                coded.append(i)
-                nvalues.append(v)
-            return zip(nvalues, coded)
-
     def translate(self, operator=None, value=None, using=None, **context):
         trans = translators.registry[self.translator]()
         return trans(self, operator, value, using, **context)
@@ -242,12 +225,24 @@ class Field(Base):
         tree = trees[using]
         return tree.query_string_for_field(self.field, operator=operator)
 
-    def distribution(self, *args, **kwargs):
-        "calls the distribution from avocado.meta.utils"
+    @property
+    def values(self):
+        "Introspects the data and returns a distinct list of the values."
+        return self.model.objects.values_list(self.field_name,
+            flat=True).order_by(self.field_name).distinct()
 
+    @property
+    def coded_values(self):
+        "Returns a distinct set of coded values for this field"
+        if self.has_choices:
+            values = list(self.values)
+            return zip(values, xrange(len(values)))
+
+    def distribution(self, *args, **kwargs):
+        "Returns a binned distribution of this field's data."
         name = self.field_name
         queryset = self.model.objects.values(name)
-        return utils.distribution(queryset, name, self.data_type, *args, **kwargs)
+        return utils.distribution(queryset, name, self.datatype, *args, **kwargs)
 
     def formfield(self, **kwargs):
         """Returns the default formfield class for the represented field
@@ -359,43 +354,6 @@ class Concept(Base):
 
     def __len__(self):
         return self.fields.count()
-
-    def get_formatter(self):
-        "Returns a formatter instance"
-        return formatters.registry[self.formatter]
-
-    def _get_formatter_value(self, cfield, value, name=None):
-        field = cfield.field
-
-        key = '{0}'.format(field.field_name)
-
-        if name is None:
-            name = cfield.name or field.name
-
-        data = {
-            'name': name,
-            'value': value,
-            'field': field,
-        }
-
-        return {key: data}
-
-    def get_formatter_values(self, values):
-        """Returns an ``OrderedDict`` representing a mapping between the
-        associated fields and the given values.
-        """
-        new_values = OrderedDict()
-        cfields = self.conceptfields.select_related('field')
-        if len(cfields) == 1:
-            tup = self._get_formatter_value(cfields[0], value=values[0],
-                name=cfields[0].name)
-            new_values.update(tup)
-        else:
-            for i, cfield in enumerate(cfields):
-                tup = self._get_formatter_value(cfield, value=values[i])
-                new_values.update(tup)
-
-        return new_values
 
 
 class ConceptField(models.Model):

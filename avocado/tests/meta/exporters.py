@@ -4,7 +4,6 @@ from django.core.management import call_command
 from avocado.meta.models import Field, Concept, ConceptField
 from avocado.tests import models
 
-from avocado.meta.exporters._base import BaseExporter
 from avocado.meta.exporters._csv import CSVExporter
 from avocado.meta.exporters._excel import ExcelExporter
 from avocado.meta.exporters._sas import SasExporter
@@ -54,11 +53,6 @@ class ExportTestCase(TestCase):
 
         self.concepts = [employee_concept]
 
-    def test_get_raw_query(self):
-        exporter = BaseExporter(self.query, self.concepts)
-        query = exporter._get_raw_query(self.concepts)
-        self.assertEqual(query.sql, 'SELECT "tests_title"."name", "tests_title"."salary", "tests_employee"."first_name", "tests_employee"."last_name", "tests_employee"."is_manager" FROM "tests_employee" LEFT OUTER JOIN "tests_title" ON ("tests_employee"."title_id" = "tests_title"."id")')
-          
     def test_csv(self):
         buff = open('csv_export.csv', 'wb+')
         exporter = CSVExporter(self.query, self.concepts)

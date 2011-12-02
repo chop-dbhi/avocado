@@ -25,6 +25,10 @@ class FieldManager(models.Manager):
 
         return self.get_query_set().filter(sites, **kwargs).distinct()
 
+    def get_by_natural_key(self, app_name, model_name, field_name):
+        return self.get_query_set().get(app_name=app_name, model_name=model_name,
+            field_name=field_name)
+
     def public(self, user=None):
         "Returns all publically available fields given a user."
         if user and user.is_authenticated():

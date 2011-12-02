@@ -11,9 +11,7 @@ class NotRegistered(Exception):
 
 
 class Registry(object):
-    """Keeps track of registered classes along with named instances. Only one
-    instance is created for a given class, so the instance should be stateless.
-    """
+    "Simple class that keeps track of a set of registered classes."
     def __init__(self, default=None):
         self.default = default
         self._registry = {}

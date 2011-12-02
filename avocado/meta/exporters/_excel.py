@@ -23,23 +23,27 @@ class ExcelExporter(BaseExporter):
         # Create the Data Dictionary Worksheet
         ws_dict.append(('Field Name', 'Data Type', 'Description',
             'Concept Name', 'Concept Discription'))
-        headers = []
+
         for c in self.concepts:
             cfields = c.conceptfields.select_related('field')
             for cfield in cfields:
-                d = cfield.field
-                ws_dict.append((d.field_name, d.datatype, d.description,
+                field = cfield.field
+                ws_dict.append((field.field_name, field.datatype, field.description,
                     c.name, c.description))
-                headers.append(d.field_name)
-        ws_data.append(headers)
 
+        header = []
         # Create the data worksheet
         for i, row_gen in enumerate(self.read()):
             row = []
             for data in row_gen:
-                values = data.values()
-                for value in values:
-                    row.append(value['value'])
+                if i == 0:
+                    # Build up header row
+                    header.extend(data.keys())
+                # Add formatted section to the row
+                row.extend(data.values())
+            # Write headers on first iteration
+            if i == 0:
+                ws_data.append(header)
             ws_data.append(row)
 
         # Save the workbook
