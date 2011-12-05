@@ -1,7 +1,7 @@
-from django.test import TestCase
+from avocado.tests.base import BaseTestCase
 from avocado.meta.operators import *
 
 __all__ = ('OperatorTestCase',)
 
-class OperatorTestCase(TestCase):
+class OperatorTestCase(BaseTestCase):
     pass

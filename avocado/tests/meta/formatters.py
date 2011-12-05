@@ -1,6 +1,5 @@
-from django.test import TestCase
+from avocado.tests.base import BaseTestCase
 from avocado.meta.formatters import Formatter
-from django.core.management import call_command
 from avocado.meta.models import Field, Concept, ConceptField
 
 try:
@@ -10,12 +9,8 @@ except ImportError:
 
 __all__ = ('FormatterTestCase',)
 
-class FormatterTestCase(TestCase):
-    fixtures = ['format_data.yaml']
-
+class FormatterTestCase(BaseTestCase):
     def setUp(self):
-        call_command('avocado', 'sync', 'tests', verbosity=0)
-
         name_field = Field.objects.get_by_natural_key('tests',
             'title', 'name')
         salary_field = Field.objects.get_by_natural_key('tests',

@@ -11,6 +11,9 @@ MODELTREES = {
 }
 
 INSTALLED_APPS = (
+    'django.contrib.sites',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
     'avocado',
     'avocado.meta',
     'avocado.tests',

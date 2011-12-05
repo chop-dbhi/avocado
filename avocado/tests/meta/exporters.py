@@ -1,8 +1,7 @@
 import os
-from django.test import TestCase
-from django.core.management import call_command
-from avocado.meta.models import Field, Concept, ConceptField
 from avocado.tests import models
+from avocado.tests.base import BaseTestCase
+from avocado.meta.models import Field, Concept, ConceptField
 
 from avocado.meta.exporters._csv import CSVExporter
 from avocado.meta.exporters._excel import ExcelExporter
@@ -10,11 +9,8 @@ from avocado.meta.exporters._sas import SasExporter
 from avocado.meta.exporters._r import RExporter
 from avocado.meta.exporters._json import JSONExporter
 
-class ExportTestCase(TestCase):
-    fixtures = ['export_data.yaml']
+class ExportTestCase(BaseTestCase):
     def setUp(self):
-        call_command('avocado', 'sync', 'tests', verbosity=0)
-
         self.query = models.Employee.objects.all()
 
         first_name_field = Field.objects.get_by_natural_key('tests',
@@ -59,7 +55,7 @@ class ExportTestCase(TestCase):
         exporter = CSVExporter(self.query, self.concepts)
         exporter.write(buff)
         buff.seek(0)
-        self.assertEqual(buff.read(), 'name,salary,first_name,last_name,is_manager\r\nProgrammer,15000,Eric,Smith,1\r\nAnalyst,20000,Erin,Jones,0\r\nProgrammer,15000,Erick,Smith,0\r\nAnalyst,20000,Aaron,Harris,0\r\nProgrammer,15000,Zac,Cook,0\r\nAnalyst,20000,Mel,Brook,0\r\n')
+        self.assertEqual(buff.read(), 'name,salary,first_name,last_name,is_manager\r\nProgrammer,15000,Eric,Smith,1\r\nAnalyst,20000,Erin,Jones,0\r\nProgrammer,15000,Erick,Smith,0\r\nAnalyst,20000,Aaron,Harris,0\r\nProgrammer,15000,Zac,Cook,0\r\nAnalyst,20000,Mel,Brooks,0\r\n')
         os.remove('csv_export.csv')
 
     def test_excel(self):

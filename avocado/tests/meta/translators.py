@@ -3,7 +3,6 @@ from avocado.tests.base import BaseTestCase
 __all__ = ('TranslatorTestCase',)
 
 class TranslatorTestCase(BaseTestCase):
-
     def test(self):
         trans = self.is_manager.translate(value=False)
         self.assertEqual(str(trans['condition']), "(AND: ('is_manager__exact', False), ('id__isnull', False))")

@@ -1,15 +1,12 @@
-from django.test import TestCase
-
+from avocado.tests.base import BaseTestCase
 from avocado.meta.utils import distribution
-from avocado.tests import models
+from avocado.tests.models import Title
 
 __all__ = ('DistributionTestCase',)
 
-class DistributionTestCase(TestCase):
-    fixtures = ['distribution_data.yaml']
-
+class DistributionTestCase(BaseTestCase):
     def setUp(self):
-        self.title_qs = models.Title.objects.all().values_list('salary')
+        self.title_qs = Title.objects.all().values_list('salary')
 
     def test_distribution_empty(self):
         # Test Empty queryset
@@ -17,16 +14,5 @@ class DistributionTestCase(TestCase):
         self.assertEqual(distribution(empty_title, 'salary', 'number'), [])
 
     def test_distribution_flat(self):
-        # test flat queryset
-        flat_qs = self.title_qs.filter(salary=15)
-        self.assertEqual(distribution(flat_qs, 'salary', 'number'),
-                [(15, 6)])
-
-        self.assertEqual(distribution(self.title_qs, 'salary', 'number'),
-                [(10, 1), (15, 6), (45, 1)])
-
-    def test_distribution_one(self):
-        # test queryset with 1 item
-        one_qs = self.title_qs.filter(salary=45)
-        self.assertEqual(distribution(one_qs, 'salary', 'number'),
-                [(45, 1)])
+        self.assertEqual(distribution(self.title_qs.all(), 'salary', 'number'),
+                [(10000.0, 1), (200000.0, 1)])

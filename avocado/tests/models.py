@@ -9,12 +9,14 @@ class Title(models.Model):
     salary = models.IntegerField(null=True)
     boss = models.NullBooleanField(default=False)
 
+
 class Employee(models.Model):
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     title = models.ForeignKey(Title, null=True)
     office = models.ForeignKey(Office)
     is_manager = models.NullBooleanField(default=False)
+
 
 class Meeting(models.Model):
     attendees = models.ManyToManyField(Employee)
