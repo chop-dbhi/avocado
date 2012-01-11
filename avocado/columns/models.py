@@ -49,7 +49,7 @@ class Column(Concept, mixins.Mixin):
         aliases = []
         for f in fields:
             queryset = modeltree.add_joins(f.model, queryset, **kwargs)
-            aliases.append((f.model._meta.db_table, f.field_name))
+            aliases.append((f.model._meta.db_table, f.field.column))
         return (queryset, aliases)
 
     def get_ordering_for_queryset(self, direction='asc', using=DEFAULT_MODELTREE_ALIAS):

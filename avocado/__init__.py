@@ -3,7 +3,7 @@ __version_info__ = {
     'minor': 9,
     'micro': 0,
     'releaselevel': 'beta',
-    'serial': 8
+    'serial': 9
 }
 
 def get_version(short=False):
