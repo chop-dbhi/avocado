@@ -1,9 +1,9 @@
 from django.db.models import Q
 from django.core.exceptions import ValidationError
 
+from avocado import operators
+from avocado.core import loader
 from avocado.conf import settings
-from avocado.meta import operators
-from avocado.utils import loader
 
 DEFAULT_OPERATOR = 'exact'
 DATATYPE_OPERATOR_MAP = settings.DATATYPE_OPERATOR_MAP
@@ -103,7 +103,7 @@ class Translator(object):
         if field.field.primary_key:
             return Q()
 
-        from avocado.meta.models import Field
+        from avocado.models import Field
         name = field.model._meta.pk.name
 
         # instantiate a new object to utilize the shortcut methods

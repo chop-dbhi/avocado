@@ -2,8 +2,8 @@ from zipfile import ZipFile
 from cStringIO import StringIO
 from string import punctuation
 
-from avocado.meta.exporters._base import BaseExporter
-from avocado.meta.exporters._csv import CSVExporter
+from _base import BaseExporter
+from _csv import CSVExporter
 
 class RExporter(BaseExporter):
     preferred_formats = ('coded', 'number', 'string')

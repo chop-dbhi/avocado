@@ -3,7 +3,7 @@ from optparse import make_option
 from django.db import models
 from django.core.management.base import LabelCommand
 
-from avocado.meta.models import Field, Domain
+from avocado.models import Field, Domain
 
 class Command(LabelCommand):
     """

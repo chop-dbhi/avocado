@@ -1,7 +1,7 @@
 from optparse import make_option
 from django.core.management.base import NoArgsCommand
 
-from avocado.meta.models import Field
+from avocado.models import Field
 
 class Command(NoArgsCommand):
     """

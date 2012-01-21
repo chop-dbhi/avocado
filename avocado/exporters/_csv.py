@@ -1,5 +1,5 @@
 import csv
-from avocado.meta.exporters._base import BaseExporter
+from _base import BaseExporter
 
 class CSVExporter(BaseExporter):
     preferred_formats = ('number', 'string')

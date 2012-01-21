@@ -1,6 +1,6 @@
 from django.test import TestCase
 from django.core.exceptions import ImproperlyConfigured
-from avocado.utils.loader import Registry, AlreadyRegistered
+from avocado.core.loader import Registry, AlreadyRegistered
 
 __all__ = ('RegistryTestCase',)
 

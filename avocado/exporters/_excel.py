@@ -1,6 +1,6 @@
 from openpyxl.workbook import Workbook
 from openpyxl.writer.excel import save_virtual_workbook
-from avocado.meta.exporters._base import BaseExporter
+from _base import BaseExporter
 
 class ExcelExporter(BaseExporter):
     preferred_formats = ('boolean', 'number', 'string')

@@ -1,6 +1,6 @@
 import json
 import inspect
-from avocado.meta.exporters._base import BaseExporter
+from _base import BaseExporter
 
 class JSONGeneratorEncoder(json.JSONEncoder):
     "Handle generator objects and expressions."

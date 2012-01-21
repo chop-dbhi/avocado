@@ -1,5 +1,5 @@
 from avocado.tests.base import BaseTestCase
-from avocado.meta.utils import distribution
+from avocado.core.binning import distribution
 from avocado.tests.models import Title
 
 __all__ = ('DistributionTestCase',)

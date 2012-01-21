@@ -1,13 +1,9 @@
 import os
 from avocado.tests import models
 from avocado.tests.base import BaseTestCase
-from avocado.meta.models import Field, Concept, ConceptField
-
-from avocado.meta.exporters._csv import CSVExporter
-from avocado.meta.exporters._excel import ExcelExporter
-from avocado.meta.exporters._sas import SasExporter
-from avocado.meta.exporters._r import RExporter
-from avocado.meta.exporters._json import JSONExporter
+from avocado.models import Field, Concept, ConceptField
+from avocado.exporters import (CSVExporter, ExcelExporter, SasExporter,
+    RExporter, JSONExporter)
 
 class ExportTestCase(BaseTestCase):
     def setUp(self):

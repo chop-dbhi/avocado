@@ -4,7 +4,7 @@ except ImportError:
     from ordereddict import OrderedDict
 
 from django.utils.encoding import force_unicode
-from avocado.utils import loader
+from avocado.core import loader
 from avocado.conf import settings
 
 DATA_CHOICES_MAP = settings.DATA_CHOICES_MAP

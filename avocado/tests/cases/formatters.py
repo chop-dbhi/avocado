@@ -1,6 +1,6 @@
 from avocado.tests.base import BaseTestCase
-from avocado.meta.formatters import Formatter
-from avocado.meta.models import Field, Concept, ConceptField
+from avocado.formatters import Formatter
+from avocado.models import Field, Concept, ConceptField
 
 try:
     from collections import OrderedDict

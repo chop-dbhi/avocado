@@ -1,6 +1,6 @@
 from django.test import TestCase
 from django.core.management import call_command
-from avocado.meta.models import Field
+from avocado.models import Field
 
 __all__ = ('BaseTestCase',)
 
