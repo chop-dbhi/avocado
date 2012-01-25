@@ -1,9 +1,9 @@
+import os
+import sys
+
 from distutils.core import setup
 from distutils.command.install_data import install_data
 from distutils.command.install import INSTALL_SCHEMES
-
-import os
-import sys
 
 BASE_PACKAGE = 'avocado'
 
@@ -70,11 +70,18 @@ if len(sys.argv) > 1 and sys.argv[1] == 'bdist_wininst':
 
 version = __import__(BASE_PACKAGE).get_version()
 
+install_requires = ['distribute']
+requires = ['django', 'modeltree']
+
+# Ordereddict implementation must be installed for older versions
+if sys.version_info < (2, 7):
+    requires.append('ordereddict')
+
 setup(
     version = version,
     name = 'avocado',
     author = 'Byron Ruth',
-    author_email = 'ruthb@email.chop.edu',
+    author_email = 'b@devel.io',
     description = 'A metadata and data-driven query engine',
     license = 'BSD',
     keywords = 'query metadata',
@@ -83,9 +90,11 @@ setup(
     packages = packages,
     cmdclass = cmdclasses,
 
-    requires = ['django', 'modeltree'],
+    install_requires = install_requires,
+    requires = requires,
 
     data_files = data_files,
+
     classifiers = [
         'Development Status :: 4 - Beta',
         'Framework :: Django',

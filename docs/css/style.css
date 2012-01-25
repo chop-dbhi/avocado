@@ -1,0 +1,111 @@
+body {
+    background: #eee;
+    background-image: url(../img/classy_fabric_light.png);
+    font-size: 14px;
+}
+
+p {
+    font-size: 14px;
+    line-height: 22px;
+}
+
+a:link, a:visited {
+    color: #b5490b;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: normal;
+    color: #7a6612;
+}
+
+h1, h2 {
+    color: #bbb942;
+}
+
+.topbar {
+    box-shadow: 0 2px 3px #ccc;
+}
+
+.topbar-inner {
+    background-image: url(../img/classy_fabric.png);
+}
+
+header {
+    border-bottom: 1px solid #eee;
+    margin-bottom: 5px;
+}
+
+header > * {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+#logo {
+    margin-left: -20px;
+    height: 100px;
+}
+
+hgroup {
+    margin-top: 10px;
+}
+
+hgroup > * {
+    margin: 0;
+}
+
+#content {
+    background-color: #fff;
+    box-shadow: -3px 0 5px #ccc;
+    border-left: 1px solid #ccc;
+    padding: 0 20px;
+    position: fixed;
+    left: 240px;
+    right: 0;
+    top: 40px;
+    bottom: 0;
+    overflow: auto;
+    text-shadow: 0 1px 0 #fff;
+}
+
+span.label {
+    text-shadow: none;
+}
+
+.prettyprint {
+    margin-bottom: 20px;
+}
+
+#sidebar {
+    position: fixed;
+    top: 40px;
+    bottom: 0;
+    left: 0;
+    width: 240px;
+    padding-left: 20px;
+    overflow: auto;
+}
+
+#sidebar h3 a {
+    color: inherit;
+}
+
+#sidebar li, #content li {
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+@media screen and (max-width: 1240px) {
+    .span5 { width: 640px; }
+    .span16 { width: 640px; }
+}
+
+@media screen and (min-width: 1241px) {
+    .row {
+        margin-bottom: 10px;
+    }
+}
+
+@media screen and (min-width: 1581px) {
+    .span5 { width: 640px; }
+    .span16 { width: 640px; }
+}

@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+    <html lang=en>
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        
+        <title>Avocado</title>
+        
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <link rel="stylesheet" href="css/prettify.css">
+        <link rel="stylesheet" href="css/bootstrap.css">
+        <link rel="stylesheet" href="css/style.css">
+    </head>
+    <body>
+
+        <div class="topbar">
+            <div class="topbar-inner">
+                <div class="container-fluid">
+                    <span class="brand">Avocado <span style="font-size: 15px; color: #999">0.9 Beta</span></span>
+                    <ul>
+                        <li><a href="https://github.com/cbmi/avocado/">GitHub Repository</a>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <nav id=sidebar>
+            <h3><a href=#get-started>Get Started</a></h3>
+            <ul class=unstyled>
+                <li><a href=#dependencies>Dependencies</a>
+                <li><a href=#download-install>Download &amp; Install</a>
+                <li><a href=#configure>Configure</a>
+             </ul>
+
+            <h3><a href=#learn>Learn</a></h3>
+            <ul class=unstyled>
+                <li><a href=#background>Background</a>
+                <li><a href=#target-applications>Target Applications</a>
+                <li><a href=#types-metadata>Types of Metadata</a>
+            </ul>
+
+            <h3><a href=#tutorial>Tutorial</a></h3>
+            <ul class=unstyled>
+                <li><a href=#initialize-metadata>Initialize Metadata</a>
+            </ul>
+
+            <h3><a href=#field-api>Field API</a></h3>
+            <ul class=unstyled>
+                <li><a href=#field-model>Field Model</a>
+                <li><a href=#translators>Translators</a>
+            </ul>
+
+            <h3><a href=#the-concept>The "Concept"</h3>
+            <ul class=unstyled>
+                <li><a href=#concept-model>Concept Model</a>
+                <li><a href=#formatters>Formatters</a>
+                <li><a href=#exporters>Exporters</a>
+            </ul>
+        </nav>
+
+        <div id="content">
+
+            <header>
+                <img id=logo src=img/avocado.jpg>
+                <hgroup>
+                    <h1>Avocado</h1>
+                    <h3>Metadata management for Django models</h3>
+                </hgroup>
+            </header>
+
+            <h2 id=get-started>Get Started</h2>
+
+            <section class=row>
+                <span class=span16>
+                    <p>Avocado is a Django app which provides database-driven metadata management
+                    for your models' fields. Sounds exciting, right? Django models contain most
+                    of the necessary <strong>structural</strong> metadata for interfacing with the supported
+                    database backends (via the ORM), but does not provide mechanisms for defining
+                    <strong>descriptive</strong> or <strong>administrative</strong> metadata.</p>
+                </span>
+            </section>
+
+            <h3 id=dependencies>Dependencies</h3>
+
+            <section class=row>
+                <span class=span16>
+                    <ul>
+                        <li><a href=http://www.djangoproject.com>Django 1.3+</a>
+                        <li><a href=https://github.com/cbmi/modeltree>ModelTree</a>
+                        <li><a href=http://pypi.python.org/pypi/ordereddict>ordereddict</a>
+                            (Python 2.6 only)
+                    </ul>
+
+                    <div class="alert-message block-message warning">
+                        <p>It is assumed <a href=http://www.python.org/download/>Python</a> and
+                        <a href=http://pypi.python.org/pypi/setuptools>setuptools</a> are already installed.
+                        If not, follow the previous two links for download and installation instructions.</p>
+                    </div>
+                </span>
+            </section>
+
+            <h3 id=download-install>Download &amp; Install</h3>
+
+            <section class=row>
+                <span class=span16>
+                    <p>Stable releases of Avocado are available on
+                    <a href=http://pypi.python.org/pypi/avocado>PyPI</a>. Install using
+                    <code>pip</code> or <code>easy_install</code>. All dependencies are
+                    installed automatically.</p>
+
+                    <h4>Pip</h4>
+<pre class="prettyprint linenums">
+pip install avocado
+</pre>
+                    <h4>easy_install</h4>
+<pre class="prettyprint linenums">
+easy_install avocado
+</pre>
+
+                </span>
+            </section>
+
+            <h3 id=configure>Configure</h3>
+
+            <section class=row>
+                <span class=span16>
+                    <p>Since this <em>is</em> about metadata managment, it is highly recommended to have the
+                    <a href=https://docs.djangoproject.com/en/1.3/ref/contrib/admin/>Django Admin</a> app
+                    installed. Add <code>avocado</code> to your project setting's
+                    <code>INSTALLED_APPS</code>:</p>
+<pre class="prettyprint linenums">
+INSTALLED_APPS = (
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.messages',
+    'django.contrib.sessions',
+
+    'avocado',
+    ...
+)
+</pre>
+                
+                    <p>&darr; Skip to <a href=#tutorial>Tutorial</a></p>
+                </span>
+            </section>
+
+            <hr>
+
+            <h2 id=learn>Learn</h2>
+
+            <h3 id=background>Background</h3>
+
+            <section class=row>
+                <span class=span16>
+                    <p>Avocado was developed in a clinical research environment where large,
+                    unclean data models are prolific and, not surprisingly, questions about
+                    those data are abundant.</p>
+
+                    <p>Most research projects are either hypothesis-driven or exploratory. In either
+                    case, researchers require access to data typically from multiple sources and
+                    of various types including genotypic data, clinical notes, and imaging data.
+                    Naturally these data live in different systems and each have their own structure.</p>
+
+                    <h5>Scenario</h5>
+
+                    <p>Here is a common result of this kind of scenario.</p>
+
+                    <ol>
+                        <li>Technical team integrates these data using standard extraction,
+                        transformation and loading (ETL) practices and loads this data into a
+                        new database
+                        <li>Technical team says "it's ready" to the reseacher
+                        <li>Researcher looks at them with a blank stare and asks them how to access it
+                        <li>Technical team says, "you have to request from us to run a query"
+                        <li>Researcher continues to stare and proceeds to ask a question in the
+                        context of the <em>black box</em> data model
+                    </ol>
+
+                    <p>Nothing is worse for a researcher to experience the initial hope provided
+                    by a technical team, wait weeks, months or years for their new shiny data resource
+                    to be created and then not at all be accessible.</p>
+
+                    <h5>Solution</h5>
+
+                    <p>The core of Avocado focuses on exposing and managing metadata about
+                    a data model. Though, <em>metadata for the sake of metadata&trade;</em>
+                    is quite useless.</p>
+
+                    <p>Avocado provides various APIs utilizing these metadata to format, export
+                    and ultimately represent the underlying data in a transparent way.</p>
+
+                </span>
+            </section>
+
+            <h3 id=target-applications>Target Applications</h3>
+
+            <section class=row>
+                <span class=span16>
+                    <p>Avocado can be useful for any project. It is most applicable to
+                    project's focusing on reporting, exporting, and querying data.</p>
+                </span>
+            </section>
+
+            <h3 id=types-metadata>Types of Metadata</h3>
+
+            <h5>Structural</h5>
+
+            <section class=row>
+                <span class=span16>
+                    <p>Django's <a href=https://docs.djangoproject.com/en/1.3/ref/models/fields/>model field reference</a>
+                    describes the options available for defining model fields. The field's subclass
+                    (e.g. <code>IntegerField</code>) and the various options passed (e.g. <code>null=True</code>)
+                    contains structural metadata which can be used to understand a field's constraints.</p>
+
+                    <p>A simple example of how this is useful, is to look at how Django's field validation
+                    works. If an integer field is attempted to be saved with a string value, a
+                    <code>ValidationError</code> will be thrown complaining about the type. This is
+                    necessary to know otherwise the database will complain, downstream, about the type.</p>
+                </span>
+            </section>
+
+            <h5>Descriptive</h5>
+
+            <section class=row>
+                <span class=span16>
+                    <p>For any medium to large size data model, describing and managing each field can be
+                    a pain-staking task. Depending on the application, fields (or the respective data) that
+                    are exposed to end-users, by search, form or otherwise, should be informative and that
+                    requires high-quality descriptive metadata.</p>
+
+                    <p>Django provides two field options <code>verbose_name</code> and <code>help_text</code>
+                    that are descriptive metadata, but are hard-coded in the field definition. This is limitation
+                    if that metadata is managed by another party (client or domain expert).</p>
+                </span>
+            </section>
+
+            <h5>Administrative</h5>
+
+            <section class=row>
+                <span class=span16>
+                    <p>For applications which integrate multiple data sources, it can be useful to keep
+                    track of the <em>source</em> information, such as a URI. Likewise, it may be desirable
+                    to restrict access to parts of the data model to certain users, that is end-user must
+                    be <em>authorized</em> to interact with certain data.</p>
+                </span>
+            </section>
+
+            <hr>
+
+            <h2 id=tutorial>Tutorial</h2>
+
+
+            <section class=row>
+                <span class=span16>
+                    <p>We are going to start with two simple models, <code>Author</code> and <code>Book</code>
+                    in our <code>library</code> app.</p>
+
+<pre class="prettyprint linenums">
+# library/models.py
+class Author(models.Model):
+    name = models.CharField(max_length=100)
+
+class Book(models.Model):
+    title = models.CharField(max_length=100)
+    author = models.ForeignKey(Author)
+    pub_date = models.DateField(verbose_name='publication date', null=True)
+</pre>
+                </span>
+            </section>
+
+            <h3 id=initialize-metadata>Initialize Metadata</h3>
+
+            <section class=row>
+                <span class=span16>
+
+                    <p>Avocado comes with an <code>init</code> command which introspects
+                    Django models and creates <code>Field</code> instances representing the model fields.
+                    At least one app label (<code>library</code>) or model label (<code>library.Book</code>)
+                    must be specified.</p>
+
+                    <p>By default, <code>Field</code> instances are not created for primary and foreign
+                    key fields. In practice, <em>key</em> fields are used infrequently, thus they are
+                    not created on initialization. To include key fields as well, add the flag
+                    <code>--include-key-fields</code>.</p>
+
+                    <div class="alert-message block-message warning">
+                        <p>Fields not created using Avocado's <code>init</code> command can be
+                        created in the admin interface. This command exists to provide a starting point,
+                        getting the bulk of the fields created.</p>
+                    </div>
+
+<pre class="prettyprint linenums lang-sh">
+./manage.py avocado init library
+1 field from Author
+2 fields from Book
+</pre>
+                </span>
+            </section>
+
+            <h3 id=try-the-api>Field Data Model</h3>
+
+            <section class=row>
+                <span class=span5>
+                    <p>An Avocado <code>Field</code> represents a single Django model <code>Field</code>
+                    instance. It is mapped by defining the following three attributes. These three uniquely
+                    attributes identify a model field instance.</p>
+
+                    <ul>
+                        <li><code>f.app_name</code> - The name of the app this field comes from
+                        <li><code>f.model_name</code> - The name of the model this field is associated with
+                        <li><code>f.field_name</code> - The attribute name of the field
+                    </ul>
+
+                </span>
+
+                <span class=span11>
+<pre class="prettyprint linenums">
+&gt;&gt;&gt; from avocado.models import Field
+&gt;&gt;&gt; f = Field.objects.get_by_natural_key('library', 'book', 'title')
+&gt;&gt;&gt; f
+&lt;Field 'library.book.title'&gt;
+&gt;&gt;&gt; f.app_name
+'library'
+&gt;&gt;&gt; f.model_name
+'book'
+&gt;&gt;&gt; f.field_name
+'title'
+</pre>
+                    
+                </span>
+            </section>
+
+            <section class=row>
+                <span class=span5>
+                    <p>Additional metadata can be defined for this object to make it more useful
+                    to humans.</p>
+
+                    <ul>
+                        <li><code>f.name</code> - A verbose human readable name of the field
+                        <li><code>f.name_plural</code> - The plural form of the verbose name. <em>If not
+                        defined, an <code>s</code> will be appended to <code>f.name</code> when
+                        the plural form is accessed.</em>
+                        <li><code>f.description</code> - A long description for the field
+                    </ul>
+                </span>
+
+                <span class=span11>
+<pre class="prettyprint linenums">
+&gt;&gt;&gt; f.name = 'Title'
+# f.name_plural can be set, but does not need to be since
+# this is a simple plural form
+&gt;&gt;&gt; f.get_plural_name()
+'Titles'
+&gt;&gt;&gt; f.description = 'The title of a book'
+</pre>
+                </span>
+            </section>
+
+            <h3 id=try-the-api>Field Instance API</h3>
+
+            <section class=row>
+                <span class=span5>
+                    <ul>
+                        <li><code>f.field</code> - the model <code>Field</code>  instance this field
+                        represents
+                        <li><code>field.model</code> - the model class this field is associated with
+                    </ul>
+                </span>
+
+                <span class=span11>
+<pre class="prettyprint linenums">
+&gt;&gt;&gt; f.field
+&lt;django.db.models.fields.CharField at 0x101b5fe10&gt;
+&gt;&gt;&gt; f.model
+library.models.Book
+</pre>
+
+                </span>
+            </section>
+
+            <hr>
+
+            <h2 id=apis>APIs</h2>
+
+            <h3 id=modeltree-integration>ModelTree Integration</h3>
+
+            <section class=row>
+                <span class=span11>
+                    <p>Avocado has integrated support with the
+                    <a href=https://github.com/cbmi/modeltree/>ModelTree</a> library. This allows
+                    for building queries at runtime using the available metadata.</p>
+
+                    <div class="alert-message block-message info">
+                        <p>Don't know what ModelTree is? Read the docs
+                        <a href=http://cbmi.github.com/modeltree/docs/>here</a>.</p>
+                    </div>
+                </span>
+            </section>
+
+            <h3 id=translators>Translators</h3>
+
+            <section class=row>
+                <span class=span5>
+                    <p>Translators are used to modify query conditions prior to being executed.
+                    Depending on the quality or variability of your data, the query interface for
+                    a field may not represent the data 1:1 with the underlying data. Thus the
+                    incoming query condition may need to be <em>translated</em> in some way to
+                    work with the underlying database.</p>
+
+                    <p>A query condition boils down to a <strong>field</strong>, <strong>operator</strong>
+                    and <strong>value</strong>. Avocado implements a set of formal <code>Operator</code>
+                    classes that roughly map (but not limited) to Django's 
+                    <a href=https://docs.djangoproject.com/en/1.3/ref/models/querysets/#field-lookups>field lookups</a>.
+                    Each <code>Operator</code> class has an <code>is_valid</code> method that takes a value and
+                    checks to see if it makes sense for the chosen operator.</p>
+
+                    <div class="alert-message block-message warning">
+                        <p>These operator classes perform only light validation of the value
+                        to prevent being too restrictive.</p>
+                    </div>
+                </span>
+
+                <span class=span11>
+<pre class="prettyprint linenums">
+&gt;&gt;&gt; from avocado.operators import iexact, inlist
+&gt;&gt;&gt; iexact.is_valid(['hello', 'world'])
+False
+&gt;&gt;&gt; iexact.is_valid('hello world')
+True
+&gt;&gt;&gt; inlist.is_valid(['hello', 'world'])
+True
+&gt;&gt;&gt; inlist.is_valid('hello world')
+False
+</pre>
+                </span>
+            </section>
+
+            <section class=row>
+                <span class=span5>
+                    <p>The base <code>Translator</code> class uses
+                    <a href=https://docs.djangoproject.com/en/1.3/ref/contrib/forms/api/>Django's Form API</a>
+                    to validate and clean the value relative to the underlying model field
+                    (e.g. <code>f.field</code>).</p>
+
+                    <p>The primary method to call is <code>translate</code> which calls <code>clean_value</code>
+                    and <code>clean_operator</code>.</p>
+                </span>
+
+                <span class=span11>
+<pre class="prettyprint linenums">
+&gt;&gt;&gt; t = Translator()
+&gt;&gt;&gt; t.translate(f, 'icontains', 'Python')
+{
+    'condition': &lt;django.db.query_utils.Q at 0x1027b78d0&gt;,
+    'annotations': {},
+    'cleaned_data': {
+        'operator': 'icontains',
+        'value': u'Python',
+    },
+    'raw_data': {
+        'operator': 'icontains',
+        'value': 'Python',
+    },
+}
+</pre>
+                </span>
+            </section>
+
+            <hr>
+
+            <h2 id=the-concept>The "Concept"</h2>
+
+            <h3 id=concept-model>Concept Model</h3>
+
+            <section class=row>
+                <span class=span16>
+                </span>
+            </section>
+
+            <h3 id=formatters>Formatters</h3>
+
+            <section class=row>
+                <span class=span16>
+                </span>
+            </section>
+
+            <h3 id=exporters>Exporters</h3>
+
+            <section class=row>
+                <span class=span16>
+                </span>
+            </section>
+
+        </div>
+
+        <script src="js/prettify.js"></script>
+        <script>prettyPrint();</script>
+        <script>
+          var _gaq = _gaq || [];
+          _gaq.push(['_setAccount', 'UA-XXXX-X']);
+          _gaq.push(['_trackPageview']);
+
+          (function() {
+            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+          })();
+        </script>
+    </body>
+</html>
+
