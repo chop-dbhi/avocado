@@ -189,17 +189,10 @@ class Scope(Context):
 
 
     def _get_contents(self, obj):
-        self._node = logictree.transform(obj)
-        return self._node.get_field_ids()
+        return logictree.transform(obj).get_field_ids()
 
     def _parse_contents(self, obj, *args, **kwargs):
-        self._node = logictree.transform(obj)
-        return self._node.apply
-
-    def is_valid(self, obj):
-        if hasattr(self, '_node'):
-            del self._node
-        return super(Scope, self).is_valid(obj)
+        return logictree.transform(obj).apply
 
     def save(self, *args, **kwargs):
         self.count = self.get_queryset().distinct().count()
