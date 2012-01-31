@@ -83,6 +83,8 @@ setup(
     packages = packages,
     cmdclass = cmdclasses,
 
+    install_requires = ['django'],
+
     data_files = data_files,
     classifiers = [
         'Development Status :: 4 - Beta',
