@@ -25,7 +25,7 @@ class ExcelExporter(BaseExporter):
             'Concept Name', 'Concept Discription'))
 
         for c in self.concepts:
-            cfields = c.conceptfields.select_related('field')
+            cfields = c.concept_fields.select_related('field')
             for cfield in cfields:
                 field = cfield.field
                 ws_dict.append((field.field_name, field.datatype, field.description,

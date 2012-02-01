@@ -362,10 +362,10 @@ class ConceptField(models.Model):
     name = models.CharField(max_length=50, null=True, blank=True)
     order = models.FloatField(null=True)
 
-    field = models.ForeignKey(Field, related_name='conceptfields')
-    concept = models.ForeignKey(Concept, related_name='conceptfields')
     created = models.DateTimeField(editable=False)
     modified = models.DateTimeField(editable=False)
+    field = models.ForeignKey(Field, related_name='concept_fields')
+    concept = models.ForeignKey(Concept, related_name='concept_fields')
 
     class Meta(object):
         app_label = 'avocado'

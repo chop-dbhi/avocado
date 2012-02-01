@@ -4,4 +4,4 @@ include README
 global-exclude .DS_Store
 prune avocado/fixtures
 prune avocado/tests
-prune avocado/*/tests
+graft avocado/templates

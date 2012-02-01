@@ -51,7 +51,7 @@ class RExporter(BaseExporter):
         labels = []       # data labels
 
         for c in self.concepts:
-            cfields = c.conceptfields.select_related('field')
+            cfields = c.concept_fields.select_related('field')
             for cfield in cfields:
                 d = cfield.field
                 name = self._format_name(d.field_name)

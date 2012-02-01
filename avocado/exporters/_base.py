@@ -48,7 +48,7 @@ class BaseExporter(object):
         select_fields = []
 
         for concept in concepts:
-            cfields = concept.conceptfields.select_related('field')
+            cfields = concept.concept_fields.select_related('field')
             fields = [c.field for c in cfields]
             select_fields.extend(f.field for f in fields)
             formatter = registry[concept.formatter](cfields)

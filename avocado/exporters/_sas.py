@@ -88,7 +88,7 @@ class SasExporter(BaseExporter):
         formats = ''        # sas formats for all fields
 
         for c in self.concepts:
-            cfields = c.conceptfields.select_related('field')
+            cfields = c.concept_fields.select_related('field')
             for cfield in cfields:
                 field = cfield.field
                 name = self._format_name(field.field_name)
