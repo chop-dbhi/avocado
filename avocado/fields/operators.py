@@ -16,6 +16,8 @@ __all__ = ('exact', 'iexact', 'contains', 'inlist', 'lt', 'gt', 'lte', 'gte',
 FIELD_LOOKUPS = re.compile(r'(i?(exact|contains|regex|startswidth|endswith)|'\
     '(gt|lt)e?|in|range|year|month|day|week_day|isnull|search)')
 
+TEXT_MAX_LIST_SIZE = 3
+
 class Operator(object):
     short_name = ''
     verbose_name = ''
@@ -72,6 +74,8 @@ class PrimitiveOperator(Operator):
 
 
 class SequenceOperator(Operator):
+    join_operator = 'or'
+
     def check(self, value):
         if ins(value):
             return True
@@ -79,10 +83,29 @@ class SequenceOperator(Operator):
 
     def text(self, value):
         value = map(self.stringify, value)
-        if len(value) == 1:
-            return '%s %s' % (Exact.verbose_name, value[0])
-        return '%s %s' % (self.verbose_name,
-            ' or '.join(value))
+
+        last = value[-1]
+        length = len(value)-1
+
+        if length == 0:
+            if self.negated:
+                return '%s %s' % (NotExact.verbose_name, last)
+            return '%s %s' % (Exact.verbose_name, last)
+
+        if length > TEXT_MAX_LIST_SIZE:
+            head = value[:TEXT_MAX_LIST_SIZE]
+        else:
+            head = value[:-1]
+        text = self.verbose_name + ' ' + ', '.join(head)
+
+        # Add the leftover item count for the tail of the list
+        tail = length - TEXT_MAX_LIST_SIZE
+        if tail > 0:
+            text += ' ... (%s more)' % tail
+
+        text += (' %s ' % self.join_operator) + last
+
+        return text
 
 
 class Exact(PrimitiveOperator):
@@ -150,21 +173,11 @@ class InList(SequenceOperator):
     short_name = 'in list'
     verbose_name = 'is either'
     operator = 'in'
-
-    def text(self, value):
-        value = map(self.stringify, value)
-        if len(value) == 1:
-            if self.negated:
-                return '%s %s' % (NotExact.verbose_name, value[0])
-            return '%s %s' % (Exact.verbose_name, value[0])
-        value = ', '.join(value[:-1]) + ' or %s' % value[-1]
-        return '%s %s' % (self.verbose_name, value)
-
-
 inlist = InList()
 
 
 class Between(SequenceOperator):
+    join_operator = 'and'
     short_name = 'between'
     verbose_name = 'is between'
     operator = 'range'
@@ -173,11 +186,6 @@ class Between(SequenceOperator):
         if ins(value) and len(value) == 2:
             return True
         return False
-
-    def text(self, value):
-        value = map(self.stringify, value)
-        return '%s %s' % (self.verbose_name,
-            ' and '.join(value))
 between = Between()
 
 
