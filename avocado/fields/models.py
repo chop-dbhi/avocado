@@ -174,7 +174,7 @@ class Field(mixins.Mixin):
     values = property(_get_values)
 
     def distribution(self, exclude=[], min_count=None, max_points=100,
-        order_by='field', smooth=0.01, annotate_by='id', **filters):
+        order_by='field', smooth=0.01, annotate_by='pk', **filters):
 
         """Builds a GROUP BY queryset for use as a value distribution.
         Data is binned according to a bin width specified by the 
@@ -318,6 +318,8 @@ class Field(mixins.Mixin):
         # This only applies to catagorical data
 
         # apply annotation
+        if annotate_by == 'pk':
+            annotate_by = self.model._meta.pk.name
         dist = dist.annotate(count=Count(annotate_by))
 
         # evaluate
