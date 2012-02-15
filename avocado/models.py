@@ -1,5 +1,3 @@
-from datetime import datetime
-
 try:
     from collections import OrderedDict
 except ImportError:
@@ -8,14 +6,13 @@ except ImportError:
 from django import forms
 from django.db import models, transaction
 from django.contrib.sites.models import Site
-from django.contrib.auth.models import Group
 from django.utils.encoding import smart_unicode
 from django.db.models.fields import FieldDoesNotExist
 from django.utils.importlib import import_module
-from modeltree.tree import trees
 from avocado.conf import settings
 from avocado.managers import FieldManager, ConceptManager
 from avocado.core import binning
+from avocado.core.decorators import cached_property
 from avocado import translators, formatters
 
 __all__ = ('Domain', 'Concept', 'Field')
@@ -43,41 +40,45 @@ def get_form_class(name):
 class Base(models.Model):
     """Base abstract class containing general metadata.
 
-        ``name`` - the name _should_ be unique in practice, but is not enforced
+        ``name`` - The name _should_ be unique in practice, but is not enforced
         since in certain cases the name differs relative to the model and/or
-        concepts these fields are asssociated with
+        concepts these fields are asssociated with.
 
-        ``description`` - will tend to be exposed in client applications since
-        it provides context to the end-users
+        ``name_plural`` - Same as ``name``, but the plural form. If not provided,
+        an 's' will appended to the end of the ``name``.
 
-        ``keywords`` - is intended for better search indexing and most-likely will
-        not be exposed in client applications
+        ``description`` - Will tend to be exposed in client applications since
+        it provides context to the end-users.
+
+        ``keywords`` - Additional extraneous text that cannot be derived from the
+        name, description or data itself. This is solely used for search indexing.
     """
     name = models.CharField(max_length=50)
+    name_plural = models.CharField('name (plural form)', max_length=50, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     keywords = models.CharField(max_length=100, null=True, blank=True)
 
-    created = models.DateTimeField(editable=False)
-    modified = models.DateTimeField(editable=False)
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+    archived = models.BooleanField(default=False)
 
     class Meta(object):
         abstract = True
-        app_label = 'avocado'
+
+    def __unicode__(self):
+        return unicode(self.name)
 
     @property
     def descriptors(self):
         return {
             'name': self.name,
+            'name_plural': self.name_plural,
             'description': self.description,
             'keywords': self.keywords,
         }
 
-    def save(self):
-        now = datetime.now()
-        if not self.created:
-            self.created = now
-        self.modified = now
-        super(Base, self).save()
+    def get_plural_name(self):
+        return self.name_plural or (self.name + 's')
 
 
 class Field(Base):
@@ -85,35 +86,23 @@ class Field(Base):
     it defines the natural key of the Django field that represents the location
     of that data e.g. ``library.book.title``.
     """
-    # these may vary between implementations, but the underlying field they
-    # reference must be the same across implementations to ensure consistent
-    # behavior of this field
     app_name = models.CharField(max_length=50)
     model_name = models.CharField(max_length=50)
     field_name = models.CharField(max_length=50)
 
-    # an optional translator which customizes input query conditions
-    # to a format which is suitable for the database
-    translator = models.CharField(max_length=100, blank=True, null=True,
-        choices=TRANSLATOR_CHOICES)
-
-    # explicitly enable this field to be choice-based. this should
+    # Explicitly enable this field to be choice-based. This should
     # only be enabled for data that contains a discrete vocabulary, i.e.
-    # no full text data, most numerical data or datetime data
+    # no full text data, most numerical data nor date or time data.
     enable_choices = models.BooleanField(default=False)
 
-    # enables this field to be accessible for use. when ``published``
+    # An optional translator which customizes input query conditions
+    # to a format which is suitable for the database.
+    translator = models.CharField(max_length=100, choices=TRANSLATOR_CHOICES,
+        blank=True, null=True)
+
+    # Enables this field to be accessible for use. When ``published``
     # is false, it is globally not accessible.
     published = models.BooleanField(default=False)
-
-    # certain fields may not be relevant or appropriate for all
-    # sites being deployed. this is primarily for preventing exposure of
-    # private data from certain sites. for example, there may and internal
-    # and external deployment of the same site. the internal site has full
-    # access to all fields, while the external may have a limited set.
-    sites = models.ManyToManyField(Site, blank=True)
-
-    group = models.ForeignKey(Group, null=True, blank=True)
 
     objects = FieldManager()
 
@@ -130,30 +119,12 @@ class Field(Base):
             return u'%s [%s]' % (self.name, self.model_name)
         return u'.'.join([self.app_name, self.model_name, self.field_name])
 
-    # the natural key should be used any time fields are being exported
-    # for integration in another system. it makes it trivial to map to new
+    # The natural key should be used any time fields are being exported
+    # for integration in another system. It makes it trivial to map to new
     # data models since there are discrete parts (as suppose to using the
-    # primary key)
+    # primary key).
     def natural_key(self):
         return (self.app_name, self.model_name, self.field_name)
-
-    @transaction.commit_on_success
-    def create_concept(self, save=False, **kwargs):
-        """Derives a Concept from this Field's descriptors. Additional
-        keyword arguments can be passed in to customize the new Concept object.
-        The Concept can also be optionally saved by setting the ``save`` flag.
-        """
-        for k, v, in self.descriptors.iteritems():
-            kwargs.setdefault(k, v)
-
-        concept = Concept(**kwargs)
-
-        if save:
-            concept.save()
-            cfield = ConceptField(field=self, concept=concept)
-            concept.conceptfields.add(cfield)
-
-        return concept
 
     @property
     def model(self):
@@ -162,15 +133,13 @@ class Field(Base):
             self._model = models.get_model(self.app_name, self.model_name)
         return self._model
 
-    @property
+    @cached_property
     def field(self):
         "Returns the field object this field represents."
-        if not hasattr(self, '_field'):
-            try:
-                self._field = self.model._meta.get_field_by_name(self.field_name)[0]
-            except FieldDoesNotExist:
-                self._field = None
-        return self._field
+        try:
+            return self.model._meta.get_field_by_name(self.field_name)[0]
+        except FieldDoesNotExist:
+            pass
 
     def _get_internal_type(self):
         datatype = self.field.get_internal_type().lower()
@@ -179,72 +148,53 @@ class Field(Base):
             datatype = datatype[:-5]
         return datatype
 
-    @property
+    @cached_property
     def datatype(self):
         """Returns the datatype of the field this field represents.
 
         By default, it will use the field's internal type, but can be overridden
         by the ``INTERNAL_DATATYPE_MAP`` setting.
         """
-        if not hasattr(self, '_datatype'):
-            datatype = self._get_internal_type()
-            # if a mapping exists, replace the datatype
-            if INTERNAL_DATATYPE_MAP.has_key(datatype):
-                datatype = INTERNAL_DATATYPE_MAP[datatype]
+        datatype = self._get_internal_type()
+        # if a mapping exists, replace the datatype
+        if datatype in INTERNAL_DATATYPE_MAP:
+            datatype = INTERNAL_DATATYPE_MAP[datatype]
+        return datatype
 
-            self._datatype = datatype
-        return self._datatype
+    @cached_property
+    def values(self):
+        "Introspects the data and returns a distinct list of the values."
+        if self.enable_choices:
+            return self.model.objects.values_list(self.field_name,
+                flat=True).order_by(self.field_name).distinct()
 
-    @property
-    def operators(self):
-        operators = DATATYPE_OPERATOR_MAP[self.datatype]
-        # the ``isnull`` operator is a special case since all datatypes can
-        # be nullable. this merely checks to see if the field allows null
-        # values.
-        if self.field.null:
-            operators = operators + ('isnull', '-isnull')
-        return operators
+    @cached_property
+    def mapped_values(self):
+        if self.enable_choices:
+            # Iterate over each value and attempt to get the mapped choice
+            # other fallback to the value itself
+            return [smart_unicode(DATA_CHOICES_MAP.get(value, value)) \
+                for value in self.values]
 
-    @property
-    def has_choices(self):
-        return self.enable_choices or self.datatype == 'boolean'
+    @cached_property
+    def coded_values(self):
+        "Returns a distinct set of coded values for this field"
+        if self.enable_choices:
+            values = list(self.values)
+            return zip(values, xrange(len(values)))
 
     @property
     def choices(self):
         "Returns a distinct set of choices for this field."
-        if self.has_choices:
-            values = self.values
-            # iterate over each value and attempt to get the mapped choice
-            # other fallback to the value itself
-            svalues = (smart_unicode(DATA_CHOICES_MAP.get(v, v)) for v in values)
-            return zip(values, svalues)
+        if self.enable_choices:
+            return zip(self.values, self.mapped_values)
 
-    def translate(self, operator=None, value=None, using=None, **context):
-        trans = translators.registry[self.translator]()
-        return trans(self, operator, value, using, **context)
-
-    def query_string(self, operator=None, using=None):
-        tree = trees[using]
-        return tree.query_string_for_field(self.field, operator=operator)
-
-    @property
-    def values(self):
-        "Introspects the data and returns a distinct list of the values."
-        return self.model.objects.values_list(self.field_name,
-            flat=True).order_by(self.field_name).distinct()
-
-    @property
-    def coded_values(self):
-        "Returns a distinct set of coded values for this field"
-        if self.has_choices:
-            values = list(self.values)
-            return zip(values, xrange(len(values)))
-
+    @cached_property
     def distribution(self, *args, **kwargs):
         "Returns a binned distribution of this field's data."
         name = self.field_name
         queryset = self.model.objects.values(name)
-        return utils.distribution(queryset, name, self.datatype, *args, **kwargs)
+        return binning.distribution(queryset, name, self.datatype, *args, **kwargs)
 
     def formfield(self, **kwargs):
         """Returns the default formfield class for the represented field
@@ -262,7 +212,7 @@ class Field(Base):
         # define default arguments for the formfield class constructor
         kwargs.setdefault('label', self.name.title())
 
-        if self.has_choices and 'widget' not in kwargs:
+        if self.enable_choices and 'widget' not in kwargs:
             kwargs['widget'] = forms.SelectMultiple(choices=self.choices)
 
         # get the default formfield for the model field
@@ -284,12 +234,8 @@ class Domain(Base):
     # sites = models.ManyToManyField(Site, blank=True)
 
     class Meta(object):
-        app_label = 'avocado'
         order_with_respect_to = 'parent'
         ordering = ('name',)
-
-    def __unicode__(self):
-        return u'{0}'.format(self.name)
 
 
 class Concept(Base):
@@ -300,8 +246,6 @@ class Concept(Base):
 
         -- Willard Van Orman Quine
     """
-
-
     # although a domain does not technically need to be defined, this more
     # for workflow reasons than for when the concept is published. automated
     # prcesses may create concepts on the fly, but not know which domain they
@@ -320,6 +264,15 @@ class Concept(Base):
     # enables this field to be accessible for use. when ``published``
     # is false, it is globally not accessible.
     published = models.BooleanField(default=False)
+
+    # Certain concepts may not be relevant or appropriate for all
+    # sites being deployed. This is primarily for preventing exposure of
+    # access to private data from certain sites. For example, there may and
+    # internal and external deployment of the same site. The internal site
+    # has full access to all fields, while the external may have a limited set.
+    # NOTE this is not reliable way to prevent exposure of sensitive data.
+    # This should be used to simply hide _access_ to the concepts.
+    sites = models.ManyToManyField(Site, blank=True)
 
     # an optional formatter which provides custom formatting for this
     # concept relative to the associated fields
@@ -351,31 +304,23 @@ class Concept(Base):
             ('view_concept', 'Can view concept'),
         )
 
-    def __unicode__(self):
-        return u'{0}'.format(self.name)
-
     def __len__(self):
         return self.fields.count()
 
 
-class ConceptField(models.Model):
-    name = models.CharField(max_length=50, null=True, blank=True)
+class ConceptField(Base):
     order = models.FloatField(null=True)
 
-    created = models.DateTimeField(editable=False)
-    modified = models.DateTimeField(editable=False)
     field = models.ForeignKey(Field, related_name='concept_fields')
     concept = models.ForeignKey(Concept, related_name='concept_fields')
 
     class Meta(object):
-        app_label = 'avocado'
         ordering = ('concept', 'order')
         order_with_respect_to = 'concept'
 
-    def save(self):
-        now = datetime.now()
-        if not self.created:
-            self.created = now
-        self.modified = now
-        super(ConceptField, self).save()
+    def __unicode__(self):
+        return unicode(self.name or self.field.name)
+
+    def get_plural_name(self):
+        return self.name_plural or self.field.get_plural_name()
 

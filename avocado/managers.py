@@ -1,84 +1,56 @@
-from django.db import models
 from django.db.models import Q
+from django.db import transaction
 from django.conf import settings
+from avocado.core.managers import PassThroughManager
+from avocado.models import ConceptField
 
-class FieldManager(models.Manager):
+class FieldManager(PassThroughManager):
     "Adds additional helper methods focused around access and permissions."
     use_for_related_fields = True
 
-    def _get_for_site(self):
-        return Q(sites=None) | Q(sites__id__exact=settings.SITE_ID)
-
-    def _public_for_auth_user(self, user):
-        kwargs = {'published': True}
-        groups = Q(group=None) | Q(group__in=user.groups.all())
-        sites = self._get_for_site()
-
-        return self.get_query_set().filter(sites, groups, **kwargs).distinct()
-
-    def _public_for_anon_user(self):
-        kwargs = {
-            'group': None,
-            'published': True
-        }
-        sites = self._get_for_site()
-
-        return self.get_query_set().filter(sites, **kwargs).distinct()
-
     def get_by_natural_key(self, app_name, model_name, field_name):
-        return self.get_query_set().get(app_name=app_name, model_name=model_name,
-            field_name=field_name)
+        return self.get_query_set().get(
+            app_name=app_name,
+            model_name=model_name,
+            field_name=field_name
+        )
 
-    def public(self, user=None):
-        "Returns all publically available fields given a user."
-        if user and user.is_authenticated():
-            return self._public_for_auth_user(user)
-        return self._public_for_anon_user()
+    def published(self):
+        "Returns all published fields."
+        return self.get_query_set().filter(published=True, archived=False)
 
 
-class ConceptManager(models.Manager):
-    def _get_not_for_site(self):
-        return Q(fields__sites__isnull=False) & ~Q(fields__sites__exact=settings.SITE_ID)
+class ConceptManager(PassThroughManager):
+    use_for_related_fields = True
 
-    def _public_for_auth_user(self, user):
-        groups = list(user.groups.all())
-        # resolve groups to take a length; this will greatly reduce
-        # the complexity of the later query
-        if len(groups) == 0:
-            return self._public_for_anon_user()
-
+    def published(self):
         queryset = self.get_query_set()
-        # all public columns
-        public = queryset.filter(published=True, domain__isnull=False)
-        # columns that contain at least one non-public field
+        # All published concepts associated with a domain and associated with
+        # the current site (or no site)
+        sites = Q(sites=None) | Q(sites__id=settings.SITE_ID)
+        published = queryset.filter(sites, published=True, archived=False,
+            domain__isnull=False)
+        # Concepts that contain at least one non-published fields are removed from
+        # the set
         shadowed = queryset.filter(fields__published=False)
-        # columns that contain fields associated with a group
-        grouped = queryset.filter(Q(fields__group__isnull=False) & \
-            ~Q(fields__group__in=groups))
-        # columns that are not in the current site (or not associated with
-        # a site)
-        sites = queryset.filter(self._get_not_for_site())
 
-        return public.exclude(pk__in=shadowed).exclude(pk__in=grouped)\
-            .exclude(pk__in=sites).distinct()
+        return published.exclude(pk__in=shadowed)\
+            .filter(published__in=published).distinct()
 
-    def _public_for_anon_user(self):
-        queryset = self.get_query_set()
-        # all public columns
-        public = queryset.filter(published=True, domain__isnull=False)
-        # columns that contain at least one non-public field
-        shadowed = queryset.filter(fields__published=False)
-        # columns that contain fields associated with a group
-        grouped = queryset.filter(fields__group__isnull=False)
-        # columns that are not in the current site (or not associated with
-        # a site)
-        sites = queryset.filter(self._get_not_for_site())
+    @transaction.commit_on_success
+    def create_from_field(self, field, save=False, **kwargs):
+        """Derives a Concept from this Field's descriptors. Additional
+        keyword arguments can be passed in to customize the new Concept object.
+        The Concept can also be optionally saved by setting the ``save`` flag.
+        """
+        for k, v, in field.descriptors.iteritems():
+            kwargs.setdefault(k, v)
 
-        return public.exclude(pk__in=shadowed).exclude(pk__in=grouped)\
-            .exclude(pk__in=sites).distinct()
+        concept = self.model(**kwargs)
 
-    def public(self, user=None):
-        "Returns all publically available fields given a user."
-        if user and user.is_authenticated():
-            return self._public_for_auth_user(user)
-        return self._public_for_anon_user()
+        if save:
+            concept.save()
+            cfield = ConceptField(field=field, concept=concept)
+            concept.concept_fields.add(cfield)
+        return concept
+
