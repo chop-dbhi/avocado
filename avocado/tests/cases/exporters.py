@@ -1,9 +1,14 @@
 import os
+import unittest
 from avocado.tests import models
 from avocado.tests.base import BaseTestCase
 from avocado.models import Field, Concept, ConceptField
-from avocado.exporters import (CSVExporter, ExcelExporter, SasExporter,
-    RExporter, JSONExporter)
+from avocado.exporters import CSVExporter, SasExporter, RExporter, JSONExporter
+# Import separately since it depends on external library
+try:
+    from avocado.exporters import ExcelExporter
+except ImportError:
+    ExcelExporter = None
 
 class ExportTestCase(BaseTestCase):
     def setUp(self):
@@ -54,6 +59,8 @@ class ExportTestCase(BaseTestCase):
         self.assertEqual(buff.read(), 'name,salary,first_name,last_name,is_manager\r\nProgrammer,15000,Eric,Smith,1\r\nAnalyst,20000,Erin,Jones,0\r\nProgrammer,15000,Erick,Smith,0\r\nAnalyst,20000,Aaron,Harris,0\r\nProgrammer,15000,Zac,Cook,0\r\nAnalyst,20000,Mel,Brooks,0\r\n')
         os.remove('csv_export.csv')
 
+    # Skip test if deps are not installed
+    @unittest.skipUnless(ExcelExporter, 'openpyxl must be installed to test ExcelExporter')
     def test_excel(self):
         exporter = ExcelExporter(self.query, self.concepts)
         exporter.write('excel_export.xlsx', virtual=False)

@@ -1,4 +1,7 @@
-from openpyxl.workbook import Workbook
+try:
+    from openpyxl.workbook import Workbook
+except ImportError:
+    raise ImportError('To use the Excel exporter, you must install openpyxl')
 from openpyxl.writer.excel import save_virtual_workbook
 from _base import BaseExporter
 

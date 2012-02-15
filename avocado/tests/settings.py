@@ -17,3 +17,5 @@ INSTALLED_APPS = (
     'avocado',
     'avocado.tests',
 )
+
+SITE_ID = 1
