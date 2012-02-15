@@ -1,0 +1,8 @@
+[run]
+include =
+    avocado/*.py
+
+source = avocado
+
+[html]
+directory = docs/coverage

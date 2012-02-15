@@ -15,4 +15,4 @@ class DistributionTestCase(BaseTestCase):
 
     def test_distribution_flat(self):
         self.assertEqual(distribution(self.title_qs.all(), 'salary', 'number'),
-                [(10000.0, 1), (200000.0, 1)])
+        	[(10000.0, 1), (200000.0, 1)])
