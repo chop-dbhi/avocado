@@ -341,7 +341,7 @@ class Report(Descriptor):
         self.scope.deference()
         self.perspective.deference()
         if self.reference and delete:
-            self.reference.delete(delete=delete)
+            self.reference.delete()
         self.__class__().reset(self)
         self.reference = None
         self.save()
