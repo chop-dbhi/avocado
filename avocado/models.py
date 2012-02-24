@@ -224,8 +224,7 @@ class Domain(Base):
     # a reference to a parent Domain if necessary. for simplicity's sake,
     # a domain can only be one level deep, meaning any domain that is
     # referenced as a parent, cannot have a parent itself.
-    parent = models.ForeignKey('self', null=True, related_name='children',
-        limit_choices_to={'parent__isnull': True})
+    parent = models.ForeignKey('self', null=True, related_name='children')
 
     # certain whole domains may not be relevant or appropriate for all
     # sites being deployed. if a domain is not accessible by a certain site,
