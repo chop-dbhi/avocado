@@ -2,7 +2,6 @@ from django.db.models import Q
 from django.db import transaction
 from django.conf import settings
 from avocado.core.managers import PassThroughManager
-from avocado.models import ConceptField
 
 class FieldManager(PassThroughManager):
     "Adds additional helper methods focused around access and permissions."
@@ -49,6 +48,7 @@ class ConceptManager(PassThroughManager):
         concept = self.model(**kwargs)
 
         if save:
+            from avocado.models import ConceptField
             concept.save()
             cfield = ConceptField(field=field, concept=concept)
             concept.concept_fields.add(cfield)
