@@ -70,12 +70,11 @@ if len(sys.argv) > 1 and sys.argv[1] == 'bdist_wininst':
 
 version = __import__(BASE_PACKAGE).get_version()
 
-install_requires = ['distribute']
-requires = ['django', 'modeltree']
+install_requires = ['distribute', 'django', 'modeltree']
 
 # Ordereddict implementation must be installed for older versions
 if sys.version_info < (2, 7):
-    requires.append('ordereddict')
+    install_requires.append('ordereddict')
 
 setup(
     version = version,
@@ -91,7 +90,6 @@ setup(
     cmdclass = cmdclasses,
 
     install_requires = install_requires,
-    requires = requires,
 
     data_files = data_files,
 
