@@ -1,6 +1,7 @@
 from optparse import make_option
 
-from django.db import models
+from django.db.models import (get_model, get_models, get_app, AutoField,
+    ForeignKey, OneToOneField, ManyToManyField)
 from django.core.management.base import LabelCommand
 
 from avocado.models import Field, Domain
@@ -19,11 +20,18 @@ class Command(LabelCommand):
 
     OPTIONS:
 
-        ``--create-domains`` - create a single ``Domain`` corresponding to each
-        model that is evaluated
+        ``--create-domains`` - Create a single ``Domain`` corresponding to each
+        model that is evaluated.
 
-        ``--include-non-editable`` - create ``Field`` for fields that are
-        not editable in the admin
+        ``--include-non-editable`` - Create ``Field`` instances for fields marked
+        as not editable (i.e. ``editable=False``).
+
+        ``--include-keys`` - Create ``Field`` instances for primary key
+        and foreign key fields.
+
+        ``--update`` - Updates existing ``Field`` instances with metadata from
+        model fields. Note this overwrites any descriptive metadata changes made
+        to ``Field`` such as ``name``, ``name_plural``, and ``description``.
 
     """
 
@@ -42,16 +50,23 @@ class Command(LabelCommand):
         make_option('--include-non-editable', action='store_true',
             dest='include_non_editable', default=False,
             help='Create fields for non-editable fields')
+
+        make_option('--include-keys', action='store_true',
+            dest='include_keys', default=False,
+            help='Create fields for primary and foreign key fields')
+
+        make_option('--update', action='store_true',
+            dest='update_existing', default=False,
+            help='Updates existing metadata derived from model fields')
     )
 
     # these are ignored since these join fields will be determined at runtime
     # using the modeltree library. fields can be created for any other
     # these field types manually
-    ignored_field_types = (
-        models.AutoField,
-        models.ForeignKey,
-        models.OneToOneField,
-        models.ManyToManyField,
+    key_field_types = (
+        AutoField,
+        ForeignKey,
+        OneToOneField,
     )
 
     def __init__(self, *args, **kwargs):
@@ -59,87 +74,112 @@ class Command(LabelCommand):
         self._domains = {}
 
     def _get_domain(self, model):
-        if self._domains.has_key(model):
-            domain = self._domains[model]
-        else:
+        if model not in self._domains
             domain, is_new = Domain.objects.get_or_create(name=model._meta.verbose_name)
             self._domains[model] = domain
-        return domain
+        return self._domains[model]
 
     def handle_label(self, label, **options):
         "Handles app_label or app_label.model_label formats."
         labels = label.split('.')
-        mods = None
+        models = None
         create_domains = options.get('create_domains')
         include_non_editable = options.get('include_non_editable')
+        include_keys = options.get('include_keys')
+        update_existing = options.get('update_existing')
+
+        if update_existing:
+            resp = raw_input('Are you sure you want to update existing metadata? '
+                'This will overwrite any previous changes made. Type "yes" to continue.')
+            if resp.lower() != 'yes':
+                print 'Sync operation cancelled'
+                return
 
         # a specific model is defined
         if len(labels) == 2:
             # attempts to find the model given the app and model labels
-            model = models.get_model(*labels)
+            model = get_model(*labels)
 
             if model is None:
                 print 'Cannot find model "%s", skipping...' % label
                 return
 
-            mods = [model]
+            models = [model]
 
         # get all models for the app
         else:
-            app = models.get_app(*labels)
-            mods = models.get_models(app)
+            app = get_app(*labels)
+            models = get_models(app)
 
-            if mods is None:
+            if models is None:
                 print 'Cannot find app "%s", skipping...' % label
                 return
 
         app_name = labels[0]
 
-        for model in mods:
-            cnt = 0
+        for model in models:
+            new_count = 0
+            update_count = 0
             model_name = model._meta.object_name.lower()
-
-            if create_domains:
-                domain = self._get_domain(model)
+            domain = self._get_domain(model) if create_domains else None
 
             for field in model._meta.fields:
-                # in most cases the primary key fields and non-editable will not
-                # be necessary. editable usually include timestamps and such
-                if isinstance(field, self.ignored_field_types):
+                if isinstance(field, ManyToManyField):
                     continue
 
-                # ignore non-editable fields since in most cases they are for
+                # Check for primary key, and foreign key fields
+                if isinstance(field, self.key_field_types) and not include_keys:
+                    continue
+
+                # Ignore non-editable fields since in most cases they are for
                 # managment purposes
                 if not field.editable and not include_non_editable:
                     continue
 
-                kwargs = {
-                    'app_name': app_name.lower(),
-                    'model_name': model_name,
+                # All but the field name is case-insensitive, do initial lookup
+                # to see if it already exists, skip if it does
+                lookup = {
+                    'app_name__iexact': app_name,
+                    'model_name__iexact': model_name,
                     'field_name': field.name,
                 }
 
-                # do initial lookup to see if it already exists, skip if it does
-                if Field.objects.filter(**kwargs).exists():
-                    print '%s.%s already exists. Skipping...' % (model_name, field.name)
-                    continue
+                try:
+                    field = Field.objects.get(**lookup)
+                except Field.DoesNotExist:
+                    field = None
 
-                # add verbose name
-                kwargs['name'] = field.verbose_name.title()
+                kwargs = {
+                    'name': field.verbose_name.title(),
+                    'name_plural': field.verbose_name.title() + 's',
+                    'description': field.help_text,
+                    'app_name': app_name.lower(),
+                    'model_name': model_name.lower(),
+                    'field_name': field.name,
+                    'domain': domain,
+                }
 
-                field = Field(**kwargs)
+                if field:
+                    if not update_existing:
+                        print '(%s) %s.%s already exists. Skipping...' % (app_name, model_name, field.name)
+                        continue
+                    # Only overwrite if the source value is not falsy
+                    field.__dict__.update([(k, v) for k, v in kwargs.items() if v])
+                    update_count += 1
+                else:
+                    field = Field(**kwargs)
+                    field.published = False
+                    new_count += 1
 
-                if create_domains:
-                    field.domain = domain
-
-                field.published = False
                 field.save()
 
-                cnt += 1
 
-            if cnt == 1:
+            if new_count == 1:
                 print '1 field added for %s' % model_name
-            else:
-                print '%d fields added for %s' % (cnt, model_name)
+            elif new_count > 1:
+                print '%d fields added for %s' % (new_count, model_name)
 
-
+            if update_count == 1:
+                print '1 field updated for %s' % model_name
+            elif update_count > 1:
+                print '%d fields updated for %s' % (update_count, model_name)
