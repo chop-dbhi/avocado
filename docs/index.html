@@ -3,9 +3,9 @@
     <head>
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-        
+
         <title>Avocado</title>
-        
+
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
         <link rel="stylesheet" href="css/prettify.css">
@@ -14,11 +14,11 @@
     </head>
     <body>
 
-        <div class="topbar">
-            <div class="topbar-inner">
+        <div class="navbar navbar-fixed-top">
+            <div class="navbar-inner">
                 <div class="container-fluid">
                     <span class="brand">Avocado <span style="font-size: 15px; color: #999">0.9 Beta</span></span>
-                    <ul>
+                    <ul class=nav>
                         <li><a href="https://github.com/cbmi/avocado/">GitHub Repository</a>
                         <li><a href="coverage/">Code Coverage</a>
                     </ul>
@@ -73,9 +73,9 @@
             <h2 id=get-started>Get Started</h2>
 
             <section class=row>
-                <span class=span16>
+                <span class=span12>
                     <p>Avocado is a Django app which provides database-driven metadata management
-                    for your models' fields. Sounds exciting, right? Django models contain most
+                    for your models. Sounds exciting, right? Django models contain most
                     of the necessary <strong>structural</strong> metadata for interfacing with the supported
                     database backends (via the ORM), but does not provide mechanisms for defining
                     <strong>descriptive</strong> or <strong>administrative</strong> metadata.</p>
@@ -85,7 +85,7 @@
             <h3 id=dependencies>Dependencies</h3>
 
             <section class=row>
-                <span class=span16>
+                <span class=span12>
                     <ul>
                         <li><a href=http://www.djangoproject.com>Django 1.3+</a>
                         <li><a href=https://github.com/cbmi/modeltree>ModelTree</a>
@@ -93,8 +93,8 @@
                             (Python 2.6 only)
                     </ul>
 
-                    <div class="alert-message block-message warning">
-                        <p>It is assumed <a href=http://www.python.org/download/>Python</a> and
+                    <div class="alert alert-block alert-warning">
+                        <p>It is assumed <a href=http://www.python.org/download/>Python 2.6+</a> and
                         <a href=http://pypi.python.org/pypi/setuptools>setuptools</a> are already installed.
                         If not, follow the previous two links for download and installation instructions.</p>
                     </div>
@@ -104,18 +104,18 @@
             <h3 id=download-install>Download &amp; Install</h3>
 
             <section class=row>
-                <span class=span16>
+                <span class=span12>
                     <p>Stable releases of Avocado are available on
                     <a href=http://pypi.python.org/pypi/avocado>PyPI</a>. Install using
                     <code>pip</code> or <code>easy_install</code>. All dependencies are
                     installed automatically.</p>
 
                     <h4>Pip</h4>
-<pre class="prettyprint linenums">
+<pre class="prettyprint">
 pip install avocado
 </pre>
                     <h4>easy_install</h4>
-<pre class="prettyprint linenums">
+<pre class="prettyprint">
 easy_install avocado
 </pre>
 
@@ -125,12 +125,12 @@ easy_install avocado
             <h3 id=configure>Configure</h3>
 
             <section class=row>
-                <span class=span16>
+                <span class=span12>
                     <p>Since this <em>is</em> about metadata managment, it is highly recommended to have the
                     <a href=https://docs.djangoproject.com/en/1.3/ref/contrib/admin/>Django Admin</a> app
                     installed. Add <code>avocado</code> to your project setting's
                     <code>INSTALLED_APPS</code>:</p>
-<pre class="prettyprint linenums">
+<pre class="prettyprint">
 INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.auth',
@@ -142,7 +142,7 @@ INSTALLED_APPS = (
     ...
 )
 </pre>
-                
+
                     <p>&darr; Skip to <a href=#tutorial>Tutorial</a></p>
                 </span>
             </section>
@@ -154,7 +154,7 @@ INSTALLED_APPS = (
             <h3 id=background>Background</h3>
 
             <section class=row>
-                <span class=span16>
+                <span class=span12>
                     <p>Avocado was developed in a clinical research environment where large,
                     unclean data models are prolific and, not surprisingly, questions about
                     those data are abundant.</p>
@@ -198,7 +198,7 @@ INSTALLED_APPS = (
             <h3 id=target-applications>Target Applications</h3>
 
             <section class=row>
-                <span class=span16>
+                <span class=span12>
                     <p>Avocado can be useful for any project. It is most applicable to
                     project's focusing on reporting, exporting, and querying data.</p>
                 </span>
@@ -209,7 +209,7 @@ INSTALLED_APPS = (
             <h5>Structural</h5>
 
             <section class=row>
-                <span class=span16>
+                <span class=span12>
                     <p>Django's <a href=https://docs.djangoproject.com/en/1.3/ref/models/fields/>model field reference</a>
                     describes the options available for defining model fields. The field's subclass
                     (e.g. <code>IntegerField</code>) and the various options passed (e.g. <code>null=True</code>)
@@ -225,14 +225,14 @@ INSTALLED_APPS = (
             <h5>Descriptive</h5>
 
             <section class=row>
-                <span class=span16>
+                <span class=span12>
                     <p>For any medium to large size data model, describing and managing each field can be
                     a pain-staking task. Depending on the application, fields (or the respective data) that
                     are exposed to end-users, by search, form or otherwise, should be informative and that
                     requires high-quality descriptive metadata.</p>
 
                     <p>Django provides two field options <code>verbose_name</code> and <code>help_text</code>
-                    that are descriptive metadata, but are hard-coded in the field definition. This is limitation
+                    that are descriptive metadata, but are hard-coded in the field definition. This is a limitation
                     if that metadata is managed by another party (client or domain expert).</p>
                 </span>
             </section>
@@ -240,10 +240,10 @@ INSTALLED_APPS = (
             <h5>Administrative</h5>
 
             <section class=row>
-                <span class=span16>
+                <span class=span12>
                     <p>For applications which integrate multiple data sources, it can be useful to keep
-                    track of the <em>source</em> information, such as a URI. Likewise, it may be desirable
-                    to restrict access to parts of the data model to certain users, that is end-user must
+                    track of the <em>source</em> information, such as a <a href=http://en.wikipedia.org/wiki/Uniform_resource_identifier>URI</a>. Likewise, it may be desirable
+                    to restrict access to parts of the data model to certain users, that is, an end-user must
                     be <em>authorized</em> to interact with certain data.</p>
                 </span>
             </section>
@@ -254,11 +254,11 @@ INSTALLED_APPS = (
 
 
             <section class=row>
-                <span class=span16>
+                <span class=span12>
                     <p>We are going to start with two simple models, <code>Author</code> and <code>Book</code>
                     in our <code>library</code> app.</p>
 
-<pre class="prettyprint linenums">
+<pre class="prettyprint">
 # library/models.py
 class Author(models.Model):
     name = models.CharField(max_length=100)
@@ -274,28 +274,43 @@ class Book(models.Model):
             <h3 id=initialize-metadata>Initialize Metadata</h3>
 
             <section class=row>
-                <span class=span16>
+                <span class=span12>
 
-                    <p>Avocado comes with an <code>init</code> command which introspects
+                    <p>Avocado comes with a <code>sync</code> command which introspects
                     Django models and creates <code>Field</code> instances representing the model fields.
                     At least one app label (<code>library</code>) or model label (<code>library.Book</code>)
                     must be specified.</p>
 
                     <p>By default, <code>Field</code> instances are not created for primary and foreign
-                    key fields. In practice, <em>key</em> fields are used infrequently, thus they are
-                    not created on initialization. To include key fields as well, add the flag
-                    <code>--include-key-fields</code>.</p>
+                    key fields. In practice, <em>key</em> fields are used infrequently as is, thus they are
+                    not created by default. To override this behavior and include key fields, add the
+                    flag <code>--include-keys</code>.</p>
 
-                    <div class="alert-message block-message warning">
-                        <p>Fields not created using Avocado's <code>init</code> command can be
+                    <p>Likewise, model fields may be marked as not being <a href=https://docs.djangoproject.com/en/1.3/ref/models/fields/#editable>editable</a> in the model
+                        field definitions. This flag is turned on typically for operational or
+                        bookkeeping-type fields. By default these fields are not synced either, but
+                        can overridden by passing the <code>--include-non-editable</code>.</p>
+
+                    <div class="alert alert-block alert-info">
+                        <h4 class=alert-heading>The Admin Works Too</h4
+                        Fields not created using Avocado's <code>sync</code> command can be
                         created in the admin interface. This command exists to provide a starting point,
-                        getting the bulk of the fields created.</p>
+                        getting the bulk of the fields created.
                     </div>
 
-<pre class="prettyprint linenums lang-sh">
-./manage.py avocado init library
-1 field from Author
-2 fields from Book
+                    <div class="alert alert-block alert-info">
+                        <h4 class=alert-heading>Need to Update Existing Fields?</h4>
+                        For updating existing <code>Field</code> instances, pass the <code>--update</code>
+                        flag when running the command. Note that this will overwrite existing metadata for
+                        the field so use with caution.
+                    </div>
+
+                    <p>For our purposes here, we can simply do the bare minimum:</p>
+
+<pre class="prettyprint lang-sh">
+./manage.py avocado sync library
+1 field added for Author
+2 fields added for Book
 </pre>
                 </span>
             </section>
@@ -303,7 +318,7 @@ class Book(models.Model):
             <h3 id=try-the-api>Field Data Model</h3>
 
             <section class=row>
-                <span class=span5>
+                <span class=span4>
                     <p>An Avocado <code>Field</code> represents a single Django model <code>Field</code>
                     instance. It is mapped by defining the following three attributes. These three uniquely
                     attributes identify a model field instance.</p>
@@ -316,8 +331,8 @@ class Book(models.Model):
 
                 </span>
 
-                <span class=span11>
-<pre class="prettyprint linenums">
+                <span class=span8>
+<pre class="prettyprint">
 &gt;&gt;&gt; from avocado.models import Field
 &gt;&gt;&gt; f = Field.objects.get_by_natural_key('library', 'book', 'title')
 &gt;&gt;&gt; f
@@ -329,12 +344,12 @@ class Book(models.Model):
 &gt;&gt;&gt; f.field_name
 'title'
 </pre>
-                    
+
                 </span>
             </section>
 
             <section class=row>
-                <span class=span5>
+                <span class=span4>
                     <p>Additional metadata can be defined for this object to make it more useful
                     to humans.</p>
 
@@ -347,8 +362,8 @@ class Book(models.Model):
                     </ul>
                 </span>
 
-                <span class=span11>
-<pre class="prettyprint linenums">
+                <span class=span8>
+<pre class="prettyprint">
 &gt;&gt;&gt; f.name = 'Title'
 # f.name_plural can be set, but does not need to be since
 # this is a simple plural form
@@ -362,7 +377,7 @@ class Book(models.Model):
             <h3 id=try-the-api>Field Instance API</h3>
 
             <section class=row>
-                <span class=span5>
+                <span class=span4>
                     <ul>
                         <li><code>f.field</code> - the model <code>Field</code>  instance this field
                         represents
@@ -370,8 +385,8 @@ class Book(models.Model):
                     </ul>
                 </span>
 
-                <span class=span11>
-<pre class="prettyprint linenums">
+                <span class=span8>
+<pre class="prettyprint">
 &gt;&gt;&gt; f.field
 &lt;django.db.models.fields.CharField at 0x101b5fe10&gt;
 &gt;&gt;&gt; f.model
@@ -388,12 +403,12 @@ library.models.Book
             <h3 id=modeltree-integration>ModelTree Integration</h3>
 
             <section class=row>
-                <span class=span11>
+                <span class=span8>
                     <p>Avocado has integrated support with the
                     <a href=https://github.com/cbmi/modeltree/>ModelTree</a> library. This allows
                     for building queries at runtime using the available metadata.</p>
 
-                    <div class="alert-message block-message info">
+                    <div class="alert alert-block alert-info">
                         <p>Don't know what ModelTree is? Read the docs
                         <a href=http://cbmi.github.com/modeltree/docs/>here</a>.</p>
                     </div>
@@ -403,7 +418,7 @@ library.models.Book
             <h3 id=translators>Translators</h3>
 
             <section class=row>
-                <span class=span5>
+                <span class=span4>
                     <p>Translators are used to modify query conditions prior to being executed.
                     Depending on the quality or variability of your data, the query interface for
                     a field may not represent the data 1:1 with the underlying data. Thus the
@@ -412,19 +427,19 @@ library.models.Book
 
                     <p>A query condition boils down to a <strong>field</strong>, <strong>operator</strong>
                     and <strong>value</strong>. Avocado implements a set of formal <code>Operator</code>
-                    classes that roughly map (but not limited) to Django's 
+                    classes that roughly map (but not limited) to Django's
                     <a href=https://docs.djangoproject.com/en/1.3/ref/models/querysets/#field-lookups>field lookups</a>.
                     Each <code>Operator</code> class has an <code>is_valid</code> method that takes a value and
                     checks to see if it makes sense for the chosen operator.</p>
 
-                    <div class="alert-message block-message warning">
+                    <div class="alert alert-block alert-warning">
                         <p>These operator classes perform only light validation of the value
                         to prevent being too restrictive.</p>
                     </div>
                 </span>
 
-                <span class=span11>
-<pre class="prettyprint linenums">
+                <span class=span8>
+<pre class="prettyprint">
 &gt;&gt;&gt; from avocado.operators import iexact, inlist
 &gt;&gt;&gt; iexact.is_valid(['hello', 'world'])
 False
@@ -439,7 +454,7 @@ False
             </section>
 
             <section class=row>
-                <span class=span5>
+                <span class=span4>
                     <p>The base <code>Translator</code> class uses
                     <a href=https://docs.djangoproject.com/en/1.3/ref/contrib/forms/api/>Django's Form API</a>
                     to validate and clean the value relative to the underlying model field
@@ -449,8 +464,8 @@ False
                     and <code>clean_operator</code>.</p>
                 </span>
 
-                <span class=span11>
-<pre class="prettyprint linenums">
+                <span class=span8>
+<pre class="prettyprint">
 &gt;&gt;&gt; t = Translator()
 &gt;&gt;&gt; t.translate(f, 'icontains', 'Python')
 {
@@ -476,21 +491,21 @@ False
             <h3 id=concept-model>Concept Model</h3>
 
             <section class=row>
-                <span class=span16>
+                <span class=span12>
                 </span>
             </section>
 
             <h3 id=formatters>Formatters</h3>
 
             <section class=row>
-                <span class=span16>
+                <span class=span12>
                 </span>
             </section>
 
             <h3 id=exporters>Exporters</h3>
 
             <section class=row>
-                <span class=span16>
+                <span class=span12>
                 </span>
             </section>
 
