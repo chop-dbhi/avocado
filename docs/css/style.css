@@ -14,7 +14,6 @@ a:link, a:visited {
 }
 
 h1, h2, h3, h4, h5, h6 {
-    font-weight: normal;
     color: #7a6612;
 }
 
@@ -22,11 +21,22 @@ h1, h2 {
     color: #bbb942;
 }
 
-.topbar {
+h1, h2, h3 {
+    font-weight: normal;
+}
+
+code {
+    border: none;
+    padding: 1px 2px;
+    color: #b5490b;
+    background-color: #fcf8e3;
+}
+
+.navbar {
     box-shadow: 0 2px 3px #ccc;
 }
 
-.topbar-inner {
+.navbar-inner {
     background-image: url(../img/classy_fabric.png);
 }
 
@@ -92,20 +102,4 @@ span.label {
 #sidebar li, #content li {
     margin-top: 5px;
     margin-bottom: 5px;
-}
-
-@media screen and (max-width: 1240px) {
-    .span5 { width: 640px; }
-    .span16 { width: 640px; }
-}
-
-@media screen and (min-width: 1241px) {
-    .row {
-        margin-bottom: 10px;
-    }
-}
-
-@media screen and (min-width: 1581px) {
-    .span5 { width: 640px; }
-    .span16 { width: 640px; }
 }
