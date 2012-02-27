@@ -4,3 +4,9 @@ docs/build
 MANIFEST
 dist
 .coverage
+
+# test output
+csv_export.csv
+json_export.json
+r_export.zip
+sas_export.zip

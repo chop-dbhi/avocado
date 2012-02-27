@@ -13,26 +13,25 @@ def import_mixin(app_label):
 
     return Mixin
 
-def create_mixin(name, module, bases=None, fields=None, options=None):
+def create_mixin(name, module, bases=None, attrs=None, meta=None):
     "Creates an abstract model class based on the provided information."
     bases = bases or (models.Model,)
-    fields = fields or {}
-    options = options or {}
+    attrs = attrs or {}
+    meta = meta or {}
 
-    options.setdefault('abstract', True)
+    meta.setdefault('abstract', True)
 
     class Meta(object):
         pass
 
-    # update Meta with any options that were provided
-    if options:
-        for key, value in options.iteritems():
+    # Update Meta with any options that were provided
+    if meta:
+        for key, value in meta.iteritems():
             setattr(Meta, key, value)
 
-    # create the initial set of model attributes by copying the fields
-    attrs = fields.copy()
-
-    # set up a dictionary to simulate declarations within a class
+    # Create the initial set of model attributes by copying the fields
+    attrs = attrs.copy()
+    # Set up a dictionary to simulate declarations within a class
     attrs.update({'__module__': module, 'Meta': Meta})
 
     # create the class, which automatically triggers ModelBase processing

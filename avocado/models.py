@@ -4,26 +4,21 @@ except ImportError:
     from ordereddict import OrderedDict
 
 from django import forms
-from django.db import models, transaction
+from django.conf import settings
+from django.db import models
 from django.contrib.sites.models import Site
 from django.utils.encoding import smart_unicode
 from django.db.models.fields import FieldDoesNotExist
 from django.utils.importlib import import_module
-from avocado.conf import settings
+from avocado.conf import settings as _settings
 from avocado.managers import FieldManager, ConceptManager
 from avocado.core import binning
 from avocado.core.decorators import cached_property
-from avocado import translators, formatters
+from avocado import translators
 
 __all__ = ('Domain', 'Concept', 'Field')
 
-DATA_CHOICES_MAP = settings.DATA_CHOICES_MAP
-INTERNAL_DATATYPE_MAP = settings.INTERNAL_DATATYPE_MAP
-DATATYPE_OPERATOR_MAP = settings.DATATYPE_OPERATOR_MAP
-INTERNAL_DATATYPE_FORMFIELDS = settings.INTERNAL_DATATYPE_FORMFIELDS
-
 TRANSLATOR_CHOICES = translators.registry.choices
-FORMATTER_CHOICES = formatters.registry.choices
 
 def get_form_class(name):
     # infers this is a path
@@ -52,15 +47,18 @@ class Base(models.Model):
 
         ``keywords`` - Additional extraneous text that cannot be derived from the
         name, description or data itself. This is solely used for search indexing.
+
+        ``archived`` - Rather than deleting metadata, an object can simply be
+        archived.
     """
     name = models.CharField(max_length=50)
     name_plural = models.CharField('name (plural form)', max_length=50, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     keywords = models.CharField(max_length=100, null=True, blank=True)
+    archived = models.BooleanField(default=False)
 
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
-    archived = models.BooleanField(default=False)
 
     class Meta(object):
         abstract = True
@@ -157,8 +155,8 @@ class Field(Base):
         """
         datatype = self._get_internal_type()
         # if a mapping exists, replace the datatype
-        if datatype in INTERNAL_DATATYPE_MAP:
-            datatype = INTERNAL_DATATYPE_MAP[datatype]
+        if datatype in _settings.INTERNAL_DATATYPE_MAP:
+            datatype = _settings.INTERNAL_DATATYPE_MAP[datatype]
         return datatype
 
     @cached_property
@@ -173,7 +171,7 @@ class Field(Base):
         if self.enable_choices:
             # Iterate over each value and attempt to get the mapped choice
             # other fallback to the value itself
-            return [smart_unicode(DATA_CHOICES_MAP.get(value, value)) \
+            return [smart_unicode(_settings.DATA_CHOICES_MAP.get(value, value)) \
                 for value in self.values]
 
     @cached_property
@@ -205,8 +203,8 @@ class Field(Base):
         if not kwargs.get('form_class', None):
             datatype = self._get_internal_type()
 
-            if datatype in INTERNAL_DATATYPE_FORMFIELDS:
-                name = INTERNAL_DATATYPE_FORMFIELDS[datatype]
+            if datatype in _settings.INTERNAL_DATATYPE_FORMFIELDS:
+                name = _settings.INTERNAL_DATATYPE_FORMFIELDS[datatype]
                 kwargs['form_class'] = get_form_class(name)
 
         # define default arguments for the formfield class constructor
@@ -221,20 +219,19 @@ class Field(Base):
 
 class Domain(Base):
     "A high-level organization for concepts."
-    # a reference to a parent Domain if necessary. for simplicity's sake,
-    # a domain can only be one level deep, meaning any domain that is
-    # referenced as a parent, cannot have a parent itself.
+    # A reference to a parent Domain for hierarchical domains.
     parent = models.ForeignKey('self', null=True, related_name='children')
 
-    # certain whole domains may not be relevant or appropriate for all
-    # sites being deployed. if a domain is not accessible by a certain site,
-    # all subsequent data elements are also not accessible by the site
-    # TODO find a use case for the ``sites`` m2m below
-    # sites = models.ManyToManyField(Site, blank=True)
+    # Certain whole domains may not be relevant or appropriate for all
+    # sites being deployed. If a domain is not accessible by a certain site,
+    # all subsequent data elements are also not accessible by the site.
+    if 'django.contrib.sites' in settings.INSTALLED_APPS:
+        sites = models.ManyToManyField(Site, blank=True, related_name='domains+')
+
+    order = models.FloatField(null=True, db_column='_order')
 
     class Meta(object):
-        order_with_respect_to = 'parent'
-        ordering = ('name',)
+        ordering = ('order', 'name')
 
 
 class Concept(Base):
@@ -245,24 +242,16 @@ class Concept(Base):
 
         -- Willard Van Orman Quine
     """
-    # although a domain does not technically need to be defined, this more
-    # for workflow reasons than for when the concept is published. automated
+    # Although a domain does not technically need to be defined, this more
+    # for workflow reasons than for when the concept is published. Automated
     # prcesses may create concepts on the fly, but not know which domain they
     # should be linked to initially. the admin interface enforces choosing a
     # domain when the concept is published
     domain = models.ForeignKey(Domain, null=True)
 
-    # the associated fields for this concept. fields can be
+    # The associated fields for this concept. fields can be
     # associated with multiple concepts, thus the M2M
-    fields = models.ManyToManyField(Field,
-        through='ConceptField')
-
-    order = models.FloatField(default=0,
-        help_text=u'Ordering should be relative to the domain')
-
-    # enables this field to be accessible for use. when ``published``
-    # is false, it is globally not accessible.
-    published = models.BooleanField(default=False)
+    fields = models.ManyToManyField(Field, through='ConceptField')
 
     # Certain concepts may not be relevant or appropriate for all
     # sites being deployed. This is primarily for preventing exposure of
@@ -271,33 +260,24 @@ class Concept(Base):
     # has full access to all fields, while the external may have a limited set.
     # NOTE this is not reliable way to prevent exposure of sensitive data.
     # This should be used to simply hide _access_ to the concepts.
-    sites = models.ManyToManyField(Site, blank=True)
+    if 'django.contrib.sites' in settings.INSTALLED_APPS:
+        sites = models.ManyToManyField(Site, blank=True, related_name='concepts+')
 
-    # an optional formatter which provides custom formatting for this
-    # concept relative to the associated fields
-    formatter = models.CharField(max_length=100, blank=True, null=True,
-        choices=FORMATTER_CHOICES)
+    order = models.FloatField(null=True, db_column='_order')
 
-    # below are various booleans for denoting the usages of this concept with
-    # respect to a SQL query. these flags are not mutually exclusive and in
-    # most cases than not will have most or all of these flags enabled for
-    # robust interfaces for these concepts.
+    # Enables this field to be accessible for use. when ``published``
+    # is false, it is globally not accessible.
+    published = models.BooleanField(default=False)
 
-    # denotes whether this concept should exposed for data exporting. this
-    # should be decided based on the underlying data representing this
-    # concept.
-    exportable = models.BooleanField('Is this data exportable?', default=True)
-
-    # denotes whether this concept will be exposed as an interface to define
+    # Denotes whether this concept will be exposed as an interface to define
     # conditions against. concepts composed of inter-related or contextually
     # simliar fields are usually most appropriate for this option
-    conditional = models.BooleanField('Are these fields conditional?', default=True)
+    #conditional = models.BooleanField('Are these fields conditional?', default=True)
 
     objects = ConceptManager()
 
     class Meta(object):
         app_label = 'avocado'
-        order_with_respect_to = 'domain'
         ordering = ('order',)
         permissions = (
             ('view_concept', 'Can view concept'),
@@ -308,14 +288,14 @@ class Concept(Base):
 
 
 class ConceptField(Base):
-    order = models.FloatField(null=True)
-
+    "Through model between Concept and Field relationships."
     field = models.ForeignKey(Field, related_name='concept_fields')
     concept = models.ForeignKey(Concept, related_name='concept_fields')
 
+    order = models.FloatField(null=True, db_column='_order')
+
     class Meta(object):
         ordering = ('concept', 'order')
-        order_with_respect_to = 'concept'
 
     def __unicode__(self):
         return unicode(self.name or self.field.name)
@@ -323,3 +303,24 @@ class ConceptField(Base):
     def get_plural_name(self):
         return self.name_plural or self.field.get_plural_name()
 
+
+class ConceptInterface(models.Model):
+    """Abstract class for defining interfaces for the Concept model.
+
+    An example of this is the built-in interface, ``ExportInterface``
+    which allows for defining a ``Formatter`` class associated with the
+    Concept for data export support.
+    """
+    concept = models.ForeignKey(Concept)
+
+    # enables this field to be accessible for use. when ``published``
+    # is false, it is globally not accessible.
+    published = models.BooleanField(default=False)
+
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+    archived = models.BooleanField(default=False)
+
+    class Meta(object):
+        app_label = 'avocado'
+        abstract = True

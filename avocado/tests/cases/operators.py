@@ -1,5 +1,5 @@
 from avocado.tests.base import BaseTestCase
-from avocado.operators import *
+from avocado.query.operators import *
 
 __all__ = ('OperatorTestCase',)
 

@@ -1,4 +1,5 @@
 from avocado.core import loader
+from models import ExportInterface
 from _csv import CSVExporter
 from _sas import SasExporter
 from _r import RExporter

@@ -5,7 +5,7 @@ class ConceptIndex(indexes.RealTimeSearchIndex):
     text = indexes.CharConcept(document=True, use_template=True)
 
     def index_queryset(self):
-        return Concept.objects.public()
+        return Concept.objects.published()
 
 
 site.register(Concept, ConceptIndex)
