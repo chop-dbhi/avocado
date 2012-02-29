@@ -282,10 +282,10 @@ class Perspective(Context):
                 header.extend([x.name or x.field.name for x in cfields])
         return header
 
-    def format(self, iterable, format_type):
+    def format(self, iterable, format_type, **kwargs):
         store = self.read()
         rules = utils.column_format_rules(store['columns'], format_type)
-        return format.library.format(iterable, rules, format_type)
+        return format.library.format(iterable, rules, format_type, **kwargs)
 
 
 class Report(Descriptor):

@@ -36,8 +36,8 @@ class AbstractFormatter(object):
     apply_to_all = False
     is_choice = True
 
-    def __call__(self, ftype, *args):
-        return getattr(self, ftype)(*args)
+    def __call__(self, ftype, *args, **kwargs):
+        return getattr(self, ftype)(*args, **kwargs)
 
 
 class RemoveFormatter(AbstractFormatter):
@@ -45,7 +45,7 @@ class RemoveFormatter(AbstractFormatter):
     apply_to_all = True
     is_choice = False
 
-    def __call__(self, ftype, *args):
+    def __call__(self, ftype, *args, **kwargs):
         return []
 
 
@@ -54,12 +54,12 @@ class PassFormatter(AbstractFormatter):
     apply_to_all = True
     is_choice = False
 
-    def __call__(self, ftype, *args):
+    def __call__(self, ftype, *args, **kwargs):
         return args
 
 
 class DefaultFormatter(AbstractFormatter):
-    def html(self, *args):
+    def html(self, *args, **kwargs):
         toks = []
         for x in args:
             if x is None: continue
@@ -70,7 +70,7 @@ class DefaultFormatter(AbstractFormatter):
             toks.append(t)
         return ' '.join(toks) or None
 
-    def csv(self, *args):
+    def csv(self, *args, **kwargs):
         return args or None
 
 
@@ -153,20 +153,20 @@ class FormatterLibrary(Library):
                 choices.append((name, name))
         return choices
 
-    def format_seq(self, seq, rules, ftype, formatters, error, null):
-        n, toks = 0, []
+    def format_seq(self, seq, rules, ftype, formatters, error, null, **kwargs):
+        index, toks = 0, []
 
-        for fname, nargs in rules:
-            args = seq[n:n+nargs]
+        for fname, length in rules:
+            part = seq[index:index+length]
 
             # if the formatter expects one argument, but it is None,
             # skip the formatting and default to None.
-            if len(args) == 1 and args[0] is None:
+            if len(part) == 1 and part[0] is None:
                 tok = None
             else:
                 try:
                     obj = formatters[fname]
-                    tok = obj(ftype, *args)
+                    tok = obj(ftype, *part, **kwargs)
                 except Exception:
                     tok = error
 
@@ -181,17 +181,17 @@ class FormatterLibrary(Library):
                     tok = null
                 toks.append(tok)
 
-            n += nargs
+            index += length
 
         # all args have not been processed, therefore mixed formatting may have
         # occurred.
-        if n != len(seq):
+        if index != len(seq):
             raise FormatError, 'The rules "%s" is being applied to a ' \
                 'sequence of %d items' % (rules, len(seq))
 
         return tuple(toks)
 
-    def format(self, iterable, rules, ftype):
+    def format(self, iterable, rules, ftype, **kwargs):
         """Take an iterable and formats the data given the rules.
 
         Definitions:
@@ -223,7 +223,7 @@ class FormatterLibrary(Library):
         null = store.get('null', None)
 
         for seq in iter(iterable):
-            yield self.format_seq(seq, rules, ftype, formatters, error, null)
+            yield self.format_seq(seq, rules, ftype, formatters, error, null, **kwargs)
 
 
 library = FormatterLibrary()
