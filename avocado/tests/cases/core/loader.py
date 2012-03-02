@@ -10,7 +10,7 @@ class RegistryTestCase(TestCase):
         class B(object): pass
         self.A = A
         self.B = B
-        self.r = Registry()
+        self.r = Registry(register_instance=False)
 
     def test_register(self):
         self.r.register(self.B)

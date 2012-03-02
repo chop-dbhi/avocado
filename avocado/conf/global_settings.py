@@ -45,9 +45,9 @@ DATATYPE_OPERATOR_MAP = {
 # readable representation. this will only ever be applicable when values
 # are being presented to client programs as potential choices
 DATA_CHOICES_MAP = {
-    False: 'No',
-    True: 'Yes',
-    None: 'No Data',
+#    False: 'No',
+#    True: 'Yes',
+    None: 'Null',
 }
 
 # a general mapping of formfield overrides for all subclasses. the mapping is

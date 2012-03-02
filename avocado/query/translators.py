@@ -1,7 +1,7 @@
 from django.db.models import Q
 from django.core.exceptions import ValidationError
 
-from avocado import operators
+from avocado.query.operators import registry as operators
 from avocado.core import loader
 from avocado.conf import settings
 
@@ -15,41 +15,33 @@ class OperatorNotPermitted(Exception):
 class Translator(object):
     "The base translator class that all translators must subclass."
 
-    # an override of the list of supported operators for this particular
-    # translator. this may be necessary for client programs which have
-    # custom representations for certain fields
+    # An override of the list of supported operators for this particular
+    # translator. This may be necessary for client programs which have
+    # custom representations for certain fields.
     operators = None
 
-    # override of the field's field's default formfield class to be
+    # Override of the field's field's default formfield class to be
     # used for validation. this is usually never necessary to override
     form_class = None
 
     def __call__(self, *args, **kwargs):
         return self.translate(*args, **kwargs)
 
-    def _validate_operator(self, field, operator, **kwargs):
+    def _validate_operator(self, field, uid, **kwargs):
+        # Determine list of allowed operators
+        allowed_operators = self.operators or DATATYPE_OPERATOR_MAP[field.datatype]
+        uid = uid or allowed_operators[0]
 
-        if not operator:
-            # get the first operator in the list
-            try:
-                operator = DATATYPE_OPERATOR_MAP[field.datatype][0]
-            except (KeyError, IndexError):
-                operator = DEFAULT_OPERATOR
-
-        # attempt to retrieve the operator. no exception handling for
+        # Attempt to retrieve the operator. no exception handling for
         # this step exists since this should never fail
-        operator = operators.get(operator)
+        operator = operators.get(uid)
 
+        # No operator is registered
         if operator is None:
-            raise ValueError, '"%s" is not a valid operator' % operator
+            raise ValueError, '"%s" is not a valid operator' % uid
 
-        # determine list of allowed operators
-        if self.operators:
-            allowed_operators = self.operators
-        else:
-            allowed_operators = field.operators
-
-        if operator.operator not in allowed_operators:
+        # Ensure the operator is allowed
+        if operator.uid not in allowed_operators:
             raise OperatorNotPermitted('operator "%s" cannot be used for '
                 'this translator' % operator)
 
@@ -169,7 +161,7 @@ class Translator(object):
         operator = self._validate_operator(field, operator)
         value = self._validate_value(field, value)
 
-        if not operator.check(value):
+        if not operator.is_valid(value):
             raise ValidationError('"%s" is not valid for the operator "%s"' %
                 (value, operator))
 

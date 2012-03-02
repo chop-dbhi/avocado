@@ -9,7 +9,7 @@ try:
 except ImportError:
     ExcelExporter = None
 
-registry = loader.Registry()
+registry = loader.Registry(register_instance=False)
 
 registry.register(CSVExporter)
 registry.register(SasExporter)

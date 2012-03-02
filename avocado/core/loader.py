@@ -1,3 +1,4 @@
+import inspect
 from django.conf import settings
 from django.utils.importlib import import_module
 from django.core.exceptions import ImproperlyConfigured
@@ -12,47 +13,69 @@ class NotRegistered(Exception):
 
 class Registry(object):
     "Simple class that keeps track of a set of registered classes."
-    def __init__(self, default=None):
+    def __init__(self, default=None, register_instance=True):
+        if register_instance and inspect.isclass(default):
+            default = default()
+        self.register_instance = register_instance
         self.default = default
         self._registry = {}
 
     def __getitem__(self, name):
         return self._registry.get(name, self.default)
 
-    def register(self, klass, name=None):
+    def get(self, name):
+        return self.__getitem__(name)
+
+    def register(self, obj, name=None):
         """Registers a class with an optional name. The class name will be used
         if not supplied.
         """
-        name = name or klass.__name__
-        if name in self._registry:
-            raise AlreadyRegistered('The class %s is already registered' % name)
+        if inspect.isclass(obj):
+            name = name or obj.__name__
+            # Create an instance if instances should be registered
+            if self.register_instance:
+                obj = obj()
+        else:
+            name = name or obj.__class__.__name__
 
-        # check to see if this class should be used as the default for this
+        if name in self._registry:
+            raise AlreadyRegistered('The class {} is already registered'.format(name))
+
+        # Check to see if this class should be used as the default for this
         # registry
-        if getattr(klass, 'default', False):
+        if getattr(obj, 'default', False):
             # ensure the default if already overriden is not being overriden
             # again.
             if self.default:
-                raise ImproperlyConfigured('The default class cannot be set '
-                    'more than once for this registry (%s is the default).' %
-                    self.default.__name__)
+                if self.register_instance:
+                    name = self.default.__class__.__name__
+                else:
+                    name = self.default.__name__
+                objtype = 'class' if self.register_instance else 'instance'
+                raise ImproperlyConfigured('The default {} cannot be set '
+                    'more than once for this registry ({} is the default).'.format(objtype, name))
 
-            self.default = klass
+            self.default = obj
         else:
             if name in self._registry:
                 raise AlreadyRegistered('Another class is registered with the '
-                    'name "%s"' % name)
+                    'name "{}"'.format(name))
 
-            self._registry[name] = klass
+            self._registry[name] = obj
 
     def unregister(self, name):
         """Unregisters a class. Note that these calls must be made in
         INSTALLED_APPS listed after the apps that already registered the class.
         """
-        if not isinstance(name, basestring):
+        # Use the name of the class if passed in. Second condition checks for an
+        # instance of the class.
+        if inspect.isclass(name):
             name = name.__name__
+        elif hasattr(name, '__class__'):
+            name = name.__class__.__name__
         if name not in self._registry:
-            raise NotRegistered('No class is registered under the name "%s"' % name)
+            objtype = 'class' if self.register_instance else 'instance'
+            raise NotRegistered('No {} is registered under the name "{}"'.format(objtype, name))
         self._registry.pop(name)
 
     @property
@@ -69,6 +92,6 @@ def autodiscover(module_name):
     for app in settings.INSTALLED_APPS:
         # Attempt to import the app's ``module_name``.
         try:
-            import_module('%s.%s' % (app, module_name))
+            import_module('{}.{}'.format(app, module_name))
         except:
             pass

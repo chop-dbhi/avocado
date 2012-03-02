@@ -141,10 +141,5 @@ class Formatter(object):
         return value
 
 
-# initialize the registry that will contain all classes for this type of
-# registry
-registry = loader.Registry(default=Formatter)
-
-# this will be invoked when it is imported by models.py to use the
-# registry choices
+registry = loader.Registry(default=Formatter, register_instance=False)
 loader.autodiscover('formatters')

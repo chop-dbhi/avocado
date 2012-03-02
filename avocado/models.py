@@ -14,7 +14,8 @@ from avocado.conf import settings as _settings
 from avocado.managers import FieldManager, ConceptManager
 from avocado.core import binning
 from avocado.core.decorators import cached_property
-from avocado import translators
+from avocado.query import translators
+from modeltree import MODELTREE_DEFAULT_ALIAS, trees
 
 __all__ = ('Domain', 'Concept', 'Field')
 
@@ -193,6 +194,14 @@ class Field(Base):
         name = self.field_name
         queryset = self.model.objects.values(name)
         return binning.distribution(queryset, name, self.datatype, *args, **kwargs)
+
+    def query_string(self, operator=None, using=MODELTREE_DEFAULT_ALIAS):
+        return trees[using].query_string_for_field(self.field, operator)
+
+    def translate(self, operator=None, value=None, using=MODELTREE_DEFAULT_ALIAS, **context):
+        "Convenince method for performing a translation on a query condition."
+        trans = translators.registry[self.translator]
+        return trans(self, operator, value, using, **context)
 
     def formfield(self, **kwargs):
         """Returns the default formfield class for the represented field
