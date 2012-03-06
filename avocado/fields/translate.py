@@ -139,7 +139,9 @@ class AbstractTranslator(object):
                 (operator.operator == 'exact' and value is None)):
 
                 key = field.query_string('isnull', using=using)
-                value = not operator.negated
+                # This was is -isnull, thus we need to switch the value as well
+                if operator.negated:
+                    value = not value
 
                 condition = Q(**{key: value})
 
