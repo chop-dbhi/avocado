@@ -139,6 +139,10 @@ class AbstractTranslator(object):
                 (operator.operator == 'exact' and value is None)):
 
                 key = field.query_string('isnull', using=using)
+
+                if value is None:
+                    value = True
+
                 # This was is -isnull, thus we need to switch the value as well
                 if operator.negated:
                     value = not value
