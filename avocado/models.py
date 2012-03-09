@@ -13,7 +13,6 @@ from django.utils.importlib import import_module
 from avocado.conf import settings as _settings
 from avocado.managers import FieldManager, ConceptManager
 from avocado.core import binning
-from avocado.core.decorators import cached_property
 from avocado.formatters import registry as formatters
 from avocado.query.translators import registry as translators
 from modeltree.tree import MODELTREE_DEFAULT_ALIAS, trees
@@ -127,7 +126,7 @@ class Field(Base):
             self._model = models.get_model(self.app_name, self.model_name)
         return self._model
 
-    @cached_property
+    @property
     def field(self):
         "Returns the field object this field represents."
         try:
@@ -142,7 +141,7 @@ class Field(Base):
             datatype = datatype[:-5]
         return datatype
 
-    @cached_property
+    @property
     def datatype(self):
         """Returns the datatype of the field this field represents.
 
@@ -155,14 +154,14 @@ class Field(Base):
             datatype = _settings.INTERNAL_DATATYPE_MAP[datatype]
         return datatype
 
-    @cached_property
+    @property
     def values(self):
         "Introspects the data and returns a distinct list of the values."
         if self.enable_choices:
             return self.model.objects.values_list(self.field_name,
                 flat=True).order_by(self.field_name).distinct()
 
-    @cached_property
+    @property
     def mapped_values(self):
         if self.enable_choices:
             # Iterate over each value and attempt to get the mapped choice
@@ -170,7 +169,7 @@ class Field(Base):
             return [smart_unicode(_settings.DATA_CHOICES_MAP.get(value, value)) \
                 for value in self.values]
 
-    @cached_property
+    @property
     def coded_values(self):
         "Returns a distinct set of coded values for this field"
         if self.enable_choices:
@@ -183,7 +182,7 @@ class Field(Base):
         if self.enable_choices:
             return zip(self.values, self.mapped_values)
 
-    @cached_property
+    @property
     def distribution(self, *args, **kwargs):
         "Returns a binned distribution of this field's data."
         name = self.field_name
