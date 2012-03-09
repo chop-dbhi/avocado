@@ -3,7 +3,7 @@ import unittest
 from avocado.tests import models
 from avocado.tests.base import BaseTestCase
 from avocado.models import Field, Concept, ConceptField
-from avocado import export
+from avocado import exporters
 
 class ExportTestCase(BaseTestCase):
     def setUp(self):
@@ -48,34 +48,34 @@ class ExportTestCase(BaseTestCase):
 
     def test_csv(self):
         buff = open('csv_export.csv', 'wb+')
-        exporter = export.CSVExporter(self.query, self.concepts)
+        exporter = exporters.CSVExporter(self.query, self.concepts)
         exporter.write(buff)
         buff.seek(0)
-        self.assertEqual(buff.read(), 'name,salary,first_name,last_name,is_manager\r\nProgrammer,15000,Eric,Smith,1\r\nAnalyst,20000,Erin,Jones,0\r\nProgrammer,15000,Erick,Smith,0\r\nAnalyst,20000,Aaron,Harris,0\r\nProgrammer,15000,Zac,Cook,0\r\nAnalyst,20000,Mel,Brooks,0\r\n')
+        self.assertEqual(buff.read(), 'first_name,last_name,is_manager,name,salary\r\nEric,Smith,1,Programmer,15000\r\nErin,Jones,0,Analyst,20000\r\nErick,Smith,0,Programmer,15000\r\nAaron,Harris,0,Analyst,20000\r\nZac,Cook,0,Programmer,15000\r\nMel,Brooks,0,Analyst,20000\r\n')
         os.remove('csv_export.csv')
 
     # Skip test if deps are not installed
-    @unittest.skipUnless(export.ExcelExporter, 'openpyxl must be installed to test ExcelExporter')
+    @unittest.skipUnless(exporters.ExcelExporter, 'openpyxl must be installed to test ExcelExporter')
     def test_excel(self):
-        exporter = export.ExcelExporter(self.query, self.concepts)
+        exporter = exporters.ExcelExporter(self.query, self.concepts)
         exporter.write('excel_export.xlsx', virtual=False)
         self.assertTrue(os.path.exists('excel_export.xlsx'))
         os.remove('excel_export.xlsx')
 
     def test_sas(self):
-        exporter = export.SasExporter(self.query, self.concepts)
+        exporter = exporters.SasExporter(self.query, self.concepts)
         exporter.write('sas_export.zip')
         self.assertTrue(os.path.exists('sas_export.zip'))
         os.remove('sas_export.zip')
 
     def test_r(self):
-        exporter = export.RExporter(self.query, self.concepts)
+        exporter = exporters.RExporter(self.query, self.concepts)
         exporter.write('r_export.zip')
         self.assertTrue(os.path.exists('r_export.zip'))
         os.remove('r_export.zip')
 
     def test_json(self):
-        exporter = export.JSONExporter(self.query, self.concepts)
+        exporter = exporters.JSONExporter(self.query, self.concepts)
         buff = open('json_export.json', 'wb+')
         exporter.write(buff)
         os.remove('json_export.json')

@@ -94,19 +94,18 @@
 <p id='n32' class='pln'><a href='#n32'>32</a></p>
 <p id='n33' class='stm mis'><a href='#n33'>33</a></p>
 <p id='n34' class='pln'><a href='#n34'>34</a></p>
-<p id='n35' class='pln'><a href='#n35'>35</a></p>
-<p id='n36' class='stm mis'><a href='#n36'>36</a></p>
+<p id='n35' class='stm mis'><a href='#n35'>35</a></p>
+<p id='n36' class='pln'><a href='#n36'>36</a></p>
 <p id='n37' class='pln'><a href='#n37'>37</a></p>
-<p id='n38' class='pln'><a href='#n38'>38</a></p>
-<p id='n39' class='stm mis'><a href='#n39'>39</a></p>
-<p id='n40' class='pln'><a href='#n40'>40</a></p>
-<p id='n41' class='stm mis'><a href='#n41'>41</a></p>
-<p id='n42' class='pln'><a href='#n42'>42</a></p>
+<p id='n38' class='stm mis'><a href='#n38'>38</a></p>
+<p id='n39' class='pln'><a href='#n39'>39</a></p>
+<p id='n40' class='stm mis'><a href='#n40'>40</a></p>
+<p id='n41' class='pln'><a href='#n41'>41</a></p>
+<p id='n42' class='stm mis'><a href='#n42'>42</a></p>
 <p id='n43' class='stm mis'><a href='#n43'>43</a></p>
-<p id='n44' class='stm mis'><a href='#n44'>44</a></p>
-<p id='n45' class='pln'><a href='#n45'>45</a></p>
-<p id='n46' class='stm mis'><a href='#n46'>46</a></p>
-<p id='n47' class='pln'><a href='#n47'>47</a></p>
+<p id='n44' class='pln'><a href='#n44'>44</a></p>
+<p id='n45' class='stm mis'><a href='#n45'>45</a></p>
+<p id='n46' class='pln'><a href='#n46'>46</a></p>
                 
             </td>
             <td class='text' valign='top'>
@@ -125,38 +124,37 @@
 <p id='t13' class='pln'><span class='strut'>&nbsp;</span></p>
 <p id='t14' class='stm mis'>&nbsp; &nbsp; <span class='key'>return</span> <span class='nam'>Mixin</span><span class='strut'>&nbsp;</span></p>
 <p id='t15' class='pln'><span class='strut'>&nbsp;</span></p>
-<p id='t16' class='stm mis'><span class='key'>def</span> <span class='nam'>create_mixin</span><span class='op'>(</span><span class='nam'>name</span><span class='op'>,</span> <span class='nam'>module</span><span class='op'>,</span> <span class='nam'>bases</span><span class='op'>=</span><span class='nam'>None</span><span class='op'>,</span> <span class='nam'>fields</span><span class='op'>=</span><span class='nam'>None</span><span class='op'>,</span> <span class='nam'>options</span><span class='op'>=</span><span class='nam'>None</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
+<p id='t16' class='stm mis'><span class='key'>def</span> <span class='nam'>create_mixin</span><span class='op'>(</span><span class='nam'>name</span><span class='op'>,</span> <span class='nam'>module</span><span class='op'>,</span> <span class='nam'>bases</span><span class='op'>=</span><span class='nam'>None</span><span class='op'>,</span> <span class='nam'>attrs</span><span class='op'>=</span><span class='nam'>None</span><span class='op'>,</span> <span class='nam'>meta</span><span class='op'>=</span><span class='nam'>None</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
 <p id='t17' class='pln'>&nbsp; &nbsp; <span class='str'>&quot;Creates an abstract model class based on the provided information.&quot;</span><span class='strut'>&nbsp;</span></p>
 <p id='t18' class='stm mis'>&nbsp; &nbsp; <span class='nam'>bases</span> <span class='op'>=</span> <span class='nam'>bases</span> <span class='key'>or</span> <span class='op'>(</span><span class='nam'>models</span><span class='op'>.</span><span class='nam'>Model</span><span class='op'>,</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
-<p id='t19' class='stm mis'>&nbsp; &nbsp; <span class='nam'>fields</span> <span class='op'>=</span> <span class='nam'>fields</span> <span class='key'>or</span> <span class='op'>{</span><span class='op'>}</span><span class='strut'>&nbsp;</span></p>
-<p id='t20' class='stm mis'>&nbsp; &nbsp; <span class='nam'>options</span> <span class='op'>=</span> <span class='nam'>options</span> <span class='key'>or</span> <span class='op'>{</span><span class='op'>}</span><span class='strut'>&nbsp;</span></p>
+<p id='t19' class='stm mis'>&nbsp; &nbsp; <span class='nam'>attrs</span> <span class='op'>=</span> <span class='nam'>attrs</span> <span class='key'>or</span> <span class='op'>{</span><span class='op'>}</span><span class='strut'>&nbsp;</span></p>
+<p id='t20' class='stm mis'>&nbsp; &nbsp; <span class='nam'>meta</span> <span class='op'>=</span> <span class='nam'>meta</span> <span class='key'>or</span> <span class='op'>{</span><span class='op'>}</span><span class='strut'>&nbsp;</span></p>
 <p id='t21' class='pln'><span class='strut'>&nbsp;</span></p>
-<p id='t22' class='stm mis'>&nbsp; &nbsp; <span class='nam'>options</span><span class='op'>.</span><span class='nam'>setdefault</span><span class='op'>(</span><span class='str'>&#39;abstract&#39;</span><span class='op'>,</span> <span class='nam'>True</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
+<p id='t22' class='stm mis'>&nbsp; &nbsp; <span class='nam'>meta</span><span class='op'>.</span><span class='nam'>setdefault</span><span class='op'>(</span><span class='str'>&#39;abstract&#39;</span><span class='op'>,</span> <span class='nam'>True</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t23' class='pln'><span class='strut'>&nbsp;</span></p>
 <p id='t24' class='stm mis'>&nbsp; &nbsp; <span class='key'>class</span> <span class='nam'>Meta</span><span class='op'>(</span><span class='nam'>object</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
 <p id='t25' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>pass</span><span class='strut'>&nbsp;</span></p>
 <p id='t26' class='pln'><span class='strut'>&nbsp;</span></p>
-<p id='t27' class='pln'>&nbsp; &nbsp; <span class='com'># update Meta with any options that were provided</span><span class='strut'>&nbsp;</span></p>
-<p id='t28' class='stm mis'>&nbsp; &nbsp; <span class='key'>if</span> <span class='nam'>options</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
-<p id='t29' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>for</span> <span class='nam'>key</span><span class='op'>,</span> <span class='nam'>value</span> <span class='key'>in</span> <span class='nam'>options</span><span class='op'>.</span><span class='nam'>iteritems</span><span class='op'>(</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
+<p id='t27' class='pln'>&nbsp; &nbsp; <span class='com'># Update Meta with any options that were provided</span><span class='strut'>&nbsp;</span></p>
+<p id='t28' class='stm mis'>&nbsp; &nbsp; <span class='key'>if</span> <span class='nam'>meta</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
+<p id='t29' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>for</span> <span class='nam'>key</span><span class='op'>,</span> <span class='nam'>value</span> <span class='key'>in</span> <span class='nam'>meta</span><span class='op'>.</span><span class='nam'>iteritems</span><span class='op'>(</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
 <p id='t30' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>setattr</span><span class='op'>(</span><span class='nam'>Meta</span><span class='op'>,</span> <span class='nam'>key</span><span class='op'>,</span> <span class='nam'>value</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t31' class='pln'><span class='strut'>&nbsp;</span></p>
-<p id='t32' class='pln'>&nbsp; &nbsp; <span class='com'># create the initial set of model attributes by copying the fields</span><span class='strut'>&nbsp;</span></p>
-<p id='t33' class='stm mis'>&nbsp; &nbsp; <span class='nam'>attrs</span> <span class='op'>=</span> <span class='nam'>fields</span><span class='op'>.</span><span class='nam'>copy</span><span class='op'>(</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
-<p id='t34' class='pln'><span class='strut'>&nbsp;</span></p>
-<p id='t35' class='pln'>&nbsp; &nbsp; <span class='com'># set up a dictionary to simulate declarations within a class</span><span class='strut'>&nbsp;</span></p>
-<p id='t36' class='stm mis'>&nbsp; &nbsp; <span class='nam'>attrs</span><span class='op'>.</span><span class='nam'>update</span><span class='op'>(</span><span class='op'>{</span><span class='str'>&#39;__module__&#39;</span><span class='op'>:</span> <span class='nam'>module</span><span class='op'>,</span> <span class='str'>&#39;Meta&#39;</span><span class='op'>:</span> <span class='nam'>Meta</span><span class='op'>}</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
-<p id='t37' class='pln'><span class='strut'>&nbsp;</span></p>
-<p id='t38' class='pln'>&nbsp; &nbsp; <span class='com'># create the class, which automatically triggers ModelBase processing</span><span class='strut'>&nbsp;</span></p>
-<p id='t39' class='stm mis'>&nbsp; &nbsp; <span class='key'>return</span> <span class='nam'>type</span><span class='op'>(</span><span class='nam'>name</span><span class='op'>,</span> <span class='nam'>bases</span><span class='op'>,</span> <span class='nam'>attrs</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
-<p id='t40' class='pln'><span class='strut'>&nbsp;</span></p>
-<p id='t41' class='stm mis'><span class='key'>def</span> <span class='nam'>create_model</span><span class='op'>(</span><span class='nam'>name</span><span class='op'>,</span> <span class='nam'>module</span><span class='op'>,</span> <span class='nam'>bases</span><span class='op'>=</span><span class='nam'>None</span><span class='op'>,</span> <span class='nam'>fields</span><span class='op'>=</span><span class='nam'>None</span><span class='op'>,</span> <span class='nam'>options</span><span class='op'>=</span><span class='nam'>None</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
-<p id='t42' class='pln'>&nbsp; &nbsp; <span class='str'>&quot;Creates a non-abstract model class based on the provided information.&quot;</span><span class='strut'>&nbsp;</span></p>
-<p id='t43' class='stm mis'>&nbsp; &nbsp; <span class='nam'>options</span> <span class='op'>=</span> <span class='nam'>options</span> <span class='key'>or</span> <span class='op'>{</span><span class='op'>}</span><span class='strut'>&nbsp;</span></p>
-<p id='t44' class='stm mis'>&nbsp; &nbsp; <span class='nam'>options</span><span class='op'>[</span><span class='str'>&#39;abstract&#39;</span><span class='op'>]</span> <span class='op'>=</span> <span class='nam'>False</span><span class='strut'>&nbsp;</span></p>
-<p id='t45' class='pln'><span class='strut'>&nbsp;</span></p>
-<p id='t46' class='stm mis'>&nbsp; &nbsp; <span class='key'>return</span> <span class='nam'>create_mixin</span><span class='op'>(</span><span class='nam'>name</span><span class='op'>,</span> <span class='nam'>module</span><span class='op'>,</span> <span class='nam'>bases</span><span class='op'>=</span><span class='nam'>bases</span><span class='op'>,</span> <span class='nam'>fields</span><span class='op'>=</span><span class='nam'>fields</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
-<p id='t47' class='pln'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>options</span><span class='op'>=</span><span class='nam'>options</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
+<p id='t32' class='pln'>&nbsp; &nbsp; <span class='com'># Create the initial set of model attributes by copying the fields</span><span class='strut'>&nbsp;</span></p>
+<p id='t33' class='stm mis'>&nbsp; &nbsp; <span class='nam'>attrs</span> <span class='op'>=</span> <span class='nam'>attrs</span><span class='op'>.</span><span class='nam'>copy</span><span class='op'>(</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
+<p id='t34' class='pln'>&nbsp; &nbsp; <span class='com'># Set up a dictionary to simulate declarations within a class</span><span class='strut'>&nbsp;</span></p>
+<p id='t35' class='stm mis'>&nbsp; &nbsp; <span class='nam'>attrs</span><span class='op'>.</span><span class='nam'>update</span><span class='op'>(</span><span class='op'>{</span><span class='str'>&#39;__module__&#39;</span><span class='op'>:</span> <span class='nam'>module</span><span class='op'>,</span> <span class='str'>&#39;Meta&#39;</span><span class='op'>:</span> <span class='nam'>Meta</span><span class='op'>}</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
+<p id='t36' class='pln'><span class='strut'>&nbsp;</span></p>
+<p id='t37' class='pln'>&nbsp; &nbsp; <span class='com'># create the class, which automatically triggers ModelBase processing</span><span class='strut'>&nbsp;</span></p>
+<p id='t38' class='stm mis'>&nbsp; &nbsp; <span class='key'>return</span> <span class='nam'>type</span><span class='op'>(</span><span class='nam'>name</span><span class='op'>,</span> <span class='nam'>bases</span><span class='op'>,</span> <span class='nam'>attrs</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
+<p id='t39' class='pln'><span class='strut'>&nbsp;</span></p>
+<p id='t40' class='stm mis'><span class='key'>def</span> <span class='nam'>create_model</span><span class='op'>(</span><span class='nam'>name</span><span class='op'>,</span> <span class='nam'>module</span><span class='op'>,</span> <span class='nam'>bases</span><span class='op'>=</span><span class='nam'>None</span><span class='op'>,</span> <span class='nam'>fields</span><span class='op'>=</span><span class='nam'>None</span><span class='op'>,</span> <span class='nam'>options</span><span class='op'>=</span><span class='nam'>None</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
+<p id='t41' class='pln'>&nbsp; &nbsp; <span class='str'>&quot;Creates a non-abstract model class based on the provided information.&quot;</span><span class='strut'>&nbsp;</span></p>
+<p id='t42' class='stm mis'>&nbsp; &nbsp; <span class='nam'>options</span> <span class='op'>=</span> <span class='nam'>options</span> <span class='key'>or</span> <span class='op'>{</span><span class='op'>}</span><span class='strut'>&nbsp;</span></p>
+<p id='t43' class='stm mis'>&nbsp; &nbsp; <span class='nam'>options</span><span class='op'>[</span><span class='str'>&#39;abstract&#39;</span><span class='op'>]</span> <span class='op'>=</span> <span class='nam'>False</span><span class='strut'>&nbsp;</span></p>
+<p id='t44' class='pln'><span class='strut'>&nbsp;</span></p>
+<p id='t45' class='stm mis'>&nbsp; &nbsp; <span class='key'>return</span> <span class='nam'>create_mixin</span><span class='op'>(</span><span class='nam'>name</span><span class='op'>,</span> <span class='nam'>module</span><span class='op'>,</span> <span class='nam'>bases</span><span class='op'>=</span><span class='nam'>bases</span><span class='op'>,</span> <span class='nam'>fields</span><span class='op'>=</span><span class='nam'>fields</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
+<p id='t46' class='pln'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>options</span><span class='op'>=</span><span class='nam'>options</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
                 
             </td>
         </tr>

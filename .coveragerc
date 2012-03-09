@@ -1,7 +1,4 @@
 [run]
-include =
-    avocado/*.py
-
 source = avocado
 
 [html]

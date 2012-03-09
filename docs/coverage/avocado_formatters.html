@@ -203,13 +203,8 @@
 <p id='n141' class='stm run hide_run'><a href='#n141'>141</a></p>
 <p id='n142' class='pln'><a href='#n142'>142</a></p>
 <p id='n143' class='pln'><a href='#n143'>143</a></p>
-<p id='n144' class='pln'><a href='#n144'>144</a></p>
-<p id='n145' class='pln'><a href='#n145'>145</a></p>
-<p id='n146' class='stm run hide_run'><a href='#n146'>146</a></p>
-<p id='n147' class='pln'><a href='#n147'>147</a></p>
-<p id='n148' class='pln'><a href='#n148'>148</a></p>
-<p id='n149' class='pln'><a href='#n149'>149</a></p>
-<p id='n150' class='stm run hide_run'><a href='#n150'>150</a></p>
+<p id='n144' class='stm run hide_run'><a href='#n144'>144</a></p>
+<p id='n145' class='stm run hide_run'><a href='#n145'>145</a></p>
                 
             </td>
             <td class='text' valign='top'>
@@ -356,13 +351,8 @@
 <p id='t141' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>return</span> <span class='nam'>value</span><span class='strut'>&nbsp;</span></p>
 <p id='t142' class='pln'><span class='strut'>&nbsp;</span></p>
 <p id='t143' class='pln'><span class='strut'>&nbsp;</span></p>
-<p id='t144' class='pln'><span class='com'># initialize the registry that will contain all classes for this type of</span><span class='strut'>&nbsp;</span></p>
-<p id='t145' class='pln'><span class='com'># registry</span><span class='strut'>&nbsp;</span></p>
-<p id='t146' class='stm run hide_run'><span class='nam'>registry</span> <span class='op'>=</span> <span class='nam'>loader</span><span class='op'>.</span><span class='nam'>Registry</span><span class='op'>(</span><span class='nam'>default</span><span class='op'>=</span><span class='nam'>Formatter</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
-<p id='t147' class='pln'><span class='strut'>&nbsp;</span></p>
-<p id='t148' class='pln'><span class='com'># this will be invoked when it is imported by models.py to use the</span><span class='strut'>&nbsp;</span></p>
-<p id='t149' class='pln'><span class='com'># registry choices</span><span class='strut'>&nbsp;</span></p>
-<p id='t150' class='stm run hide_run'><span class='nam'>loader</span><span class='op'>.</span><span class='nam'>autodiscover</span><span class='op'>(</span><span class='str'>&#39;formatters&#39;</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
+<p id='t144' class='stm run hide_run'><span class='nam'>registry</span> <span class='op'>=</span> <span class='nam'>loader</span><span class='op'>.</span><span class='nam'>Registry</span><span class='op'>(</span><span class='nam'>default</span><span class='op'>=</span><span class='nam'>Formatter</span><span class='op'>,</span> <span class='nam'>register_instance</span><span class='op'>=</span><span class='nam'>False</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
+<p id='t145' class='stm run hide_run'><span class='nam'>loader</span><span class='op'>.</span><span class='nam'>autodiscover</span><span class='op'>(</span><span class='str'>&#39;formatters&#39;</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
                 
             </td>
         </tr>

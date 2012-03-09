@@ -1,7 +1,6 @@
 from avocado.tests.base import BaseTestCase
-from avocado.export.formatters import Formatter
+from avocado.formatters import Formatter
 from avocado.models import Field, Concept, ConceptField
-from avocado.export.models import ExportInterface
 
 try:
     from collections import OrderedDict
@@ -21,8 +20,6 @@ class FormatterTestCase(BaseTestCase):
 
         concept = Concept(name='Title')
         concept.save()
-        export_int = ExportInterface(concept=concept)
-        export_int.save()
 
         cf1 = ConceptField(concept=concept, field=name_field, order=1)
         cf1.save()

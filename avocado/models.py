@@ -14,12 +14,11 @@ from avocado.conf import settings as _settings
 from avocado.managers import FieldManager, ConceptManager
 from avocado.core import binning
 from avocado.core.decorators import cached_property
-from avocado.query import translators
-from modeltree import MODELTREE_DEFAULT_ALIAS, trees
+from avocado.formatters import registry as formatters
+from avocado.query.translators import registry as translators
+from modeltree.tree import MODELTREE_DEFAULT_ALIAS, trees
 
 __all__ = ('Domain', 'Concept', 'Field')
-
-TRANSLATOR_CHOICES = translators.registry.choices
 
 def get_form_class(name):
     # infers this is a path
@@ -48,15 +47,11 @@ class Base(models.Model):
 
         ``keywords`` - Additional extraneous text that cannot be derived from the
         name, description or data itself. This is solely used for search indexing.
-
-        ``archived`` - Rather than deleting metadata, an object can simply be
-        archived.
     """
     name = models.CharField(max_length=50)
     name_plural = models.CharField('name (plural form)', max_length=50, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     keywords = models.CharField(max_length=100, null=True, blank=True)
-    archived = models.BooleanField(default=False)
 
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
@@ -96,7 +91,7 @@ class Field(Base):
 
     # An optional translator which customizes input query conditions
     # to a format which is suitable for the database.
-    translator = models.CharField(max_length=100, choices=TRANSLATOR_CHOICES,
+    translator = models.CharField(max_length=100, choices=translators.choices,
         blank=True, null=True)
 
     # Enables this field to be accessible for use. When ``published``
@@ -200,7 +195,7 @@ class Field(Base):
 
     def translate(self, operator=None, value=None, using=MODELTREE_DEFAULT_ALIAS, **context):
         "Convenince method for performing a translation on a query condition."
-        trans = translators.registry[self.translator]
+        trans = translators[self.translator]
         return trans(self, operator, value, using, **context)
 
     def formfield(self, **kwargs):
@@ -278,6 +273,11 @@ class Concept(Base):
     # is false, it is globally not accessible.
     published = models.BooleanField(default=False)
 
+    # An optional formatter which provides custom formatting for this
+    # concept relative to the associated fields
+    formatter = models.CharField(max_length=100, blank=True, null=True,
+        choices=formatters.choices)
+
     # Denotes whether this concept will be exposed as an interface to define
     # conditions against. concepts composed of inter-related or contextually
     # simliar fields are usually most appropriate for this option
@@ -313,23 +313,10 @@ class ConceptField(Base):
         return self.name_plural or self.field.get_plural_name()
 
 
-class ConceptInterface(models.Model):
-    """Abstract class for defining interfaces for the Concept model.
-
-    An example of this is the built-in interface, ``ExportInterface``
-    which allows for defining a ``Formatter`` class associated with the
-    Concept for data export support.
-    """
-    concept = models.ForeignKey(Concept)
-
-    # enables this field to be accessible for use. when ``published``
-    # is false, it is globally not accessible.
-    published = models.BooleanField(default=False)
-
-    created = models.DateTimeField(auto_now_add=True)
-    modified = models.DateTimeField(auto_now=True)
-    archived = models.BooleanField(default=False)
-
-    class Meta(object):
-        app_label = 'avocado'
-        abstract = True
+# If django-reversion is installed, register the models
+if 'reversion' in settings.INSTALLED_APPS:
+    import reversion
+    reversion.register(Field)
+    reversion.register(Domain)
+    reversion.reversion(ConceptField)
+    reversion.register(Concept, follow=['concept_fields'])

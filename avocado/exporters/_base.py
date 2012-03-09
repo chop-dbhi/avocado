@@ -1,5 +1,5 @@
 from modeltree.query import ModelTreeQuerySet
-from formatters import registry
+from avocado.formatters import registry
 
 try:
     from collections import OrderedDict

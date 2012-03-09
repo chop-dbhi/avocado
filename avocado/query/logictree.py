@@ -38,7 +38,7 @@ Two examples as follows:
         }]
     }
 """
-from modeltree import MODELTREE_DEFAULT_ALIAS
+from modeltree.tree import MODELTREE_DEFAULT_ALIAS
 from avocado.models import Field, Criterion, CriterionField
 
 AND = 'AND'

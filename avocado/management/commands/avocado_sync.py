@@ -49,15 +49,15 @@ class Command(LabelCommand):
 
         make_option('--include-non-editable', action='store_true',
             dest='include_non_editable', default=False,
-            help='Create fields for non-editable fields')
+            help='Create fields for non-editable fields'),
 
         make_option('--include-keys', action='store_true',
             dest='include_keys', default=False,
-            help='Create fields for primary and foreign key fields')
+            help='Create fields for primary and foreign key fields'),
 
         make_option('--update', action='store_true',
             dest='update_existing', default=False,
-            help='Updates existing metadata derived from model fields')
+            help='Updates existing metadata derived from model fields'),
     )
 
     # these are ignored since these join fields will be determined at runtime
@@ -74,7 +74,7 @@ class Command(LabelCommand):
         self._domains = {}
 
     def _get_domain(self, model):
-        if model not in self._domains
+        if model not in self._domains:
             domain, is_new = Domain.objects.get_or_create(name=model._meta.verbose_name)
             self._domains[model] = domain
         return self._domains[model]

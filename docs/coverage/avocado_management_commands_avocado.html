@@ -24,9 +24,9 @@
         </h1>
         <img id='keyboard_icon' src='keybd_closed.png'>
         <h2 class='stats'>
-            9 statements
+            11 statements
             <span class='run hide_run shortkey_r' onclick='coverage.toggle_lines(this, "run")'>0 run</span>
-            <span class='mis shortkey_m' onclick='coverage.toggle_lines(this, "mis")'>9 missing</span>
+            <span class='mis shortkey_m' onclick='coverage.toggle_lines(this, "mis")'>11 missing</span>
             <span class='exc shortkey_x' onclick='coverage.toggle_lines(this, "exc")'>0 excluded</span>
             
         </h2>
@@ -67,12 +67,14 @@
 <p id='n5' class='stm mis'><a href='#n5'>5</a></p>
 <p id='n6' class='pln'><a href='#n6'>6</a></p>
 <p id='n7' class='stm mis'><a href='#n7'>7</a></p>
-<p id='n8' class='pln'><a href='#n8'>8</a></p>
-<p id='n9' class='stm mis'><a href='#n9'>9</a></p>
+<p id='n8' class='stm mis'><a href='#n8'>8</a></p>
+<p id='n9' class='pln'><a href='#n9'>9</a></p>
 <p id='n10' class='stm mis'><a href='#n10'>10</a></p>
 <p id='n11' class='stm mis'><a href='#n11'>11</a></p>
 <p id='n12' class='stm mis'><a href='#n12'>12</a></p>
-<p id='n13' class='pln'><a href='#n13'>13</a></p>
+<p id='n13' class='stm mis'><a href='#n13'>13</a></p>
+<p id='n14' class='stm mis'><a href='#n14'>14</a></p>
+<p id='n15' class='pln'><a href='#n15'>15</a></p>
                 
             </td>
             <td class='text' valign='top'>
@@ -83,12 +85,14 @@
 <p id='t5' class='stm mis'>&nbsp; &nbsp; <span class='nam'>help</span> <span class='op'>=</span> <span class='str'>&quot;A wrapper for Avocado subcommands&quot;</span><span class='strut'>&nbsp;</span></p>
 <p id='t6' class='pln'><span class='strut'>&nbsp;</span></p>
 <p id='t7' class='stm mis'>&nbsp; &nbsp; <span class='nam'>commands</span> <span class='op'>=</span> <span class='op'>[</span><span class='str'>&#39;sync&#39;</span><span class='op'>,</span> <span class='str'>&#39;orphaned&#39;</span><span class='op'>]</span><span class='strut'>&nbsp;</span></p>
-<p id='t8' class='pln'><span class='strut'>&nbsp;</span></p>
-<p id='t9' class='stm mis'>&nbsp; &nbsp; <span class='key'>def</span> <span class='nam'>handle</span><span class='op'>(</span><span class='nam'>self</span><span class='op'>,</span> <span class='op'>*</span><span class='nam'>args</span><span class='op'>,</span> <span class='op'>**</span><span class='nam'>options</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
-<p id='t10' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>if</span> <span class='key'>not</span> <span class='nam'>args</span> <span class='key'>or</span> <span class='nam'>args</span><span class='op'>[</span><span class='num'>0</span><span class='op'>]</span> <span class='key'>not</span> <span class='key'>in</span> <span class='nam'>self</span><span class='op'>.</span><span class='nam'>commands</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
-<p id='t11' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>return</span> <span class='nam'>self</span><span class='op'>.</span><span class='nam'>print_help</span><span class='op'>(</span><span class='str'>&#39;./manage.py&#39;</span><span class='op'>,</span> <span class='str'>&#39;avocado&#39;</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
-<p id='t12' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>return</span> <span class='nam'>call_command</span><span class='op'>(</span><span class='op'>*</span><span class='nam'>args</span><span class='op'>,</span> <span class='op'>**</span><span class='nam'>options</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
-<p id='t13' class='pln'><span class='strut'>&nbsp;</span></p>
+<p id='t8' class='stm mis'>&nbsp; &nbsp; <span class='nam'>command_prefix</span> <span class='op'>=</span> <span class='str'>&#39;avocado_%s&#39;</span><span class='strut'>&nbsp;</span></p>
+<p id='t9' class='pln'><span class='strut'>&nbsp;</span></p>
+<p id='t10' class='stm mis'>&nbsp; &nbsp; <span class='key'>def</span> <span class='nam'>handle</span><span class='op'>(</span><span class='nam'>self</span><span class='op'>,</span> <span class='op'>*</span><span class='nam'>args</span><span class='op'>,</span> <span class='op'>**</span><span class='nam'>options</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
+<p id='t11' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>if</span> <span class='key'>not</span> <span class='nam'>args</span> <span class='key'>or</span> <span class='nam'>args</span><span class='op'>[</span><span class='num'>0</span><span class='op'>]</span> <span class='key'>not</span> <span class='key'>in</span> <span class='nam'>self</span><span class='op'>.</span><span class='nam'>commands</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
+<p id='t12' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>return</span> <span class='nam'>self</span><span class='op'>.</span><span class='nam'>print_help</span><span class='op'>(</span><span class='str'>&#39;./manage.py&#39;</span><span class='op'>,</span> <span class='str'>&#39;avocado&#39;</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
+<p id='t13' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>subcommand</span><span class='op'>,</span> <span class='nam'>args</span> <span class='op'>=</span> <span class='nam'>args</span><span class='op'>[</span><span class='num'>0</span><span class='op'>]</span><span class='op'>,</span> <span class='nam'>args</span><span class='op'>[</span><span class='num'>1</span><span class='op'>:</span><span class='op'>]</span><span class='strut'>&nbsp;</span></p>
+<p id='t14' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>return</span> <span class='nam'>call_command</span><span class='op'>(</span><span class='nam'>self</span><span class='op'>.</span><span class='nam'>command_prefix</span> <span class='op'>%</span> <span class='nam'>subcommand</span><span class='op'>,</span> <span class='op'>*</span><span class='nam'>args</span><span class='op'>,</span> <span class='op'>**</span><span class='nam'>options</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
+<p id='t15' class='pln'><span class='strut'>&nbsp;</span></p>
                 
             </td>
         </tr>

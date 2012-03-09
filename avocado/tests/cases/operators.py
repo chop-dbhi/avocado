@@ -71,6 +71,7 @@ class OperatorTestCase(BaseTestCase):
         self.assertEqual(op.text([1]), 'is equal to 1')
         self.assertEqual(op.text([1, 2]), 'is either 1 or 2')
         self.assertEqual(op.text([1, 2, 3]), 'is either 1, 2 or 3')
+        self.assertEqual(op.text([1, 2, 3, 4, 5]), 'is either 1, 2, 3 ... (1 more) or 5')
 
     def test_notinlist(self):
         op = registry.get('-in')

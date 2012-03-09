@@ -5,7 +5,7 @@
     
     
     <meta http-equiv='X-UA-Compatible' content='IE=emulateIE7' />
-    <title>Coverage for avocado/tests/cases/translators: 50%</title>
+    <title>Coverage for avocado/tests/cases/translators: 100%</title>
     <link rel='stylesheet' href='style.css' type='text/css'>
     <script type='text/javascript' src='jquery-1.4.3.min.js'></script>
     <script type='text/javascript' src='jquery.hotkeys.js'></script>
@@ -20,13 +20,13 @@
 <div id='header'>
     <div class='content'>
         <h1>Coverage for <b>avocado/tests/cases/translators</b> :
-            <span class='pc_cov'>50%</span>
+            <span class='pc_cov'>100%</span>
         </h1>
         <img id='keyboard_icon' src='keybd_closed.png'>
         <h2 class='stats'>
             10 statements
-            <span class='run hide_run shortkey_r' onclick='coverage.toggle_lines(this, "run")'>5 run</span>
-            <span class='mis shortkey_m' onclick='coverage.toggle_lines(this, "mis")'>5 missing</span>
+            <span class='run hide_run shortkey_r' onclick='coverage.toggle_lines(this, "run")'>10 run</span>
+            <span class='mis shortkey_m' onclick='coverage.toggle_lines(this, "mis")'>0 missing</span>
             <span class='exc shortkey_x' onclick='coverage.toggle_lines(this, "exc")'>0 excluded</span>
             
         </h2>
@@ -67,13 +67,13 @@
 <p id='n5' class='stm run hide_run'><a href='#n5'>5</a></p>
 <p id='n6' class='stm run hide_run'><a href='#n6'>6</a></p>
 <p id='n7' class='stm run hide_run'><a href='#n7'>7</a></p>
-<p id='n8' class='stm mis'><a href='#n8'>8</a></p>
+<p id='n8' class='stm run hide_run'><a href='#n8'>8</a></p>
 <p id='n9' class='pln'><a href='#n9'>9</a></p>
-<p id='n10' class='stm mis'><a href='#n10'>10</a></p>
-<p id='n11' class='stm mis'><a href='#n11'>11</a></p>
+<p id='n10' class='stm run hide_run'><a href='#n10'>10</a></p>
+<p id='n11' class='stm run hide_run'><a href='#n11'>11</a></p>
 <p id='n12' class='pln'><a href='#n12'>12</a></p>
-<p id='n13' class='stm mis'><a href='#n13'>13</a></p>
-<p id='n14' class='stm mis'><a href='#n14'>14</a></p>
+<p id='n13' class='stm run hide_run'><a href='#n13'>13</a></p>
+<p id='n14' class='stm run hide_run'><a href='#n14'>14</a></p>
                 
             </td>
             <td class='text' valign='top'>
@@ -84,13 +84,13 @@
 <p id='t5' class='stm run hide_run'><span class='key'>class</span> <span class='nam'>TranslatorTestCase</span><span class='op'>(</span><span class='nam'>BaseTestCase</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
 <p id='t6' class='stm run hide_run'>&nbsp; &nbsp; <span class='key'>def</span> <span class='nam'>test</span><span class='op'>(</span><span class='nam'>self</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
 <p id='t7' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>trans</span> <span class='op'>=</span> <span class='nam'>self</span><span class='op'>.</span><span class='nam'>is_manager</span><span class='op'>.</span><span class='nam'>translate</span><span class='op'>(</span><span class='nam'>value</span><span class='op'>=</span><span class='nam'>False</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
-<p id='t8' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>self</span><span class='op'>.</span><span class='nam'>assertEqual</span><span class='op'>(</span><span class='nam'>str</span><span class='op'>(</span><span class='nam'>trans</span><span class='op'>[</span><span class='str'>&#39;condition&#39;</span><span class='op'>]</span><span class='op'>)</span><span class='op'>,</span> <span class='str'>&quot;(AND: (&#39;is_manager__exact&#39;, False), (&#39;id__isnull&#39;, False))&quot;</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
+<p id='t8' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>self</span><span class='op'>.</span><span class='nam'>assertEqual</span><span class='op'>(</span><span class='nam'>str</span><span class='op'>(</span><span class='nam'>trans</span><span class='op'>[</span><span class='str'>&#39;condition&#39;</span><span class='op'>]</span><span class='op'>)</span><span class='op'>,</span> <span class='str'>&quot;(AND: (&#39;is_manager__exact&#39;, False), (&#39;id__isnull&#39;, False))&quot;</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t9' class='pln'><span class='strut'>&nbsp;</span></p>
-<p id='t10' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>trans</span> <span class='op'>=</span> <span class='nam'>self</span><span class='op'>.</span><span class='nam'>salary</span><span class='op'>.</span><span class='nam'>translate</span><span class='op'>(</span><span class='nam'>value</span><span class='op'>=</span><span class='num'>50000</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
-<p id='t11' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>self</span><span class='op'>.</span><span class='nam'>assertEqual</span><span class='op'>(</span><span class='nam'>str</span><span class='op'>(</span><span class='nam'>trans</span><span class='op'>[</span><span class='str'>&#39;condition&#39;</span><span class='op'>]</span><span class='op'>)</span><span class='op'>,</span> <span class='str'>&quot;(AND: (&#39;title__salary__exact&#39;, 50000.0), (&#39;title__id__isnull&#39;, False))&quot;</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
+<p id='t10' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>trans</span> <span class='op'>=</span> <span class='nam'>self</span><span class='op'>.</span><span class='nam'>salary</span><span class='op'>.</span><span class='nam'>translate</span><span class='op'>(</span><span class='nam'>value</span><span class='op'>=</span><span class='num'>50000</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
+<p id='t11' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>self</span><span class='op'>.</span><span class='nam'>assertEqual</span><span class='op'>(</span><span class='nam'>str</span><span class='op'>(</span><span class='nam'>trans</span><span class='op'>[</span><span class='str'>&#39;condition&#39;</span><span class='op'>]</span><span class='op'>)</span><span class='op'>,</span> <span class='str'>&quot;(AND: (&#39;title__salary__exact&#39;, 50000.0), (&#39;title__id__isnull&#39;, False))&quot;</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t12' class='pln'><span class='strut'>&nbsp;</span></p>
-<p id='t13' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>trans</span> <span class='op'>=</span> <span class='nam'>self</span><span class='op'>.</span><span class='nam'>first_name</span><span class='op'>.</span><span class='nam'>translate</span><span class='op'>(</span><span class='nam'>value</span><span class='op'>=</span><span class='str'>&#39;Robert&#39;</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
-<p id='t14' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>self</span><span class='op'>.</span><span class='nam'>assertEqual</span><span class='op'>(</span><span class='nam'>str</span><span class='op'>(</span><span class='nam'>trans</span><span class='op'>[</span><span class='str'>&#39;condition&#39;</span><span class='op'>]</span><span class='op'>)</span><span class='op'>,</span> <span class='str'>&quot;(AND: (&#39;first_name__exact&#39;, u&#39;Robert&#39;), (&#39;id__isnull&#39;, False))&quot;</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
+<p id='t13' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>trans</span> <span class='op'>=</span> <span class='nam'>self</span><span class='op'>.</span><span class='nam'>first_name</span><span class='op'>.</span><span class='nam'>translate</span><span class='op'>(</span><span class='nam'>value</span><span class='op'>=</span><span class='str'>&#39;Robert&#39;</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
+<p id='t14' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>self</span><span class='op'>.</span><span class='nam'>assertEqual</span><span class='op'>(</span><span class='nam'>str</span><span class='op'>(</span><span class='nam'>trans</span><span class='op'>[</span><span class='str'>&#39;condition&#39;</span><span class='op'>]</span><span class='op'>)</span><span class='op'>,</span> <span class='str'>&quot;(AND: (&#39;first_name__exact&#39;, u&#39;Robert&#39;), (&#39;id__isnull&#39;, False))&quot;</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
                 
             </td>
         </tr>
