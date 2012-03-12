@@ -56,6 +56,8 @@ class Node(object):
             queryset = queryset.values('pk').annotate(**self.annotations)
         if self.condition:
             queryset = queryset.filter(self.condition)
+        if self.extra:
+            queryset = queryset.extra(**self.extra)
         return queryset
 
     @property
@@ -101,11 +103,15 @@ class Condition(Node):
 
     @property
     def condition(self):
-        return self._meta['condition']
+        return self._meta.get('condition', None)
 
     @property
     def annotations(self):
-        return self._meta['annotations']
+        return self._meta.get('annotations', None)
+
+    @property
+    def extra(self):
+        return self._meta.get('extra', None)
 
     @property
     def text(self, flatten=True):
@@ -137,10 +143,11 @@ class LogicalOperator(Node):
         if not hasattr(self, '_condition'):
             condition = None
             for node in self.children:
-                if condition:
-                    condition = self._combine(node.condition, condition)
-                else:
-                    condition = node.condition
+                if node.condition:
+                    if condition:
+                        condition = self._combine(node.condition, condition)
+                    else:
+                        condition = node.condition
             self._condition = condition
         return self._condition
 
@@ -149,8 +156,29 @@ class LogicalOperator(Node):
         if not hasattr(self, '_annotations'):
             self._annotations = {}
             for node in self.children:
-                self._annotations.update(node.annotations)
+                if node.annotations:
+                    self._annotations.update(node.annotations)
         return self._annotations
+
+    @property
+    def extra(self):
+        if not hasattr(self, '_extra'):
+            self._extra = {}
+            for node in self.children:
+                if node.extra:
+                    for key, value in node.extra.items():
+                        _type = type(value)
+                        # Initialize an empty container for the value type..
+                        self._extra.setdefault(key, _type())
+                        if _type is list:
+                            current = self._extra[key][:]
+                            [self._extra[key].append(x) for x in value if x not in current]
+                        elif _type is dict:
+                            self._extra[key].update(value)
+                        else:
+                            raise TypeError('The `.extra()` method only takes '
+                                'list of dicts as keyword values')
+        return self._extra
 
     @property
     def text(self, flatten=True):
