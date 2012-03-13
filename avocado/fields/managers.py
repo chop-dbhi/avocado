@@ -1,8 +1,8 @@
-from django.db import models
 from django.db.models import Q
 from django.conf import settings
+from avocado.cache import CacheManager
 
-class FieldManager(models.Manager):
+class FieldManager(CacheManager):
     "Adds additional helper methods focused around access and permissions."
     use_for_related_fields = True
 

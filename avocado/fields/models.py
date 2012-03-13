@@ -7,8 +7,10 @@ from django.db.models import Count
 from django.contrib.auth.models import Group
 from django.contrib.sites.models import Site
 from django.db.models.fields import FieldDoesNotExist
+from django.db.models.signals import post_save, pre_delete
 
 from avocado.modeltree import DEFAULT_MODELTREE_ALIAS, trees
+from avocado.cache import post_save_cache, pre_delete_uncache
 from avocado.fields.translate import library
 from avocado.fields.managers import FieldManager
 from avocado.fields import mixins
@@ -375,3 +377,6 @@ class Field(mixins.Mixin):
 
         return formfield(label=label, widget=widget, **kwargs)
 
+
+post_save.connect(post_save_cache, sender=Field)
+pre_delete.connect(pre_delete_uncache, sender=Field)

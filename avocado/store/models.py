@@ -4,6 +4,7 @@ from datetime import datetime
 from functools import partial
 
 from django.db import models, router
+from django.db.models.signals import post_save, pre_delete
 from django.db.models.sql import RawQuery
 from django.core.paginator import EmptyPage, InvalidPage
 from django.contrib.auth.models import User
@@ -14,11 +15,12 @@ from forkit import signals
 
 from avocado.conf import settings
 from avocado.models import Field
+from avocado.cache import CacheManager, post_save_cache, pre_delete_uncache
 from avocado.store.fields import JSONField
 from avocado.modeltree import DEFAULT_MODELTREE_ALIAS, trees
 from avocado.fields import logictree
-from avocado.columns.cache import cache as column_cache
 from avocado.columns import utils, format
+from avocado.columns.models import Column
 from avocado.utils.paginator import BufferedPaginator
 from avocado.store import receivers
 
@@ -40,6 +42,8 @@ class Descriptor(ForkableModel):
     modified = models.DateTimeField(default=datetime.now)
     # explicitly denotes an instance for use in a session
     session = models.BooleanField(default=False)
+
+    objects = CacheManager()
 
     class Meta(object):
         abstract = True
@@ -256,16 +260,18 @@ class Perspective(Context):
         store = self.read()
         header = []
 
-        for x in store['columns']:
-            c = column_cache.get(x)
-            if c is None:
+        # Column ordering is depends on being an active column
+        for pk in store['columns']:
+            try:
+                col = Column.objects.get(pk=pk)
+            except Column.DoesNotExist:
                 continue
-            o = {'id': x, 'name': c.name, 'direction': ''}
-            for y, z in store['ordering']:
-                if x == y:
-                    o['direction'] = z
+            data = {'id': pk, 'name': col.name, 'direction': ''}
+            for _pk, direction in store['ordering']:
+                if pk == _pk:
+                    data['direction'] = direction
                     break
-            header.append(o)
+            header.append(data)
 
         return header
 
@@ -274,7 +280,7 @@ class Perspective(Context):
         header = []
 
         for x in store['columns']:
-            c = column_cache.get(x)
+            c = Column.objects.get(pk=x)
             cfields = c.conceptfields.select_related('field').order_by('order')
             if len(cfields) == 1:
                 header.append(c.name)
@@ -538,6 +544,13 @@ class ObjectSetJoinThrough(models.Model):
     class Meta(object):
         abstract = True
 
+# Cache
+post_save.connect(post_save_cache, sender=Scope)
+pre_delete.connect(pre_delete_uncache, sender=Scope)
+post_save.connect(post_save_cache, sender=Perspective)
+pre_delete.connect(pre_delete_uncache, sender=Perspective)
+post_save.connect(post_save_cache, sender=Report)
+pre_delete.connect(pre_delete_uncache, sender=Report)
 
 signals.pre_diff.connect(receivers.descriptor_pre_diff, sender=Scope)
 signals.pre_reset.connect(receivers.descriptor_pre_reset, sender=Scope)

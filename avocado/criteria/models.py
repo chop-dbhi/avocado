@@ -1,6 +1,8 @@
 from django import forms
 from django.db import models
+from django.db.models.signals import post_save, pre_delete
 
+from avocado.cache import post_save_cache, pre_delete_uncache
 from avocado.criteria import mixins
 from avocado.concepts.models import Concept, ConceptField
 from avocado.fields.models import Field
@@ -22,9 +24,8 @@ class Criterion(Concept, mixins.Mixin):
 
     def _get_form(self):
         if not hasattr(self, '_form'):
-            from avocado.criteria.cache import cache
             form_fields = {}
-            fields = cache.get_fields(self.id)
+            fields = self.fields.order_by('criterionfield__order')
 
             for f in fields:
                 form_fields[f.field_name] = f.formfield()
@@ -56,3 +57,7 @@ class CriterionField(ConceptField):
 
     def get_name(self):
         return self.name or self.field.name
+
+
+post_save.connect(post_save_cache, sender=Criterion)
+pre_delete.connect(pre_delete_uncache, sender=Criterion)

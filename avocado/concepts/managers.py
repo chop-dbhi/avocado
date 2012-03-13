@@ -1,11 +1,12 @@
 import re
 
-from django.db import models, database
+from django.db import database
 from django.db.models import Q
 from django.utils import stopwords
 from django.conf import settings
 
 from avocado.concepts import db
+from avocado.cache import CacheManager
 
 BACKEND = database['ENGINE'].split('.')[-1]
 
@@ -20,7 +21,7 @@ def _tokenize(search_str):
         toks = list(search_str)
     return toks
 
-class ConceptManager(models.Manager):
+class ConceptManager(CacheManager):
     use_for_related_fields = True
 
     def _get_not_for_site(self):

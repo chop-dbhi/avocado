@@ -8,9 +8,11 @@ fields for the Column class to use.
 """
 
 from django.db import models
+from django.db.models.signals import post_save, pre_delete
 
 from avocado.conf import settings
 from avocado.modeltree import DEFAULT_MODELTREE_ALIAS, trees
+from avocado.cache import post_save_cache, pre_delete_uncache
 from avocado.concepts.models import Concept, ConceptField
 from avocado.fields.models import Field
 from avocado.columns import mixins
@@ -65,3 +67,7 @@ class ColumnField(ConceptField):
 
     class Meta(ConceptField.Meta):
         pass
+
+
+post_save.connect(post_save_cache, sender=Column)
+pre_delete.connect(pre_delete_uncache, sender=Column)

@@ -2,7 +2,6 @@ from django.db.models.query_utils import Q
 
 from avocado.modeltree import DEFAULT_MODELTREE_ALIAS
 from avocado.fields.models import Field
-from avocado.fields.cache import cache
 from avocado.fields.operators import FIELD_LOOKUPS
 
 class AmbiguousField(Exception):
@@ -46,8 +45,7 @@ class M(Q):
 
     def _get_field(self, field_id=None, app_name=None, model_name=None, field_name=None):
         if field_id or (app_name and model_name):
-            return cache.get(field_id=field_id, app_name=app_name, model_name=model_name,
-                field_name=field_name)
+            return Field.objects.get(pk=field_id)
 
         # non-optimized lookup that can result in multiple objects returned
         try:

@@ -1,5 +1,4 @@
 from avocado.columns.models import Column
-from avocado.columns.cache import cache
 from avocado.modeltree import DEFAULT_MODELTREE_ALIAS
 
 def column_format_rules(columns, format_type, pk_pass=True):
@@ -10,7 +9,7 @@ def column_format_rules(columns, format_type, pk_pass=True):
 
     for column in columns:
         if not isinstance(column, Column):
-            column = cache.get(column)
+            column = Column.objects.get(pk=column)
         rules.append(column.rule(format_type))
     return rules
 
@@ -24,7 +23,7 @@ def add_columns(queryset, columns, using=DEFAULT_MODELTREE_ALIAS):
 
     for column in columns:
         if not isinstance(column, Column):
-            column = cache.get(column)
+            column = Column.objects.get(pk=column)
         queryset, _aliases = column.add_fields_to_queryset(queryset, using)
         aliases.extend(_aliases)
 
@@ -44,7 +43,7 @@ def add_ordering(queryset, order_rules, using=DEFAULT_MODELTREE_ALIAS):
 
     for column, direction in order_rules:
         if not isinstance(column, Column):
-            column = cache.get(column)
+            column = Column.objects.get(pk=column)
         _orders = column.get_ordering_for_queryset(direction, using=using)
         orders.extend(_orders)
 
