@@ -2,8 +2,8 @@ from django.test import TestCase
 from django.db.models import Q
 
 from avocado.exceptions import RegisterError
+from avocado.fields.models import Field
 from avocado.fields.translate import library, DefaultTranslator
-from avocado.fields.cache import cache
 
 __all__ = ('TranslatorLibraryTestCase',)
 
@@ -18,7 +18,7 @@ class TranslatorLibraryTestCase(TestCase):
 
     def test_default(self):
         t = DefaultTranslator()
-        c = cache.get(1)
+        c = Field.objects.get(pk=1)
 
         q, a = t(c, 'iexact', 'foo')
 

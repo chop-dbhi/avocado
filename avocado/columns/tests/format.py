@@ -1,26 +1,24 @@
 from django.test import TestCase
-
 from avocado.exceptions import RegisterError, AlreadyRegisteredError
 from avocado.columns.format import (FormatterLibrary, AbstractFormatter,
     RemoveFormatter, PassFormatter, FormatError)
 
 __all__ = ('FormatterLibraryTestCase',)
 
-
 class ConcatStrFormatter(AbstractFormatter):
-    def csv(self, *args):
+    def csv(self, *args, **kwargs):
         return ' '.join(map(lambda x: str(x), args))
 
 
 class Add(AbstractFormatter):
     name = 'Add Numbers'
-    def csv(self, *args):
+    def csv(self, *args, **kwargs):
         return sum(args)
 
 
 class Add2(AbstractFormatter):
     name = 'Add Numbers'
-    def csv(self, *args):
+    def csv(self, *args, **kwargs):
         return sum(args)
 
 
