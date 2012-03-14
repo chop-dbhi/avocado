@@ -47,6 +47,8 @@ OR = 'OR'
 class Node(object):
     condition = None
     annotations = None
+    text = None
+    extra = None
 
     def get_field_ids(self):
         return []
@@ -59,10 +61,6 @@ class Node(object):
         if self.extra:
             queryset = queryset.extra(**self.extra)
         return queryset
-
-    @property
-    def text(self, *args, **kwargs):
-        pass
 
 
 class Condition(Node):
