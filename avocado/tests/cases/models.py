@@ -1,7 +1,7 @@
 from django.test import TestCase
 from avocado.tests.base import BaseTestCase
 
-__all__ = ('FieldTestCase', 'ConceptTestCase', 'DomainTestCase')
+__all__ = ('FieldTestCase', 'ConceptTestCase', 'CategoryTestCase')
 
 class FieldTestCase(BaseTestCase):
 
@@ -25,5 +25,5 @@ class ConceptTestCase(TestCase):
     pass
 
 
-class DomainTestCase(TestCase):
+class CategoryTestCase(TestCase):
     pass

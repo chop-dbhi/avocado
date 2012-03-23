@@ -4,7 +4,7 @@ from django.db.models import (get_model, get_models, get_app, AutoField,
     ForeignKey, OneToOneField, ManyToManyField)
 from django.core.management.base import LabelCommand
 
-from avocado.models import Field, Domain
+from avocado.models import Field, Category
 
 class Command(LabelCommand):
     """
@@ -20,7 +20,7 @@ class Command(LabelCommand):
 
     OPTIONS:
 
-        ``--create-domains`` - Create a single ``Domain`` corresponding to each
+        ``--create-categories`` - Create a single ``Category`` corresponding to each
         model that is evaluated.
 
         ``--include-non-editable`` - Create ``Field`` instances for fields marked
@@ -43,9 +43,9 @@ class Command(LabelCommand):
     args = '<app app app.model ...>'
 
     option_list = LabelCommand.option_list + (
-        make_option('--create-domains', action='store_true',
-            dest='create_domains', default=False,
-            help='Create a domain for each model'),
+        make_option('--create-categories', action='store_true',
+            dest='create_categories', default=False,
+            help='Create a category for each model'),
 
         make_option('--include-non-editable', action='store_true',
             dest='include_non_editable', default=False,
@@ -71,19 +71,19 @@ class Command(LabelCommand):
 
     def __init__(self, *args, **kwargs):
         super(Command, self).__init__(*args, **kwargs)
-        self._domains = {}
+        self._categories = {}
 
-    def _get_domain(self, model):
-        if model not in self._domains:
-            domain, is_new = Domain.objects.get_or_create(name=model._meta.verbose_name)
-            self._domains[model] = domain
-        return self._domains[model]
+    def _get_category(self, model):
+        if model not in self._categories:
+            category, is_new = Category.objects.get_or_create(name=model._meta.verbose_name)
+            self._categories[model] = category
+        return self._categories[model]
 
     def handle_label(self, label, **options):
         "Handles app_label or app_label.model_label formats."
         labels = label.split('.')
         models = None
-        create_domains = options.get('create_domains')
+        create_categories = options.get('create_categories')
         include_non_editable = options.get('include_non_editable')
         include_keys = options.get('include_keys')
         update_existing = options.get('update_existing')
@@ -121,7 +121,7 @@ class Command(LabelCommand):
             new_count = 0
             update_count = 0
             model_name = model._meta.object_name.lower()
-            domain = self._get_domain(model) if create_domains else None
+            category = self._get_category(model) if create_categories else None
 
             for field in model._meta.fields:
                 if isinstance(field, ManyToManyField):
@@ -156,7 +156,7 @@ class Command(LabelCommand):
                     'app_name': app_name.lower(),
                     'model_name': model_name.lower(),
                     'field_name': field.name,
-                    'domain': domain,
+                    'category': category,
                 }
 
                 if field:

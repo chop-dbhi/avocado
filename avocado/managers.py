@@ -24,11 +24,11 @@ class ConceptManager(PassThroughManager):
 
     def published(self):
         queryset = self.get_query_set()
-        # All published concepts associated with a domain and associated with
+        # All published concepts associated with a category and associated with
         # the current site (or no site)
         sites = Q(sites=None) | Q(sites__id=settings.SITE_ID)
         published = queryset.filter(sites, published=True, archived=False,
-            domain__isnull=False)
+            category__isnull=False)
         # Concepts that contain at least one non-published fields are removed from
         # the set
         shadowed = queryset.filter(fields__published=False)

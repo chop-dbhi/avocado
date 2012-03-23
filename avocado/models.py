@@ -17,7 +17,7 @@ from avocado.formatters import registry as formatters
 from avocado.query.translators import registry as translators
 from modeltree.tree import MODELTREE_DEFAULT_ALIAS, trees
 
-__all__ = ('Domain', 'Concept', 'Field')
+__all__ = ('Category', 'Concept', 'Field')
 
 def get_form_class(name):
     # infers this is a path
@@ -220,16 +220,16 @@ class Field(Base):
         return self.field.formfield(**kwargs)
 
 
-class Domain(Base):
+class Category(Base):
     "A high-level organization for concepts."
-    # A reference to a parent Domain for hierarchical domains.
+    # A reference to a parent Category for hierarchical categories.
     parent = models.ForeignKey('self', null=True, related_name='children')
 
-    # Certain whole domains may not be relevant or appropriate for all
-    # sites being deployed. If a domain is not accessible by a certain site,
+    # Certain whole categories may not be relevant or appropriate for all
+    # sites being deployed. If a category is not accessible by a certain site,
     # all subsequent data elements are also not accessible by the site.
     if 'django.contrib.sites' in settings.INSTALLED_APPS:
-        sites = models.ManyToManyField(Site, blank=True, related_name='domains+')
+        sites = models.ManyToManyField(Site, blank=True, related_name='categories+')
 
     order = models.FloatField(null=True, db_column='_order')
 
@@ -245,12 +245,12 @@ class Concept(Base):
 
         -- Willard Van Orman Quine
     """
-    # Although a domain does not technically need to be defined, this more
+    # Although a category does not technically need to be defined, this more
     # for workflow reasons than for when the concept is published. Automated
-    # prcesses may create concepts on the fly, but not know which domain they
+    # prcesses may create concepts on the fly, but not know which category they
     # should be linked to initially. the admin interface enforces choosing a
-    # domain when the concept is published
-    domain = models.ForeignKey(Domain, null=True)
+    # category when the concept is published
+    category = models.ForeignKey(Category, null=True)
 
     # The associated fields for this concept. fields can be
     # associated with multiple concepts, thus the M2M
@@ -316,6 +316,6 @@ class ConceptField(Base):
 if 'reversion' in settings.INSTALLED_APPS:
     import reversion
     reversion.register(Field)
-    reversion.register(Domain)
+    reversion.register(Category)
     reversion.reversion(ConceptField)
     reversion.register(Concept, follow=['concept_fields'])
