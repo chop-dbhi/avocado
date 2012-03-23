@@ -1,4 +1,5 @@
 .DS_Store
+*.swp
 *.pyc
 docs/build
 MANIFEST
