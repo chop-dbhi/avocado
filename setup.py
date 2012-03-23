@@ -90,6 +90,7 @@ setup(
     cmdclass = cmdclasses,
 
     install_requires = install_requires,
+    tests_require = ['coverage'],
 
     data_files = data_files,
 

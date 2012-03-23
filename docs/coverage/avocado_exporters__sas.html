@@ -29,6 +29,8 @@
             <span class='mis shortkey_m' onclick='coverage.toggle_lines(this, "mis")'>16 missing</span>
             <span class='exc shortkey_x' onclick='coverage.toggle_lines(this, "exc")'>0 excluded</span>
             
+                <span class='par run hide_run shortkey_p' onclick='coverage.toggle_lines(this, "par")'>3 partial</span>
+            
         </h2>
     </div>
 </div>
@@ -93,9 +95,9 @@
 <p id='n31' class='stm run hide_run'><a href='#n31'>31</a></p>
 <p id='n32' class='stm run hide_run'><a href='#n32'>32</a></p>
 <p id='n33' class='stm run hide_run'><a href='#n33'>33</a></p>
-<p id='n34' class='stm run hide_run'><a href='#n34'>34</a></p>
+<p id='n34' class='stm par run hide_run'><a href='#n34'>34</a></p>
 <p id='n35' class='stm mis'><a href='#n35'>35</a></p>
-<p id='n36' class='stm run hide_run'><a href='#n36'>36</a></p>
+<p id='n36' class='stm par run hide_run'><a href='#n36'>36</a></p>
 <p id='n37' class='stm run hide_run'><a href='#n37'>37</a></p>
 <p id='n38' class='pln'><a href='#n38'>38</a></p>
 <p id='n39' class='stm mis'><a href='#n39'>39</a></p>
@@ -168,7 +170,7 @@
 <p id='n106' class='pln'><a href='#n106'>106</a></p>
 <p id='n107' class='pln'><a href='#n107'>107</a></p>
 <p id='n108' class='pln'><a href='#n108'>108</a></p>
-<p id='n109' class='stm run hide_run'><a href='#n109'>109</a></p>
+<p id='n109' class='stm par run hide_run'><a href='#n109'>109</a></p>
 <p id='n110' class='stm mis'><a href='#n110'>110</a></p>
 <p id='n111' class='stm mis'><a href='#n111'>111</a></p>
 <p id='n112' class='stm mis'><a href='#n112'>112</a></p>
@@ -239,9 +241,9 @@
 <p id='t31' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>punc</span> <span class='op'>=</span> <span class='nam'>punctuation</span><span class='op'>.</span><span class='nam'>replace</span><span class='op'>(</span><span class='str'>&#39;_&#39;</span><span class='op'>,</span> <span class='str'>&#39;&#39;</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t32' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>name</span> <span class='op'>=</span> <span class='nam'>str</span><span class='op'>(</span><span class='nam'>name</span><span class='op'>)</span><span class='op'>.</span><span class='nam'>translate</span><span class='op'>(</span><span class='nam'>None</span><span class='op'>,</span> <span class='nam'>punc</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t33' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>name</span> <span class='op'>=</span> <span class='nam'>name</span><span class='op'>.</span><span class='nam'>replace</span><span class='op'>(</span><span class='str'>&#39; &#39;</span><span class='op'>,</span> <span class='str'>&#39;_&#39;</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
-<p id='t34' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>if</span> <span class='nam'>name</span><span class='op'>[</span><span class='num'>0</span><span class='op'>]</span><span class='op'>.</span><span class='nam'>isdigit</span><span class='op'>(</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
+<p id='t34' class='stm par run hide_run'><span class='annotate' title='no jump to this line number'>35</span>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>if</span> <span class='nam'>name</span><span class='op'>[</span><span class='num'>0</span><span class='op'>]</span><span class='op'>.</span><span class='nam'>isdigit</span><span class='op'>(</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
 <p id='t35' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>name</span> <span class='op'>=</span> <span class='str'>&#39;_&#39;</span> <span class='op'>+</span> <span class='nam'>name</span><span class='strut'>&nbsp;</span></p>
-<p id='t36' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>if</span> <span class='nam'>len</span><span class='op'>(</span><span class='nam'>name</span><span class='op'>)</span> <span class='op'>&lt;</span> <span class='num'>30</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
+<p id='t36' class='stm par run hide_run'><span class='annotate' title='no jump to this line number'>39</span>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>if</span> <span class='nam'>len</span><span class='op'>(</span><span class='nam'>name</span><span class='op'>)</span> <span class='op'>&lt;</span> <span class='num'>30</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
 <p id='t37' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>return</span> <span class='nam'>name</span><span class='strut'>&nbsp;</span></p>
 <p id='t38' class='pln'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>else</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
 <p id='t39' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>self</span><span class='op'>.</span><span class='nam'>num_lg_names</span> <span class='op'>+=</span> <span class='num'>1</span><span class='strut'>&nbsp;</span></p>
@@ -314,7 +316,7 @@
 <p id='t106' class='pln'><span class='strut'>&nbsp;</span></p>
 <p id='t107' class='pln'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='com'># if a field can be coded create a SAS PROC Format statement</span><span class='strut'>&nbsp;</span></p>
 <p id='t108' class='pln'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='com'># that creates a value dictionary</span><span class='strut'>&nbsp;</span></p>
-<p id='t109' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>if</span> <span class='nam'>field</span><span class='op'>.</span><span class='nam'>coded_values</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
+<p id='t109' class='stm par run hide_run'><span class='annotate' title='no jump to this line number'>110</span>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>if</span> <span class='nam'>field</span><span class='op'>.</span><span class='nam'>coded_values</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
 <p id='t110' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <span class='nam'>codes</span> <span class='op'>=</span> <span class='nam'>self</span><span class='op'>.</span><span class='nam'>_code_value</span><span class='op'>(</span><span class='nam'>name</span><span class='op'>,</span> <span class='nam'>field</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t111' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <span class='nam'>value_formats</span> <span class='op'>+=</span> <span class='nam'>codes</span><span class='op'>[</span><span class='num'>0</span><span class='op'>]</span><span class='strut'>&nbsp;</span></p>
 <p id='t112' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <span class='nam'>values</span> <span class='op'>+=</span> <span class='nam'>codes</span><span class='op'>[</span><span class='num'>1</span><span class='op'>]</span><span class='strut'>&nbsp;</span></p>

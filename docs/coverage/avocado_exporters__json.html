@@ -5,7 +5,7 @@
     
     
     <meta http-equiv='X-UA-Compatible' content='IE=emulateIE7' />
-    <title>Coverage for avocado/exporters/_json: 93%</title>
+    <title>Coverage for avocado/exporters/_json: 89%</title>
     <link rel='stylesheet' href='style.css' type='text/css'>
     <script type='text/javascript' src='jquery-1.4.3.min.js'></script>
     <script type='text/javascript' src='jquery.hotkeys.js'></script>
@@ -20,7 +20,7 @@
 <div id='header'>
     <div class='content'>
         <h1>Coverage for <b>avocado/exporters/_json</b> :
-            <span class='pc_cov'>93%</span>
+            <span class='pc_cov'>89%</span>
         </h1>
         <img id='keyboard_icon' src='keybd_closed.png'>
         <h2 class='stats'>
@@ -28,6 +28,8 @@
             <span class='run hide_run shortkey_r' onclick='coverage.toggle_lines(this, "run")'>13 run</span>
             <span class='mis shortkey_m' onclick='coverage.toggle_lines(this, "mis")'>1 missing</span>
             <span class='exc shortkey_x' onclick='coverage.toggle_lines(this, "exc")'>0 excluded</span>
+            
+                <span class='par run hide_run shortkey_p' onclick='coverage.toggle_lines(this, "par")'>1 partial</span>
             
         </h2>
     </div>
@@ -67,7 +69,7 @@
 <p id='n5' class='stm run hide_run'><a href='#n5'>5</a></p>
 <p id='n6' class='pln'><a href='#n6'>6</a></p>
 <p id='n7' class='stm run hide_run'><a href='#n7'>7</a></p>
-<p id='n8' class='stm run hide_run'><a href='#n8'>8</a></p>
+<p id='n8' class='stm par run hide_run'><a href='#n8'>8</a></p>
 <p id='n9' class='stm run hide_run'><a href='#n9'>9</a></p>
 <p id='n10' class='stm mis'><a href='#n10'>10</a></p>
 <p id='n11' class='pln'><a href='#n11'>11</a></p>
@@ -93,7 +95,7 @@
 <p id='t5' class='stm run hide_run'><span class='key'>class</span> <span class='nam'>JSONGeneratorEncoder</span><span class='op'>(</span><span class='nam'>json</span><span class='op'>.</span><span class='nam'>JSONEncoder</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
 <p id='t6' class='pln'>&nbsp; &nbsp; <span class='str'>&quot;Handle generator objects and expressions.&quot;</span><span class='strut'>&nbsp;</span></p>
 <p id='t7' class='stm run hide_run'>&nbsp; &nbsp; <span class='key'>def</span> <span class='nam'>default</span><span class='op'>(</span><span class='nam'>self</span><span class='op'>,</span> <span class='nam'>obj</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
-<p id='t8' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>if</span> <span class='nam'>inspect</span><span class='op'>.</span><span class='nam'>isgenerator</span><span class='op'>(</span><span class='nam'>obj</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
+<p id='t8' class='stm par run hide_run'><span class='annotate' title='no jump to this line number'>10</span>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>if</span> <span class='nam'>inspect</span><span class='op'>.</span><span class='nam'>isgenerator</span><span class='op'>(</span><span class='nam'>obj</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
 <p id='t9' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>return</span> <span class='nam'>list</span><span class='op'>(</span><span class='nam'>obj</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t10' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>return</span> <span class='nam'>super</span><span class='op'>(</span><span class='nam'>JSONGeneratorEncoder</span><span class='op'>,</span> <span class='nam'>self</span><span class='op'>)</span><span class='op'>.</span><span class='nam'>default</span><span class='op'>(</span><span class='nam'>obj</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t11' class='pln'><span class='strut'>&nbsp;</span></p>

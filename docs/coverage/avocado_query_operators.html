@@ -5,7 +5,7 @@
     
     
     <meta http-equiv='X-UA-Compatible' content='IE=emulateIE7' />
-    <title>Coverage for avocado/query/operators: 96%</title>
+    <title>Coverage for avocado/query/operators: 99%</title>
     <link rel='stylesheet' href='style.css' type='text/css'>
     <script type='text/javascript' src='jquery-1.4.3.min.js'></script>
     <script type='text/javascript' src='jquery.hotkeys.js'></script>
@@ -20,14 +20,16 @@
 <div id='header'>
     <div class='content'>
         <h1>Coverage for <b>avocado/query/operators</b> :
-            <span class='pc_cov'>96%</span>
+            <span class='pc_cov'>99%</span>
         </h1>
         <img id='keyboard_icon' src='keybd_closed.png'>
         <h2 class='stats'>
-            168 statements
-            <span class='run hide_run shortkey_r' onclick='coverage.toggle_lines(this, "run")'>162 run</span>
-            <span class='mis shortkey_m' onclick='coverage.toggle_lines(this, "mis")'>6 missing</span>
-            <span class='exc shortkey_x' onclick='coverage.toggle_lines(this, "exc")'>0 excluded</span>
+            160 statements
+            <span class='run hide_run shortkey_r' onclick='coverage.toggle_lines(this, "run")'>159 run</span>
+            <span class='mis shortkey_m' onclick='coverage.toggle_lines(this, "mis")'>1 missing</span>
+            <span class='exc shortkey_x' onclick='coverage.toggle_lines(this, "exc")'>8 excluded</span>
+            
+                <span class='par run hide_run shortkey_p' onclick='coverage.toggle_lines(this, "par")'>1 partial</span>
             
         </h2>
     </div>
@@ -78,23 +80,23 @@
 <p id='n16' class='stm run hide_run'><a href='#n16'>16</a></p>
 <p id='n17' class='stm run hide_run'><a href='#n17'>17</a></p>
 <p id='n18' class='pln'><a href='#n18'>18</a></p>
-<p id='n19' class='stm run hide_run'><a href='#n19'>19</a></p>
-<p id='n20' class='stm mis'><a href='#n20'>20</a></p>
+<p id='n19' class='exc'><a href='#n19'>19</a></p>
+<p id='n20' class='exc'><a href='#n20'>20</a></p>
 <p id='n21' class='pln'><a href='#n21'>21</a></p>
-<p id='n22' class='stm run hide_run'><a href='#n22'>22</a></p>
-<p id='n23' class='stm mis'><a href='#n23'>23</a></p>
+<p id='n22' class='exc'><a href='#n22'>22</a></p>
+<p id='n23' class='exc'><a href='#n23'>23</a></p>
 <p id='n24' class='pln'><a href='#n24'>24</a></p>
-<p id='n25' class='stm run hide_run'><a href='#n25'>25</a></p>
-<p id='n26' class='stm mis'><a href='#n26'>26</a></p>
+<p id='n25' class='exc'><a href='#n25'>25</a></p>
+<p id='n26' class='exc'><a href='#n26'>26</a></p>
 <p id='n27' class='pln'><a href='#n27'>27</a></p>
 <p id='n28' class='stm run hide_run'><a href='#n28'>28</a></p>
 <p id='n29' class='stm run hide_run'><a href='#n29'>29</a></p>
 <p id='n30' class='pln'><a href='#n30'>30</a></p>
 <p id='n31' class='stm run hide_run'><a href='#n31'>31</a></p>
-<p id='n32' class='stm mis'><a href='#n32'>32</a></p>
+<p id='n32' class='exc'><a href='#n32'>32</a></p>
 <p id='n33' class='pln'><a href='#n33'>33</a></p>
 <p id='n34' class='stm run hide_run'><a href='#n34'>34</a></p>
-<p id='n35' class='stm mis'><a href='#n35'>35</a></p>
+<p id='n35' class='exc'><a href='#n35'>35</a></p>
 <p id='n36' class='pln'><a href='#n36'>36</a></p>
 <p id='n37' class='pln'><a href='#n37'>37</a></p>
 <p id='n38' class='stm run hide_run'><a href='#n38'>38</a></p>
@@ -187,7 +189,7 @@
 <p id='n125' class='pln'><a href='#n125'>125</a></p>
 <p id='n126' class='stm run hide_run'><a href='#n126'>126</a></p>
 <p id='n127' class='pln'><a href='#n127'>127</a></p>
-<p id='n128' class='stm run hide_run'><a href='#n128'>128</a></p>
+<p id='n128' class='stm par run hide_run'><a href='#n128'>128</a></p>
 <p id='n129' class='stm run hide_run'><a href='#n129'>129</a></p>
 <p id='n130' class='stm mis'><a href='#n130'>130</a></p>
 <p id='n131' class='pln'><a href='#n131'>131</a></p>
@@ -344,23 +346,23 @@
 <p id='t16' class='stm run hide_run'>&nbsp; &nbsp; <span class='nam'>verbose_name</span> <span class='op'>=</span> <span class='str'>&#39;&#39;</span><span class='strut'>&nbsp;</span></p>
 <p id='t17' class='stm run hide_run'>&nbsp; &nbsp; <span class='nam'>negated</span> <span class='op'>=</span> <span class='nam'>False</span><span class='strut'>&nbsp;</span></p>
 <p id='t18' class='pln'><span class='strut'>&nbsp;</span></p>
-<p id='t19' class='stm run hide_run'>&nbsp; &nbsp; <span class='key'>def</span> <span class='nam'>__str__</span><span class='op'>(</span><span class='nam'>self</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
-<p id='t20' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>return</span> <span class='str'>&#39;%s (%s)&#39;</span> <span class='op'>%</span> <span class='op'>(</span><span class='nam'>self</span><span class='op'>.</span><span class='nam'>verbose_name</span><span class='op'>,</span> <span class='nam'>self</span><span class='op'>.</span><span class='nam'>uid</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
+<p id='t19' class='exc'>&nbsp; &nbsp; <span class='key'>def</span> <span class='nam'>__str__</span><span class='op'>(</span><span class='nam'>self</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
+<p id='t20' class='exc'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>return</span> <span class='str'>&#39;%s (%s)&#39;</span> <span class='op'>%</span> <span class='op'>(</span><span class='nam'>self</span><span class='op'>.</span><span class='nam'>verbose_name</span><span class='op'>,</span> <span class='nam'>self</span><span class='op'>.</span><span class='nam'>uid</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t21' class='pln'><span class='strut'>&nbsp;</span></p>
-<p id='t22' class='stm run hide_run'>&nbsp; &nbsp; <span class='key'>def</span> <span class='nam'>__unicode__</span><span class='op'>(</span><span class='nam'>self</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
-<p id='t23' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>return</span> <span class='str'>u&#39;%s&#39;</span> <span class='op'>%</span> <span class='nam'>str</span><span class='op'>(</span><span class='nam'>self</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
+<p id='t22' class='exc'>&nbsp; &nbsp; <span class='key'>def</span> <span class='nam'>__unicode__</span><span class='op'>(</span><span class='nam'>self</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
+<p id='t23' class='exc'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>return</span> <span class='str'>u&#39;%s&#39;</span> <span class='op'>%</span> <span class='nam'>str</span><span class='op'>(</span><span class='nam'>self</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t24' class='pln'><span class='strut'>&nbsp;</span></p>
-<p id='t25' class='stm run hide_run'>&nbsp; &nbsp; <span class='key'>def</span> <span class='nam'>__repr__</span><span class='op'>(</span><span class='nam'>self</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
-<p id='t26' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>return</span> <span class='str'>u&#39;&lt;Operator: &quot;%s&quot; (%s)&gt;&#39;</span> <span class='op'>%</span> <span class='op'>(</span><span class='nam'>self</span><span class='op'>.</span><span class='nam'>verbose_name</span><span class='op'>,</span> <span class='nam'>self</span><span class='op'>.</span><span class='nam'>uid</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
+<p id='t25' class='exc'>&nbsp; &nbsp; <span class='key'>def</span> <span class='nam'>__repr__</span><span class='op'>(</span><span class='nam'>self</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
+<p id='t26' class='exc'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>return</span> <span class='str'>u&#39;&lt;Operator: &quot;%s&quot; (%s)&gt;&#39;</span> <span class='op'>%</span> <span class='op'>(</span><span class='nam'>self</span><span class='op'>.</span><span class='nam'>verbose_name</span><span class='op'>,</span> <span class='nam'>self</span><span class='op'>.</span><span class='nam'>uid</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t27' class='pln'><span class='strut'>&nbsp;</span></p>
 <p id='t28' class='stm run hide_run'>&nbsp; &nbsp; <span class='key'>def</span> <span class='nam'>coerce_to_unicode</span><span class='op'>(</span><span class='nam'>self</span><span class='op'>,</span> <span class='nam'>value</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
 <p id='t29' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>return</span> <span class='nam'>unicode</span><span class='op'>(</span><span class='nam'>settings</span><span class='op'>.</span><span class='nam'>DATA_CHOICES_MAP</span><span class='op'>.</span><span class='nam'>get</span><span class='op'>(</span><span class='nam'>value</span><span class='op'>,</span> <span class='nam'>value</span><span class='op'>)</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t30' class='pln'><span class='strut'>&nbsp;</span></p>
 <p id='t31' class='stm run hide_run'>&nbsp; &nbsp; <span class='key'>def</span> <span class='nam'>is_valid</span><span class='op'>(</span><span class='nam'>self</span><span class='op'>,</span> <span class='nam'>value</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
-<p id='t32' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>raise</span> <span class='nam'>NotImplemented</span><span class='op'>(</span><span class='str'>&#39;Use an Operator subclass&#39;</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
+<p id='t32' class='exc'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>raise</span> <span class='nam'>NotImplemented</span><span class='op'>(</span><span class='str'>&#39;Use an Operator subclass&#39;</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t33' class='pln'><span class='strut'>&nbsp;</span></p>
 <p id='t34' class='stm run hide_run'>&nbsp; &nbsp; <span class='key'>def</span> <span class='nam'>text</span><span class='op'>(</span><span class='nam'>self</span><span class='op'>,</span> <span class='nam'>value</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
-<p id='t35' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>raise</span> <span class='nam'>NotImplemented</span><span class='op'>(</span><span class='str'>&#39;Use an Operator subclass&#39;</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
+<p id='t35' class='exc'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>raise</span> <span class='nam'>NotImplemented</span><span class='op'>(</span><span class='str'>&#39;Use an Operator subclass&#39;</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t36' class='pln'><span class='strut'>&nbsp;</span></p>
 <p id='t37' class='pln'><span class='strut'>&nbsp;</span></p>
 <p id='t38' class='stm run hide_run'><span class='key'>class</span> <span class='nam'>SimpleTypeOperator</span><span class='op'>(</span><span class='nam'>BaseOperator</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
@@ -453,7 +455,7 @@
 <p id='t125' class='pln'><span class='strut'>&nbsp;</span></p>
 <p id='t126' class='stm run hide_run'>&nbsp; &nbsp; <span class='key'>def</span> <span class='nam'>text</span><span class='op'>(</span><span class='nam'>self</span><span class='op'>,</span> <span class='nam'>value</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
 <p id='t127' class='pln'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='com'># Easier to read &#39;is False&#39;, rather than &#39;is not True&#39;</span><span class='strut'>&nbsp;</span></p>
-<p id='t128' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>if</span> <span class='nam'>isinstance</span><span class='op'>(</span><span class='nam'>value</span><span class='op'>,</span> <span class='nam'>bool</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
+<p id='t128' class='stm par run hide_run'><span class='annotate' title='no jump to this line number'>130</span>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>if</span> <span class='nam'>isinstance</span><span class='op'>(</span><span class='nam'>value</span><span class='op'>,</span> <span class='nam'>bool</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
 <p id='t129' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>return</span> <span class='str'>u&#39;is {}&#39;</span><span class='op'>.</span><span class='nam'>format</span><span class='op'>(</span><span class='key'>not</span> <span class='nam'>value</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t130' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>return</span> <span class='nam'>super</span><span class='op'>(</span><span class='nam'>NotExact</span><span class='op'>,</span> <span class='nam'>self</span><span class='op'>)</span><span class='op'>.</span><span class='nam'>text</span><span class='op'>(</span><span class='nam'>value</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t131' class='pln'><span class='strut'>&nbsp;</span></p>

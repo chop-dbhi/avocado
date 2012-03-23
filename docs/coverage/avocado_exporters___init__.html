@@ -5,7 +5,7 @@
     
     
     <meta http-equiv='X-UA-Compatible' content='IE=emulateIE7' />
-    <title>Coverage for avocado/exporters/__init__: 88%</title>
+    <title>Coverage for avocado/exporters/__init__: 84%</title>
     <link rel='stylesheet' href='style.css' type='text/css'>
     <script type='text/javascript' src='jquery-1.4.3.min.js'></script>
     <script type='text/javascript' src='jquery.hotkeys.js'></script>
@@ -20,7 +20,7 @@
 <div id='header'>
     <div class='content'>
         <h1>Coverage for <b>avocado/exporters/__init__</b> :
-            <span class='pc_cov'>88%</span>
+            <span class='pc_cov'>84%</span>
         </h1>
         <img id='keyboard_icon' src='keybd_closed.png'>
         <h2 class='stats'>
@@ -28,6 +28,8 @@
             <span class='run hide_run shortkey_r' onclick='coverage.toggle_lines(this, "run")'>15 run</span>
             <span class='mis shortkey_m' onclick='coverage.toggle_lines(this, "mis")'>2 missing</span>
             <span class='exc shortkey_x' onclick='coverage.toggle_lines(this, "exc")'>0 excluded</span>
+            
+                <span class='par run hide_run shortkey_p' onclick='coverage.toggle_lines(this, "par")'>1 partial</span>
             
         </h2>
     </div>
@@ -77,7 +79,7 @@
 <p id='n15' class='stm run hide_run'><a href='#n15'>15</a></p>
 <p id='n16' class='stm run hide_run'><a href='#n16'>16</a></p>
 <p id='n17' class='stm run hide_run'><a href='#n17'>17</a></p>
-<p id='n18' class='stm run hide_run'><a href='#n18'>18</a></p>
+<p id='n18' class='stm par run hide_run'><a href='#n18'>18</a></p>
 <p id='n19' class='stm run hide_run'><a href='#n19'>19</a></p>
 <p id='n20' class='pln'><a href='#n20'>20</a></p>
 <p id='n21' class='stm run hide_run'><a href='#n21'>21</a></p>
@@ -101,7 +103,7 @@
 <p id='t15' class='stm run hide_run'><span class='nam'>registry</span><span class='op'>.</span><span class='nam'>register</span><span class='op'>(</span><span class='nam'>SasExporter</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t16' class='stm run hide_run'><span class='nam'>registry</span><span class='op'>.</span><span class='nam'>register</span><span class='op'>(</span><span class='nam'>RExporter</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t17' class='stm run hide_run'><span class='nam'>registry</span><span class='op'>.</span><span class='nam'>register</span><span class='op'>(</span><span class='nam'>JSONExporter</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
-<p id='t18' class='stm run hide_run'><span class='key'>if</span> <span class='nam'>ExcelExporter</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
+<p id='t18' class='stm par run hide_run'><span class='annotate' title='no jump to this line number'>21</span><span class='key'>if</span> <span class='nam'>ExcelExporter</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
 <p id='t19' class='stm run hide_run'>&nbsp; &nbsp; <span class='nam'>registry</span><span class='op'>.</span><span class='nam'>register</span><span class='op'>(</span><span class='nam'>ExcelExporter</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t20' class='pln'><span class='strut'>&nbsp;</span></p>
 <p id='t21' class='stm run hide_run'><span class='nam'>loader</span><span class='op'>.</span><span class='nam'>autodiscover</span><span class='op'>(</span><span class='str'>&#39;exporters&#39;</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>

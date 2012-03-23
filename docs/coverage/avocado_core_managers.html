@@ -5,7 +5,7 @@
     
     
     <meta http-equiv='X-UA-Compatible' content='IE=emulateIE7' />
-    <title>Coverage for avocado/core/managers: 59%</title>
+    <title>Coverage for avocado/core/managers: 65%</title>
     <link rel='stylesheet' href='style.css' type='text/css'>
     <script type='text/javascript' src='jquery-1.4.3.min.js'></script>
     <script type='text/javascript' src='jquery.hotkeys.js'></script>
@@ -20,7 +20,7 @@
 <div id='header'>
     <div class='content'>
         <h1>Coverage for <b>avocado/core/managers</b> :
-            <span class='pc_cov'>59%</span>
+            <span class='pc_cov'>65%</span>
         </h1>
         <img id='keyboard_icon' src='keybd_closed.png'>
         <h2 class='stats'>
@@ -28,6 +28,8 @@
             <span class='run hide_run shortkey_r' onclick='coverage.toggle_lines(this, "run")'>10 run</span>
             <span class='mis shortkey_m' onclick='coverage.toggle_lines(this, "mis")'>7 missing</span>
             <span class='exc shortkey_x' onclick='coverage.toggle_lines(this, "exc")'>0 excluded</span>
+            
+                <span class='par run hide_run shortkey_p' onclick='coverage.toggle_lines(this, "par")'>1 partial</span>
             
         </h2>
     </div>
@@ -93,7 +95,7 @@
 <p id='n31' class='stm mis'><a href='#n31'>31</a></p>
 <p id='n32' class='pln'><a href='#n32'>32</a></p>
 <p id='n33' class='stm run hide_run'><a href='#n33'>33</a></p>
-<p id='n34' class='stm run hide_run'><a href='#n34'>34</a></p>
+<p id='n34' class='stm par run hide_run'><a href='#n34'>34</a></p>
 <p id='n35' class='stm mis'><a href='#n35'>35</a></p>
 <p id='n36' class='stm mis'><a href='#n36'>36</a></p>
 <p id='n37' class='stm mis'><a href='#n37'>37</a></p>
@@ -137,7 +139,7 @@
 <p id='t31' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>return</span> <span class='nam'>getattr</span><span class='op'>(</span><span class='nam'>self</span><span class='op'>.</span><span class='nam'>get_query_set</span><span class='op'>(</span><span class='op'>)</span><span class='op'>,</span> <span class='nam'>name</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t32' class='pln'><span class='strut'>&nbsp;</span></p>
 <p id='t33' class='stm run hide_run'>&nbsp; &nbsp; <span class='key'>def</span> <span class='nam'>get_query_set</span><span class='op'>(</span><span class='nam'>self</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
-<p id='t34' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>if</span> <span class='nam'>self</span><span class='op'>.</span><span class='nam'>_queryset_cls</span> <span class='key'>is</span> <span class='key'>not</span> <span class='nam'>None</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
+<p id='t34' class='stm par run hide_run'><span class='annotate' title='no jump to this line number'>35</span>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>if</span> <span class='nam'>self</span><span class='op'>.</span><span class='nam'>_queryset_cls</span> <span class='key'>is</span> <span class='key'>not</span> <span class='nam'>None</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
 <p id='t35' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>kwargs</span> <span class='op'>=</span> <span class='op'>{</span><span class='str'>&#39;model&#39;</span><span class='op'>:</span> <span class='nam'>self</span><span class='op'>.</span><span class='nam'>model</span><span class='op'>}</span><span class='strut'>&nbsp;</span></p>
 <p id='t36' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>if</span> <span class='nam'>hasattr</span><span class='op'>(</span><span class='nam'>self</span><span class='op'>,</span> <span class='str'>&#39;_db&#39;</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
 <p id='t37' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>kwargs</span><span class='op'>[</span><span class='str'>&#39;using&#39;</span><span class='op'>]</span> <span class='op'>=</span> <span class='nam'>self</span><span class='op'>.</span><span class='nam'>_db</span><span class='strut'>&nbsp;</span></p>

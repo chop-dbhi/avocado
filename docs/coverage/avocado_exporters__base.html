@@ -5,7 +5,7 @@
     
     
     <meta http-equiv='X-UA-Compatible' content='IE=emulateIE7' />
-    <title>Coverage for avocado/exporters/_base: 80%</title>
+    <title>Coverage for avocado/exporters/_base: 85%</title>
     <link rel='stylesheet' href='style.css' type='text/css'>
     <script type='text/javascript' src='jquery-1.4.3.min.js'></script>
     <script type='text/javascript' src='jquery.hotkeys.js'></script>
@@ -20,14 +20,16 @@
 <div id='header'>
     <div class='content'>
         <h1>Coverage for <b>avocado/exporters/_base</b> :
-            <span class='pc_cov'>80%</span>
+            <span class='pc_cov'>85%</span>
         </h1>
         <img id='keyboard_icon' src='keybd_closed.png'>
         <h2 class='stats'>
-            44 statements
+            43 statements
             <span class='run hide_run shortkey_r' onclick='coverage.toggle_lines(this, "run")'>35 run</span>
-            <span class='mis shortkey_m' onclick='coverage.toggle_lines(this, "mis")'>9 missing</span>
-            <span class='exc shortkey_x' onclick='coverage.toggle_lines(this, "exc")'>0 excluded</span>
+            <span class='mis shortkey_m' onclick='coverage.toggle_lines(this, "mis")'>8 missing</span>
+            <span class='exc shortkey_x' onclick='coverage.toggle_lines(this, "exc")'>1 excluded</span>
+            
+                <span class='par run hide_run shortkey_p' onclick='coverage.toggle_lines(this, "par")'>1 partial</span>
             
         </h2>
     </div>
@@ -95,7 +97,7 @@
 <p id='n33' class='pln'><a href='#n33'>33</a></p>
 <p id='n34' class='stm run hide_run'><a href='#n34'>34</a></p>
 <p id='n35' class='pln'><a href='#n35'>35</a></p>
-<p id='n36' class='stm run hide_run'><a href='#n36'>36</a></p>
+<p id='n36' class='stm par run hide_run'><a href='#n36'>36</a></p>
 <p id='n37' class='stm mis'><a href='#n37'>37</a></p>
 <p id='n38' class='stm mis'><a href='#n38'>38</a></p>
 <p id='n39' class='stm mis'><a href='#n39'>39</a></p>
@@ -120,7 +122,7 @@
 <p id='n58' class='stm run hide_run'><a href='#n58'>58</a></p>
 <p id='n59' class='pln'><a href='#n59'>59</a></p>
 <p id='n60' class='stm run hide_run'><a href='#n60'>60</a></p>
-<p id='n61' class='stm mis'><a href='#n61'>61</a></p>
+<p id='n61' class='exc'><a href='#n61'>61</a></p>
                 
             </td>
             <td class='text' valign='top'>
@@ -159,7 +161,7 @@
 <p id='t33' class='pln'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='com'># occurred position.</span><span class='strut'>&nbsp;</span></p>
 <p id='t34' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>keys</span> <span class='op'>=</span> <span class='op'>[</span><span class='nam'>f</span><span class='op'>.</span><span class='nam'>field_name</span> <span class='key'>for</span> <span class='nam'>f</span> <span class='key'>in</span> <span class='nam'>fields</span><span class='op'>]</span><span class='strut'>&nbsp;</span></p>
 <p id='t35' class='pln'><span class='strut'>&nbsp;</span></p>
-<p id='t36' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>if</span> <span class='nam'>len</span><span class='op'>(</span><span class='nam'>set</span><span class='op'>(</span><span class='nam'>keys</span><span class='op'>)</span><span class='op'>)</span> <span class='op'>!=</span> <span class='nam'>len</span><span class='op'>(</span><span class='nam'>fields</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
+<p id='t36' class='stm par run hide_run'><span class='annotate' title='no jump to this line number'>37</span>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>if</span> <span class='nam'>len</span><span class='op'>(</span><span class='nam'>set</span><span class='op'>(</span><span class='nam'>keys</span><span class='op'>)</span><span class='op'>)</span> <span class='op'>!=</span> <span class='nam'>len</span><span class='op'>(</span><span class='nam'>fields</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
 <p id='t37' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>cnts</span> <span class='op'>=</span> <span class='op'>{</span><span class='op'>}</span><span class='strut'>&nbsp;</span></p>
 <p id='t38' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>for</span> <span class='nam'>i</span><span class='op'>,</span> <span class='nam'>key</span> <span class='key'>in</span> <span class='nam'>enumerate</span><span class='op'>(</span><span class='nam'>keys</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
 <p id='t39' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>if</span> <span class='nam'>keys</span><span class='op'>.</span><span class='nam'>count</span><span class='op'>(</span><span class='nam'>key</span><span class='op'>)</span> <span class='op'>&gt;</span> <span class='num'>1</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
@@ -184,7 +186,7 @@
 <p id='t58' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>yield</span> <span class='nam'>self</span><span class='op'>.</span><span class='nam'>_format_row</span><span class='op'>(</span><span class='nam'>row</span><span class='op'>,</span> <span class='nam'>params</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t59' class='pln'><span class='strut'>&nbsp;</span></p>
 <p id='t60' class='stm run hide_run'>&nbsp; &nbsp; <span class='key'>def</span> <span class='nam'>write</span><span class='op'>(</span><span class='nam'>self</span><span class='op'>,</span> <span class='op'>*</span><span class='nam'>args</span><span class='op'>,</span> <span class='op'>**</span><span class='nam'>kwargs</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
-<p id='t61' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>raise</span> <span class='nam'>NotImplemented</span><span class='strut'>&nbsp;</span></p>
+<p id='t61' class='exc'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>raise</span> <span class='nam'>NotImplemented</span><span class='strut'>&nbsp;</span></p>
                 
             </td>
         </tr>
