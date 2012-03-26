@@ -162,19 +162,20 @@ class Field(Base):
                 flat=True).order_by(self.field_name).distinct()
 
     @property
+    def coded_values(self):
+        "Returns a distinct set of coded values for this field"
+        if 'avocado.coded' in settings.INSTALLED_APPS:
+            from avocado.coded.models import CodedValue
+            if self.enable_choices:
+                return zip(CodedValue.objects.filter(field=self).values_list('value', 'coded'))
+
+    @property
     def mapped_values(self):
         if self.enable_choices:
             # Iterate over each value and attempt to get the mapped choice
             # other fallback to the value itself
             return [smart_unicode(_settings.DATA_CHOICES_MAP.get(value, value)) \
                 for value in self.values]
-
-    @property
-    def coded_values(self):
-        "Returns a distinct set of coded values for this field"
-        if self.enable_choices:
-            values = list(self.values)
-            return zip(values, xrange(len(values)))
 
     @property
     def choices(self):
