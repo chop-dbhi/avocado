@@ -1,4 +1,7 @@
+import unittest
 from django.test import TestCase
+from django.conf import settings
+from django.core import management
 from avocado.tests.base import BaseTestCase
 
 __all__ = ('FieldTestCase', 'ConceptTestCase', 'CategoryTestCase')
@@ -21,9 +24,10 @@ class FieldTestCase(BaseTestCase):
         self.assertEqual(self.first_name.datatype, 'string')
 
 
-class ConceptTestCase(TestCase):
-    pass
+class ConceptTestCase(BaseTestCase):
+    def test_search(self):
+        management.call_command('rebuild_index', interactive=False)
 
 
-class CategoryTestCase(TestCase):
+class CategoryTestCase(BaseTestCase):
     pass

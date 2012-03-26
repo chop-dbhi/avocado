@@ -90,7 +90,7 @@ setup(
     cmdclass = cmdclasses,
 
     install_requires = install_requires,
-    tests_require = ['coverage'],
+    tests_require = ['coverage', 'django-haystack', 'whoosh', 'openpyxl'],
 
     data_files = data_files,
 
