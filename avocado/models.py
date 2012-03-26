@@ -9,27 +9,19 @@ from django.db import models
 from django.contrib.sites.models import Site
 from django.utils.encoding import smart_unicode
 from django.db.models.fields import FieldDoesNotExist
-from django.utils.importlib import import_module
-from avocado.conf import settings as _settings
-from avocado.managers import FieldManager, ConceptManager
+from django.db.models.signals import post_save, pre_delete
+from modeltree.tree import MODELTREE_DEFAULT_ALIAS, trees
 from avocado.core import binning
+from avocado.core.utils import get_form_class
+from avocado.core.cache import post_save_cache, pre_delete_uncache, cached_property
+from avocado.conf import settings as _settings
+from avocado.managers import FieldManager, ConceptManager, CategoryManager
 from avocado.formatters import registry as formatters
 from avocado.query.translators import registry as translators
-from modeltree.tree import MODELTREE_DEFAULT_ALIAS, trees
 
 __all__ = ('Category', 'Concept', 'Field')
 
-def get_form_class(name):
-    # infers this is a path
-    if '.' in name:
-        path = name.split('.')[:-1]
-        mod = import_module(path)
-    # use the django forms module
-    else:
-        if not name.endswith('Field'):
-            name = name + 'Field'
-        mod = forms
-    return getattr(mod, name)
+SITES_APP_INSTALLED = 'django.contrib.sites' in settings.INSTALLED_APPS
 
 class Base(models.Model):
     """Base abstract class containing general metadata.
@@ -54,6 +46,7 @@ class Base(models.Model):
 
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
+    archived = models.BooleanField(default=False)
 
     class Meta(object):
         abstract = True
@@ -71,7 +64,13 @@ class Base(models.Model):
         }
 
     def get_plural_name(self):
-        return self.name_plural or (self.name + 's')
+        if self.name_plural:
+            plural = self.name_plural
+        elif not self.name.endswith('s'):
+            plural = self.name + 's'
+        else:
+            plural = self.name
+        return plural
 
 
 class Field(Base):
@@ -97,6 +96,12 @@ class Field(Base):
     # is false, it is globally not accessible.
     published = models.BooleanField(default=False)
 
+    # The timestamp of the last time the underlying data for this field
+    # has been modified. This is used for the cache key and for general
+    # reference. The underlying table not have a timestamp nor is it optimal
+    # to have to query the data for the max `modified` time.
+    data_modified = models.DateTimeField(null=True)
+
     objects = FieldManager()
 
     class Meta(object):
@@ -117,7 +122,7 @@ class Field(Base):
     # data models since there are discrete parts (as suppose to using the
     # primary key).
     def natural_key(self):
-        return (self.app_name, self.model_name, self.field_name)
+        return self.app_name, self.model_name, self.field_name
 
     @property
     def model(self):
@@ -154,14 +159,24 @@ class Field(Base):
             datatype = _settings.INTERNAL_DATATYPE_MAP[datatype]
         return datatype
 
-    @property
+    # Data-related Cached Properties
+    # These may be cached until the underlying data changes
+
+    @cached_property('distribution', timestamp='data_modified')
+    def distribution(self, *args, **kwargs):
+        "Returns a binned distribution of this field's data."
+        name = self.field_name
+        queryset = self.model.objects.values(name)
+        return binning.distribution(queryset, name, self.datatype, *args, **kwargs)
+
+    @cached_property('values', timestamp='data_modified')
     def values(self):
         "Introspects the data and returns a distinct list of the values."
         if self.enable_choices:
             return self.model.objects.values_list(self.field_name,
                 flat=True).order_by(self.field_name).distinct()
 
-    @property
+    @cached_property('coded_values', timestamp='data_modified')
     def coded_values(self):
         "Returns a distinct set of coded values for this field"
         if 'avocado.coded' in settings.INSTALLED_APPS:
@@ -171,24 +186,18 @@ class Field(Base):
 
     @property
     def mapped_values(self):
+        "Maps the raw `values` relative to `DATA_CHOICES_MAP`."
         if self.enable_choices:
             # Iterate over each value and attempt to get the mapped choice
             # other fallback to the value itself
-            return [smart_unicode(_settings.DATA_CHOICES_MAP.get(value, value)) \
-                for value in self.values]
+            return map(lambda x: smart_unicode(_settings.DATA_CHOICES_MAP.get(x, x)),
+                self.values)
 
     @property
     def choices(self):
         "Returns a distinct set of choices for this field."
         if self.enable_choices:
             return zip(self.values, self.mapped_values)
-
-    @property
-    def distribution(self, *args, **kwargs):
-        "Returns a binned distribution of this field's data."
-        name = self.field_name
-        queryset = self.model.objects.values(name)
-        return binning.distribution(queryset, name, self.datatype, *args, **kwargs)
 
     def query_string(self, operator=None, using=MODELTREE_DEFAULT_ALIAS):
         return trees[using].query_string_for_field(self.field, operator)
@@ -229,10 +238,12 @@ class Category(Base):
     # Certain whole categories may not be relevant or appropriate for all
     # sites being deployed. If a category is not accessible by a certain site,
     # all subsequent data elements are also not accessible by the site.
-    if 'django.contrib.sites' in settings.INSTALLED_APPS:
+    if SITES_APP_INSTALLED:
         sites = models.ManyToManyField(Site, blank=True, related_name='categories+')
 
     order = models.FloatField(null=True, db_column='_order')
+
+    objects = CategoryManager()
 
     class Meta(object):
         ordering = ('order', 'name')
@@ -264,7 +275,7 @@ class Concept(Base):
     # has full access to all fields, while the external may have a limited set.
     # NOTE this is not reliable way to prevent exposure of sensitive data.
     # This should be used to simply hide _access_ to the concepts.
-    if 'django.contrib.sites' in settings.INSTALLED_APPS:
+    if SITES_APP_INSTALLED:
         sites = models.ManyToManyField(Site, blank=True, related_name='concepts+')
 
     order = models.FloatField(null=True, db_column='_order')
@@ -274,14 +285,11 @@ class Concept(Base):
     published = models.BooleanField(default=False)
 
     # An optional formatter which provides custom formatting for this
-    # concept relative to the associated fields
+    # concept relative to the associated fields. If a formatter is not
+    # defined, this Concept is not intended to be exposed since the
+    # underlying data may not be appropriate for client consumption.
     formatter = models.CharField(max_length=100, blank=True, null=True,
         choices=formatters.choices)
-
-    # Denotes whether this concept will be exposed as an interface to define
-    # conditions against. concepts composed of inter-related or contextually
-    # simliar fields are usually most appropriate for this option
-    #conditional = models.BooleanField('Are these fields conditional?', default=True)
 
     objects = ConceptManager()
 
@@ -300,7 +308,6 @@ class ConceptField(Base):
     "Through model between Concept and Field relationships."
     field = models.ForeignKey(Field, related_name='concept_fields')
     concept = models.ForeignKey(Concept, related_name='concept_fields')
-
     order = models.FloatField(null=True, db_column='_order')
 
     class Meta(object):
@@ -312,6 +319,15 @@ class ConceptField(Base):
     def get_plural_name(self):
         return self.name_plural or self.field.get_plural_name()
 
+
+# Register instance-level cache invalidation handlers
+post_save.connect(post_save_cache, sender=Field)
+post_save.connect(post_save_cache, sender=Concept)
+post_save.connect(post_save_cache, sender=Category)
+
+pre_delete.connect(pre_delete_uncache, sender=Field)
+pre_delete.connect(pre_delete_uncache, sender=Concept)
+pre_delete.connect(pre_delete_uncache, sender=Category)
 
 # If django-reversion is installed, register the models
 if 'reversion' in settings.INSTALLED_APPS:

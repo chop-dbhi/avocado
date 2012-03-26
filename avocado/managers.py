@@ -1,9 +1,12 @@
 from django.db.models import Q
 from django.db import transaction
 from django.conf import settings
+from avocado.core.cache import CacheManager
 from avocado.core.managers import PassThroughManager
 
-class FieldManager(PassThroughManager):
+SITES_APP_INSTALLED = 'django.contrib.sites' in settings.INSTALLED_APPS
+
+class FieldManager(PassThroughManager, CacheManager):
     "Adds additional helper methods focused around access and permissions."
     use_for_related_fields = True
 
@@ -19,22 +22,25 @@ class FieldManager(PassThroughManager):
         return self.get_query_set().filter(published=True, archived=False)
 
 
-class ConceptManager(PassThroughManager):
+class ConceptManager(PassThroughManager, CacheManager):
     use_for_related_fields = True
 
     def published(self):
         queryset = self.get_query_set()
-        # All published concepts associated with a category and associated with
-        # the current site (or no site)
-        sites = Q(sites=None) | Q(sites__id=settings.SITE_ID)
-        published = queryset.filter(sites, published=True, archived=False,
-            category__isnull=False)
+
+        if SITES_APP_INSTALLED:
+            # All published concepts associated with a category and associated with
+            # the current site (or no site)
+            sites = Q(sites=None) | Q(sites__id=settings.SITE_ID)
+        else:
+            sites = Q()
+
+        published = queryset.filter(sites, published=True, archived=False)
         # Concepts that contain at least one non-published fields are removed from
-        # the set
+        # the set to prevent exposing non-prepared data
         shadowed = queryset.filter(fields__published=False)
 
-        return published.exclude(pk__in=shadowed)\
-            .filter(published__in=published).distinct()
+        return published.exclude(pk__in=shadowed).distinct()
 
     @transaction.commit_on_success
     def create_from_field(self, field, save=False, **kwargs):
@@ -54,3 +60,6 @@ class ConceptManager(PassThroughManager):
             concept.concept_fields.add(cfield)
         return concept
 
+
+class CategoryManager(PassThroughManager, CacheManager):
+    use_for_related_fields = True
