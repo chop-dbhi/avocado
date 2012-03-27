@@ -311,7 +311,7 @@ class ConceptField(Base):
     order = models.FloatField(null=True, db_column='_order')
 
     class Meta(object):
-        ordering = ('concept', 'order')
+        ordering = ('order',)
 
     def __unicode__(self):
         return unicode(self.name or self.field.name)

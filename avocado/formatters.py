@@ -17,25 +17,24 @@ class Formatter(object):
         Single formatted Value
         OrderedDict/sequence of key-value pairs
 
-        If ta format method is unable to do either of these for the given
+        If the format method is unable to do either of these for the given
         value a FormatException must be raised.
 
-        ``values`` - an OrderedDict containing each value along with the field
-        instance it represents.
+        ``values`` - A list, tuple or OrderedDict containing the values to
+        be formatted. If a list or tuple is passed, it will be wrapped in
+        an OrderedDict for keyword access in the format methods.
 
         ::
 
-            values = OrderedDict({
-                'first_name': 'Bob',
-                'last_name': 'Smith',
-            })
+            values = ['Bob', 'Smith']
 
     """
     name = ''
 
-    def __init__(self, cfields, **context):
+    def __init__(self, concept, **context):
         self.cfields = OrderedDict((x.field.field_name, x) \
-            for x in cfields)
+                for x in concept.concept_fields.all())
+        self.field_keys = self.cfields.keys()
         self.context = context
 
     def __call__(self, values, preferred_formats=None):
@@ -46,6 +45,13 @@ class Formatter(object):
         if not preferred_formats:
             preferred_formats = []
         preferred_formats = list(preferred_formats) + ['raw']
+
+        # Create a OrderedDict of the values relative to the
+        # concept fields objects the values represent. This
+        # enables key-based access to the values rather than
+        # relying on position.
+        if not isinstance(values, OrderedDict):
+            values = OrderedDict(zip(self.field_keys, values))
 
         # Iterate over all preferred formats and attempt to process the values.
         # For formatter methods that process all values must be tracked and
