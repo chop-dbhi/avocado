@@ -5,7 +5,7 @@
     
     
     <meta http-equiv='X-UA-Compatible' content='IE=emulateIE7' />
-    <title>Coverage for avocado/search_indexes: 0%</title>
+    <title>Coverage for avocado/search_indexes: 100%</title>
     <link rel='stylesheet' href='style.css' type='text/css'>
     <script type='text/javascript' src='jquery-1.4.3.min.js'></script>
     <script type='text/javascript' src='jquery.hotkeys.js'></script>
@@ -20,13 +20,13 @@
 <div id='header'>
     <div class='content'>
         <h1>Coverage for <b>avocado/search_indexes</b> :
-            <span class='pc_cov'>0%</span>
+            <span class='pc_cov'>100%</span>
         </h1>
         <img id='keyboard_icon' src='keybd_closed.png'>
         <h2 class='stats'>
-            7 statements
-            <span class='run hide_run shortkey_r' onclick='coverage.toggle_lines(this, "run")'>0 run</span>
-            <span class='mis shortkey_m' onclick='coverage.toggle_lines(this, "mis")'>7 missing</span>
+            8 statements
+            <span class='run hide_run shortkey_r' onclick='coverage.toggle_lines(this, "run")'>8 run</span>
+            <span class='mis shortkey_m' onclick='coverage.toggle_lines(this, "mis")'>0 missing</span>
             <span class='exc shortkey_x' onclick='coverage.toggle_lines(this, "exc")'>0 excluded</span>
             
                 <span class='par run hide_run shortkey_p' onclick='coverage.toggle_lines(this, "par")'>0 partial</span>
@@ -62,31 +62,33 @@
     <table cellspacing='0' cellpadding='0'>
         <tr>
             <td class='linenos' valign='top'>
-<p id='n1' class='stm mis'><a href='#n1'>1</a></p>
-<p id='n2' class='stm mis'><a href='#n2'>2</a></p>
-<p id='n3' class='pln'><a href='#n3'>3</a></p>
-<p id='n4' class='stm mis'><a href='#n4'>4</a></p>
-<p id='n5' class='stm mis'><a href='#n5'>5</a></p>
-<p id='n6' class='pln'><a href='#n6'>6</a></p>
-<p id='n7' class='stm mis'><a href='#n7'>7</a></p>
-<p id='n8' class='stm mis'><a href='#n8'>8</a></p>
-<p id='n9' class='pln'><a href='#n9'>9</a></p>
+<p id='n1' class='stm run hide_run'><a href='#n1'>1</a></p>
+<p id='n2' class='stm run hide_run'><a href='#n2'>2</a></p>
+<p id='n3' class='stm run hide_run'><a href='#n3'>3</a></p>
+<p id='n4' class='pln'><a href='#n4'>4</a></p>
+<p id='n5' class='stm run hide_run'><a href='#n5'>5</a></p>
+<p id='n6' class='stm run hide_run'><a href='#n6'>6</a></p>
+<p id='n7' class='pln'><a href='#n7'>7</a></p>
+<p id='n8' class='stm run hide_run'><a href='#n8'>8</a></p>
+<p id='n9' class='stm run hide_run'><a href='#n9'>9</a></p>
 <p id='n10' class='pln'><a href='#n10'>10</a></p>
-<p id='n11' class='stm mis'><a href='#n11'>11</a></p>
+<p id='n11' class='pln'><a href='#n11'>11</a></p>
+<p id='n12' class='stm run hide_run'><a href='#n12'>12</a></p>
                 
             </td>
             <td class='text' valign='top'>
-<p id='t1' class='stm mis'><span class='key'>from</span> <span class='nam'>haystack</span> <span class='key'>import</span> <span class='nam'>site</span><span class='op'>,</span> <span class='nam'>indexes</span><span class='strut'>&nbsp;</span></p>
-<p id='t2' class='stm mis'><span class='key'>from</span> <span class='nam'>avocado</span><span class='op'>.</span><span class='nam'>models</span> <span class='key'>import</span> <span class='nam'>Concept</span><span class='strut'>&nbsp;</span></p>
-<p id='t3' class='pln'><span class='strut'>&nbsp;</span></p>
-<p id='t4' class='stm mis'><span class='key'>class</span> <span class='nam'>ConceptIndex</span><span class='op'>(</span><span class='nam'>indexes</span><span class='op'>.</span><span class='nam'>RealTimeSearchIndex</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
-<p id='t5' class='stm mis'>&nbsp; &nbsp; <span class='nam'>text</span> <span class='op'>=</span> <span class='nam'>indexes</span><span class='op'>.</span><span class='nam'>CharConcept</span><span class='op'>(</span><span class='nam'>document</span><span class='op'>=</span><span class='nam'>True</span><span class='op'>,</span> <span class='nam'>use_template</span><span class='op'>=</span><span class='nam'>True</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
-<p id='t6' class='pln'><span class='strut'>&nbsp;</span></p>
-<p id='t7' class='stm mis'>&nbsp; &nbsp; <span class='key'>def</span> <span class='nam'>index_queryset</span><span class='op'>(</span><span class='nam'>self</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
-<p id='t8' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>return</span> <span class='nam'>Concept</span><span class='op'>.</span><span class='nam'>objects</span><span class='op'>.</span><span class='nam'>published</span><span class='op'>(</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
-<p id='t9' class='pln'><span class='strut'>&nbsp;</span></p>
+<p id='t1' class='stm run hide_run'><span class='key'>from</span> <span class='nam'>haystack</span><span class='op'>.</span><span class='nam'>indexes</span> <span class='key'>import</span> <span class='op'>*</span><span class='strut'>&nbsp;</span></p>
+<p id='t2' class='stm run hide_run'><span class='key'>from</span> <span class='nam'>haystack</span> <span class='key'>import</span> <span class='nam'>site</span><span class='strut'>&nbsp;</span></p>
+<p id='t3' class='stm run hide_run'><span class='key'>from</span> <span class='nam'>avocado</span><span class='op'>.</span><span class='nam'>models</span> <span class='key'>import</span> <span class='nam'>Concept</span><span class='strut'>&nbsp;</span></p>
+<p id='t4' class='pln'><span class='strut'>&nbsp;</span></p>
+<p id='t5' class='stm run hide_run'><span class='key'>class</span> <span class='nam'>ConceptIndex</span><span class='op'>(</span><span class='nam'>RealTimeSearchIndex</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
+<p id='t6' class='stm run hide_run'>&nbsp; &nbsp; <span class='nam'>text</span> <span class='op'>=</span> <span class='nam'>CharField</span><span class='op'>(</span><span class='nam'>document</span><span class='op'>=</span><span class='nam'>True</span><span class='op'>,</span> <span class='nam'>use_template</span><span class='op'>=</span><span class='nam'>True</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
+<p id='t7' class='pln'><span class='strut'>&nbsp;</span></p>
+<p id='t8' class='stm run hide_run'>&nbsp; &nbsp; <span class='key'>def</span> <span class='nam'>index_queryset</span><span class='op'>(</span><span class='nam'>self</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
+<p id='t9' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>return</span> <span class='nam'>Concept</span><span class='op'>.</span><span class='nam'>objects</span><span class='op'>.</span><span class='nam'>published</span><span class='op'>(</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t10' class='pln'><span class='strut'>&nbsp;</span></p>
-<p id='t11' class='stm mis'><span class='nam'>site</span><span class='op'>.</span><span class='nam'>register</span><span class='op'>(</span><span class='nam'>Concept</span><span class='op'>,</span> <span class='nam'>ConceptIndex</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
+<p id='t11' class='pln'><span class='strut'>&nbsp;</span></p>
+<p id='t12' class='stm run hide_run'><span class='nam'>site</span><span class='op'>.</span><span class='nam'>register</span><span class='op'>(</span><span class='nam'>Concept</span><span class='op'>,</span> <span class='nam'>ConceptIndex</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
                 
             </td>
         </tr>
