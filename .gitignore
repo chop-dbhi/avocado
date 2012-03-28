@@ -1,10 +1,12 @@
 .DS_Store
+.coverage
+.watch-pid
+.sass-cache
 *.swp
 *.pyc
 docs/build
 MANIFEST
 dist
-.coverage
 
 # test output
 csv_export.csv

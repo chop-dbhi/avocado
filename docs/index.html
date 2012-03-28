@@ -1,33 +1,24 @@
 <!DOCTYPE html>
     <html lang=en>
     <head>
-        <meta charset="UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta charset=UTF-8>
+        <meta http-equiv=X-UA-Compatible content=IE=edge,chrome=1>
 
         <title>Avocado</title>
 
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name=viewport content=width=device-width,initial-scale=1.0>
 
-        <link rel="stylesheet" href="css/prettify.css">
-        <link rel="stylesheet" href="css/bootstrap.css">
-        <link rel="stylesheet" href="css/style.css">
+        <link rel=stylesheet href=css/prettify.css>
+        <link rel=stylesheet href=css/bootstrap.css>
+        <link rel=stylesheet href=css/style.css>
     </head>
     <body>
-
-        <div class="navbar navbar-fixed-top">
-            <div class="navbar-inner">
-                <div class="container-fluid">
-                    <span class="brand">Avocado <span style="font-size: 15px; color: #999">0.9 Beta</span></span>
-                    <ul class=nav>
-                        <li><a href="https://github.com/cbmi/avocado/">GitHub Repository</a>
-                        <li><a href="coverage/">Code Coverage</a>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <nav id=sidebar>
-
+        <nav id=sidenav>
+            <a href=./index.html class=brand>Avocado <span class=version>0.9b</span></a>
+            <ul class=unstyled>
+                <li><a href=https://github.com/cbmi/avocado/>GitHub Repository</a>
+                <li><a href=coverage/>Code Coverage</a>
+            </ul>
 
             <h3><a href=#learn>Learn</a></h3>
             <ul class=unstyled>
@@ -50,28 +41,29 @@
 
             <h3><a href=#apis>APIs</a></h3>
             <ul class=unstyled>
-                <li><a href=#modeltree-integration>ModelTree Integration</a>
                 <li><a href=#translators>Translators</a>
+                <li><a href=#coded-values>Coded Values</a>
             </ul>
 
-            <h3><a href=#the-concept>The "Concept"</h3>
+            <h3><a href=#concepts>Concepts</h3>
             <ul class=unstyled>
-                <li><a href=#concept-model>Concept Model</a>
+                <li><a href=#concept-introduction>Introduction</a>
                 <li><a href=#formatters>Formatters</a>
                 <li><a href=#exporters>Exporters</a>
             </ul>
         </nav>
 
-        <div id="content">
+        <div id=content>
 
             <header>
-                <img id=logo src=img/avocado.jpg>
+                <img id=logo src=img/avocado.png>
                 <hgroup>
                     <h1>Avocado</h1>
                     <h3>Metadata management for Django models</h3>
                 </hgroup>
             </header>
 
+            <hr>
 
             <h2 id=learn>Learn</h2>
 
@@ -141,12 +133,12 @@
                 <span class=span12>
                     <p>Django's <a href=https://docs.djangoproject.com/en/1.3/ref/models/fields/>model field reference</a>
                     describes the options available for defining model fields. The field's subclass
-                    (e.g. <code>IntegerField</code>) and the various options passed (e.g. <code>null=True</code>)
+                    (e.g. <code class=prettyprint>IntegerField</code>) and the various options passed (e.g. <code class=prettyprint>null=True</code>)
                     contain structural metadata which can be used to understand a field's constraints.</p>
 
                     <p>A simple example of how this is useful is to look at how Django's field validation
                     works. If one attempts to save an integer field with a string value, a
-                    <code>ValidationError</code> will be thrown complaining about the type. This prevents a downstream database
+                    <code class=prettyprint>ValidationError</code> will be thrown complaining about the type. This prevents a downstream database
                     type error.</p>
                 </span>
             </section>
@@ -159,9 +151,9 @@
                     a painstaking task. Fields and data available to end-users for query and display
                     should be informative. This requires high-quality, descriptive metadata.</p>
 
-                    <p>Django provides two field options <code>verbose_name</code> and <code>help_text</code>
+                    <p>Django provides two field options <code class=prettyprint>verbose_name</code> and <code class=prettyprint>help_text</code>
                     that are descriptive metadata, but are hard-coded in the field definition. This is a limitation
-                    if that metadata is managed by another party (client or domain expert) since this must be supplied
+                    if that metadata is managed by another party (client or category expert) since this must be supplied
                     at deployment time instead of runtime.</p>
                 </span>
             </section>
@@ -207,7 +199,7 @@
                 <span class=span12>
                     <p>Stable releases of Avocado are available on
                     <a href=http://pypi.python.org/pypi/avocado>PyPI</a>. Install using
-                    <code>pip</code> or <code>easy_install</code>. All dependencies are
+                    <code class=prettyprint>pip</code> or <code class=prettyprint>easy_install</code>. All dependencies are
                     installed automatically.</p>
 
                     <h4>Pip</h4>
@@ -228,8 +220,8 @@ easy_install avocado
                 <span class=span12>
                     <p>Since this <em>is</em> about metadata managment, it is highly recommended to have the
                     <a href=https://docs.djangoproject.com/en/1.3/ref/contrib/admin/>Django Admin</a> app
-                    installed. Add <code>avocado</code> to your project settings
-                    <code>INSTALLED_APPS</code>:</p>
+                    installed. Add <code class=prettyprint>avocado</code> to your project settings
+                    <code class=prettyprint>INSTALLED_APPS</code>:</p>
 <pre class=prettyprint>
 INSTALLED_APPS = (
     'django.contrib.admin',
@@ -254,8 +246,8 @@ INSTALLED_APPS = (
 
 <section class=row>
     <span class=span12>
-        <p>We are going to start with two simple models, <code>Author</code> and <code>Book</code>
-        in our <code>library</code> app.</p>
+        <p>We are going to start with two simple models, <code class=prettyprint>Author</code> and <code class=prettyprint>Book</code>
+        in our <code class=prettyprint>library</code> app.</p>
 
 <pre class=prettyprint>
 # library/models.py
@@ -275,31 +267,31 @@ class Book(models.Model):
             <section class=row>
                 <span class=span12>
 
-                    <p>Avocado comes with a <code>sync</code> command which introspects
-                    Django models and creates <code>Field</code> instances representing the model fields.
-                    At least one app label (<code>library</code>) or model label (<code>library.Book</code>)
+                    <p>Avocado comes with a <code class=prettyprint>sync</code> command which introspects
+                    Django models and creates <code class=prettyprint>Field</code> instances representing the model fields.
+                    At least one app label (<code class=prettyprint>library</code>) or model label (<code class=prettyprint>library.Book</code>)
                     must be specified.</p>
 
-                    <p>By default, <code>Field</code> instances are not created for primary and foreign
+                    <p>By default, <code class=prettyprint>Field</code> instances are not created for primary and foreign
                     key fields. In practice, <em>key</em> fields are used infrequently as is, thus they are
                     not created by default. To override this behavior and include key fields, add the
-                    flag <code>--include-keys</code>.</p>
+                    flag <code class=prettyprint>--include-keys</code>.</p>
 
                     <p>Likewise, model fields may be marked as not being <a href=https://docs.djangoproject.com/en/1.3/ref/models/fields/#editable>editable</a> in the model
                         field definitions. This flag is turned on typically for operational or
                         bookkeeping-type fields. By default these fields are not synced either, but
-                        can overridden by passing the <code>--include-non-editable</code>.</p>
+                        can overridden by passing the <code class=prettyprint>--include-non-editable</code>.</p>
 
                     <div class="alert alert-block alert-info">
                         <h4 class=alert-heading>The Admin Works Too</h4
-                        Fields not created using Avocado's <code>sync</code> command can be
+                        Fields not created using Avocado's <code class=prettyprint>sync</code> command can be
                         created in the admin interface. This command exists to provide a starting point,
                         getting the bulk of the fields created.
                     </div>
 
                     <div class="alert alert-block alert-info">
                         <h4 class=alert-heading>Need to Update Existing Fields?</h4>
-                        For updating existing <code>Field</code> instances, pass the <code>--update</code>
+                        For updating existing <code class=prettyprint>Field</code> instances, pass the <code class=prettyprint>--update</code>
                         flag when running the command. Note that this will overwrite existing metadata for
                         the field so use with caution.
                     </div>
@@ -318,14 +310,14 @@ class Book(models.Model):
 
             <section class=row>
                 <span class=span4>
-                    <p>An Avocado <code>Field</code> represents a single Django model <code>Field</code>
+                    <p>An Avocado <code class=prettyprint>Field</code> represents a single Django model <code class=prettyprint>Field</code>
                     instance. It is mapped by defining the following three attributes. These three uniquely
                     attributes identify a model field instance.</p>
 
                     <ul>
-                        <li><code>f.app_name</code> - The name of the app this field comes from
-                        <li><code>f.model_name</code> - The name of the model this field is associated with
-                        <li><code>f.field_name</code> - The attribute name of the field
+                        <li><code class=prettyprint>f.app_name</code> - The name of the app this field comes from
+                        <li><code class=prettyprint>f.model_name</code> - The name of the model this field is associated with
+                        <li><code class=prettyprint>f.field_name</code> - The attribute name of the field
                     </ul>
 
                 </span>
@@ -353,11 +345,11 @@ class Book(models.Model):
                     to humans.</p>
 
                     <ul>
-                        <li><code>f.name</code> - A verbose human readable name of the field
-                        <li><code>f.name_plural</code> - The plural form of the verbose name. <em>If not
-                        defined, an <code>s</code> will be appended to <code>f.name</code> when
+                        <li><code class=prettyprint>f.name</code> - A verbose human readable name of the field
+                        <li><code class=prettyprint>f.name_plural</code> - The plural form of the verbose name. <em>If not
+                        defined, an <code class=prettyprint>s</code> will be appended to <code class=prettyprint>f.name</code> when
                         the plural form is accessed.</em>
-                        <li><code>f.description</code> - A long description for the field
+                        <li><code class=prettyprint>f.description</code> - A long description for the field
                     </ul>
                 </span>
 
@@ -378,9 +370,9 @@ class Book(models.Model):
             <section class=row>
                 <span class=span4>
                     <ul>
-                        <li><code>f.field</code> - the model <code>Field</code>  instance this field
+                        <li><code class=prettyprint>f.field</code> - the model <code class=prettyprint>Field</code>  instance this field
                         represents
-                        <li><code>field.model</code> - the model class this field is associated with
+                        <li><code class=prettyprint>field.model</code> - the model class this field is associated with
                     </ul>
                 </span>
 
@@ -399,21 +391,6 @@ library.models.Book
 
             <h2 id=apis>APIs</h2>
 
-            <h3 id=modeltree-integration>ModelTree Integration</h3>
-
-            <section class=row>
-                <span class=span8>
-                    <p>Avocado has integrated support with the
-                    <a href=https://github.com/cbmi/modeltree/>ModelTree</a> library. This allows
-                    for building queries at runtime using the available metadata.</p>
-
-                    <div class="alert alert-block alert-info">
-                        <p>Don't know what ModelTree is? Read the docs
-                        <a href=http://cbmi.github.com/modeltree/docs/>here</a>.</p>
-                    </div>
-                </span>
-            </section>
-
             <h3 id=translators>Translators</h3>
 
             <section class=row>
@@ -425,10 +402,10 @@ library.models.Book
                     work with the underlying database.</p>
 
                     <p>A query condition boils down to a <strong>field</strong>, <strong>operator</strong>
-                    and <strong>value</strong>. Avocado implements a set of formal <code>Operator</code>
+                    and <strong>value</strong>. Avocado implements a set of formal <code class=prettyprint>Operator</code>
                     classes that roughly map (but not limited) to Django's
                     <a href=https://docs.djangoproject.com/en/1.3/ref/models/querysets/#field-lookups>field lookups</a>.
-                    Each <code>Operator</code> class has an <code>is_valid</code> method that takes a value and
+                    Each <code class=prettyprint>Operator</code> class has an <code class=prettyprint>is_valid</code> method that takes a value and
                     checks to see if it makes sense for the chosen operator.</p>
 
                     <div class="alert alert-block alert-warning">
@@ -456,13 +433,13 @@ False
 
             <section class=row>
                 <span class=span4>
-                    <p>The base <code>Translator</code> class uses
+                    <p>The base <code class=prettyprint>Translator</code> class uses
                     <a href=https://docs.djangoproject.com/en/1.3/ref/contrib/forms/api/>Django's Form API</a>
                     to validate and clean the value relative to the underlying model field
-                    (e.g. <code>f.field</code>).</p>
+                    (e.g. <code class=prettyprint>f.field</code>).</p>
 
-                    <p>The primary method to call is <code>translate</code> which calls <code>clean_value</code>
-                    and <code>clean_operator</code>.</p>
+                    <p>The primary method to call is <code class=prettyprint>translate</code> which calls <code class=prettyprint>clean_value</code>
+                    and <code class=prettyprint>clean_operator</code>.</p>
                 </span>
 
                 <span class=span8>
@@ -485,15 +462,62 @@ False
                 </span>
             </section>
 
-            <hr>
-
-            <h2 id=the-concept>The "Concept"</h2>
-
-            <h3 id=concept-model>Concept Model</h3>
+            <h3 id=coded-values>Coded Values</h3>
 
             <section class=row>
                 <span class=span12>
-                    <em>To be written..</em>
+                    <p>Some consumers of data require (or prefer) string values
+                    to be represented, or <em>coded</em>, as a numerical value. A runtime
+                    enumerated mapping of values (e.g. 'foo' &rarr; 1, 'bar' &rarr; 2)
+                    would typically suffice for one-off data exports, but for managing
+                    data exports over time as new data is loaded, keeping the mappings
+                    fixed improves cross-export compatibility.</p>
+
+                    <p>Avocado provides a simple extension is this behavior is
+                    desired.</p>
+                    
+                    <ol>
+                        <li>Add <code class=prettyprint>'avocado.coded'</code>
+                        to <code class=prettyprint>INSTALLED_APPS</code>
+                        <li>Build the index of coded values 
+                        <code class=prettyprint>./bin/manage.py avocodo coded</code>
+                    </ol>
+                </span>
+            </section>
+
+            <hr>
+
+            <h2 id=concepts>Concepts</h2>
+
+            <h3 id=concept-introduction>Introduction</h3>
+
+            <section class=row>
+                <span class=span12>
+                    <p>As much as Avocado is a metadata management tool, a prime
+                    consumer of this metadata are humans. More specifically, the
+                    metadata can be used to provide more context and meaning
+                    to the data and the data model.</p>
+
+                    <p>The notion of a <em>Concept</em> came from the need to
+                    represent discrete data in a human-readable domain-specific
+                    way. Data is typically stored in a normalized, discrete and
+                    efficient way, thus rendering it a bit obscure in it's raw
+                    state. Sometimes a single <em>column</em> of data in database
+                    table is meaningless without another column, for example
+                    a column of <code class=prettyprint>weight</code> without the
+                    column of <code class=prettyprint>unit</code>.</p>
+
+                    <p>Of course, data must be stored in this discrete way to ensure
+                    the database can treat it properly and perform the correct operations
+                    on that data. Unfortunately, humans don't care about how data is
+                    stored, nor should they. <strong>They simply want the data to be
+                    accessible so they can consume it in a way that makes
+                    sense to them.</strong></p>
+
+                    <p>Concepts encapsulate one or more fields intended to be
+                    represented together in some way. This sounds very abstract and
+                    is intentionally so. This lightweight abstract encourages
+                    being creative in how fields are represented together.</p>
                 </span>
             </section>
 
@@ -501,7 +525,65 @@ False
 
             <section class=row>
                 <span class=span12>
-                    <em>To be written..</em>
+                    <p>The most common utility of the <em>Concept</em> abstraction
+                    is formatting the fields' data in a usable format for the
+                    consumer. The consumer may be a human, a Web browser, an R interpreter
+                    or anything else. Regardless of the consume, formatters provide an
+                    API for taking in raw data and outputting a representation of that
+                    data.</p>
+                </span>
+
+                <span class=span4>
+                    <p>The most common utility of the <em>Concept</em> abstraction
+                    is formatting the fields' data in a usable format for the
+                    consumer. The consumer may be a human, a Web browser, an R interpreter
+                    or anything else. Regardless of the consume, formatters provide an
+                    API for taking in raw data and outputting a representation of that
+                    data.</p>
+                </span>
+                <span class=span8>
+<pre class=prettyprint>
+from avocado.formatters import Formatter
+# Get the 'Dosage' concept which combines the 'dose'
+# and 'unit' fields
+dosage = Concept.objects.get(name='Dosage')
+# Prepare a formatter for the dosage concept
+formatter = Formatter(dosage)
+values = [60, 'mg', 'as needed']
+# Returns ['60', 'mg', 'as needed']
+formatter(values, preferred_formats=['string'])
+</pre>
+</span>
+</section>
+
+            <section class=row>
+                <span class=span12>
+                    <p>A formatter attempts to solve two problems. First, <strong>coerce
+                    the various values into the preferred format</strong> and secondly, </strong>
+                    perform an operation on each or all of the values</strong>. As shown
+                    above, the <code class=prettyprint>formatter</code> instance
+                    is callable and takes a sequence of <code class=prettyprint>values</code> and a
+                    <code class=prettyprint>preferred_formats</code> argument. Since this
+                    is the base formatter class, aside from being good at coercing datatypes,
+                    it is not terribly useful.</p>
+                </span>
+                <span class=span4>
+                    <p>Formatters can be easily created by subclassing the base <code class=prettyprint>Formatter</code>
+                    class and adding, overriding, or augmenting the methods. As stated above, a formatter
+                    can be applied each raw value or <em>all</em> values together. As an example of this,
+                    we can create a simple <code class=prettyprint>ConcatFormatter</code>.</p>
+                </span>
+                <span class=span8>
+<pre class=prettyprint>
+class ConcatFormatter(Formatter):
+    def to_string(self, values, cfields, **context):
+        joined = ' '.join(map(lambda x: super(ConcatFormatter, self).to_string(x),
+                values.values()))
+        return OrderedDict({'output': joined})
+
+    # Informs the class this method can process multiple values at a time
+    to_string.process_multiple = True
+</pre>
                 </span>
             </section>
 
@@ -509,13 +591,13 @@ False
 
             <section class=row>
                 <span class=span12>
-                    <em>To be written..</em>
+                    <p>
                 </span>
             </section>
 
         </div>
 
-        <script src="js/prettify.js"></script>
+        <script src=js/prettify.js></script>
         <script>prettyPrint();</script>
         <script>
           var _gaq = _gaq || [];
