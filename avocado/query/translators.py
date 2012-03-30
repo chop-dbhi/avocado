@@ -186,7 +186,8 @@ class Translator(object):
 
         meta = {
             'condition': condition,
-            'annotations': {},
+            'annotations': None,
+            'extra': None,
             'cleaned_data': {
                 'operator': operator,
                 'value': value
