@@ -133,13 +133,17 @@ class Translator(object):
                 condition = Q(**{key: value}) | condition
 
         else:
-
-            # the statement 'foo=None' is equivalent to 'foo__isnull=True'
-            if (operator.operator == 'isnull' or
-                (operator.operator == 'exact' and value is None)):
-
+            # The statement 'foo=None' is equivalent to 'foo__isnull=True'
+            if (operator.operator == 'isnull' or (operator.operator == 'exact' and value is None)):
                 key = field.query_string('isnull', using=using)
-                value = not operator.negated
+
+                # Now that isnull is being used instead, set the value to True
+                if value is None:
+                    value = True
+
+                # If this is -isnull, we need to switch the value
+                if operator.negated:
+                    value = not value
 
                 condition = Q(**{key: value})
 
