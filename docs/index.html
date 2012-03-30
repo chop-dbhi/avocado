@@ -10,218 +10,239 @@
 
         <link rel=stylesheet href=css/prettify.css>
         <link rel=stylesheet href=css/bootstrap.css>
+        <link rel=stylesheet href=css/bootstrap-responsive.css>
         <link rel=stylesheet href=css/style.css>
     </head>
     <body>
-        <nav id=sidenav>
-            <a href=./index.html class=brand>Avocado <span class=version>0.9b</span></a>
-            <ul class=unstyled>
-                <li><a href=https://github.com/cbmi/avocado/>GitHub Repository</a>
-                <li><a href=coverage/>Code Coverage</a>
-            </ul>
-
-            <h3><a href=#learn>Learn</a></h3>
-            <ul class=unstyled>
-                <li><a href=#background>Background</a>
-                <li><a href=#target-applications>Target Applications</a>
-                <li><a href=#types-metadata>Types of Metadata</a>
-            </ul>
-
-            <h3><a href=#get-started>Quick Start</a></h3>
-            <ul class=unstyled>
-                <li><a href=#dependencies>Dependencies</a>
-                <li><a href=#download-install>Download &amp; Install</a>
-                <li><a href=#configure>Configure</a>
-            </ul>
-
-            <h3><a href=#tutorial>Tutorial</a></h3>
-            <ul class=unstyled>
-                <li><a href=#initialize-metadata>Initialize Metadata</a>
-            </ul>
-
-            <h3><a href=#apis>APIs</a></h3>
-            <ul class=unstyled>
-                <li><a href=#translators>Translators</a>
-                <li><a href=#coded-values>Coded Values</a>
-            </ul>
-
-            <h3><a href=#concepts>Concepts</h3>
-            <ul class=unstyled>
-                <li><a href=#concept-introduction>Introduction</a>
-                <li><a href=#formatters>Formatters</a>
-                <li><a href=#exporters>Exporters</a>
-            </ul>
-        </nav>
-
-        <div id=content>
-
-            <header>
-                <img id=logo src=img/avocado.png>
-                <hgroup>
-                    <h1>Avocado</h1>
-                    <h3>Metadata management for Django models</h3>
-                </hgroup>
-            </header>
-
-            <hr>
-
-            <h2 id=learn>Learn</h2>
-
-            <h3 id=background>Background</h3>
-            <section class=row>
-                <span class=span12>
-                    <p>When you create Django models, you supply most
-                    of the necessary <strong>structural</strong> metadata for interfacing with them via supported
-                    database backends. However, in general, there is no formal mechanism to supply
-                    <strong>descriptive</strong> or <strong>administrative</strong> metadata about models. Avocado 
-                    is a Django app which provides database-driven metadata management for your models. Sounds exciting, right?</p>
-                </span>
-            </section>
-
-            <section class=row>
-                <span class=span12>
-                    <p>Avocado grew out of projects being developed in a clinical research environment where
-                    data models can often be large and complex. Additionally, there are frequently database fields that contain
-                    related data. When developing applications that make use of such data, developers need to be able to provide
-                    end-users with appropriate context and representation of the data elements to avoid confusion and 
-                    errors of omission.</p>
-                                     
-                    <h4>A Real Example</h4>
-
-                    <p>All this abstract talk can make you a little wobbly, so here's a more concrete example: In 
-                    medicine, it's typical that results from a diagnostic test like a blood test might be broken into several columns
-                    in a relational database: a numerical value, units of measure, and an assessment as to
-                    whether it is normal, high, or low. As a developer you'd like to be able to bundle these conveniently
-                    in your application. While you could just store them all as one text field in your database, that sacrifices
-                    the ability to query and makes mathematical calculations problematic. On the other hand, splitting them apart means
-                    a user who doesn't know your data model very well needs to know upfront to hunt down the various elements on their own,
-                    or they risk getting an incomplete picture. In addition, you might also want to provide a definition for the measurement as well 
-                    as conversions when exporting data for numerical analysis.</p>
-                    
-                    <p>In many cases, these kinds of complexities result in a research workflow where the technical
-                    team act as "keepers of the data", and all the researcher's questions are filtered through them to be
-                    translated into queries. This situation, while good for the continued employment of engineers, is not 
-                    ideal for open-ended discovery and hypothesis generation by researchers.</p>
-
-                    <h4>Solution</h4>
-
-                    <p>Avocado was designed to support the development of accessible, transparent, data-rich applications
-                    by providing several major capabilities:</p>
-
-                    <ul>
-                        <li>A formal metadata storage mechanism for managing loose relationships between database fields</li>
-                        <li>Robust API's for interrogating metadata</li>
-                        <li>Pre-built components for formatting, displaying, and exporting data</li>
-                    </ul>
-                </span>
-            </section>
-
-            <h3 id=target-applications>Target Applications</h3>
-
-            <section class=row>
-                <span class=span12>
-                    <p>While Avocado can be useful for any project, it's likely to be most applicable to
-                    projects with a heavy focus on data, especially ones with query, reporting, and export requirements.</p>
-                </span>
-            </section>
-
-            <h3 id=types-metadata>Types of Metadata</h3>
-
-            <h4>Structural</h4>
-
-            <section class=row>
-                <span class=span12>
-                    <p>Django's <a href=https://docs.djangoproject.com/en/1.3/ref/models/fields/>model field reference</a>
-                    describes the options available for defining model fields. The field's subclass
-                    (e.g. <code class=prettyprint>IntegerField</code>) and the various options passed (e.g. <code class=prettyprint>null=True</code>)
-                    contain structural metadata which can be used to understand a field's constraints.</p>
-
-                    <p>A simple example of how this is useful is to look at how Django's field validation
-                    works. If one attempts to save an integer field with a string value, a
-                    <code class=prettyprint>ValidationError</code> will be thrown complaining about the type. This prevents a downstream database
-                    type error.</p>
-                </span>
-            </section>
-
-            <h4>Descriptive</h4>
-
-            <section class=row>
-                <span class=span12>
-                    <p>For any medium to large size data model, describing and managing each field can be
-                    a painstaking task. Fields and data available to end-users for query and display
-                    should be informative. This requires high-quality, descriptive metadata.</p>
-
-                    <p>Django provides two field options <code class=prettyprint>verbose_name</code> and <code class=prettyprint>help_text</code>
-                    that are descriptive metadata, but are hard-coded in the field definition. This is a limitation
-                    if that metadata is managed by another party (client or category expert) since this must be supplied
-                    at deployment time instead of runtime.</p>
-                </span>
-            </section>
-
-            <h4>Administrative</h4>
-
-            <section class=row>
-                <span class=span12>
-                    <p>For applications which integrate multiple data sources, it can be useful to keep
-                    track of the <em>source</em> information, such as a <a href=http://en.wikipedia.org/wiki/Uniform_resource_identifier>URI</a>. Likewise, it may be desirable
-                    to restrict access to parts of the data model to certain users, that is, an end-user must
-                    be <em>authorized</em> to interact with certain data.</p>
-                </span>
-            </section>
-
-            <hr>
-            <h2 id=get-started>Quick Start</h2>
-
-
-
-            <h3 id=dependencies>Dependencies</h3>
-
-            <section class=row>
-                <span class=span12>
-                    <ul>
-                        <li><a href=http://www.djangoproject.com>Django 1.3+</a>
-                        <li><a href=https://github.com/cbmi/modeltree>ModelTree</a>
-                        <li><a href=http://pypi.python.org/pypi/ordereddict>ordereddict</a>
-                            (Python 2.6 only)
+        <div class=container-fluid>
+            <div class=row-fluid>
+                <nav id=sidenav class=span2>
+                    <a href=./index.html class=brand>Avocado <span class=version>0.9b</span></a>
+                    <ul class=unstyled>
+                        <li>- <a href=https://github.com/cbmi/avocado/>GitHub Repository</a>
+                        <li>- <a href=coverage/>Code Coverage</a>
                     </ul>
 
-                    <div class="alert alert-block alert-warning">
-                        <p>It is assumed <a href=http://www.python.org/download/>Python 2.6+</a> and
-                        <a href=http://pypi.python.org/pypi/setuptools>setuptools</a> are already installed.
-                        If not, follow the previous two links for download and installation instructions.</p>
-                    </div>
-                </span>
-            </section>
+                    <h3><a href=#learn>Learn</a></h3>
+                    <ul class=unstyled>
+                        <li>- <a href=#target-audience>Target Audience</a>
+                        <li>- <a href=#background>Background</a>
+                        <li>- <a href=#target-applications>Target Applications</a>
+                        <li>- <a href=#types-metadata>Types of Metadata</a>
+                    </ul>
 
-            <h3 id=download-install>Download &amp; Install</h3>
+                    <h3><a href=#get-started>Quick Start</a></h3>
+                    <ul class=unstyled>
+                        <li>- <a href=#dependencies>Dependencies</a>
+                        <li>- <a href=#download-install>Download &amp; Install</a>
+                        <li>- <a href=#configure>Configure</a>
+                    </ul>
 
-            <section class=row>
-                <span class=span12>
-                    <p>Stable releases of Avocado are available on
-                    <a href=http://pypi.python.org/pypi/avocado>PyPI</a>. Install using
-                    <code class=prettyprint>pip</code> or <code class=prettyprint>easy_install</code>. All dependencies are
-                    installed automatically.</p>
+                    <h3><a href=#tutorial>Tutorial</a></h3>
+                    <ul class=unstyled>
+                        <li>- <a href=#initialize-metadata>Initialize Metadata</a>
+                    </ul>
 
-                    <h4>Pip</h4>
+                    <h3><a href=#apis>APIs</a></h3>
+                    <ul class=unstyled>
+                        <li>- <a href=#translators>Translators</a>
+                        <li>- <a href=#coded-values>Coded Values</a>
+                    </ul>
+
+                    <h3><a href=#concepts>Concepts</h3>
+                    <ul class=unstyled>
+                        <li>- <a href=#concept-introduction>Introduction</a>
+                        <li>- <a href=#formatters>Formatters</a>
+                        <li>- <a href=#exporters>Exporters</a>
+                    </ul>
+
+                    <h3><a href=#commands>Management Commands</a></h3>
+                    <ul class=unstyled>
+                        <li>- <a href=#commands-sync>sync</a>
+                        <li>- <a href=#commands-orphaned>orphaned</a>
+                    </ul>
+                </nav>
+            </div>
+
+            <div id=content class=span10>
+
+                <header>
+                    <img id=logo src=img/avocado.png>
+                    <hgroup>
+                        <h1>Avocado</h1>
+                        <h3>Metadata APIs for Django</h3>
+                    </hgroup>
+                </header>
+
+                <hr>
+
+                <h2 id=learn>Learn</h2>
+
+                <h3 id=target-audience>Target Audience</h3>
+                <section class=row-fluid>
+                    <span class=span10>
+                        <p><strong>Developers who are interested in letting their data do the work for them.</strong>
+                        Some experience with Django is necessary, run through the
+                        <a href=https://docs.djangoproject.com/en/1.4/topics/db/models/>model docs</a> if
+                        you are unfamiliar.</p>
+                    </span>
+                </section>
+
+                <h3 id=background>Background</h3>
+                <section class=row-fluid>
+                    <span class=span10>
+                        <p>Django models provides the <strong>structural</strong> metadata necessary
+                        for interfacing with the supported database backends. However, in general, there
+                        is no formal mechanism to supply <strong>descriptive</strong> or
+                        <strong>administrative</strong> metadata about models. Avocado  is a Django app
+                        which provides database-driven metadata management for your models. Sounds exciting, right?</p>
+                    </span>
+                </section>
+
+                <section class=row-fluid>
+                    <span class=span10>
+                        <p>Avocado grew out of projects being developed in a clinical research environment where
+                        data models can often be large and complex. Additionally, there are frequently database fields that contain
+                        related data. When developing applications that make use of such data, developers need to be able to provide
+                        end-users with appropriate context and representation of the data elements to avoid confusion and
+                        errors of omission.</p>
+
+                        <h4>A Real Example</h4>
+
+                        <p>All this abstract talk can be a bit confusing, so here is an example. In  medicine, it's typical that
+                        results from a diagnostic test like a blood test might be broken into several columns in a relational database:
+                        a numerical value, units of measure, and an assessment as to whether it is normal, high, or low. As a developer
+                        you'd like to be able to bundle these conveniently in your application.</p>
+
+                        <p>While you could just store them all as one text field in your database, that sacrifices
+                        the ability to query and perform mathematical calculations on the numerical fields. On the other hand, splitting
+                        them apart means a user who does not know your data model very well needs to know
+                        upfront to hunt down the various elements on their own, or they risk getting an incomplete picture of their data.</p>
+
+                        <p>In many cases, these kinds of complexities result in a research workflow where the technical
+                        team act as "keepers of the data", and all the researcher's questions are filtered through them to be
+                        translated into queries. This situation, while good for the continued employment of engineers, is not
+                        ideal for open-ended discovery and hypothesis generation by researchers.</p>
+
+                        <h4>Solution</h4>
+
+                        <p>Avocado was designed to support the development of accessible, transparent, data-rich applications
+                        by providing several major capabilities:</p>
+
+                        <ul>
+                            <li>A formal metadata storage mechanism for managing loose relationships between database fields</li>
+                            <li>Robust API's for interrogating metadata</li>
+                            <li>Pre-built components for formatting, displaying, and exporting data</li>
+                        </ul>
+                    </span>
+                </section>
+
+                <h3 id=target-applications>Target Applications</h3>
+
+                <section class=row-fluid>
+                    <span class=span10>
+                        <p>While Avocado can be useful for any project, it's likely to be most applicable to
+                        projects with a heavy focus on data, especially ones with query, reporting, and export requirements.</p>
+                    </span>
+                </section>
+
+                <h3 id=types-metadata>Types of Metadata</h3>
+
+                <h4>Structural</h4>
+
+                <section class=row-fluid>
+                    <span class=span10>
+                        <p>Django's <a href=https://docs.djangoproject.com/en/1.3/ref/models/fields/>model field reference</a>
+                        describes the options available for defining model fields. The field's subclass
+                        (e.g. <code class=prettyprint>IntegerField</code>) and the various options passed (e.g. <code class=prettyprint>null=True</code>)
+                        contain structural metadata which can be used to understand a field's constraints.</p>
+
+                        <p>A simple example of how this is useful is to look at how Django's field validation
+                        works. If one attempts to save an integer field with a string value, a
+                        <code class=prettyprint>ValidationError</code> will be thrown complaining about the type. This prevents a downstream database
+                        type error.</p>
+                    </span>
+                </section>
+
+                <h4>Descriptive</h4>
+
+                <section class=row-fluid>
+                    <span class=span10>
+                        <p>For any medium to large size data model, describing and managing each field can be
+                        a painstaking task. Fields and data available to end-users for query and display
+                        should be informative. This requires high-quality, descriptive metadata.</p>
+
+                        <p>Django provides two field options <code class=prettyprint>verbose_name</code> and <code class=prettyprint>help_text</code>
+                        that are descriptive metadata, but are hard-coded in the field definition. This is a limitation
+                        if that metadata is managed by another party (client or domain expert) since this must be supplied
+                        at deployment time instead of runtime.</p>
+                    </span>
+                </section>
+
+                <h4>Administrative</h4>
+
+                <section class=row-fluid>
+                    <span class=span10>
+                        <p>For applications which integrate multiple data sources, it can be useful to keep
+                        track of the <em>source</em> information, such as a <a href=http://en.wikipedia.org/wiki/Uniform_resource_identifier>URI</a>. Likewise, it may be desirable
+                        to restrict access to parts of the data model to certain users, that is, an end-user must
+                        be <em>authorized</em> to interact with certain data.</p>
+                    </span>
+                </section>
+
+                <hr>
+                <h2 id=get-started>Quick Start</h2>
+
+
+
+                <h3 id=dependencies>Dependencies</h3>
+
+                <section class=row-fluid>
+                    <span class=span10>
+                        <ul>
+                            <li><a href=http://www.djangoproject.com>Django 1.3+</a>
+                            <li><a href=https://github.com/cbmi/modeltree>ModelTree</a>
+                            <li><a href=http://pypi.python.org/pypi/ordereddict>ordereddict</a>
+                                (Python 2.6 only)
+                        </ul>
+
+                        <div class="alert alert-block alert-warning">
+                            <p>It is assumed <a href=http://www.python.org/download/>Python 2.6+</a> and
+                            <a href=http://pypi.python.org/pypi/setuptools>setuptools</a> are already installed.
+                            If not, follow the previous two links for download and installation instructions.</p>
+                        </div>
+                    </span>
+                </section>
+
+                <h3 id=download-install>Download &amp; Install</h3>
+
+                <section class=row-fluid>
+                    <span class=span10>
+                        <p>Stable releases of Avocado are available on
+                        <a href=http://pypi.python.org/pypi/avocado>PyPI</a>. Install using
+                        <code class=prettyprint>pip</code> or <code class=prettyprint>easy_install</code>. All dependencies are
+                        installed automatically.</p>
+
+                        <h4>Pip</h4>
 <pre class=prettyprint>
 pip install avocado
 </pre>
-                    <h4>easy_install</h4>
+                        <h4>easy_install</h4>
 <pre class=prettyprint>
 easy_install avocado
 </pre>
 
-                </span>
-            </section>
+                    </span>
+                </section>
 
-            <h3 id=configure>Configure</h3>
+                <h3 id=configure>Configure</h3>
 
-            <section class=row>
-                <span class=span12>
-                    <p>Since this <em>is</em> about metadata managment, it is highly recommended to have the
-                    <a href=https://docs.djangoproject.com/en/1.3/ref/contrib/admin/>Django Admin</a> app
-                    installed. Add <code class=prettyprint>avocado</code> to your project settings
-                    <code class=prettyprint>INSTALLED_APPS</code>:</p>
+                <section class=row-fluid>
+                    <span class=span10>
+                        <p>Since this <em>is</em> about metadata managment, it is highly recommended to have the
+                        <a href=https://docs.djangoproject.com/en/1.3/ref/contrib/admin/>Django Admin</a> app
+                        installed. Add <code class=prettyprint>avocado</code> to your project settings
+                        <code class=prettyprint>INSTALLED_APPS</code>:</p>
 <pre class=prettyprint>
 INSTALLED_APPS = (
     'django.contrib.admin',
@@ -235,19 +256,19 @@ INSTALLED_APPS = (
 )
 </pre>
 
-                </span>
-            </section>
+                    </span>
+                </section>
 
-            <hr>
-
-
-<h2 id=tutorial>Tutorial</h2>
+                <hr>
 
 
-<section class=row>
-    <span class=span12>
-        <p>We are going to start with two simple models, <code class=prettyprint>Author</code> and <code class=prettyprint>Book</code>
-        in our <code class=prettyprint>library</code> app.</p>
+    <h2 id=tutorial>Tutorial</h2>
+
+
+    <section class=row-fluid>
+        <span class=span10>
+            <p>We are going to start with two simple models, <code class=prettyprint>Author</code> and <code class=prettyprint>Book</code>
+            in our <code class=prettyprint>library</code> app.</p>
 
 <pre class=prettyprint>
 # library/models.py
@@ -257,72 +278,73 @@ class Author(models.Model):
 class Book(models.Model):
     title = models.CharField(max_length=100)
     author = models.ForeignKey(Author)
-    pub_date = models.DateField(verbose_name='publication date', null=True)
+    pub_date = models.DateField(verbose_name='publication date',
+        null=True)
 </pre>
-                </span>
-            </section>
+                    </span>
+                </section>
 
-            <h3 id=initialize-metadata>Initialize Metadata</h3>
+                <h3 id=initialize-metadata>Initialize Metadata</h3>
 
-            <section class=row>
-                <span class=span12>
+                <section class=row-fluid>
+                    <span class=span10>
 
-                    <p>Avocado comes with a <code class=prettyprint>sync</code> command which introspects
-                    Django models and creates <code class=prettyprint>Field</code> instances representing the model fields.
-                    At least one app label (<code class=prettyprint>library</code>) or model label (<code class=prettyprint>library.Book</code>)
-                    must be specified.</p>
+                        <p>Avocado comes with a <code class=prettyprint>sync</code> command which introspects
+                        Django models and creates <code class=prettyprint>Field</code> instances representing the model fields.
+                        At least one app label (<code class=prettyprint>library</code>) or model label (<code class=prettyprint>library.Book</code>)
+                        must be specified.</p>
 
-                    <p>By default, <code class=prettyprint>Field</code> instances are not created for primary and foreign
-                    key fields. In practice, <em>key</em> fields are used infrequently as is, thus they are
-                    not created by default. To override this behavior and include key fields, add the
-                    flag <code class=prettyprint>--include-keys</code>.</p>
+                        <p>By default, <code class=prettyprint>Field</code> instances are not created for primary and foreign
+                        key fields. In practice, <em>key</em> fields are used infrequently as is, thus they are
+                        not created by default. To override this behavior and include key fields, add the
+                        flag <code class=prettyprint>--include-keys</code>.</p>
 
-                    <p>Likewise, model fields may be marked as not being <a href=https://docs.djangoproject.com/en/1.3/ref/models/fields/#editable>editable</a> in the model
-                        field definitions. This flag is turned on typically for operational or
-                        bookkeeping-type fields. By default these fields are not synced either, but
-                        can overridden by passing the <code class=prettyprint>--include-non-editable</code>.</p>
+                        <p>Likewise, model fields may be marked as not being <a href=https://docs.djangoproject.com/en/1.3/ref/models/fields/#editable>editable</a> in the model
+                            field definitions. This flag is turned on typically for operational or
+                            bookkeeping-type fields. By default these fields are not synced either, but
+                            can overridden by passing the <code class=prettyprint>--include-non-editable</code>.</p>
 
-                    <div class="alert alert-block alert-info">
-                        <h4 class=alert-heading>The Admin Works Too</h4
-                        Fields not created using Avocado's <code class=prettyprint>sync</code> command can be
-                        created in the admin interface. This command exists to provide a starting point,
-                        getting the bulk of the fields created.
-                    </div>
+                        <div class="alert alert-block alert-info">
+                            <h4 class=alert-heading>The Admin Works Too</h4
+                            Fields not created using Avocado's <code class=prettyprint>sync</code> command can be
+                            created in the admin interface. This command exists to provide a starting point,
+                            getting the bulk of the fields created.
+                        </div>
 
-                    <div class="alert alert-block alert-info">
-                        <h4 class=alert-heading>Need to Update Existing Fields?</h4>
-                        For updating existing <code class=prettyprint>Field</code> instances, pass the <code class=prettyprint>--update</code>
-                        flag when running the command. Note that this will overwrite existing metadata for
-                        the field so use with caution.
-                    </div>
+                        <div class="alert alert-block alert-info">
+                            <h4 class=alert-heading>Need to Update Existing Fields?</h4>
+                            For updating existing <code class=prettyprint>Field</code> instances, pass the <code class=prettyprint>--update</code>
+                            flag when running the command. Note that this will overwrite existing metadata for
+                            the field so use with caution.
+                        </div>
 
-                    <p>For our purposes here, we can simply do the bare minimum:</p>
+                        <p>For our purposes here, we can simply do the bare minimum:</p>
 
 <pre class="prettyprint lang-sh">
 ./manage.py avocado sync library
 1 field added for Author
 2 fields added for Book
 </pre>
-                </span>
-            </section>
+                    </span>
+                </section>
 
-            <h3 id=try-the-api>Field Data Model</h3>
+                <h3 id=try-the-api>Field Data Model</h3>
 
-            <section class=row>
-                <span class=span4>
-                    <p>An Avocado <code class=prettyprint>Field</code> represents a single Django model <code class=prettyprint>Field</code>
-                    instance. It is mapped by defining the following three attributes. These three uniquely
-                    attributes identify a model field instance.</p>
+                <section class=row-fluid>
+                    <span class=span4>
+                        <p>An Avocado <code class=prettyprint>Field</code> represents a single Django model <code class=prettyprint>Field</code>
+                        instance. It is mapped by defining the following three attributes. These three uniquely
+                        attributes identify a model field instance.</p>
 
-                    <ul>
-                        <li><code class=prettyprint>f.app_name</code> - The name of the app this field comes from
-                        <li><code class=prettyprint>f.model_name</code> - The name of the model this field is associated with
-                        <li><code class=prettyprint>f.field_name</code> - The attribute name of the field
-                    </ul>
+                        <ul>
+                            <li><code class=prettyprint>f.app_name</code> - The name of the app this field comes from
+                            <li><code class=prettyprint>f.model_name</code> - The name of the model this field is associated with
+                            <li><code class=prettyprint>f.field_name</code> - The attribute name of the field
+                        </ul>
 
-                </span>
+                    </span>
 
-                <span class=span8>
+                    <span class=span6>
 <pre class=prettyprint>
 &gt;&gt;&gt; from avocado.models import Field
 &gt;&gt;&gt; f = Field.objects.get_by_natural_key('library', 'book', 'title')
@@ -336,24 +358,24 @@ class Book(models.Model):
 'title'
 </pre>
 
-                </span>
-            </section>
+                    </span>
+                </section>
 
-            <section class=row>
-                <span class=span4>
-                    <p>Additional metadata can be defined for this object to make it more useful
-                    to humans.</p>
+                <section class=row-fluid>
+                    <span class=span4>
+                        <p>Additional metadata can be defined for this object to make it more useful
+                        to humans.</p>
 
-                    <ul>
-                        <li><code class=prettyprint>f.name</code> - A verbose human readable name of the field
-                        <li><code class=prettyprint>f.name_plural</code> - The plural form of the verbose name. <em>If not
-                        defined, an <code class=prettyprint>s</code> will be appended to <code class=prettyprint>f.name</code> when
-                        the plural form is accessed.</em>
-                        <li><code class=prettyprint>f.description</code> - A long description for the field
-                    </ul>
-                </span>
+                        <ul>
+                            <li><code class=prettyprint>f.name</code> - A verbose human readable name of the field
+                            <li><code class=prettyprint>f.name_plural</code> - The plural form of the verbose name. <em>If not
+                            defined, an <code class=prettyprint>s</code> will be appended to <code class=prettyprint>f.name</code> when
+                            the plural form is accessed.</em>
+                            <li><code class=prettyprint>f.description</code> - A long description for the field
+                        </ul>
+                    </span>
 
-                <span class=span8>
+                    <span class=span6>
 <pre class=prettyprint>
 &gt;&gt;&gt; f.name = 'Title'
 # f.name_plural can be set, but does not need to be since
@@ -362,21 +384,21 @@ class Book(models.Model):
 'Titles'
 &gt;&gt;&gt; f.description = 'The title of a book'
 </pre>
-                </span>
-            </section>
+                    </span>
+                </section>
 
-            <h3 id=try-the-api>Field Instance API</h3>
+                <h3 id=try-the-api>Field Instance API</h3>
 
-            <section class=row>
-                <span class=span4>
-                    <ul>
-                        <li><code class=prettyprint>f.field</code> - the model <code class=prettyprint>Field</code>  instance this field
-                        represents
-                        <li><code class=prettyprint>field.model</code> - the model class this field is associated with
-                    </ul>
-                </span>
+                <section class=row-fluid>
+                    <span class=span4>
+                        <ul>
+                            <li><code class=prettyprint>f.field</code> - the model <code class=prettyprint>Field</code>  instance this field
+                            represents
+                            <li><code class=prettyprint>field.model</code> - the model class this field is associated with
+                        </ul>
+                    </span>
 
-                <span class=span8>
+                    <span class=span6>
 <pre class=prettyprint>
 &gt;&gt;&gt; f.field
 &lt;django.db.models.fields.CharField at 0x101b5fe10&gt;
@@ -384,37 +406,37 @@ class Book(models.Model):
 library.models.Book
 </pre>
 
-                </span>
-            </section>
+                    </span>
+                </section>
 
-            <hr>
+                <hr>
 
-            <h2 id=apis>APIs</h2>
+                <h2 id=apis>APIs</h2>
 
-            <h3 id=translators>Translators</h3>
+                <h3 id=translators>Translators</h3>
 
-            <section class=row>
-                <span class=span4>
-                    <p>Translators are used to modify query conditions prior to being executed.
-                    Depending on the quality or variability of your data, the query interface for
-                    a field may not represent the data 1:1 with the underlying data. Thus the
-                    incoming query condition may need to be <em>translated</em> in some way to
-                    work with the underlying database.</p>
+                <section class=row-fluid>
+                    <span class=span4>
+                        <p>Translators are used to modify query conditions prior to being executed.
+                        Depending on the quality or variability of your data, the query interface for
+                        a field may not represent the data 1:1 with the underlying data. Thus the
+                        incoming query condition may need to be <em>translated</em> in some way to
+                        work with the underlying database.</p>
 
-                    <p>A query condition boils down to a <strong>field</strong>, <strong>operator</strong>
-                    and <strong>value</strong>. Avocado implements a set of formal <code class=prettyprint>Operator</code>
-                    classes that roughly map (but not limited) to Django's
-                    <a href=https://docs.djangoproject.com/en/1.3/ref/models/querysets/#field-lookups>field lookups</a>.
-                    Each <code class=prettyprint>Operator</code> class has an <code class=prettyprint>is_valid</code> method that takes a value and
-                    checks to see if it makes sense for the chosen operator.</p>
+                        <p>A query condition boils down to a <strong>field</strong>, <strong>operator</strong>
+                        and <strong>value</strong>. Avocado implements a set of formal <code class=prettyprint>Operator</code>
+                        classes that roughly map (but not limited) to Django's
+                        <a href=https://docs.djangoproject.com/en/1.3/ref/models/querysets/#field-lookups>field lookups</a>.
+                        Each <code class=prettyprint>Operator</code> class has an <code class=prettyprint>is_valid</code> method that takes a value and
+                        checks to see if it makes sense for the chosen operator.</p>
 
-                    <div class="alert alert-block alert-warning">
-                        <p>These operator classes perform only light validation of the value
-                        to prevent being too restrictive.</p>
-                    </div>
-                </span>
+                        <div class="alert alert-block alert-warning">
+                            <p>These operator classes perform only light validation of the value
+                            to prevent being too restrictive.</p>
+                        </div>
+                    </span>
 
-                <span class=span8>
+                    <span class=span6>
 <pre class=prettyprint>
 &gt;&gt;&gt; from avocado.query.operators import registry as operators
 &gt;&gt;&gt; iexact = operators.get('iexact')
@@ -428,21 +450,21 @@ True
 &gt;&gt;&gt; inlist.is_valid('hello world')
 False
 </pre>
-                </span>
-            </section>
+                    </span>
+                </section>
 
-            <section class=row>
-                <span class=span4>
-                    <p>The base <code class=prettyprint>Translator</code> class uses
-                    <a href=https://docs.djangoproject.com/en/1.3/ref/contrib/forms/api/>Django's Form API</a>
-                    to validate and clean the value relative to the underlying model field
-                    (e.g. <code class=prettyprint>f.field</code>).</p>
+                <section class=row-fluid>
+                    <span class=span4>
+                        <p>The base <code class=prettyprint>Translator</code> class uses
+                        <a href=https://docs.djangoproject.com/en/1.3/ref/contrib/forms/api/>Django's Form API</a>
+                        to validate and clean the value relative to the underlying model field
+                        (e.g. <code class=prettyprint>f.field</code>).</p>
 
-                    <p>The primary method to call is <code class=prettyprint>translate</code> which calls <code class=prettyprint>clean_value</code>
-                    and <code class=prettyprint>clean_operator</code>.</p>
-                </span>
+                        <p>The primary method to call is <code class=prettyprint>translate</code> which calls <code class=prettyprint>clean_value</code>
+                        and <code class=prettyprint>clean_operator</code>.</p>
+                    </span>
 
-                <span class=span8>
+                    <span class=span6>
 <pre class=prettyprint>
 &gt;&gt;&gt; t = Translator()
 &gt;&gt;&gt; t.translate(f, 'icontains', 'Python')
@@ -459,89 +481,91 @@ False
     },
 }
 </pre>
-                </span>
-            </section>
+                    </span>
+                </section>
 
-            <h3 id=coded-values>Coded Values</h3>
+                <h3 id=coded-values>Coded Values</h3>
 
-            <section class=row>
-                <span class=span12>
-                    <p>Some consumers of data require (or prefer) string values
-                    to be represented, or <em>coded</em>, as a numerical value. A runtime
-                    enumerated mapping of values (e.g. 'foo' &rarr; 1, 'bar' &rarr; 2)
-                    would typically suffice for one-off data exports, but for managing
-                    data exports over time as new data is loaded, keeping the mappings
-                    fixed improves cross-export compatibility.</p>
+                <section class=row-fluid>
+                    <span class=span10>
+                        <p>Some consumers of data require (or prefer) string values
+                        to be represented, or <em>coded</em>, as a numerical value. A runtime
+                        enumerated mapping of values (e.g. 'foo' &rarr; 1, 'bar' &rarr; 2)
+                        would typically suffice for one-off data exports, but for managing
+                        data exports over time as new data is loaded, keeping the mappings
+                        fixed improves cross-export compatibility.</p>
 
-                    <p>Avocado provides a simple extension is this behavior is
-                    desired.</p>
-                    
-                    <ol>
-                        <li>Add <code class=prettyprint>'avocado.coded'</code>
-                        to <code class=prettyprint>INSTALLED_APPS</code>
-                        <li>Build the index of coded values 
-                        <code class=prettyprint>./bin/manage.py avocodo coded</code>
-                    </ol>
-                </span>
-            </section>
+                        <p>Avocado provides a simple extension is this behavior is
+                        desired.</p>
 
-            <hr>
+                        <ol>
+                            <li>Add <code class=prettyprint>'avocado.coded'</code>
+                            to <code class=prettyprint>INSTALLED_APPS</code>
+                            <li>Build the index of coded values
+                            <code class=prettyprint>./bin/manage.py avocodo coded</code>
+                        </ol>
+                    </span>
+                </section>
 
-            <h2 id=concepts>Concepts</h2>
+                <hr>
 
-            <h3 id=concept-introduction>Introduction</h3>
+                <h2 id=concepts>Concepts</h2>
 
-            <section class=row>
-                <span class=span12>
-                    <p>As much as Avocado is a metadata management tool, a prime
-                    consumer of this metadata are humans. More specifically, the
-                    metadata can be used to provide more context and meaning
-                    to the data and the data model.</p>
+                <h3 id=concept-introduction>Introduction</h3>
 
-                    <p>The notion of a <em>Concept</em> came from the need to
-                    represent discrete data in a human-readable domain-specific
-                    way. Data is typically stored in a normalized, discrete and
-                    efficient way, thus rendering it a bit obscure in it's raw
-                    state. Sometimes a single <em>column</em> of data in database
-                    table is meaningless without another column, for example
-                    a column of <code class=prettyprint>weight</code> without the
-                    column of <code class=prettyprint>unit</code>.</p>
+                <section class=row-fluid>
+                    <span class=span10>
+                        <p>As much as Avocado is a metadata management tool, a prime
+                        consumer of this metadata are humans. More specifically, the
+                        metadata can be used to provide more context and meaning
+                        to the data and the data model.</p>
 
-                    <p>Of course, data must be stored in this discrete way to ensure
-                    the database can treat it properly and perform the correct operations
-                    on that data. Unfortunately, humans don't care about how data is
-                    stored, nor should they. <strong>They simply want the data to be
-                    accessible so they can consume it in a way that makes
-                    sense to them.</strong></p>
+                        <p>The notion of a <em>Concept</em> came from the need to
+                        represent discrete data in a human-readable domain-specific
+                        way. Data is typically stored in a normalized, discrete and
+                        efficient way, thus rendering it a bit obscure in it's raw
+                        state. Sometimes a single <em>column</em> of data in database
+                        table is meaningless without another column, for example
+                        a column of <code class=prettyprint>weight</code> without the
+                        column of <code class=prettyprint>unit</code>.</p>
 
-                    <p>Concepts encapsulate one or more fields intended to be
-                    represented together in some way. This sounds very abstract and
-                    is intentionally so. This lightweight abstract encourages
-                    being creative in how fields are represented together.</p>
-                </span>
-            </section>
+                        <p>Of course, data must be stored in this discrete way to ensure
+                        the database can treat it properly and perform the correct operations
+                        on that data. Unfortunately, humans don't care about how data is
+                        stored, nor should they. <strong>They simply want the data to be
+                        accessible so they can consume it in a way that makes
+                        sense to them.</strong></p>
 
-            <h3 id=formatters>Formatters</h3>
+                        <p>Concepts encapsulate one or more fields intended to be
+                        represented together in some way. This sounds very abstract and
+                        is intentionally so. This lightweight abstract encourages
+                        being creative in how fields are represented together.</p>
+                    </span>
+                </section>
 
-            <section class=row>
-                <span class=span12>
-                    <p>The most common utility of the <em>Concept</em> abstraction
-                    is formatting the fields' data in a usable format for the
-                    consumer. The consumer may be a human, a Web browser, an R interpreter
-                    or anything else. Regardless of the consume, formatters provide an
-                    API for taking in raw data and outputting a representation of that
-                    data.</p>
-                </span>
+                <h3 id=formatters>Formatters</h3>
 
-                <span class=span4>
-                    <p>The most common utility of the <em>Concept</em> abstraction
-                    is formatting the fields' data in a usable format for the
-                    consumer. The consumer may be a human, a Web browser, an R interpreter
-                    or anything else. Regardless of the consume, formatters provide an
-                    API for taking in raw data and outputting a representation of that
-                    data.</p>
-                </span>
-                <span class=span8>
+                <section class=row-fluid>
+                    <span class=span10>
+                        <p>The most common utility of the <em>Concept</em> abstraction
+                        is formatting the fields' data in a usable format for the
+                        consumer. The consumer may be a human, a Web browser, an R interpreter
+                        or anything else. Regardless of the consume, formatters provide an
+                        API for taking in raw data and outputting a representation of that
+                        data.</p>
+                    </span>
+                </section>
+
+                <section class=row-fluid>
+                    <span class=span4>
+                        <p>The most common utility of the <em>Concept</em> abstraction
+                        is formatting the fields' data in a usable format for the
+                        consumer. The consumer may be a human, a Web browser, an R interpreter
+                        or anything else. Regardless of the consume, formatters provide an
+                        API for taking in raw data and outputting a representation of that
+                        data.</p>
+                    </span>
+                    <span class=span6>
 <pre class=prettyprint>
 from avocado.formatters import Formatter
 # Get the 'Dosage' concept which combines the 'dose'
@@ -553,27 +577,30 @@ values = [60, 'mg', 'as needed']
 # Returns ['60', 'mg', 'as needed']
 formatter(values, preferred_formats=['string'])
 </pre>
-</span>
-</section>
+    </span>
+    </section>
 
-            <section class=row>
-                <span class=span12>
-                    <p>A formatter attempts to solve two problems. First, <strong>coerce
-                    the various values into the preferred format</strong> and secondly, </strong>
-                    perform an operation on each or all of the values</strong>. As shown
-                    above, the <code class=prettyprint>formatter</code> instance
-                    is callable and takes a sequence of <code class=prettyprint>values</code> and a
-                    <code class=prettyprint>preferred_formats</code> argument. Since this
-                    is the base formatter class, aside from being good at coercing datatypes,
-                    it is not terribly useful.</p>
-                </span>
-                <span class=span4>
-                    <p>Formatters can be easily created by subclassing the base <code class=prettyprint>Formatter</code>
-                    class and adding, overriding, or augmenting the methods. As stated above, a formatter
-                    can be applied each raw value or <em>all</em> values together. As an example of this,
-                    we can create a simple <code class=prettyprint>ConcatFormatter</code>.</p>
-                </span>
-                <span class=span8>
+                <section class=row-fluid>
+                    <span class=span10>
+                        <p>A formatter attempts to solve two problems. First, <strong>coerce
+                        the various values into the preferred format</strong> and secondly, </strong>
+                        perform an operation on each or all of the values</strong>. As shown
+                        above, the <code class=prettyprint>formatter</code> instance
+                        is callable and takes a sequence of <code class=prettyprint>values</code> and a
+                        <code class=prettyprint>preferred_formats</code> argument. Since this
+                        is the base formatter class, aside from being good at coercing datatypes,
+                        it is not terribly useful.</p>
+                    </span>
+                </section>
+
+                <section class=row-fluid>
+                    <span class=span4>
+                        <p>Formatters can be easily created by subclassing the base <code class=prettyprint>Formatter</code>
+                        class and adding, overriding, or augmenting the methods. As stated above, a formatter
+                        can be applied each raw value or <em>all</em> values together. As an example of this,
+                        we can create a simple <code class=prettyprint>ConcatFormatter</code>.</p>
+                    </span>
+                    <span class=span6>
 <pre class=prettyprint>
 class ConcatFormatter(Formatter):
     def to_string(self, values, cfields, **context):
@@ -584,17 +611,69 @@ class ConcatFormatter(Formatter):
     # Informs the class this method can process multiple values at a time
     to_string.process_multiple = True
 </pre>
-                </span>
-            </section>
+                    </span>
+                </section>
 
-            <h3 id=exporters>Exporters</h3>
+                <h3 id=exporters>Exporters</h3>
 
-            <section class=row>
-                <span class=span12>
-                    <p>
-                </span>
-            </section>
+                <section class=row-fluid>
+                    <span class=span10>
+                        <p>
+                    </span>
+                </section>
 
+                <h2 id=commands>Management Commands</h2>
+
+                <section class=row-fluid>
+                    <span class=span10>
+                        <p>Avocado technically has a single command <code class=prettyprint>./bin/manage.py avocado</code>.
+                        The commands listed below are subcommands of the <code class=prettyprint>avocado</code> command.</p>
+                    </span>
+                </section>
+
+                <h3 id=commands-sync>sync</h3>
+                <section class=row-fluid>
+                    <span class=span10>
+                    <p>The sync command creates <code>Field</code> instances from Djang model
+                    fields. This will be used whenever new models or new fields are added
+                    to your data model.</p>
+
+<pre class=prettyprint>
+./bin/manage.py avocado sync labels [--update] [--include-keys] [--include-non-editable]
+</pre>
+                        <h4>Parameters</h4>
+                        <ul class=unstyled>
+                            <li><code class=prettyprint>labels</code> - refers to one or more space-separated app or model
+                            labels, for example <code class=prettyprint>library.book</code> refers the the model <code class=prettyprint>Book</code>
+                            in the app <code>library</code>.
+                            <li><code class=prettyprint>--update</code> - updates existing field instances (relative to
+                            the apps or models defined and overwrites any existing descriptive values such as <em>name</em>,
+                            <em>name_plural</em>, and <em>description</em>.
+                            <li><code class=prettyprint>--include-non-editable</code> - creates field instance for model
+                            fields with <code class=prettyprint>editable=False</code> (by default these are ignored).
+                            <li><code class=prettyprint>--include-keys</code> - creates fields instances for primary
+                            and foreign key fields (by default these are ignored).
+                        </ul>
+                    </span>
+                </section>
+
+                <h3 id=commands-orphaned>orphaned</h3>
+                <section class=row-fluid>
+                    <span class=span10>
+                        <p>Checks for <code>Field</code> instances that no longer map to Django model field
+                        (like a dead hyperlink).</p>
+
+<pre class=prettyprint>
+./bin/manage.py avocado orphaned [--unpublish]
+</pre>
+                        <h4>Parameters</h4>
+                        <ul class=unstyled>
+                            <li><code class=prettyprint>--unpublish</code> - unpublishes all fields found
+                            to be orphaned.
+                        </ul>
+                    </span>
+                </section>
+            </div>
         </div>
 
         <script src=js/prettify.js></script>
