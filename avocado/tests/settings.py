@@ -19,6 +19,7 @@ INSTALLED_APPS = (
     'haystack',
     'avocado',
     'avocado.coded',
+    'avocado.state',
     'avocado.tests',
 )
 
