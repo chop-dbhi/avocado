@@ -1,5 +1,14 @@
 Avocado
 =======
+Metadata APIs for Django
+
+- The `Field` model supplements Django model fields with descriptive
+and administrative metadata
+    - Includes APIs for fetching data for the particular data field
+- The `Concept` model associates multiple data fields together for
+representation
+    - To support this feature, the [ModelTree](https://github.com/cbmi/modeltree)
+    API is used for dynamically setting up joins
 
 Design Musing
 -------------
