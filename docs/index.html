@@ -520,7 +520,7 @@ False
                         metadata can be used to provide more context and meaning
                         to the data and the data model.</p>
 
-                        <p>The notion of a <em>Concept</em> came from the need to
+                        <p>The notion of a <em>DataConcept</em> came from the need to
                         represent discrete data in a human-readable domain-specific
                         way. Data is typically stored in a normalized, discrete and
                         efficient way, thus rendering it a bit obscure in it's raw
@@ -547,7 +547,7 @@ False
 
                 <section class=row-fluid>
                     <span class=span10>
-                        <p>The most common utility of the <em>Concept</em> abstraction
+                        <p>The most common utility of the <em>DataConcept</em> abstraction
                         is formatting the fields' data in a usable format for the
                         consumer. The consumer may be a human, a Web browser, an R interpreter
                         or anything else. Regardless of the consume, formatters provide an
@@ -558,7 +558,7 @@ False
 
                 <section class=row-fluid>
                     <span class=span4>
-                        <p>The most common utility of the <em>Concept</em> abstraction
+                        <p>The most common utility of the <em>DataConcept</em> abstraction
                         is formatting the fields' data in a usable format for the
                         consumer. The consumer may be a human, a Web browser, an R interpreter
                         or anything else. Regardless of the consume, formatters provide an
@@ -570,7 +570,7 @@ False
 from avocado.formatters import Formatter
 # Get the 'Dosage' concept which combines the 'dose'
 # and 'unit' fields
-dosage = Concept.objects.get(name='Dosage')
+dosage = DataConcept.objects.get(name='Dosage')
 # Prepare a formatter for the dosage concept
 formatter = Formatter(dosage)
 values = [60, 'mg', 'as needed']

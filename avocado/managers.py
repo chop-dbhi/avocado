@@ -44,9 +44,9 @@ class ConceptManager(PassThroughManager, CacheManager):
 
     @transaction.commit_on_success
     def create_from_field(self, datafield, save=False, **kwargs):
-        """Derives a Concept from this DataField's descriptors. Additional
-        keyword arguments can be passed in to customize the new Concept object.
-        The Concept can also be optionally saved by setting the ``save`` flag.
+        """Derives a DataConcept from this DataField's descriptors. Additional
+        keyword arguments can be passed in to customize the new DataConcept object.
+        The DataConcept can also be optionally saved by setting the ``save`` flag.
         """
         for k, v, in datafield.descriptors.iteritems():
             kwargs.setdefault(k, v)

@@ -5,7 +5,7 @@ Metadata APIs for Django
 - The `DataField` model supplements Django model fields with descriptive
 and administrative metadata
     - Includes APIs for fetching data for the particular data field
-- The `Concept` model associates multiple data fields together for
+- The `DataConcept` model associates multiple data fields together for
 representation
     - To support this feature, the [ModelTree](https://github.com/cbmi/modeltree)
     API is used for dynamically setting up joins
@@ -38,9 +38,9 @@ Desired APIs
 # Get the 'book title' data field
 book_title = DataField.objects.get(model_name='book', field_name='title')
 
-# Get the 'book' concept. A Concept is composed of one or more data fields
+# Get the 'book' concept. A DataConcept is composed of one or more data fields
 # intended to be representated together in some way.
-book_concept = Concept.objects.get(name='Book')
+book_concept = DataConcept.objects.get(name='Book')
 
 dickens = Author.objects.get(name='Charles Dickens')
 

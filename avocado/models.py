@@ -19,7 +19,7 @@ from avocado.managers import FieldManager, ConceptManager, CategoryManager
 from avocado.formatters import registry as formatters
 from avocado.query.translators import registry as translators
 
-__all__ = ('Category', 'Concept', 'DataField')
+__all__ = ('Category', 'DataConcept', 'DataField')
 
 SITES_APP_INSTALLED = 'django.contrib.sites' in settings.INSTALLED_APPS
 
@@ -253,7 +253,7 @@ class Category(Base):
         ordering = ('order', 'name')
 
 
-class Concept(Base):
+class DataConcept(Base):
     """Our acceptance of an ontology is, I think, similar in principle to our
     acceptance of a scientific theory, say a system of physics; we adopt, at
     least insofar as we are reasonable, the simplest conceptual scheme into
@@ -290,7 +290,7 @@ class Concept(Base):
 
     # An optional formatter which provides custom formatting for this
     # concept relative to the associated fields. If a formatter is not
-    # defined, this Concept is not intended to be exposed since the
+    # defined, this DataConcept is not intended to be exposed since the
     # underlying data may not be appropriate for client consumption.
     formatter = models.CharField(max_length=100, blank=True, null=True,
         choices=formatters.choices)
@@ -309,9 +309,9 @@ class Concept(Base):
 
 
 class ConceptField(Base):
-    "Through model between Concept and DataField relationships."
+    "Through model between DataConcept and DataField relationships."
     datafield = models.ForeignKey(DataField, related_name='concept_fields')
-    concept = models.ForeignKey(Concept, related_name='concept_fields')
+    concept = models.ForeignKey(DataConcept, related_name='concept_fields')
     order = models.FloatField(null=True, db_column='_order')
 
     class Meta(object):
@@ -326,11 +326,11 @@ class ConceptField(Base):
 
 # Register instance-level cache invalidation handlers
 post_save.connect(post_save_cache, sender=DataField)
-post_save.connect(post_save_cache, sender=Concept)
+post_save.connect(post_save_cache, sender=DataConcept)
 post_save.connect(post_save_cache, sender=Category)
 
 pre_delete.connect(pre_delete_uncache, sender=DataField)
-pre_delete.connect(pre_delete_uncache, sender=Concept)
+pre_delete.connect(pre_delete_uncache, sender=DataConcept)
 pre_delete.connect(pre_delete_uncache, sender=Category)
 
 # If django-reversion is installed, register the models
@@ -339,4 +339,4 @@ if 'reversion' in settings.INSTALLED_APPS:
     reversion.register(DataField)
     reversion.register(Category)
     reversion.reversion(ConceptField)
-    reversion.register(Concept, follow=['concept_fields'])
+    reversion.register(DataConcept, follow=['concept_fields'])
