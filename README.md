@@ -26,10 +26,10 @@ Desired APIs
 ------------
 
 ```python
-# Get the 'book title' data element
-book_title = DataElement.objects.get(model_name='book', field_name='title')
+# Get the 'book title' data field
+book_title = Field.objects.get(model_name='book', field_name='title')
 
-# Get the 'book' concept. A Concept is composed of one or more data elements
+# Get the 'book' concept. A Concept is composed of one or more data fields
 # intended to be representated together in some way.
 book_concept = Concept.objects.get(name='Book')
 
