@@ -30,23 +30,25 @@ class Base(models.Model):
         since in certain cases the name differs relative to the model and/or
         concepts these fields are asssociated with.
 
-        ``name_plural`` - Same as ``name``, but the plural form. If not provided,
-        an 's' will appended to the end of the ``name``.
-
         ``description`` - Will tend to be exposed in client applications since
         it provides context to the end-users.
 
         ``keywords`` - Additional extraneous text that cannot be derived from the
         name, description or data itself. This is solely used for search indexing.
     """
+    # Descriptor-based fields
     name = models.CharField(max_length=50)
-    name_plural = models.CharField('name (plural form)', max_length=50, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     keywords = models.CharField(max_length=100, null=True, blank=True)
 
+    # Availability control mechanisms
+    # Rather than deleting objects, they can be archived
+    archived = models.BooleanField(default=False)
+    # When `published` is false, it is globally not accessible.
+    published = models.BooleanField(default=False)
+
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
-    archived = models.BooleanField(default=False)
 
     class Meta(object):
         abstract = True
@@ -58,12 +60,32 @@ class Base(models.Model):
     def descriptors(self):
         return {
             'name': self.name,
+            'description': self.description,
+            'keywords': self.keywords,
+        }
+
+
+class BasePlural(Base):
+    """Adds field for specifying the plural form of the name.
+
+        ``name_plural`` - Same as ``name``, but the plural form. If not provided,
+        an 's' will appended to the end of the ``name``.
+    """
+    name_plural = models.CharField(max_length=60, null=True, blank=True)
+
+    class Meta(object):
+        abstract = True
+
+    @property
+    def descriptors(self):
+        return {
+            'name': self.name,
             'name_plural': self.name_plural,
             'description': self.description,
             'keywords': self.keywords,
         }
 
-    def get_plural_name(self):
+    def get_name_plural(self):
         if self.name_plural:
             plural = self.name_plural
         elif not self.name.endswith('s'):
@@ -73,7 +95,14 @@ class Base(models.Model):
         return plural
 
 
-class DataField(Base):
+def _get_internal_type(field):
+    "Get model field internal type with 'field' off."
+    datatype = field.get_internal_type().lower()
+    if datatype.endswith('field'):
+        datatype = datatype[:-5]
+    return datatype
+
+class DataField(BasePlural):
     """Describes the significance and/or meaning behind some data. In addition,
     it defines the natural key of the Django field that represents the location
     of that data e.g. ``library.book.title``.
@@ -92,10 +121,6 @@ class DataField(Base):
     translator = models.CharField(max_length=100, choices=translators.choices,
         blank=True, null=True)
 
-    # Enables this field to be accessible for use. When ``published``
-    # is false, it is globally not accessible.
-    published = models.BooleanField(default=False)
-
     # The timestamp of the last time the underlying data for this field
     # has been modified. This is used for the cache key and for general
     # reference. The underlying table not have a timestamp nor is it optimal
@@ -109,7 +134,6 @@ class DataField(Base):
     objects = FieldManager()
 
     class Meta(object):
-        app_label = 'avocado'
         unique_together = ('app_name', 'model_name', 'field_name')
         ordering = ('name',)
         permissions = (
@@ -128,6 +152,8 @@ class DataField(Base):
     def natural_key(self):
         return self.app_name, self.model_name, self.field_name
 
+    # Django Model Field-related Properties and Methods
+
     @property
     def model(self):
         "Returns the model class this field is associated with."
@@ -143,13 +169,6 @@ class DataField(Base):
         except FieldDoesNotExist:
             pass
 
-    def _get_internal_type(self):
-        datatype = self.field.get_internal_type().lower()
-        # trim 'field' off the end
-        if datatype.endswith('field'):
-            datatype = datatype[:-5]
-        return datatype
-
     @property
     def datatype(self):
         """Returns the datatype of the field this datafield represents.
@@ -157,11 +176,9 @@ class DataField(Base):
         By default, it will use the field's internal type, but can be overridden
         by the ``INTERNAL_DATATYPE_MAP`` setting.
         """
-        datatype = self._get_internal_type()
+        datatype = _get_internal_type(self.field)
         # if a mapping exists, replace the datatype
-        if datatype in _settings.INTERNAL_DATATYPE_MAP:
-            datatype = _settings.INTERNAL_DATATYPE_MAP[datatype]
-        return datatype
+        return _settings.INTERNAL_DATATYPE_MAP.get(datatype, datatype)
 
     # Data-related Cached Properties
     # These may be cached until the underlying data changes
@@ -203,6 +220,8 @@ class DataField(Base):
         if self.enable_choices:
             return zip(self.values, self.mapped_values)
 
+    # Validation and Query-related Methods
+
     def query_string(self, operator=None, using=MODELTREE_DEFAULT_ALIAS):
         return trees[using].query_string_for_field(self.field, operator)
 
@@ -218,7 +237,7 @@ class DataField(Base):
         # if a form class is not specified, check to see if there is a custom
         # form_class specified for this datatype
         if not kwargs.get('form_class', None):
-            datatype = self._get_internal_type()
+            datatype = _get_internal_type(self.field)
 
             if datatype in _settings.INTERNAL_DATATYPE_FORMFIELDS:
                 name = _settings.INTERNAL_DATATYPE_FORMFIELDS[datatype]
@@ -253,7 +272,7 @@ class Category(Base):
         ordering = ('order', 'name')
 
 
-class DataConcept(Base):
+class DataConcept(BasePlural):
     """Our acceptance of an ontology is, I think, similar in principle to our
     acceptance of a scientific theory, say a system of physics; we adopt, at
     least insofar as we are reasonable, the simplest conceptual scheme into
@@ -284,10 +303,6 @@ class DataConcept(Base):
 
     order = models.FloatField(null=True, db_column='_order')
 
-    # Enables this field to be accessible for use. when ``published``
-    # is false, it is globally not accessible.
-    published = models.BooleanField(default=False)
-
     # An optional formatter which provides custom formatting for this
     # concept relative to the associated fields. If a formatter is not
     # defined, this DataConcept is not intended to be exposed since the
@@ -301,14 +316,14 @@ class DataConcept(Base):
         app_label = 'avocado'
         ordering = ('order',)
         permissions = (
-            ('view_concept', 'Can view concept'),
+            ('view_dataconcept', 'Can view dataconcept'),
         )
 
     def __len__(self):
         return self.fields.count()
 
 
-class ConceptField(Base):
+class ConceptField(BasePlural):
     "Through model between DataConcept and DataField relationships."
     datafield = models.ForeignKey(DataField, related_name='concept_fields')
     concept = models.ForeignKey(DataConcept, related_name='concept_fields')
@@ -337,6 +352,6 @@ pre_delete.connect(pre_delete_uncache, sender=Category)
 if 'reversion' in settings.INSTALLED_APPS:
     import reversion
     reversion.register(DataField)
-    reversion.register(Category)
     reversion.reversion(ConceptField)
     reversion.register(DataConcept, follow=['concept_fields'])
+    reversion.register(Category)

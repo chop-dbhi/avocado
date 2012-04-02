@@ -6,10 +6,16 @@ from avocado.core.managers import PassThroughManager
 
 SITES_APP_INSTALLED = 'django.contrib.sites' in settings.INSTALLED_APPS
 
-class FieldManager(PassThroughManager, CacheManager):
-    "Adds additional helper methods focused around access and permissions."
+class PublishedManager(PassThroughManager, CacheManager):
     use_for_related_fields = True
 
+    def published(self):
+        "Returns all published datafields."
+        return self.get_query_set().filter(published=True, archived=False)
+
+
+class FieldManager(PublishedManager):
+    "Adds additional helper methods focused around access and permissions."
     def get_by_natural_key(self, app_name, model_name, field_name):
         return self.get_query_set().get(
             app_name=app_name,
@@ -17,13 +23,8 @@ class FieldManager(PassThroughManager, CacheManager):
             field_name=field_name
         )
 
-    def published(self):
-        "Returns all published datafields."
-        return self.get_query_set().filter(published=True, archived=False)
 
-
-class ConceptManager(PassThroughManager, CacheManager):
-    use_for_related_fields = True
+class ConceptManager(PublishedManager):
 
     def published(self):
         queryset = self.get_query_set()
@@ -61,5 +62,5 @@ class ConceptManager(PassThroughManager, CacheManager):
         return concept
 
 
-class CategoryManager(PassThroughManager, CacheManager):
-    use_for_related_fields = True
+class CategoryManager(PublishedManager):
+    pass
