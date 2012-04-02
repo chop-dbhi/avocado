@@ -138,7 +138,7 @@
 <p id='t1' class='stm mis'><span class='key'>from</span> <span class='nam'>optparse</span> <span class='key'>import</span> <span class='nam'>make_option</span><span class='strut'>&nbsp;</span></p>
 <p id='t2' class='stm mis'><span class='key'>from</span> <span class='nam'>django</span><span class='op'>.</span><span class='nam'>core</span><span class='op'>.</span><span class='nam'>management</span><span class='op'>.</span><span class='nam'>base</span> <span class='key'>import</span> <span class='nam'>NoArgsCommand</span><span class='strut'>&nbsp;</span></p>
 <p id='t3' class='pln'><span class='strut'>&nbsp;</span></p>
-<p id='t4' class='stm mis'><span class='key'>from</span> <span class='nam'>avocado</span><span class='op'>.</span><span class='nam'>models</span> <span class='key'>import</span> <span class='nam'>Field</span><span class='strut'>&nbsp;</span></p>
+<p id='t4' class='stm mis'><span class='key'>from</span> <span class='nam'>avocado</span><span class='op'>.</span><span class='nam'>models</span> <span class='key'>import</span> <span class='nam'>DataField</span><span class='strut'>&nbsp;</span></p>
 <p id='t5' class='pln'><span class='strut'>&nbsp;</span></p>
 <p id='t6' class='stm mis'><span class='key'>class</span> <span class='nam'>Command</span><span class='op'>(</span><span class='nam'>NoArgsCommand</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
 <p id='t7' class='pln'>&nbsp; &nbsp; <span class='str'>&quot;&quot;&quot;</span><span class='strut'>&nbsp;</span></p>
@@ -150,12 +150,12 @@
 <p id='t13' class='pln'><span class='strut'>&nbsp;</span></p>
 <p id='t14' class='pln'><span class='str'>&nbsp; &nbsp; &nbsp; &nbsp; Determines if any ``Fields`` are no longer valid. This is</span><span class='strut'>&nbsp;</span></p>
 <p id='t15' class='pln'><span class='str'>&nbsp; &nbsp; &nbsp; &nbsp; typically only necessary when a data model change occurs. An orphaned</span><span class='strut'>&nbsp;</span></p>
-<p id='t16' class='pln'><span class='str'>&nbsp; &nbsp; &nbsp; &nbsp; ``Field`` will be marked if they are currently published</span><span class='strut'>&nbsp;</span></p>
+<p id='t16' class='pln'><span class='str'>&nbsp; &nbsp; &nbsp; &nbsp; ``DataField`` will be marked if they are currently published</span><span class='strut'>&nbsp;</span></p>
 <p id='t17' class='pln'><span class='str'>&nbsp; &nbsp; &nbsp; &nbsp; (``[P]``).</span><span class='strut'>&nbsp;</span></p>
 <p id='t18' class='pln'><span class='strut'>&nbsp;</span></p>
 <p id='t19' class='pln'><span class='str'>&nbsp; &nbsp; OPTIONS:</span><span class='strut'>&nbsp;</span></p>
 <p id='t20' class='pln'><span class='strut'>&nbsp;</span></p>
-<p id='t21' class='pln'><span class='str'>&nbsp; &nbsp; &nbsp; &nbsp; ``--unpublish`` - unpublishes orphaned ``Field`` if currently</span><span class='strut'>&nbsp;</span></p>
+<p id='t21' class='pln'><span class='str'>&nbsp; &nbsp; &nbsp; &nbsp; ``--unpublish`` - unpublishes orphaned ``DataField`` if currently</span><span class='strut'>&nbsp;</span></p>
 <p id='t22' class='pln'><span class='str'>&nbsp; &nbsp; &nbsp; &nbsp; published</span><span class='strut'>&nbsp;</span></p>
 <p id='t23' class='pln'><span class='strut'>&nbsp;</span></p>
 <p id='t24' class='pln'><span class='str'>&nbsp; &nbsp; &quot;&quot;&quot;</span><span class='strut'>&nbsp;</span></p>
@@ -186,15 +186,15 @@
 <p id='t49' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>unpublish</span> <span class='op'>=</span> <span class='nam'>options</span><span class='op'>.</span><span class='nam'>get</span><span class='op'>(</span><span class='str'>&#39;unpublish&#39;</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t50' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>verbosity</span> <span class='op'>=</span> <span class='nam'>options</span><span class='op'>.</span><span class='nam'>get</span><span class='op'>(</span><span class='str'>&#39;verbosity&#39;</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t51' class='pln'><span class='strut'>&nbsp;</span></p>
-<p id='t52' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>fields</span> <span class='op'>=</span> <span class='nam'>Field</span><span class='op'>.</span><span class='nam'>objects</span><span class='op'>.</span><span class='nam'>all</span><span class='op'>(</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
+<p id='t52' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>datafields</span> <span class='op'>=</span> <span class='nam'>DataField</span><span class='op'>.</span><span class='nam'>objects</span><span class='op'>.</span><span class='nam'>all</span><span class='op'>(</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t53' class='pln'><span class='strut'>&nbsp;</span></p>
 <p id='t54' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>unknown_models</span> <span class='op'>=</span> <span class='op'>[</span><span class='op'>]</span><span class='strut'>&nbsp;</span></p>
 <p id='t55' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>unknown_fields</span> <span class='op'>=</span> <span class='op'>[</span><span class='op'>]</span><span class='strut'>&nbsp;</span></p>
 <p id='t56' class='pln'><span class='strut'>&nbsp;</span></p>
-<p id='t57' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>for</span> <span class='nam'>d</span> <span class='key'>in</span> <span class='nam'>fields</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
+<p id='t57' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>for</span> <span class='nam'>d</span> <span class='key'>in</span> <span class='nam'>datafields</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
 <p id='t58' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>if</span> <span class='nam'>d</span><span class='op'>.</span><span class='nam'>model</span> <span class='key'>is</span> <span class='nam'>None</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
 <p id='t59' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>unknown_models</span><span class='op'>.</span><span class='nam'>append</span><span class='op'>(</span><span class='nam'>d</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
-<p id='t60' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>elif</span> <span class='nam'>d</span><span class='op'>.</span><span class='nam'>field</span> <span class='key'>is</span> <span class='nam'>None</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
+<p id='t60' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>elif</span> <span class='nam'>d</span><span class='op'>.</span><span class='nam'>datafield</span> <span class='key'>is</span> <span class='nam'>None</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
 <p id='t61' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>unknown_fields</span><span class='op'>.</span><span class='nam'>append</span><span class='op'>(</span><span class='nam'>d</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t62' class='pln'><span class='strut'>&nbsp;</span></p>
 <p id='t63' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>if</span> <span class='nam'>verbosity</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>

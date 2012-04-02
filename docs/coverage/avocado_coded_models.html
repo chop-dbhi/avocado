@@ -79,32 +79,26 @@
 <p id='n15' class='pln'><a href='#n15'>15</a></p>
 <p id='n16' class='stm run hide_run'><a href='#n16'>16</a></p>
 <p id='n17' class='stm mis'><a href='#n17'>17</a></p>
-<p id='n18' class='pln'><a href='#n18'>18</a></p>
-<p id='n19' class='pln'><a href='#n19'>19</a></p>
-<p id='n20' class='pln'><a href='#n20'>20</a></p>
                 
             </td>
             <td class='text' valign='top'>
 <p id='t1' class='stm run hide_run'><span class='key'>from</span> <span class='nam'>django</span><span class='op'>.</span><span class='nam'>db</span> <span class='key'>import</span> <span class='nam'>models</span><span class='strut'>&nbsp;</span></p>
-<p id='t2' class='stm run hide_run'><span class='key'>from</span> <span class='nam'>avocado</span><span class='op'>.</span><span class='nam'>models</span> <span class='key'>import</span> <span class='nam'>Field</span><span class='strut'>&nbsp;</span></p>
+<p id='t2' class='stm run hide_run'><span class='key'>from</span> <span class='nam'>avocado</span><span class='op'>.</span><span class='nam'>models</span> <span class='key'>import</span> <span class='nam'>DataField</span><span class='strut'>&nbsp;</span></p>
 <p id='t3' class='pln'><span class='strut'>&nbsp;</span></p>
 <p id='t4' class='stm run hide_run'><span class='key'>class</span> <span class='nam'>CodedValue</span><span class='op'>(</span><span class='nam'>models</span><span class='op'>.</span><span class='nam'>Model</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
-<p id='t5' class='stm run hide_run'>&nbsp; &nbsp; <span class='nam'>field</span> <span class='op'>=</span> <span class='nam'>models</span><span class='op'>.</span><span class='nam'>ForeignKey</span><span class='op'>(</span><span class='nam'>Field</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
+<p id='t5' class='stm run hide_run'>&nbsp; &nbsp; <span class='nam'>datafield</span> <span class='op'>=</span> <span class='nam'>models</span><span class='op'>.</span><span class='nam'>ForeignKey</span><span class='op'>(</span><span class='nam'>DataField</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t6' class='stm run hide_run'>&nbsp; &nbsp; <span class='nam'>value</span> <span class='op'>=</span> <span class='nam'>models</span><span class='op'>.</span><span class='nam'>CharField</span><span class='op'>(</span><span class='nam'>max_length</span><span class='op'>=</span><span class='num'>100</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t7' class='stm run hide_run'>&nbsp; &nbsp; <span class='nam'>coded</span> <span class='op'>=</span> <span class='nam'>models</span><span class='op'>.</span><span class='nam'>IntegerField</span><span class='op'>(</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t8' class='pln'><span class='strut'>&nbsp;</span></p>
 <p id='t9' class='stm run hide_run'>&nbsp; &nbsp; <span class='key'>class</span> <span class='nam'>Meta</span><span class='op'>(</span><span class='nam'>object</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
 <p id='t10' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>app_label</span> <span class='op'>=</span> <span class='str'>&#39;avocado&#39;</span><span class='strut'>&nbsp;</span></p>
-<p id='t11' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>unique_together</span> <span class='op'>=</span> <span class='op'>(</span><span class='str'>&#39;field&#39;</span><span class='op'>,</span> <span class='str'>&#39;value&#39;</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
+<p id='t11' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>unique_together</span> <span class='op'>=</span> <span class='op'>(</span><span class='str'>&#39;datafield&#39;</span><span class='op'>,</span> <span class='str'>&#39;value&#39;</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t12' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>verbose_name</span> <span class='op'>=</span> <span class='str'>&#39;coded value&#39;</span><span class='strut'>&nbsp;</span></p>
 <p id='t13' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>verbose_name_plural</span> <span class='op'>=</span> <span class='str'>&#39;coded values&#39;</span><span class='strut'>&nbsp;</span></p>
 <p id='t14' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>ordering</span> <span class='op'>=</span> <span class='op'>(</span><span class='str'>&#39;value&#39;</span><span class='op'>,</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t15' class='pln'><span class='strut'>&nbsp;</span></p>
 <p id='t16' class='stm run hide_run'>&nbsp; &nbsp; <span class='key'>def</span> <span class='nam'>natural_key</span><span class='op'>(</span><span class='nam'>self</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
-<p id='t17' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>return</span> <span class='nam'>self</span><span class='op'>.</span><span class='nam'>field_id</span><span class='op'>,</span> <span class='nam'>self</span><span class='op'>.</span><span class='nam'>value</span><span class='strut'>&nbsp;</span></p>
-<p id='t18' class='pln'><span class='strut'>&nbsp;</span></p>
-<p id='t19' class='pln'><span class='strut'>&nbsp;</span></p>
-<p id='t20' class='pln'><span class='strut'>&nbsp;</span></p>
+<p id='t17' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>return</span> <span class='nam'>self</span><span class='op'>.</span><span class='nam'>datafield_id</span><span class='op'>,</span> <span class='nam'>self</span><span class='op'>.</span><span class='nam'>value</span><span class='strut'>&nbsp;</span></p>
                 
             </td>
         </tr>

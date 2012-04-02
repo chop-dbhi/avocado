@@ -18,7 +18,7 @@ class FieldManager(PassThroughManager, CacheManager):
         )
 
     def published(self):
-        "Returns all published fields."
+        "Returns all published datafields."
         return self.get_query_set().filter(published=True, archived=False)
 
 
@@ -36,19 +36,19 @@ class ConceptManager(PassThroughManager, CacheManager):
             sites = Q()
 
         published = queryset.filter(sites, published=True, archived=False)
-        # Concepts that contain at least one non-published fields are removed from
+        # Concepts that contain at least one non-published datafields are removed from
         # the set to prevent exposing non-prepared data
         shadowed = queryset.filter(fields__published=False)
 
         return published.exclude(pk__in=shadowed).distinct()
 
     @transaction.commit_on_success
-    def create_from_field(self, field, save=False, **kwargs):
-        """Derives a Concept from this Field's descriptors. Additional
+    def create_from_field(self, datafield, save=False, **kwargs):
+        """Derives a Concept from this DataField's descriptors. Additional
         keyword arguments can be passed in to customize the new Concept object.
         The Concept can also be optionally saved by setting the ``save`` flag.
         """
-        for k, v, in field.descriptors.iteritems():
+        for k, v, in datafield.descriptors.iteritems():
             kwargs.setdefault(k, v)
 
         concept = self.model(**kwargs)
@@ -56,7 +56,7 @@ class ConceptManager(PassThroughManager, CacheManager):
         if save:
             from avocado.models import ConceptField
             concept.save()
-            cfield = ConceptField(field=field, concept=concept)
+            cfield = ConceptField(datafield=datafield, concept=concept)
             concept.concept_fields.add(cfield)
         return concept
 

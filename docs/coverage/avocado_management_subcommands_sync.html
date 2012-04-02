@@ -229,7 +229,7 @@
 <p id='t2' class='stm mis'><span class='key'>from</span> <span class='nam'>django</span><span class='op'>.</span><span class='nam'>db</span><span class='op'>.</span><span class='nam'>models</span> <span class='key'>import</span> <span class='op'>(</span><span class='nam'>get_model</span><span class='op'>,</span> <span class='nam'>get_models</span><span class='op'>,</span> <span class='nam'>get_app</span><span class='op'>,</span> <span class='nam'>AutoField</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
 <p id='t3' class='pln'>&nbsp; &nbsp; <span class='nam'>ForeignKey</span><span class='op'>,</span> <span class='nam'>OneToOneField</span><span class='op'>,</span> <span class='nam'>ManyToManyField</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t4' class='stm mis'><span class='key'>from</span> <span class='nam'>django</span><span class='op'>.</span><span class='nam'>core</span><span class='op'>.</span><span class='nam'>management</span><span class='op'>.</span><span class='nam'>base</span> <span class='key'>import</span> <span class='nam'>LabelCommand</span><span class='strut'>&nbsp;</span></p>
-<p id='t5' class='stm mis'><span class='key'>from</span> <span class='nam'>avocado</span><span class='op'>.</span><span class='nam'>models</span> <span class='key'>import</span> <span class='nam'>Field</span><span class='strut'>&nbsp;</span></p>
+<p id='t5' class='stm mis'><span class='key'>from</span> <span class='nam'>avocado</span><span class='op'>.</span><span class='nam'>models</span> <span class='key'>import</span> <span class='nam'>DataField</span><span class='strut'>&nbsp;</span></p>
 <p id='t6' class='pln'><span class='strut'>&nbsp;</span></p>
 <p id='t7' class='stm mis'><span class='key'>class</span> <span class='nam'>Command</span><span class='op'>(</span><span class='nam'>LabelCommand</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
 <p id='t8' class='pln'>&nbsp; &nbsp; <span class='str'>&quot;&quot;&quot;</span><span class='strut'>&nbsp;</span></p>
@@ -240,26 +240,26 @@
 <p id='t13' class='pln'><span class='str'>&nbsp; &nbsp; DESCRIPTION:</span><span class='strut'>&nbsp;</span></p>
 <p id='t14' class='pln'><span class='strut'>&nbsp;</span></p>
 <p id='t15' class='pln'><span class='str'>&nbsp; &nbsp; &nbsp; &nbsp; Finds all models referenced by the app or model ``labels`` and</span><span class='strut'>&nbsp;</span></p>
-<p id='t16' class='pln'><span class='str'>&nbsp; &nbsp; &nbsp; &nbsp; attempts to create a ``Field`` instance per model field.</span><span class='strut'>&nbsp;</span></p>
-<p id='t17' class='pln'><span class='str'>&nbsp; &nbsp; &nbsp; &nbsp; Any ``Field`` already loaded will not be altered in any way.</span><span class='strut'>&nbsp;</span></p>
+<p id='t16' class='pln'><span class='str'>&nbsp; &nbsp; &nbsp; &nbsp; attempts to create a ``DataField`` instance per model field.</span><span class='strut'>&nbsp;</span></p>
+<p id='t17' class='pln'><span class='str'>&nbsp; &nbsp; &nbsp; &nbsp; Any ``DataField`` already loaded will not be altered in any way.</span><span class='strut'>&nbsp;</span></p>
 <p id='t18' class='pln'><span class='strut'>&nbsp;</span></p>
 <p id='t19' class='pln'><span class='str'>&nbsp; &nbsp; OPTIONS:</span><span class='strut'>&nbsp;</span></p>
 <p id='t20' class='pln'><span class='strut'>&nbsp;</span></p>
-<p id='t21' class='pln'><span class='str'>&nbsp; &nbsp; &nbsp; &nbsp; ``--include-non-editable`` - Create ``Field`` instances for fields marked</span><span class='strut'>&nbsp;</span></p>
+<p id='t21' class='pln'><span class='str'>&nbsp; &nbsp; &nbsp; &nbsp; ``--include-non-editable`` - Create ``DataField`` instances for fields marked</span><span class='strut'>&nbsp;</span></p>
 <p id='t22' class='pln'><span class='str'>&nbsp; &nbsp; &nbsp; &nbsp; as not editable (i.e. ``editable=False``).</span><span class='strut'>&nbsp;</span></p>
 <p id='t23' class='pln'><span class='strut'>&nbsp;</span></p>
-<p id='t24' class='pln'><span class='str'>&nbsp; &nbsp; &nbsp; &nbsp; ``--include-keys`` - Create ``Field`` instances for primary key</span><span class='strut'>&nbsp;</span></p>
+<p id='t24' class='pln'><span class='str'>&nbsp; &nbsp; &nbsp; &nbsp; ``--include-keys`` - Create ``DataField`` instances for primary key</span><span class='strut'>&nbsp;</span></p>
 <p id='t25' class='pln'><span class='str'>&nbsp; &nbsp; &nbsp; &nbsp; and foreign key fields.</span><span class='strut'>&nbsp;</span></p>
 <p id='t26' class='pln'><span class='strut'>&nbsp;</span></p>
-<p id='t27' class='pln'><span class='str'>&nbsp; &nbsp; &nbsp; &nbsp; ``--update`` - Updates existing ``Field`` instances with metadata from</span><span class='strut'>&nbsp;</span></p>
+<p id='t27' class='pln'><span class='str'>&nbsp; &nbsp; &nbsp; &nbsp; ``--update`` - Updates existing ``DataField`` instances with metadata from</span><span class='strut'>&nbsp;</span></p>
 <p id='t28' class='pln'><span class='str'>&nbsp; &nbsp; &nbsp; &nbsp; model fields. Note this overwrites any descriptive metadata changes made</span><span class='strut'>&nbsp;</span></p>
-<p id='t29' class='pln'><span class='str'>&nbsp; &nbsp; &nbsp; &nbsp; to ``Field`` such as ``name``, ``name_plural``, and ``description``.</span><span class='strut'>&nbsp;</span></p>
+<p id='t29' class='pln'><span class='str'>&nbsp; &nbsp; &nbsp; &nbsp; to ``DataField`` such as ``name``, ``name_plural``, and ``description``.</span><span class='strut'>&nbsp;</span></p>
 <p id='t30' class='pln'><span class='strut'>&nbsp;</span></p>
 <p id='t31' class='pln'><span class='str'>&nbsp; &nbsp; &quot;&quot;&quot;</span><span class='strut'>&nbsp;</span></p>
 <p id='t32' class='pln'><span class='strut'>&nbsp;</span></p>
 <p id='t33' class='stm mis'>&nbsp; &nbsp; <span class='nam'>help</span> <span class='op'>=</span> <span class='str'>&#39;\n&#39;</span><span class='op'>.</span><span class='nam'>join</span><span class='op'>(</span><span class='op'>[</span><span class='strut'>&nbsp;</span></p>
 <p id='t34' class='pln'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='str'>&#39;Finds all models in the listed app(s) and attempts to create a&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
-<p id='t35' class='pln'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='str'>&#39;``Field`` instance per model field. Fields already declared will&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
+<p id='t35' class='pln'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='str'>&#39;``DataField`` instance per model field. Fields already declared will&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
 <p id='t36' class='pln'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='str'>&#39;not be altered.&#39;</span><span class='strut'>&nbsp;</span></p>
 <p id='t37' class='pln'>&nbsp; &nbsp; <span class='op'>]</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t38' class='pln'><span class='strut'>&nbsp;</span></p>
@@ -360,9 +360,9 @@
 <p id='t133' class='pln'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='op'>}</span><span class='strut'>&nbsp;</span></p>
 <p id='t134' class='pln'><span class='strut'>&nbsp;</span></p>
 <p id='t135' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>try</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
-<p id='t136' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>field_obj</span> <span class='op'>=</span> <span class='nam'>Field</span><span class='op'>.</span><span class='nam'>objects</span><span class='op'>.</span><span class='nam'>get</span><span class='op'>(</span><span class='op'>**</span><span class='nam'>lookup</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
-<p id='t137' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>except</span> <span class='nam'>Field</span><span class='op'>.</span><span class='nam'>DoesNotExist</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
-<p id='t138' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>field_obj</span> <span class='op'>=</span> <span class='nam'>Field</span><span class='op'>(</span><span class='nam'>published</span><span class='op'>=</span><span class='nam'>False</span><span class='op'>,</span> <span class='op'>**</span><span class='nam'>kwargs</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
+<p id='t136' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>field_obj</span> <span class='op'>=</span> <span class='nam'>DataField</span><span class='op'>.</span><span class='nam'>objects</span><span class='op'>.</span><span class='nam'>get</span><span class='op'>(</span><span class='op'>**</span><span class='nam'>lookup</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
+<p id='t137' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>except</span> <span class='nam'>DataField</span><span class='op'>.</span><span class='nam'>DoesNotExist</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
+<p id='t138' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>field_obj</span> <span class='op'>=</span> <span class='nam'>DataField</span><span class='op'>(</span><span class='nam'>published</span><span class='op'>=</span><span class='nam'>False</span><span class='op'>,</span> <span class='op'>**</span><span class='nam'>kwargs</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t139' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>new_count</span> <span class='op'>+=</span> <span class='num'>1</span><span class='strut'>&nbsp;</span></p>
 <p id='t140' class='pln'><span class='strut'>&nbsp;</span></p>
 <p id='t141' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>if</span> <span class='nam'>field_obj</span><span class='op'>.</span><span class='nam'>pk</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>

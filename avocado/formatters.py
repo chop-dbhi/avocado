@@ -32,7 +32,7 @@ class Formatter(object):
     name = ''
 
     def __init__(self, concept, **context):
-        self.cfields = OrderedDict((x.field.field_name, x) \
+        self.cfields = OrderedDict((x.datafield.field_name, x) \
                 for x in concept.concept_fields.all())
         self.field_keys = self.cfields.keys()
         self.context = context
@@ -138,7 +138,7 @@ class Formatter(object):
 
     def to_coded(self, value, cfield, **context):
         # attempts to convert value to its coded representation
-        for key, cvalue in cfield.field.coded_values:
+        for key, cvalue in cfield.datafield.coded_values:
             if key == value:
                 return cvalue
         raise ValueError('No coded value for {}'.format(value))

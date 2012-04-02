@@ -290,11 +290,11 @@ class Book(models.Model):
                     <span class=span10>
 
                         <p>Avocado comes with a <code class=prettyprint>sync</code> command which introspects
-                        Django models and creates <code class=prettyprint>Field</code> instances representing the model fields.
+                        Django models and creates <code class=prettyprint>DataField</code> instances representing the model fields.
                         At least one app label (<code class=prettyprint>library</code>) or model label (<code class=prettyprint>library.Book</code>)
                         must be specified.</p>
 
-                        <p>By default, <code class=prettyprint>Field</code> instances are not created for primary and foreign
+                        <p>By default, <code class=prettyprint>DataField</code> instances are not created for primary and foreign
                         key fields. In practice, <em>key</em> fields are used infrequently as is, thus they are
                         not created by default. To override this behavior and include key fields, add the
                         flag <code class=prettyprint>--include-keys</code>.</p>
@@ -313,7 +313,7 @@ class Book(models.Model):
 
                         <div class="alert alert-block alert-info">
                             <h4 class=alert-heading>Need to Update Existing Fields?</h4>
-                            For updating existing <code class=prettyprint>Field</code> instances, pass the <code class=prettyprint>--update</code>
+                            For updating existing <code class=prettyprint>DataField</code> instances, pass the <code class=prettyprint>--update</code>
                             flag when running the command. Note that this will overwrite existing metadata for
                             the field so use with caution.
                         </div>
@@ -328,11 +328,11 @@ class Book(models.Model):
                     </span>
                 </section>
 
-                <h3 id=try-the-api>Field Data Model</h3>
+                <h3 id=try-the-api>DataField Data Model</h3>
 
                 <section class=row-fluid>
                     <span class=span4>
-                        <p>An Avocado <code class=prettyprint>Field</code> represents a single Django model <code class=prettyprint>Field</code>
+                        <p>An Avocado <code class=prettyprint>DataField</code> represents a single Django model <code class=prettyprint>DataField</code>
                         instance. It is mapped by defining the following three attributes. These three uniquely
                         attributes identify a model field instance.</p>
 
@@ -346,10 +346,10 @@ class Book(models.Model):
 
                     <span class=span6>
 <pre class=prettyprint>
-&gt;&gt;&gt; from avocado.models import Field
-&gt;&gt;&gt; f = Field.objects.get_by_natural_key('library', 'book', 'title')
+&gt;&gt;&gt; from avocado.models import DataField
+&gt;&gt;&gt; f = DataField.objects.get_by_natural_key('library', 'book', 'title')
 &gt;&gt;&gt; f
-&lt;Field 'library.book.title'&gt;
+&lt;DataField 'library.book.title'&gt;
 &gt;&gt;&gt; f.app_name
 'library'
 &gt;&gt;&gt; f.model_name
@@ -387,12 +387,12 @@ class Book(models.Model):
                     </span>
                 </section>
 
-                <h3 id=try-the-api>Field Instance API</h3>
+                <h3 id=try-the-api>DataField Instance API</h3>
 
                 <section class=row-fluid>
                     <span class=span4>
                         <ul>
-                            <li><code class=prettyprint>f.field</code> - the model <code class=prettyprint>Field</code>  instance this field
+                            <li><code class=prettyprint>f.field</code> - the model <code class=prettyprint>DataField</code>  instance this field
                             represents
                             <li><code class=prettyprint>field.model</code> - the model class this field is associated with
                         </ul>
@@ -634,7 +634,7 @@ class ConcatFormatter(Formatter):
                 <h3 id=commands-sync>sync</h3>
                 <section class=row-fluid>
                     <span class=span10>
-                    <p>The sync command creates <code>Field</code> instances from Djang model
+                    <p>The sync command creates <code>DataField</code> instances from Djang model
                     fields. This will be used whenever new models or new fields are added
                     to your data model.</p>
 
@@ -660,7 +660,7 @@ class ConcatFormatter(Formatter):
                 <h3 id=commands-orphaned>orphaned</h3>
                 <section class=row-fluid>
                     <span class=span10>
-                        <p>Checks for <code>Field</code> instances that no longer map to Django model field
+                        <p>Checks for <code>DataField</code> instances that no longer map to Django model field
                         (like a dead hyperlink).</p>
 
 <pre class=prettyprint>

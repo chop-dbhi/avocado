@@ -2,12 +2,12 @@
 {{ object.description }}
 {{ object.keywords }}
 
-{% for concept_field in object.concept_fields.all %}
-	{{ concept_field }}
+{% for cfield in object.concept_fields.all %}
+	{{ cfield }}
 
-	{% with field=concept_field.field %}
-		{% if field.has_choices %}
-			{% for value in field.mapped_values %}
+	{% with datafield=cfield.datafield %}
+		{% if datafield.has_choices %}
+			{% for value in datafield.mapped_values %}
 				{{ value }}
 			{% endfor %}
 		{% endif %}

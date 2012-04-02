@@ -1,7 +1,7 @@
 from optparse import make_option
 from django.core.management.base import NoArgsCommand
 
-from avocado.models import Field
+from avocado.models import DataField
 
 class Command(NoArgsCommand):
     """
@@ -13,12 +13,12 @@ class Command(NoArgsCommand):
 
         Determines if any ``Fields`` are no longer valid. This is
         typically only necessary when a data model change occurs. An orphaned
-        ``Field`` will be marked if they are currently published
+        ``DataField`` will be marked if they are currently published
         (``[P]``).
 
     OPTIONS:
 
-        ``--unpublish`` - unpublishes orphaned ``Field`` if currently
+        ``--unpublish`` - unpublishes orphaned ``DataField`` if currently
         published
 
     """
@@ -49,15 +49,15 @@ class Command(NoArgsCommand):
         unpublish = options.get('unpublish')
         verbosity = options.get('verbosity')
 
-        fields = Field.objects.all()
+        datafields = DataField.objects.all()
 
         unknown_models = []
         unknown_fields = []
 
-        for d in fields:
+        for d in datafields:
             if d.model is None:
                 unknown_models.append(d)
-            elif d.field is None:
+            elif d.datafield is None:
                 unknown_fields.append(d)
 
         if verbosity:

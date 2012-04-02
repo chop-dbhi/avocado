@@ -19,7 +19,7 @@ from avocado.managers import FieldManager, ConceptManager, CategoryManager
 from avocado.formatters import registry as formatters
 from avocado.query.translators import registry as translators
 
-__all__ = ('Category', 'Concept', 'Field')
+__all__ = ('Category', 'Concept', 'DataField')
 
 SITES_APP_INSTALLED = 'django.contrib.sites' in settings.INSTALLED_APPS
 
@@ -73,7 +73,7 @@ class Base(models.Model):
         return plural
 
 
-class Field(Base):
+class DataField(Base):
     """Describes the significance and/or meaning behind some data. In addition,
     it defines the natural key of the Django field that represents the location
     of that data e.g. ``library.book.title``.
@@ -101,6 +101,7 @@ class Field(Base):
     # reference. The underlying table not have a timestamp nor is it optimal
     # to have to query the data for the max `modified` time.
     data_modified = models.DateTimeField(null=True)
+
     # Enables recording where this particular data comes if derived from
     # another data source.
     data_source = models.CharField(max_length=250, null=True, blank=True)
@@ -112,7 +113,7 @@ class Field(Base):
         unique_together = ('app_name', 'model_name', 'field_name')
         ordering = ('name',)
         permissions = (
-            ('view_field', 'Can view field'),
+            ('view_datafield', 'Can view datafield'),
         )
 
     def __unicode__(self):
@@ -151,7 +152,7 @@ class Field(Base):
 
     @property
     def datatype(self):
-        """Returns the datatype of the field this field represents.
+        """Returns the datatype of the field this datafield represents.
 
         By default, it will use the field's internal type, but can be overridden
         by the ``INTERNAL_DATATYPE_MAP`` setting.
@@ -185,7 +186,7 @@ class Field(Base):
         if 'avocado.coded' in settings.INSTALLED_APPS:
             from avocado.coded.models import CodedValue
             if self.enable_choices:
-                return zip(CodedValue.objects.filter(field=self).values_list('value', 'coded'))
+                return zip(CodedValue.objects.filter(datafield=self).values_list('value', 'coded'))
 
     @property
     def mapped_values(self):
@@ -269,7 +270,7 @@ class Concept(Base):
 
     # The associated fields for this concept. fields can be
     # associated with multiple concepts, thus the M2M
-    fields = models.ManyToManyField(Field, through='ConceptField')
+    fields = models.ManyToManyField(DataField, through='ConceptField')
 
     # Certain concepts may not be relevant or appropriate for all
     # sites being deployed. This is primarily for preventing exposure of
@@ -308,8 +309,8 @@ class Concept(Base):
 
 
 class ConceptField(Base):
-    "Through model between Concept and Field relationships."
-    field = models.ForeignKey(Field, related_name='concept_fields')
+    "Through model between Concept and DataField relationships."
+    datafield = models.ForeignKey(DataField, related_name='concept_fields')
     concept = models.ForeignKey(Concept, related_name='concept_fields')
     order = models.FloatField(null=True, db_column='_order')
 
@@ -317,25 +318,25 @@ class ConceptField(Base):
         ordering = ('order',)
 
     def __unicode__(self):
-        return unicode(self.name or self.field.name)
+        return unicode(self.name or self.datafield.name)
 
     def get_plural_name(self):
-        return self.name_plural or self.field.get_plural_name()
+        return self.name_plural or self.datafield.get_plural_name()
 
 
 # Register instance-level cache invalidation handlers
-post_save.connect(post_save_cache, sender=Field)
+post_save.connect(post_save_cache, sender=DataField)
 post_save.connect(post_save_cache, sender=Concept)
 post_save.connect(post_save_cache, sender=Category)
 
-pre_delete.connect(pre_delete_uncache, sender=Field)
+pre_delete.connect(pre_delete_uncache, sender=DataField)
 pre_delete.connect(pre_delete_uncache, sender=Concept)
 pre_delete.connect(pre_delete_uncache, sender=Category)
 
 # If django-reversion is installed, register the models
 if 'reversion' in settings.INSTALLED_APPS:
     import reversion
-    reversion.register(Field)
+    reversion.register(DataField)
     reversion.register(Category)
     reversion.reversion(ConceptField)
     reversion.register(Concept, follow=['concept_fields'])

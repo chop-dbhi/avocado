@@ -30,10 +30,10 @@ class RExporter(BaseExporter):
         factor = '{0}.factor = factor({0},levels=c('.format(data_field)
         level = 'levels({0}.factor)=c('.format(data_field)
 
-        for i, (val, code) in enumerate(field.coded_values):
+        for i, (val, code) in enumerate(datafield.coded_values):
             factor += str(code)
             level += '"{0}"'.format(str(val))
-            if i == len(field.coded_values) - 1:
+            if i == len(datafield.coded_values) - 1:
                 factor += '))\n'
                 level += ')\n'
                 continue
@@ -51,9 +51,9 @@ class RExporter(BaseExporter):
         labels = []       # data labels
 
         for c in self.concepts:
-            cfields = c.concept_fields.select_related('field')
+            cfields = c.concept_fields.select_related('datafield')
             for cfield in cfields:
-                d = cfield.field
+                d = cfield.datafield
                 name = self._format_name(d.field_name)
                 labels.append('attr(data${0}, "label") = "{1}"'.format(name, d.description))
 

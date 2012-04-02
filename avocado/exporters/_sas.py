@@ -41,21 +41,19 @@ class SasExporter(BaseExporter):
             sas_name += '_lg_{0}'.format(self.num_lg_names)
             return sas_name
 
-    def _get_formats(self, sas_name, field):
+    def _get_formats(self, sas_name, datafield):
         """This method creates the sas format and informat lists for
         every variable.
         """
         # get the informat/format
-        if field.datatype == 'string':
-            informat = s_format = '${0}.'.format(field.field.max_length)
+        if datafield.datatype == 'string':
+            informat = s_format = '${0}.'.format(datafield.field.max_length)
         else:
-            s_format = self.sas_format_map[field.datatype]
-            informat = self.sas_informat_map[field.datatype]
-        sas_informat = '\tinformat {0:<10}{1:>10};\n'.format(
-                sas_name, informat)
-        sas_format = '\tformat {0:<10}{1:>10};\n'.format(
-                sas_name, s_format)
+            s_format = self.sas_format_map[datafield.datatype]
+            informat = self.sas_informat_map[datafield.datatype]
 
+        sas_informat = '\tinformat {0:<10}{1:>10};\n'.format(sas_name, informat)
+        sas_format = '\tformat {0:<10}{1:>10};\n'.format(sas_name, s_format)
         return sas_format, sas_informat
 
     def _code_value(self, name, field):
@@ -64,10 +62,11 @@ class SasExporter(BaseExporter):
         """
         value_format = '\tformat {0} {0}_f.;\n'.format(name)
         value = '\tvalue {0}_f '.format(name)
+        values_len = len(datafield.coded_values)
 
-        for i, (val, code) in enumerate(field.coded_values):
+        for i, (val, code) in enumerate(datafield.coded_values):
             value += '{0}="{1}" '.format(code, val)
-            if (i != len(field.coded_values)-1 and (i % 2) == 1 and i != 0):
+            if (i != values_len - 1 and (i % 2) == 1 and i != 0):
                 value += '\n\t\t'
         value += ';\n'
 
@@ -88,31 +87,31 @@ class SasExporter(BaseExporter):
         formats = ''        # sas formats for all fields
 
         for c in self.concepts:
-            cfields = c.concept_fields.select_related('field')
+            cfields = c.concept_fields.select_related('datafield')
             for cfield in cfields:
-                field = cfield.field
-                name = self._format_name(field.field_name)
+                datafield = cfield.datafield
+                name = self._format_name(datafield.field_name)
 
                 # setting up formats/informats
-                sas_form = self._get_formats(name, field)
+                sas_form = self._get_formats(name, datafield)
                 formats += sas_form[0]
                 informats += sas_form[1]
 
                 # add the field names to the input statement
                 inputs += '\t\t' + name
-                if field.datatype == 'string':
+                if datafield.datatype == 'string':
                     inputs += ' $'
                 inputs += '\n'
 
-                # if a field can be coded create a SAS PROC Format statement
+                # if a datafield can be coded create a SAS PROC Format statement
                 # that creates a value dictionary
-                if field.coded_values:
-                   codes = self._code_value(name, field)
+                if datafield.coded_values:
+                   codes = self._code_value(name, datafield)
                    value_formats += codes[0]
                    values += codes[1]
 
                 # construct labels
-                labels += '\tlabel {0}="{1}";\n'.format(name, field.description)
+                labels += '\tlabel {0}="{1}";\n'.format(name, datafield.description)
 
         # Write the SAS File
         script.write(informats + '\n')

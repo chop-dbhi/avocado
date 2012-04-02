@@ -2,7 +2,7 @@ from optparse import make_option
 from django.db.models import (get_model, get_models, get_app, AutoField,
     ForeignKey, OneToOneField, ManyToManyField)
 from django.core.management.base import LabelCommand
-from avocado.models import Field 
+from avocado.models import DataField
 
 class Command(LabelCommand):
     """
@@ -13,26 +13,26 @@ class Command(LabelCommand):
     DESCRIPTION:
 
         Finds all models referenced by the app or model ``labels`` and
-        attempts to create a ``Field`` instance per model field.
-        Any ``Field`` already loaded will not be altered in any way.
+        attempts to create a ``DataField`` instance per model field.
+        Any ``DataField`` already loaded will not be altered in any way.
 
     OPTIONS:
 
-        ``--include-non-editable`` - Create ``Field`` instances for fields marked
+        ``--include-non-editable`` - Create ``DataField`` instances for fields marked
         as not editable (i.e. ``editable=False``).
 
-        ``--include-keys`` - Create ``Field`` instances for primary key
+        ``--include-keys`` - Create ``DataField`` instances for primary key
         and foreign key fields.
 
-        ``--update`` - Updates existing ``Field`` instances with metadata from
+        ``--update`` - Updates existing ``DataField`` instances with metadata from
         model fields. Note this overwrites any descriptive metadata changes made
-        to ``Field`` such as ``name``, ``name_plural``, and ``description``.
+        to ``DataField`` such as ``name``, ``name_plural``, and ``description``.
 
     """
 
     help = '\n'.join([
         'Finds all models in the listed app(s) and attempts to create a',
-        '``Field`` instance per model field. Fields already declared will',
+        '``DataField`` instance per model field. Fields already declared will',
         'not be altered.'
     ])
 
@@ -133,9 +133,9 @@ class Command(LabelCommand):
                 }
 
                 try:
-                    field_obj = Field.objects.get(**lookup)
-                except Field.DoesNotExist:
-                    field_obj = Field(published=False, **kwargs)
+                    field_obj = DataField.objects.get(**lookup)
+                except DataField.DoesNotExist:
+                    field_obj = DataField(published=False, **kwargs)
                     new_count += 1
 
                 if field_obj.pk:

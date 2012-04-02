@@ -39,7 +39,7 @@ Two examples as follows:
     }
 """
 from avocado.modeltree import DEFAULT_MODELTREE_ALIAS
-from avocado.models import Field, Criterion, CriterionField
+from avocado.models import DataField, Criterion, CriterionField
 
 AND = 'AND'
 OR = 'OR'
@@ -76,7 +76,7 @@ class Condition(Node):
     @property
     def _meta(self):
         if not hasattr(self, '__meta'):
-            self.__meta = self.field.translate(self.operator, self.value,
+            self.__meta = self.datafield.translate(self.operator, self.value,
                 using=self.using, **self.context)
         return self.__meta
 
@@ -96,7 +96,7 @@ class Condition(Node):
     @property
     def field(self):
         if not hasattr(self, '_field'):
-            self._field = Field.objects.get(id=self.id)
+            self._field = DataField.objects.get(id=self.id)
         return self._field
 
     @property

@@ -2,22 +2,22 @@ import os
 import unittest
 from avocado.tests import models
 from avocado.tests.base import BaseTestCase
-from avocado.models import Field, Concept, ConceptField
+from avocado.models import DataField, Concept, ConceptField
 from avocado import exporters
 
 class ExportTestCase(BaseTestCase):
     def setUp(self):
         self.query = models.Employee.objects.all()
 
-        first_name_field = Field.objects.get_by_natural_key('tests', 'employee', 'first_name')
+        first_name_field = DataField.objects.get_by_natural_key('tests', 'employee', 'first_name')
         first_name_field.description = 'First Name'
-        last_name_field = Field.objects.get_by_natural_key('tests', 'employee', 'last_name')
+        last_name_field = DataField.objects.get_by_natural_key('tests', 'employee', 'last_name')
         last_name_field.description = 'Last Name'
-        title_field = Field.objects.get_by_natural_key('tests', 'title', 'name')
+        title_field = DataField.objects.get_by_natural_key('tests', 'title', 'name')
         title_field.description = 'Employee Title'
-        salary_field = Field.objects.get_by_natural_key('tests', 'title', 'salary')
+        salary_field = DataField.objects.get_by_natural_key('tests', 'title', 'salary')
         salary_field.description = 'Salary'
-        is_manage_field = Field.objects.get_by_natural_key('tests', 'employee', 'is_manager')
+        is_manage_field = DataField.objects.get_by_natural_key('tests', 'employee', 'is_manager')
         is_manage_field.description = 'Is a Manager?'
 
         [x.save() for x in [first_name_field, last_name_field, title_field,
@@ -28,11 +28,11 @@ class ExportTestCase(BaseTestCase):
         employee_concept.description = 'A Single Employee'
         employee_concept.save()
 
-        ConceptField(concept=employee_concept, field=first_name_field, order=1).save()
-        ConceptField(concept=employee_concept, field=last_name_field, order=2).save()
-        ConceptField(concept=employee_concept, field=is_manage_field, order=3).save()
-        ConceptField(concept=employee_concept, field=title_field, order=4).save()
-        ConceptField(concept=employee_concept, field=salary_field, order=5).save()
+        ConceptField(concept=employee_concept, datafield=first_name_field, order=1).save()
+        ConceptField(concept=employee_concept, datafield=last_name_field, order=2).save()
+        ConceptField(concept=employee_concept, datafield=is_manage_field, order=3).save()
+        ConceptField(concept=employee_concept, datafield=title_field, order=4).save()
+        ConceptField(concept=employee_concept, datafield=salary_field, order=5).save()
 
         self.concepts = [employee_concept]
 
