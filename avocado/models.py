@@ -101,6 +101,9 @@ class Field(Base):
     # reference. The underlying table not have a timestamp nor is it optimal
     # to have to query the data for the max `modified` time.
     data_modified = models.DateTimeField(null=True)
+    # Enables recording where this particular data comes if derived from
+    # another data source.
+    data_source = models.CharField(max_length=250, null=True, blank=True)
 
     objects = FieldManager()
 
