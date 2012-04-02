@@ -95,7 +95,7 @@ class Translator(object):
             return Q()
 
         from avocado.models import Field
-        pk_name = element.model._meta.pk.name
+        pk_name = field.model._meta.pk.name
 
         # instantiate a new object to utilize the shortcut methods
         _field = Field(app_name=field.app_name, model_name=field.model_name, field_name=pk_name)
