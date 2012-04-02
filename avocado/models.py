@@ -114,7 +114,7 @@ class Field(Base):
 
     def __unicode__(self):
         if self.name:
-            return u'%s [%s]' % (self.name, self.model_name)
+            return u'{0} [{1}]'.format(self.name, self.model_name)
         return u'.'.join([self.app_name, self.model_name, self.field_name])
 
     # The natural key should be used any time fields are being exported

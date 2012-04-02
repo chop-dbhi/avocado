@@ -1,4 +1,4 @@
-# a mapping between model field internal datatypes and sensible
+# A mapping between model field internal datatypes and sensible
 # client-friendly datatypes. in virtually all cases, client programs
 # only need to differentiate between high-level types like number,
 # string, and boolean. finer separation be may desired to alter the
@@ -28,7 +28,7 @@ INTERNAL_DATATYPE_MAP = {
     'url': 'string',
 }
 
-# a mapping between the client-friendly datatypes and sensible operators
+# A mapping between the client-friendly datatypes and sensible operators
 # that will be used to validate a query condition. in many cases, these types
 # support more operators than what are defined, but are not include because
 # they are not commonly used
@@ -41,7 +41,7 @@ DATATYPE_OPERATOR_MAP = {
     'time': ('exact', '-exact', 'in', '-in', 'lt', 'lte', 'gt', 'gte', 'range'),
 }
 
-# contains a mapping from raw data values to a corresponding human
+# Contains a mapping from raw data values to a corresponding human
 # readable representation. this will only ever be applicable when values
 # are being presented to client programs as potential choices
 DATA_CHOICES_MAP = {
@@ -50,7 +50,7 @@ DATA_CHOICES_MAP = {
     None: 'Null',
 }
 
-# a general mapping of formfield overrides for all subclasses. the mapping is
+# A general mapping of formfield overrides for all subclasses. the mapping is
 # similar to the INTERNAL_DATATYPE_MAP, but the values reference internal
 # formfield classes, that is integer -> IntegerField. in many cases, the
 # validation performed may need to be a bit less restrictive than what the

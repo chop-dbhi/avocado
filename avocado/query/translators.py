@@ -38,12 +38,11 @@ class Translator(object):
 
         # No operator is registered
         if operator is None:
-            raise ValueError, '"%s" is not a valid operator' % uid
+            raise ValueError('"{0}" is not a valid operator'.format(uid))
 
         # Ensure the operator is allowed
         if operator.uid not in allowed_operators:
-            raise OperatorNotPermitted('operator "%s" cannot be used for '
-                'this translator' % operator)
+            raise OperatorNotPermitted('operator "{0}" cannot be used for this translator'.format(operator))
 
         return operator
 
@@ -96,12 +95,10 @@ class Translator(object):
             return Q()
 
         from avocado.models import Field
-        name = field.model._meta.pk.name
+        pk_name = element.model._meta.pk.name
 
         # instantiate a new object to utilize the shortcut methods
-        _field = Field(app_name=field.app_name,
-            model_name=field.model_name, field_name=name)
-
+        _field = Field(app_name=field.app_name, model_name=field.model_name, field_name=pk_name)
         key = _field.query_string('isnull', using=using)
 
         return Q(**{key: False})
