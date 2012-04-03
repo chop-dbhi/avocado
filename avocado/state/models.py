@@ -1,7 +1,7 @@
 import jsonfield
 from django.db import models
 from django.contrib.auth.models import User
-from avocado.models import Base
+from avocado.core.models import Base
 from avocado.managers import PublishedManager
 
 class BaseUser(Base):
@@ -16,6 +16,9 @@ class DataContext(BaseUser):
 
     objects = PublishedManager()
 
+    class Meta(object):
+        app_label = 'avocado'
+
 
 class DataView(BaseUser):
     """JSON object representing a means of rendering one or more data concepts
@@ -27,6 +30,9 @@ class DataView(BaseUser):
 
     objects = PublishedManager()
 
+    class Meta(object):
+        app_label = 'avocado'
+
 
 class DataContextView(BaseUser):
     """Connects a data context and view together as one unit. This enables
@@ -35,7 +41,10 @@ class DataContextView(BaseUser):
     Note, the context and view cannot be _shared_ with any other contextview.
     This is to prevent potential silent updates between contextivew.
     """
-    context = models.OneToOneField(DataContext, related_name='contextview')
     view = models.OneToOneField(DataView, related_name='contextview')
+    context = models.OneToOneField(DataContext, related_name='contextview')
 
     objects = PublishedManager()
+
+    class Meta(object):
+        app_label = 'avocado'
