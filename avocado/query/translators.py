@@ -10,6 +10,7 @@ DEFAULT_OPERATOR = 'exact'
 DATATYPE_OPERATOR_MAP = settings.DATATYPE_OPERATOR_MAP
 INTERNAL_DATATYPE_FORMFIELDS = settings.INTERNAL_DATATYPE_FORMFIELDS
 
+
 class OperatorNotPermitted(Exception):
     pass
 
@@ -170,17 +171,17 @@ class Translator(object):
 
         return condition
 
-    def validate(self, datafield, operator, value, **kwargs):
+    def validate(self, datafield, operator, value, using, **kwargs):
         # ensures the operator is valid for the 
-        operator = self._validate_operator(datafield, operator)
-        value = self._validate_value(datafield, value)
+        operator = self._validate_operator(datafield, operator, **kwargs)
+        value = self._validate_value(datafield, value, **kwargs)
 
         if not operator.is_valid(value):
             raise ValidationError('"{0}" is not valid for the operator "{1}"'.format(value, operator))
 
         return operator, value
 
-    def translate(self, datafield, roperator, rvalue, using, **context):
+    def translate(self, datafield, roperator, rvalue, using, **kwargs):
         """Returns two types of queryset modifiers including:
             - the raw operator and value supplied
             - the validated and cleaned data
@@ -190,7 +191,7 @@ class Translator(object):
         It should be noted that no checks are performed to prevent the same
         name being used for annotations.
         """
-        operator, value = self.validate(datafield, roperator, rvalue, **context)
+        operator, value = self.validate(datafield, roperator, rvalue, using, **kwargs)
         condition = self._condition(datafield, operator, value, using)
 
         meta = {
