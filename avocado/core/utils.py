@@ -12,3 +12,10 @@ def get_form_class(name):
             name = name + 'Field'
         module = forms
     return getattr(module, name)
+
+def get_internal_type(field):
+    "Get model field internal type with 'field' off."
+    datatype = field.get_internal_type().lower()
+    if datatype.endswith('field'):
+        datatype = datatype[:-5]
+    return datatype

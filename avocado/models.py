@@ -11,8 +11,9 @@ from django.utils.encoding import smart_unicode
 from django.db.models.fields import FieldDoesNotExist
 from django.db.models.signals import post_save, pre_delete
 from modeltree.tree import MODELTREE_DEFAULT_ALIAS, trees
-from avocado.core import binning
 from avocado.core.utils import get_form_class
+from avocado.core import binning, utils
+from avocado.core.models import Base, BasePlural
 from avocado.core.cache import post_save_cache, pre_delete_uncache, cached_property
 from avocado.conf import settings as _settings
 from avocado.managers import FieldManager, ConceptManager, CategoryManager
@@ -22,85 +23,8 @@ from avocado.query.translators import registry as translators
 __all__ = ('Category', 'DataConcept', 'DataField')
 
 SITES_APP_INSTALLED = 'django.contrib.sites' in settings.INSTALLED_APPS
-
-class Base(models.Model):
-    """Base abstract class containing general metadata.
-
-        ``name`` - The name _should_ be unique in practice, but is not enforced
-        since in certain cases the name differs relative to the model and/or
-        concepts these fields are asssociated with.
-
-        ``description`` - Will tend to be exposed in client applications since
-        it provides context to the end-users.
-
-        ``keywords`` - Additional extraneous text that cannot be derived from the
-        name, description or data itself. This is solely used for search indexing.
-    """
-    # Descriptor-based fields
-    name = models.CharField(max_length=50)
-    description = models.TextField(null=True, blank=True)
-    keywords = models.CharField(max_length=100, null=True, blank=True)
-
-    # Availability control mechanisms
-    # Rather than deleting objects, they can be archived
-    archived = models.BooleanField(default=False)
-    # When `published` is false, it is globally not accessible.
-    published = models.BooleanField(default=False)
-
-    created = models.DateTimeField(auto_now_add=True)
-    modified = models.DateTimeField(auto_now=True)
-
-    class Meta(object):
-        abstract = True
-
-    def __unicode__(self):
-        return unicode(self.name)
-
-    @property
-    def descriptors(self):
-        return {
-            'name': self.name,
-            'description': self.description,
-            'keywords': self.keywords,
-        }
-
-
-class BasePlural(Base):
-    """Adds field for specifying the plural form of the name.
-
-        ``name_plural`` - Same as ``name``, but the plural form. If not provided,
-        an 's' will appended to the end of the ``name``.
-    """
-    name_plural = models.CharField(max_length=60, null=True, blank=True)
-
-    class Meta(object):
-        abstract = True
-
-    @property
-    def descriptors(self):
-        return {
-            'name': self.name,
-            'name_plural': self.name_plural,
-            'description': self.description,
-            'keywords': self.keywords,
-        }
-
-    def get_name_plural(self):
-        if self.name_plural:
-            plural = self.name_plural
-        elif not self.name.endswith('s'):
-            plural = self.name + 's'
-        else:
-            plural = self.name
-        return plural
-
-
-def _get_internal_type(field):
-    "Get model field internal type with 'field' off."
-    datatype = field.get_internal_type().lower()
-    if datatype.endswith('field'):
-        datatype = datatype[:-5]
-    return datatype
+INTERNAL_DATATYPE_MAP = _settings.INTERNAL_DATATYPE_MAP
+DATA_CHOICES_MAP = _settings.DATA_CHOICES_MAP
 
 class DataField(BasePlural):
     """Describes the significance and/or meaning behind some data. In addition,
@@ -176,9 +100,9 @@ class DataField(BasePlural):
         By default, it will use the field's internal type, but can be overridden
         by the ``INTERNAL_DATATYPE_MAP`` setting.
         """
-        datatype = _get_internal_type(self.field)
+        datatype = utils.get_internal_type(self.field)
         # if a mapping exists, replace the datatype
-        return _settings.INTERNAL_DATATYPE_MAP.get(datatype, datatype)
+        return INTERNAL_DATATYPE_MAP.get(datatype, datatype)
 
     # Data-related Cached Properties
     # These may be cached until the underlying data changes
@@ -211,7 +135,7 @@ class DataField(BasePlural):
         if self.enable_choices:
             # Iterate over each value and attempt to get the mapped choice
             # other fallback to the value itself
-            return map(lambda x: smart_unicode(_settings.DATA_CHOICES_MAP.get(x, x)),
+            return map(lambda x: smart_unicode(DATA_CHOICES_MAP.get(x, x)),
                 self.values)
 
     @property
