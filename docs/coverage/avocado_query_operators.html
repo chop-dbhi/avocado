@@ -5,7 +5,7 @@
     
     
     <meta http-equiv='X-UA-Compatible' content='IE=emulateIE7' />
-    <title>Coverage for avocado/query/operators: 99%</title>
+    <title>Coverage for avocado/query/operators: 100%</title>
     <link rel='stylesheet' href='style.css' type='text/css'>
     <script type='text/javascript' src='jquery-1.4.3.min.js'></script>
     <script type='text/javascript' src='jquery.hotkeys.js'></script>
@@ -20,16 +20,16 @@
 <div id='header'>
     <div class='content'>
         <h1>Coverage for <b>avocado/query/operators</b> :
-            <span class='pc_cov'>99%</span>
+            <span class='pc_cov'>100%</span>
         </h1>
         <img id='keyboard_icon' src='keybd_closed.png'>
         <h2 class='stats'>
             160 statements
-            <span class='run hide_run shortkey_r' onclick='coverage.toggle_lines(this, "run")'>159 run</span>
-            <span class='mis shortkey_m' onclick='coverage.toggle_lines(this, "mis")'>1 missing</span>
+            <span class='run hide_run shortkey_r' onclick='coverage.toggle_lines(this, "run")'>160 run</span>
+            <span class='mis shortkey_m' onclick='coverage.toggle_lines(this, "mis")'>0 missing</span>
             <span class='exc shortkey_x' onclick='coverage.toggle_lines(this, "exc")'>8 excluded</span>
             
-                <span class='par run hide_run shortkey_p' onclick='coverage.toggle_lines(this, "par")'>1 partial</span>
+                <span class='par run hide_run shortkey_p' onclick='coverage.toggle_lines(this, "par")'>0 partial</span>
             
         </h2>
     </div>
@@ -189,9 +189,9 @@
 <p id='n125' class='pln'><a href='#n125'>125</a></p>
 <p id='n126' class='stm run hide_run'><a href='#n126'>126</a></p>
 <p id='n127' class='pln'><a href='#n127'>127</a></p>
-<p id='n128' class='stm par run hide_run'><a href='#n128'>128</a></p>
+<p id='n128' class='stm run hide_run'><a href='#n128'>128</a></p>
 <p id='n129' class='stm run hide_run'><a href='#n129'>129</a></p>
-<p id='n130' class='stm mis'><a href='#n130'>130</a></p>
+<p id='n130' class='stm run hide_run'><a href='#n130'>130</a></p>
 <p id='n131' class='pln'><a href='#n131'>131</a></p>
 <p id='n132' class='pln'><a href='#n132'>132</a></p>
 <p id='n133' class='pln'><a href='#n133'>133</a></p>
@@ -455,9 +455,9 @@
 <p id='t125' class='pln'><span class='strut'>&nbsp;</span></p>
 <p id='t126' class='stm run hide_run'>&nbsp; &nbsp; <span class='key'>def</span> <span class='nam'>text</span><span class='op'>(</span><span class='nam'>self</span><span class='op'>,</span> <span class='nam'>value</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
 <p id='t127' class='pln'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='com'># Easier to read &#39;is False&#39;, rather than &#39;is not True&#39;</span><span class='strut'>&nbsp;</span></p>
-<p id='t128' class='stm par run hide_run'><span class='annotate' title='no jump to this line number'>130</span>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>if</span> <span class='nam'>isinstance</span><span class='op'>(</span><span class='nam'>value</span><span class='op'>,</span> <span class='nam'>bool</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
+<p id='t128' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>if</span> <span class='nam'>isinstance</span><span class='op'>(</span><span class='nam'>value</span><span class='op'>,</span> <span class='nam'>bool</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
 <p id='t129' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>return</span> <span class='str'>u&#39;is {}&#39;</span><span class='op'>.</span><span class='nam'>format</span><span class='op'>(</span><span class='key'>not</span> <span class='nam'>value</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
-<p id='t130' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>return</span> <span class='nam'>super</span><span class='op'>(</span><span class='nam'>NotExact</span><span class='op'>,</span> <span class='nam'>self</span><span class='op'>)</span><span class='op'>.</span><span class='nam'>text</span><span class='op'>(</span><span class='nam'>value</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
+<p id='t130' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>return</span> <span class='nam'>super</span><span class='op'>(</span><span class='nam'>NotExact</span><span class='op'>,</span> <span class='nam'>self</span><span class='op'>)</span><span class='op'>.</span><span class='nam'>text</span><span class='op'>(</span><span class='nam'>value</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t131' class='pln'><span class='strut'>&nbsp;</span></p>
 <p id='t132' class='pln'><span class='strut'>&nbsp;</span></p>
 <p id='t133' class='pln'><span class='com'># String-specific operators</span><span class='strut'>&nbsp;</span></p>

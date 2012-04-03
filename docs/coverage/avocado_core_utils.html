@@ -5,7 +5,7 @@
     
     
     <meta http-equiv='X-UA-Compatible' content='IE=emulateIE7' />
-    <title>Coverage for avocado/core/utils: 64%</title>
+    <title>Coverage for avocado/core/utils: 71%</title>
     <link rel='stylesheet' href='style.css' type='text/css'>
     <script type='text/javascript' src='jquery-1.4.3.min.js'></script>
     <script type='text/javascript' src='jquery.hotkeys.js'></script>
@@ -20,16 +20,16 @@
 <div id='header'>
     <div class='content'>
         <h1>Coverage for <b>avocado/core/utils</b> :
-            <span class='pc_cov'>64%</span>
+            <span class='pc_cov'>71%</span>
         </h1>
         <img id='keyboard_icon' src='keybd_closed.png'>
         <h2 class='stats'>
-            10 statements
-            <span class='run hide_run shortkey_r' onclick='coverage.toggle_lines(this, "run")'>7 run</span>
+            15 statements
+            <span class='run hide_run shortkey_r' onclick='coverage.toggle_lines(this, "run")'>12 run</span>
             <span class='mis shortkey_m' onclick='coverage.toggle_lines(this, "mis")'>3 missing</span>
             <span class='exc shortkey_x' onclick='coverage.toggle_lines(this, "exc")'>0 excluded</span>
             
-                <span class='par run hide_run shortkey_p' onclick='coverage.toggle_lines(this, "par")'>2 partial</span>
+                <span class='par run hide_run shortkey_p' onclick='coverage.toggle_lines(this, "par")'>3 partial</span>
             
         </h2>
     </div>
@@ -76,6 +76,13 @@
 <p id='n12' class='stm mis'><a href='#n12'>12</a></p>
 <p id='n13' class='stm run hide_run'><a href='#n13'>13</a></p>
 <p id='n14' class='stm run hide_run'><a href='#n14'>14</a></p>
+<p id='n15' class='pln'><a href='#n15'>15</a></p>
+<p id='n16' class='stm run hide_run'><a href='#n16'>16</a></p>
+<p id='n17' class='pln'><a href='#n17'>17</a></p>
+<p id='n18' class='stm run hide_run'><a href='#n18'>18</a></p>
+<p id='n19' class='stm par run hide_run'><a href='#n19'>19</a></p>
+<p id='n20' class='stm run hide_run'><a href='#n20'>20</a></p>
+<p id='n21' class='stm run hide_run'><a href='#n21'>21</a></p>
                 
             </td>
             <td class='text' valign='top'>
@@ -93,6 +100,13 @@
 <p id='t12' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>name</span> <span class='op'>=</span> <span class='nam'>name</span> <span class='op'>+</span> <span class='str'>&#39;Field&#39;</span><span class='strut'>&nbsp;</span></p>
 <p id='t13' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>module</span> <span class='op'>=</span> <span class='nam'>forms</span><span class='strut'>&nbsp;</span></p>
 <p id='t14' class='stm run hide_run'>&nbsp; &nbsp; <span class='key'>return</span> <span class='nam'>getattr</span><span class='op'>(</span><span class='nam'>module</span><span class='op'>,</span> <span class='nam'>name</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
+<p id='t15' class='pln'><span class='strut'>&nbsp;</span></p>
+<p id='t16' class='stm run hide_run'><span class='key'>def</span> <span class='nam'>get_internal_type</span><span class='op'>(</span><span class='nam'>field</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
+<p id='t17' class='pln'>&nbsp; &nbsp; <span class='str'>&quot;Get model field internal type with &#39;field&#39; off.&quot;</span><span class='strut'>&nbsp;</span></p>
+<p id='t18' class='stm run hide_run'>&nbsp; &nbsp; <span class='nam'>datatype</span> <span class='op'>=</span> <span class='nam'>field</span><span class='op'>.</span><span class='nam'>get_internal_type</span><span class='op'>(</span><span class='op'>)</span><span class='op'>.</span><span class='nam'>lower</span><span class='op'>(</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
+<p id='t19' class='stm par run hide_run'><span class='annotate' title='no jump to this line number'>21</span>&nbsp; &nbsp; <span class='key'>if</span> <span class='nam'>datatype</span><span class='op'>.</span><span class='nam'>endswith</span><span class='op'>(</span><span class='str'>&#39;field&#39;</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
+<p id='t20' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>datatype</span> <span class='op'>=</span> <span class='nam'>datatype</span><span class='op'>[</span><span class='op'>:</span><span class='op'>-</span><span class='num'>5</span><span class='op'>]</span><span class='strut'>&nbsp;</span></p>
+<p id='t21' class='stm run hide_run'>&nbsp; &nbsp; <span class='key'>return</span> <span class='nam'>datatype</span><span class='strut'>&nbsp;</span></p>
                 
             </td>
         </tr>
