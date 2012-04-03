@@ -1,12 +1,14 @@
 from django.db.models import Q
 from django.core.exceptions import ValidationError
 
-from avocado.query.operators import registry as operators
 from avocado.core import loader
 from avocado.conf import settings
+from avocado.core.utils import get_form_class
+from avocado.query.operators import registry as operators
 
 DEFAULT_OPERATOR = 'exact'
 DATATYPE_OPERATOR_MAP = settings.DATATYPE_OPERATOR_MAP
+INTERNAL_DATATYPE_FORMFIELDS = settings.INTERNAL_DATATYPE_FORMFIELDS
 
 class OperatorNotPermitted(Exception):
     pass
@@ -23,9 +25,6 @@ class Translator(object):
     # Override of the field's field's default formfield class to be
     # used for validation. this is usually never necessary to override
     form_class = None
-
-    def __call__(self, *args, **kwargs):
-        return self.translate(*args, **kwargs)
 
     def _validate_operator(self, datafield, uid, **kwargs):
         # Determine list of allowed operators
@@ -47,10 +46,23 @@ class Translator(object):
         return operator
 
     def _validate_value(self, datafield, value, **kwargs):
-        if self.form_class:
-            kwargs.setdefault('form_class', self.form_class)
+        # If a form class is not specified, check to see if there is a custom
+        # form_class specified for this datatype or if this translator has
+        # one defined
+        if 'form_class' not in kwargs:
+            datatype = datafield.datatype
+            if self.form_class:
+                kwargs['form_class'] = self.form_class
+            elif datatype in INTERNAL_DATATYPE_FORMFIELDS:
+                name = INTERNAL_DATATYPE_FORMFIELDS[datatype]
+                kwargs['form_class'] = get_form_class(name)
 
-        # TODO since None is considered an empty value by the django validators
+        # If choices are enabled for this datafield, ensure a select multiple
+        # is used by default.
+        if datafield.enable_choices and 'widget' not in kwargs:
+            kwargs['widget'] = forms.SelectMultiple(choices=datafield.choices)
+
+        # Since None is considered an empty value by the django validators
         # ``required`` has to be set to False to not raise a ValidationError
         # saying the field is required. There may be a need to more explicitly
         # check to see if the value be passed is only None and not any of the
@@ -58,7 +70,8 @@ class Translator(object):
         if datafield.field.null:
             kwargs['required'] = False
 
-        formfield = datafield.formfield(**kwargs)
+        # Get the default formfield for the model field
+        formfield = datafield.field.formfield(**kwargs)
 
         # special case for ``None`` values since all form fields seem to handle
         # the conversion differently. simply ignore the cleaning if ``None``,
@@ -163,8 +176,7 @@ class Translator(object):
         value = self._validate_value(datafield, value)
 
         if not operator.is_valid(value):
-            raise ValidationError('"%s" is not valid for the operator "%s"' %
-                (value, operator))
+            raise ValidationError('"{0}" is not valid for the operator "{1}"'.format(value, operator))
 
         return operator, value
 

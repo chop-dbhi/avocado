@@ -61,5 +61,8 @@ INTERNAL_DATATYPE_FORMFIELDS = {
     'positiveinteger': 'FloatField',
     'positivesmallinteger': 'FloatField',
     'smallinteger': 'FloatField',
+
+    # Generic datatypes mapped from above
+    'number': 'FloatField',
 }
 

@@ -11,7 +11,6 @@ from django.utils.encoding import smart_unicode
 from django.db.models.fields import FieldDoesNotExist
 from django.db.models.signals import post_save, pre_delete
 from modeltree.tree import MODELTREE_DEFAULT_ALIAS, trees
-from avocado.core.utils import get_form_class
 from avocado.core import binning, utils
 from avocado.core.models import Base, BasePlural
 from avocado.core.cache import post_save_cache, pre_delete_uncache, cached_property
@@ -152,29 +151,12 @@ class DataField(BasePlural):
     def translate(self, operator=None, value=None, using=MODELTREE_DEFAULT_ALIAS, **context):
         "Convenince method for performing a translation on a query condition."
         trans = translators[self.translator]
-        return trans(self, operator, value, using, **context)
+        return trans.translate(self, operator, value, using, **context)
 
-    def formfield(self, **kwargs):
-        """Returns the default formfield class for the represented field
-        instance in addition to a few helper arguments for the constructor.
-        """
-        # if a form class is not specified, check to see if there is a custom
-        # form_class specified for this datatype
-        if not kwargs.get('form_class', None):
-            datatype = _get_internal_type(self.field)
-
-            if datatype in _settings.INTERNAL_DATATYPE_FORMFIELDS:
-                name = _settings.INTERNAL_DATATYPE_FORMFIELDS[datatype]
-                kwargs['form_class'] = get_form_class(name)
-
-        # define default arguments for the formfield class constructor
-        kwargs.setdefault('label', self.name.title())
-
-        if self.enable_choices and 'widget' not in kwargs:
-            kwargs['widget'] = forms.SelectMultiple(choices=self.choices)
-
-        # get the default formfield for the model field
-        return self.field.formfield(**kwargs)
+    def validate(self, operator=None, value=None, using=MODELTREE_DEFAULT_ALIAS, **context):
+        "Convenince method for performing a translation on a query condition."
+        trans = translators[self.translator]
+        return trans.validate(self, operator, value, using, **context)
 
 
 class Category(Base):
