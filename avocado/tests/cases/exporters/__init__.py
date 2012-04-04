@@ -2,7 +2,7 @@ import os
 import unittest
 from avocado.tests import models
 from avocado.tests.base import BaseTestCase
-from avocado.models import DataField, DataConcept, ConceptField
+from avocado.models import DataField, DataConcept, DataConceptField
 from avocado import exporters
 
 class ExportTestCase(BaseTestCase):
@@ -28,11 +28,11 @@ class ExportTestCase(BaseTestCase):
         employee_concept.description = 'A Single Employee'
         employee_concept.save()
 
-        ConceptField(concept=employee_concept, datafield=first_name_field, order=1).save()
-        ConceptField(concept=employee_concept, datafield=last_name_field, order=2).save()
-        ConceptField(concept=employee_concept, datafield=is_manage_field, order=3).save()
-        ConceptField(concept=employee_concept, datafield=title_field, order=4).save()
-        ConceptField(concept=employee_concept, datafield=salary_field, order=5).save()
+        DataConceptField(concept=employee_concept, field=first_name_field, order=1).save()
+        DataConceptField(concept=employee_concept, field=last_name_field, order=2).save()
+        DataConceptField(concept=employee_concept, field=is_manage_field, order=3).save()
+        DataConceptField(concept=employee_concept, field=title_field, order=4).save()
+        DataConceptField(concept=employee_concept, field=salary_field, order=5).save()
 
         self.concepts = [employee_concept]
 

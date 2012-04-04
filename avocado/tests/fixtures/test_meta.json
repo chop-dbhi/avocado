@@ -188,7 +188,7 @@
     },
     {
         "pk": 1,
-        "model": "avocado.category",
+        "model": "avocado.datacategory",
         "fields": {
             "order": 0,
             "name": "Employee",
@@ -201,7 +201,7 @@
     },
     {
         "pk": 2,
-        "model": "avocado.category",
+        "model": "avocado.datacategory",
         "fields": {
             "order": 1,
             "name": "Project",
@@ -214,7 +214,7 @@
     },
     {
         "pk": 3,
-        "model": "avocado.category",
+        "model": "avocado.datacategory",
         "fields": {
             "order": 2,
             "name": "Meeting",

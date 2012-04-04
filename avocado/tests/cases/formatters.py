@@ -1,6 +1,6 @@
 from avocado.tests.base import BaseTestCase
 from avocado.formatters import Formatter
-from avocado.models import DataField, DataConcept, ConceptField
+from avocado.models import DataField, DataConcept, DataConceptField
 
 try:
     from collections import OrderedDict
@@ -18,9 +18,9 @@ class FormatterTestCase(BaseTestCase):
         self.concept = concept = DataConcept(name='Title')
         concept.save()
 
-        ConceptField(concept=concept, datafield=name_field, order=1).save()
-        ConceptField(concept=concept, datafield=salary_field, order=2).save()
-        ConceptField(concept=concept, datafield=boss_field, order=3).save()
+        DataConceptField(concept=concept, field=name_field, order=1).save()
+        DataConceptField(concept=concept, field=salary_field, order=2).save()
+        DataConceptField(concept=concept, field=boss_field, order=3).save()
 
         self.values = ['CEO', 100000, True]
         self.f = Formatter(concept)

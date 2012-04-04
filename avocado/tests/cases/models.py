@@ -4,9 +4,9 @@ from django.conf import settings
 from django.core import management
 from avocado.tests.base import BaseTestCase
 
-__all__ = ('FieldTestCase', 'ConceptTestCase', 'CategoryTestCase')
+__all__ = ('DataFieldTestCase', 'DataConceptTestCase', 'DataCategoryTestCase')
 
-class FieldTestCase(BaseTestCase):
+class DataFieldTestCase(BaseTestCase):
 
     def test_boolean(self):
         self.assertTrue(self.is_manager.model)
@@ -24,10 +24,10 @@ class FieldTestCase(BaseTestCase):
         self.assertEqual(self.first_name.datatype, 'string')
 
 
-class ConceptTestCase(BaseTestCase):
+class DataConceptTestCase(BaseTestCase):
     def test_search(self):
         management.call_command('rebuild_index', interactive=False)
 
 
-class CategoryTestCase(BaseTestCase):
+class DataCategoryTestCase(BaseTestCase):
     pass

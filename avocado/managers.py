@@ -25,7 +25,6 @@ class FieldManager(PublishedManager):
 
 
 class ConceptManager(PublishedManager):
-
     def published(self):
         queryset = self.get_query_set()
 
@@ -44,7 +43,7 @@ class ConceptManager(PublishedManager):
         return published.exclude(pk__in=shadowed).distinct()
 
     @transaction.commit_on_success
-    def create_from_field(self, datafield, save=False, **kwargs):
+    def create_from_field(self, datafield, save=True, **kwargs):
         """Derives a DataConcept from this DataField's descriptors. Additional
         keyword arguments can be passed in to customize the new DataConcept object.
         The DataConcept can also be optionally saved by setting the ``save`` flag.
@@ -55,12 +54,12 @@ class ConceptManager(PublishedManager):
         concept = self.model(**kwargs)
 
         if save:
-            from avocado.models import ConceptField
+            from avocado.models import DataConceptField
             concept.save()
-            cfield = ConceptField(datafield=datafield, concept=concept)
+            cfield = DataConceptField(field=datafield, concept=concept)
             concept.concept_fields.add(cfield)
         return concept
 
 
-class CategoryManager(PublishedManager):
+class DataCategoryManager(PublishedManager):
     pass

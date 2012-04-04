@@ -53,12 +53,12 @@ class RExporter(BaseExporter):
         for c in self.concepts:
             cfields = c.concept_fields.select_related('datafield')
             for cfield in cfields:
-                d = cfield.datafield
-                name = self._format_name(d.field_name)
-                labels.append('attr(data${0}, "label") = "{1}"'.format(name, d.description))
+                datafield = cfield.field
+                name = self._format_name(datafield.field_name)
+                labels.append('attr(data${0}, "label") = "{1}"'.format(name, datafield.description))
 
-                if d.coded_values:
-                    codes = self._code_value(name, d)
+                if datafield.coded_values:
+                    codes = self._code_value(name, datafield)
                     factors.append(codes[0])
                     levels.append(codes[1])
 

@@ -15,11 +15,11 @@ from avocado.core import binning, utils
 from avocado.core.models import Base, BasePlural
 from avocado.core.cache import post_save_cache, pre_delete_uncache, cached_property
 from avocado.conf import settings as _settings
-from avocado.managers import FieldManager, ConceptManager, CategoryManager
+from avocado.managers import FieldManager, ConceptManager, DataCategoryManager
 from avocado.formatters import registry as formatters
 from avocado.query.translators import registry as translators
 
-__all__ = ('Category', 'DataConcept', 'DataField')
+__all__ = ('DataCategory', 'DataConcept', 'DataField')
 
 SITES_APP_INSTALLED = 'django.contrib.sites' in settings.INSTALLED_APPS
 INTERNAL_DATATYPE_MAP = _settings.INTERNAL_DATATYPE_MAP
@@ -159,10 +159,11 @@ class DataField(BasePlural):
         return trans.validate(self, operator, value, using, **context)
 
 
-class Category(Base):
-    "A high-level organization for concepts."
-    # A reference to a parent Category for hierarchical categories.
-    parent = models.ForeignKey('self', null=True, related_name='children')
+class DataCategory(Base):
+    "A high-level organization for data concepts."
+    # A reference to a parent for hierarchical categories
+    parent = models.ForeignKey('self', null=True, related_name='children',
+            blank=True)
 
     # Certain whole categories may not be relevant or appropriate for all
     # sites being deployed. If a category is not accessible by a certain site,
@@ -170,12 +171,13 @@ class Category(Base):
     if SITES_APP_INSTALLED:
         sites = models.ManyToManyField(Site, blank=True, related_name='categories+')
 
-    order = models.FloatField(null=True, db_column='_order')
+    order = models.FloatField(null=True, blank=True, db_column='_order')
 
-    objects = CategoryManager()
+    objects = DataCategoryManager()
 
     class Meta(object):
         ordering = ('order', 'name')
+        verbose_name_plural = 'data categories'
 
 
 class DataConcept(BasePlural):
@@ -191,11 +193,12 @@ class DataConcept(BasePlural):
     # prcesses may create concepts on the fly, but not know which category they
     # should be linked to initially. the admin interface enforces choosing a
     # category when the concept is published
-    category = models.ForeignKey(Category, null=True)
+    category = models.ForeignKey(DataCategory, null=True, blank=True)
 
     # The associated fields for this concept. fields can be
     # associated with multiple concepts, thus the M2M
-    fields = models.ManyToManyField(DataField, through='ConceptField')
+    fields = models.ManyToManyField(DataField, through='DataConceptField',
+            related_name='concepts')
 
     # Certain concepts may not be relevant or appropriate for all
     # sites being deployed. This is primarily for preventing exposure of
@@ -207,7 +210,7 @@ class DataConcept(BasePlural):
     if SITES_APP_INSTALLED:
         sites = models.ManyToManyField(Site, blank=True, related_name='concepts+')
 
-    order = models.FloatField(null=True, db_column='_order')
+    order = models.FloatField(null=True, blank=True, db_column='_order')
 
     # An optional formatter which provides custom formatting for this
     # concept relative to the associated fields. If a formatter is not
@@ -229,9 +232,9 @@ class DataConcept(BasePlural):
         return self.fields.count()
 
 
-class ConceptField(BasePlural):
+class DataConceptField(BasePlural):
     "Through model between DataConcept and DataField relationships."
-    datafield = models.ForeignKey(DataField, related_name='concept_fields')
+    field = models.ForeignKey(DataField, related_name='concept_fields')
     concept = models.ForeignKey(DataConcept, related_name='concept_fields')
     order = models.FloatField(null=True, db_column='_order')
 
@@ -239,25 +242,25 @@ class ConceptField(BasePlural):
         ordering = ('order',)
 
     def __unicode__(self):
-        return unicode(self.name or self.datafield.name)
+        return unicode(self.name or self.field.name)
 
     def get_plural_name(self):
-        return self.name_plural or self.datafield.get_plural_name()
+        return self.name_plural or self.field.get_plural_name()
 
 
 # Register instance-level cache invalidation handlers
 post_save.connect(post_save_cache, sender=DataField)
 post_save.connect(post_save_cache, sender=DataConcept)
-post_save.connect(post_save_cache, sender=Category)
+post_save.connect(post_save_cache, sender=DataCategory)
 
 pre_delete.connect(pre_delete_uncache, sender=DataField)
 pre_delete.connect(pre_delete_uncache, sender=DataConcept)
-pre_delete.connect(pre_delete_uncache, sender=Category)
+pre_delete.connect(pre_delete_uncache, sender=DataCategory)
 
 # If django-reversion is installed, register the models
 if 'reversion' in settings.INSTALLED_APPS:
     import reversion
     reversion.register(DataField)
-    reversion.reversion(ConceptField)
+    reversion.reversion(DataConceptField)
     reversion.register(DataConcept, follow=['concept_fields'])
-    reversion.register(Category)
+    reversion.register(DataCategory)
