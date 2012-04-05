@@ -157,7 +157,7 @@ class Field(mixins.Mixin):
                     name = self.field_name
                     choices = list(self.model.objects.values_list(name,
                         flat=True).order_by(name).distinct())
-                    choices = zip(choices, map(lambda x: x is None and 'No Data' or str(x), choices))
+                    choices = zip(choices, map(lambda x: x is None and 'No Data' or unicode(x), choices))
 
                 # attempt to evaluate custom handler
                 else:
