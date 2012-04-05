@@ -1,14 +1,12 @@
 import re
 
-from django.db import database
+from django.db import connections
 from django.db.models import Q
-from django.utils import stopwords
 from django.conf import settings
+from avocado.utils import stopwords
 
 from avocado.concepts import db
 from avocado.cache import CacheManager
-
-BACKEND = database['ENGINE'].split('.')[-1]
 
 def _tokenize(search_str):
     "Strips stopwords and tokenizes search string if not already a list."
@@ -86,7 +84,7 @@ class ConceptManager(CacheManager):
 
         toks = _tokenize(search_str)
 
-        func = getattr(db, BACKEND, None)
+        func = getattr(db, connections[self.db].settings_dict['ENGINE'].split('.')[-1], None)
 
         # if fulltext search is supported, generate queryset
         if func:
