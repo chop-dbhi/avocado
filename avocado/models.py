@@ -11,7 +11,7 @@ from django.utils.encoding import smart_unicode
 from django.db.models.fields import FieldDoesNotExist
 from django.db.models.signals import post_save, pre_delete
 from modeltree.tree import MODELTREE_DEFAULT_ALIAS, trees
-from avocado.core import binning, utils
+from avocado.core import utils
 from avocado.core.models import Base, BasePlural
 from avocado.core.cache import post_save_cache, pre_delete_uncache, cached_property
 from avocado.conf import settings as _settings
@@ -106,12 +106,6 @@ class DataField(BasePlural):
     # Data-related Cached Properties
     # These may be cached until the underlying data changes
 
-    @cached_property('distribution', timestamp='data_modified')
-    def distribution(self, *args, **kwargs):
-        "Returns a binned distribution of this field's data."
-        name = self.field_name
-        queryset = self.model.objects.values(name)
-        return binning.distribution(queryset, name, self.datatype, *args, **kwargs)
 
     @cached_property('values', timestamp='data_modified')
     def values(self):
