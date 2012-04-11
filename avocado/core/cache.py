@@ -22,9 +22,11 @@ def cached_property(label, timestamp=None, timeout=NEVER_EXPIRE):
             ts = getattr(self, timestamp) if timestamp else None
             key = instance_cache_key(self, label=label, timestamp=ts)
             data = cache.get(key)
-            if key is None:
+            if data is None:
                 data = func(self)
-                cache.set(key, data, timeout=timeout)
+                # Don't bother caching if the data is None
+                if data is not None:
+                    cache.set(key, data, timeout=timeout)
             return data
         return property(wrapped)
     return decorator
