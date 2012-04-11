@@ -111,7 +111,7 @@ def freedman_diaconis(queryset, count, field_name, smooth):
     return bins
 
 def distribution(queryset, field_name, datatype, exclude=[], order_by='field',
-    smooth=0.01, annotate_by='id', **filters):
+    smooth=0.01, annotate_by='pk', **filters):
     """
     ``exclude`` - a list of values to be excluded from the distribution. it
     may be desired to exclude NULL values or the empty string.
@@ -159,7 +159,7 @@ def distribution(queryset, field_name, datatype, exclude=[], order_by='field',
         return freedman_diaconis(queryset, count, field_name, smooth)
 
     # Apply annotation
-    queryset = queryset.annotate(count=Count(annotate_by))\
+    queryset = queryset.values(field_name).annotate(count=Count(field_name))\
         .values_list(field_name, 'count')
 
     # Apply ordering relative to count or relative to the
