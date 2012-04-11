@@ -10,6 +10,7 @@ from django.contrib.sites.models import Site
 from django.utils.encoding import smart_unicode
 from django.db.models.fields import FieldDoesNotExist
 from django.db.models.signals import post_save, pre_delete
+from django.core.exceptions import ImproperlyConfigured
 from modeltree.tree import MODELTREE_DEFAULT_ALIAS, trees
 from avocado.core import utils
 from avocado.core.models import Base, BasePlural
@@ -104,39 +105,49 @@ class DataField(BasePlural):
         # if a mapping exists, replace the datatype
         return INTERNAL_DATATYPE_MAP.get(datatype, datatype)
 
+
+    # Convenience Methods
+    # Easier access to the underlying data for this data field
+
+    def query(self):
+        "Returns a `ValuesListQuerySet` for this data field."
+        return self.model.objects.values(self.field_name)
+
+
     # Data-related Cached Properties
     # These may be cached until the underlying data changes
 
+    @cached_property('size', timestamp='data_modified')
+    def size(self):
+        "Returns the size of distinct values."
+        return self.query().distinct().count()
 
     @cached_property('values', timestamp='data_modified')
     def values(self):
         "Introspects the data and returns a distinct list of the values."
-        if self.enable_choices:
-            return self.model.objects.values_list(self.field_name,
-                flat=True).order_by(self.field_name).distinct()
+        return self.query().order_by(self.field_name)\
+                .values_list(self.field_name, flat=True).distinct()
 
     @cached_property('coded_values', timestamp='data_modified')
     def coded_values(self):
         "Returns a distinct set of coded values for this field"
-        if 'avocado.coded' in settings.INSTALLED_APPS:
-            from avocado.coded.models import CodedValue
-            if self.enable_choices:
-                return zip(CodedValue.objects.filter(datafield=self).values_list('value', 'coded'))
+        if 'avocado.coded' not in settings.INSTALLED_APPS:
+            raise ImproperlyConfigured('For this feature, avocado.coded app '
+                    'must be added to INSTALLED_APPS')
+        from avocado.coded.models import CodedValue
+        return zip(CodedValue.objects.filter(field=self).values_list('value', 'coded'))
 
     @property
     def mapped_values(self):
         "Maps the raw `values` relative to `DATA_CHOICES_MAP`."
-        if self.enable_choices:
-            # Iterate over each value and attempt to get the mapped choice
-            # other fallback to the value itself
-            return map(lambda x: smart_unicode(DATA_CHOICES_MAP.get(x, x)),
-                self.values)
+        # Iterate over each value and attempt to get the mapped choice
+        # other fallback to the value itself
+        return map(lambda x: smart_unicode(DATA_CHOICES_MAP.get(x, x)), self.values)
 
     @property
     def choices(self):
         "Returns a distinct set of choices for this field."
-        if self.enable_choices:
-            return zip(self.values, self.mapped_values)
+        return zip(self.values, self.mapped_values)
 
 
     # Data Aggregation Properties
