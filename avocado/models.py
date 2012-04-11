@@ -18,6 +18,7 @@ from avocado.conf import settings as _settings
 from avocado.managers import FieldManager, ConceptManager, DataCategoryManager
 from avocado.formatters import registry as formatters
 from avocado.query.translators import registry as translators
+from avocado.stats import Aggregator
 
 __all__ = ('DataCategory', 'DataConcept', 'DataField')
 
@@ -136,6 +137,42 @@ class DataField(BasePlural):
         "Returns a distinct set of choices for this field."
         if self.enable_choices:
             return zip(self.values, self.mapped_values)
+
+
+    # Data Aggregation Properties
+
+    def count(self, *args):
+        "Returns an the aggregated counts."
+        return Aggregator(self.field_name, self.model).count(*args)
+
+    def max(self, *args):
+        "Returns the maximum value."
+        return Aggregator(self.field_name, self.model).max(*args)
+
+    def min(self, *args):
+        "Returns the minimum value."
+        return Aggregator(self.field_name, self.model).min(*args)
+
+    def avg(self, *args):
+        "Returns the average value. Only applies to quantitative data."
+        if self.datatype == 'number':
+            return Aggregator(self.field_name, self.model).avg(*args)
+
+    def sum(self, *args):
+        "Returns the sum of values. Only applies to quantitative data."
+        if self.datatype == 'number':
+            return Aggregator(self.field_name, self.model).sum(*args)
+
+    def stddev(self, *args):
+        "Returns the standard deviation. Only applies to quantitative data."
+        if self.datatype == 'number':
+            return Aggregator(self.field_name, self.model).stddev(*args)
+
+    def variance(self, *args):
+        "Returns the variance. Only applies to quantitative data."
+        if self.datatype == 'number':
+            return Aggregator(self.field_name, self.model).variance(*args)
+
 
     # Validation and Query-related Methods
 
