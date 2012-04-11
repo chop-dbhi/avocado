@@ -3,6 +3,7 @@ from django.db.models import (get_model, get_models, get_app, AutoField,
     ForeignKey, OneToOneField, ManyToManyField)
 from django.core.management.base import LabelCommand
 from avocado.models import DataField
+from avocado.conf import settings
 
 class Command(LabelCommand):
     """
@@ -28,6 +29,8 @@ class Command(LabelCommand):
         model fields. Note this overwrites any descriptive metadata changes made
         to ``DataField`` such as ``name``, ``name_plural``, and ``description``.
 
+        ``--enable-choices-maximum=30`` - Change the threshold for ``DataField.enable_choices``.
+        The default value is defined by the setting ``ENABLE_CHOICES_MAXIMUM``.
     """
 
     help = '\n'.join([
@@ -39,20 +42,24 @@ class Command(LabelCommand):
     args = 'app [app.model, [...]]'
 
     option_list = LabelCommand.option_list + (
-        make_option('--include-non-editable', action='store_true',
+        make_option('-e', '--include-non-editable', action='store_true',
             dest='include_non_editable', default=False,
             help='Create fields for non-editable fields'),
 
-        make_option('--include-keys', action='store_true',
+        make_option('-k', '--include-keys', action='store_true',
             dest='include_keys', default=False,
             help='Create fields for primary and foreign key fields'),
 
-        make_option('--update', action='store_true',
+        make_option('-u', '--update', action='store_true',
             dest='update_existing', default=False,
             help='Updates existing metadata derived from model fields'),
+
+        make_option('-c', '--enable-choices-maximum', type='int',
+            dest='choices_max', metavar='NUM', default=settings.ENABLE_CHOICES_MAXIMUM,
+            help='Maximum distinct choices for setting `enable_choices`'),
     )
 
-    # these are ignored since these join fields will be determined at runtime
+    # These are ignored since these join fields will be determined at runtime
     # using the modeltree library. fields can be created for any other
     # these field types manually
     key_field_types = (
@@ -68,6 +75,7 @@ class Command(LabelCommand):
         include_non_editable = options.get('include_non_editable')
         include_keys = options.get('include_keys')
         update_existing = options.get('update_existing')
+        choices_max = options.get('choices_max')
 
         if update_existing:
             resp = raw_input('Are you sure you want to update existing metadata?\n'
@@ -133,20 +141,24 @@ class Command(LabelCommand):
                 }
 
                 try:
-                    field_obj = DataField.objects.get(**lookup)
+                    datafield = DataField.objects.get(**lookup)
                 except DataField.DoesNotExist:
-                    field_obj = DataField(published=False, **kwargs)
+                    datafield = DataField(published=False, **kwargs)
                     new_count += 1
 
-                if field_obj.pk:
+                if datafield.pk:
                     if not update_existing:
                         print '(%s) %s.%s already exists. Skipping...' % (app_name, model_name, field.name)
                         continue
                     # Only overwrite if the source value is not falsy
-                    field_obj.__dict__.update([(k, v) for k, v in kwargs.items()])
+                    datafield.__dict__.update([(k, v) for k, v in kwargs.items()])
                     update_count += 1
 
-                field_obj.save()
+                # Determine size of distinct values
+                if datafield.size <= choices_max:
+                    datafield.enable_choices = True
+
+                datafield.save()
 
 
             if new_count == 1:

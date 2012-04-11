@@ -66,3 +66,6 @@ INTERNAL_DATATYPE_FORMFIELDS = {
     'number': 'FloatField',
 }
 
+# The maximum number of distinct choices allowed when determining to set the
+# `enable_choices` flag on `DataField` instances during the `sync` process.
+ENABLE_CHOICES_MAXIMUM = 30
