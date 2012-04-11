@@ -20,7 +20,8 @@ class Base(models.Model):
 
     # Availability control mechanisms
     # Rather than deleting objects, they can be archived
-    archived = models.BooleanField(default=False)
+    archived = models.BooleanField(default=False, help_text=u'Note: archived ' \
+        'takes precedence over being published')
     # When `published` is false, it is globally not accessible.
     published = models.BooleanField(default=False)
 
