@@ -36,6 +36,13 @@ class DataField(BasePlural):
     model_name = models.CharField(max_length=50)
     field_name = models.CharField(max_length=50)
 
+    # Although a category does not technically need to be defined, this more
+    # for workflow reasons than for when the concept is published. Automated
+    # prcesses may create concepts on the fly, but not know which category they
+    # should be linked to initially. the admin interface enforces choosing a
+    # category when the concept is published
+    category = models.ForeignKey(DataCategory, null=True, blank=True)
+
     # Explicitly enable this field to be choice-based. This should
     # only be enabled for data that contains a discrete vocabulary, i.e.
     # no full text data, most numerical data nor date or time data.
