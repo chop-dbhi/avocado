@@ -77,6 +77,9 @@ class AbstractTranslator(object):
             new_value = []
             unique_values = set([])
             for x in value:
+                # Strip off whitespace for strings
+                if isinstance(x, basestring):
+                    x = x.strip()
                 if x in unique_values:
                     continue
                 unique_values.add(x)
@@ -88,6 +91,10 @@ class AbstractTranslator(object):
                 else:
                     new_value.append(None)
             return new_value
+
+        # Strip off whitespace for strings
+        if isinstance(value, basestring):
+            value = value.strip()
         return ff.clean(value)
 
     def _get_not_null_pk(self, field, using):
