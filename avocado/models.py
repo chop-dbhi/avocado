@@ -27,6 +27,28 @@ SITES_APP_INSTALLED = 'django.contrib.sites' in settings.INSTALLED_APPS
 INTERNAL_DATATYPE_MAP = _settings.INTERNAL_DATATYPE_MAP
 DATA_CHOICES_MAP = _settings.DATA_CHOICES_MAP
 
+
+class DataCategory(Base):
+    "A high-level organization for data concepts."
+    # A reference to a parent for hierarchical categories
+    parent = models.ForeignKey('self', null=True, related_name='children',
+            blank=True)
+
+    # Certain whole categories may not be relevant or appropriate for all
+    # sites being deployed. If a category is not accessible by a certain site,
+    # all subsequent data elements are also not accessible by the site.
+    if SITES_APP_INSTALLED:
+        sites = models.ManyToManyField(Site, blank=True, related_name='categories+')
+
+    order = models.FloatField(null=True, blank=True, db_column='_order')
+
+    objects = DataCategoryManager()
+
+    class Meta(object):
+        ordering = ('order', 'name')
+        verbose_name_plural = 'data categories'
+
+
 class DataField(BasePlural):
     """Describes the significance and/or meaning behind some data. In addition,
     it defines the natural key of the Django field that represents the location
@@ -206,27 +228,6 @@ class DataField(BasePlural):
         "Convenince method for performing a translation on a query condition."
         trans = translators[self.translator]
         return trans.validate(self, operator, value, using, **context)
-
-
-class DataCategory(Base):
-    "A high-level organization for data concepts."
-    # A reference to a parent for hierarchical categories
-    parent = models.ForeignKey('self', null=True, related_name='children',
-            blank=True)
-
-    # Certain whole categories may not be relevant or appropriate for all
-    # sites being deployed. If a category is not accessible by a certain site,
-    # all subsequent data elements are also not accessible by the site.
-    if SITES_APP_INSTALLED:
-        sites = models.ManyToManyField(Site, blank=True, related_name='categories+')
-
-    order = models.FloatField(null=True, blank=True, db_column='_order')
-
-    objects = DataCategoryManager()
-
-    class Meta(object):
-        ordering = ('order', 'name')
-        verbose_name_plural = 'data categories'
 
 
 class DataConcept(BasePlural):
