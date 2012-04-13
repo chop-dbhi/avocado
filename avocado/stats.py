@@ -78,7 +78,7 @@ class Aggregator(object):
     def _aggregate(self, *groupby, **aggregates):
         clone = self._clone()
         clone.aggregates.update(aggregates)
-        clone.groupby = [resolve_lookup(x, using=clone.model) for x in groupby]
+        clone.groupby = [resolve_lookup(x, tree=clone.model) for x in groupby]
         return clone
 
     def filter(self, *values, **filters):
@@ -91,7 +91,7 @@ class Aggregator(object):
                 condition = clone.field_name, values[0]
             else:
                 condition = '{0}__in'.format(clone.field_name), values
-            clone.where.append(M(using=clone.model, **dict([condition])))
+            clone.where.append(M(tree=clone.model, **dict([condition])))
 
         # Separate out the conditions that apply to aggregations. The
         # non-aggregation conditions will always be applied before the
@@ -101,7 +101,7 @@ class Aggregator(object):
                 condition = Q(**dict([(key, value)]))
                 clone.having.append(condition)
             else:
-                condition = M(using=clone.model, **dict([(key, value)]))
+                condition = M(tree=clone.model, **dict([(key, value)]))
                 clone.where.append(condition)
         return clone
 
@@ -115,7 +115,7 @@ class Aggregator(object):
                 condition = clone.field_name, values[0]
             else:
                 condition = '{0}__in'.format(clone.field_name), values
-            clone.where.append(~M(using=clone.model, **dict([condition])))
+            clone.where.append(~M(tree=clone.model, **dict([condition])))
 
         # Separate out the conditions that apply to aggregations. The
         # non-aggregation conditions will always be applied before the
@@ -125,7 +125,7 @@ class Aggregator(object):
                 condition = ~Q(**dict([(key, value)]))
                 clone.having.append(condition)
             else:
-                condition = ~M(using=clone.model, **dict([(key, value)]))
+                condition = ~M(tree=clone.model, **dict([(key, value)]))
                 clone.where.append(condition)
         return clone
 
@@ -138,7 +138,7 @@ class Aggregator(object):
                 f = f[1:]
                 direction = '-'
             if f not in self.aggregates:
-                f = resolve_lookup(f, using=clone.model)
+                f = resolve_lookup(f, tree=clone.model)
             orderby.append(direction + f)
         clone.orderby = orderby
         return clone

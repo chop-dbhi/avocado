@@ -65,9 +65,9 @@ class Node(object):
 
 class Condition(Node):
     "Contains information for a single query condition."
-    def __init__(self, context=None, using=DEFAULT_MODELTREE_ALIAS, **kwargs):
+    def __init__(self, context=None, tree=DEFAULT_MODELTREE_ALIAS, **kwargs):
         self.context = context
-        self.using = using
+        self.tree = tree
         self.id = kwargs['id']
         self.operator = kwargs['operator']
         self.value = kwargs['value']
@@ -77,7 +77,7 @@ class Condition(Node):
     def _meta(self):
         if not hasattr(self, '__meta'):
             self.__meta = self.datafield.translate(self.operator, self.value,
-                using=self.using, **self.context)
+                tree=self.tree, **self.context)
         return self.__meta
 
     @property
@@ -126,8 +126,8 @@ class Condition(Node):
 
 class LogicalOperator(Node):
     "Provides a logical relationship between it's children."
-    def __init__(self, type, using=DEFAULT_MODELTREE_ALIAS):
-        self.using = using
+    def __init__(self, type, tree=DEFAULT_MODELTREE_ALIAS):
+        self.tree = tree
         self.type = (type.upper() == AND) and AND or OR
         self.children = []
 
@@ -199,7 +199,7 @@ class LogicalOperator(Node):
         return ids
 
 
-def transform(rnode, pnode=None, using=DEFAULT_MODELTREE_ALIAS, **context):
+def transform(rnode, pnode=None, tree=DEFAULT_MODELTREE_ALIAS, **context):
     "Takes the raw data structure and converts it into the node tree."
     if not rnode:
         return Node()
@@ -209,11 +209,11 @@ def transform(rnode, pnode=None, using=DEFAULT_MODELTREE_ALIAS, **context):
         if len(rnode['children']) < 2:
             raise TypeError, 'a logical operator must apply to 2 or more ' \
                 'conditions'
-        node = LogicalOperator(rnode['type'], using=using)
+        node = LogicalOperator(rnode['type'], tree=tree)
         for child in rnode['children']:
-            transform(child, node, using=using, **context)
+            transform(child, node, tree=tree, **context)
     else:
-        node = Condition(context, using=using, **rnode)
+        node = Condition(context, tree=tree, **rnode)
     # top level node returns, i.e. no parent node
     if pnode is None:
         return node

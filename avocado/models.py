@@ -216,18 +216,18 @@ class DataField(BasePlural):
 
     # Validation and Query-related Methods
 
-    def query_string(self, operator=None, using=MODELTREE_DEFAULT_ALIAS):
-        return trees[using].query_string_for_field(self.field, operator)
+    def query_string(self, operator=None, tree=MODELTREE_DEFAULT_ALIAS):
+        return trees[tree].query_string_for_field(self.field, operator)
 
-    def translate(self, operator=None, value=None, using=MODELTREE_DEFAULT_ALIAS, **context):
+    def translate(self, operator=None, value=None, tree=MODELTREE_DEFAULT_ALIAS, **context):
         "Convenince method for performing a translation on a query condition."
         trans = translators[self.translator]
-        return trans.translate(self, operator, value, using, **context)
+        return trans.translate(self, operator, value, tree, **context)
 
-    def validate(self, operator=None, value=None, using=MODELTREE_DEFAULT_ALIAS, **context):
+    def validate(self, operator=None, value=None, tree=MODELTREE_DEFAULT_ALIAS, **context):
         "Convenince method for performing a translation on a query condition."
         trans = translators[self.translator]
-        return trans.validate(self, operator, value, using, **context)
+        return trans.validate(self, operator, value, tree, **context)
 
 
 class DataConcept(BasePlural):

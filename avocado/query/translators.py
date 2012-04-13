@@ -91,7 +91,7 @@ class Translator(object):
             return new_value
         return formfield.clean(value)
 
-    def _get_not_null_pk(self, datafield, using):
+    def _get_not_null_pk(self, datafield, tree):
         # XXX the below logic is required to get the expected results back
         # when querying for NULL values. since NULL can be a value and a
         # placeholder for non-existent values, then a condition to ensure
@@ -113,11 +113,11 @@ class Translator(object):
 
         # instantiate a new object to utilize the shortcut methods
         _field = DataField(app_name=datafield.app_name, model_name=datafield.model_name, field_name=pk_name)
-        key = _field.query_string('isnull', using=using)
+        key = _field.query_string('isnull', tree=tree)
 
         return Q(**{key: False})
 
-    def _condition(self, datafield, operator, value, using):
+    def _condition(self, datafield, operator, value, tree):
         # assuming the operator and value validate, check for a NoneType value
         # if the operator is 'in'. This condition will be broken out into a
         # separate Q object
@@ -125,7 +125,7 @@ class Translator(object):
             value = value[:]
             value.remove(None)
 
-            key = datafield.query_string('isnull', using=using)
+            key = datafield.query_string('isnull', tree=tree)
 
             # simplifies the logic here for a cleaner query. the latter
             # condition allows for null values for the specified column, so
@@ -133,20 +133,20 @@ class Translator(object):
             # primary keys be null. this mimics an INNER JOINs behavior. see
             # ``_get_not_null_pk`` above 
             if operator.negated:
-                condition = Q(**{key: False}) & self._get_not_null_pk(datafield, using)
+                condition = Q(**{key: False}) & self._get_not_null_pk(datafield, tree)
             else:
                 condition = Q(**{key: True})
 
             # finally, if there are any more values in the list, we include
             # them here
             if value:
-                key = datafield.query_string(operator.operator, using=using)
+                key = datafield.query_string(operator.operator, tree=tree)
                 condition = Q(**{key: value}) | condition
 
         else:
             # The statement 'foo=None' is equivalent to 'foo__isnull=True'
             if (operator.operator == 'isnull' or (operator.operator == 'exact' and value is None)):
-                key = datafield.query_string('isnull', using=using)
+                key = datafield.query_string('isnull', tree=tree)
 
                 # Now that isnull is being used instead, set the value to True
                 if value is None:
@@ -160,18 +160,18 @@ class Translator(object):
 
                 # again, we need to account for the LOJ assumption
                 if value is False:
-                    condition = condition & self._get_not_null_pk(datafield, using)
+                    condition = condition & self._get_not_null_pk(datafield, tree)
 
             # handle all other conditions
             else:
-                key = datafield.query_string(operator.operator, using=using)
-                condition = Q(**{key: value}) & self._get_not_null_pk(datafield, using)
+                key = datafield.query_string(operator.operator, tree=tree)
+                condition = Q(**{key: value}) & self._get_not_null_pk(datafield, tree)
 
                 condition = ~condition if operator.negated else condition
 
         return condition
 
-    def validate(self, datafield, operator, value, using, **kwargs):
+    def validate(self, datafield, operator, value, tree, **kwargs):
         # ensures the operator is valid for the 
         operator = self._validate_operator(datafield, operator, **kwargs)
         value = self._validate_value(datafield, value, **kwargs)
@@ -181,7 +181,7 @@ class Translator(object):
 
         return operator, value
 
-    def translate(self, datafield, roperator, rvalue, using, **kwargs):
+    def translate(self, datafield, roperator, rvalue, tree, **kwargs):
         """Returns two types of queryset modifiers including:
             - the raw operator and value supplied
             - the validated and cleaned data
@@ -191,8 +191,8 @@ class Translator(object):
         It should be noted that no checks are performed to prevent the same
         name being used for annotations.
         """
-        operator, value = self.validate(datafield, roperator, rvalue, using, **kwargs)
-        condition = self._condition(datafield, operator, value, using)
+        operator, value = self.validate(datafield, roperator, rvalue, tree, **kwargs)
+        condition = self._condition(datafield, operator, value, tree)
 
         meta = {
             'condition': condition,
