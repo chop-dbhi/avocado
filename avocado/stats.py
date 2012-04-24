@@ -1,11 +1,23 @@
 from copy import deepcopy
+from django.db import models
 from django.db.models import Q, Count, Sum, Avg, Max, Min, StdDev, Variance
 from django.db.models.query import REPR_OUTPUT_SIZE, QuerySet
 from django.db.models.sql.constants import LOOKUP_SEP
 from modeltree.utils import M, resolve_lookup
+from avocado.core import utils
 
 class Aggregator(object):
-    def __init__(self, field_name, model):
+    def __init__(self, field, model=None):
+        if not isinstance(field, models.Field):
+            if not model:
+                raise TypeError('Field instance or field name and model class required')
+            field_name = field
+            field = model._meta.get_field_by_name(field_name)[0]
+        else:
+            model = field.model
+            field_name = field.name
+
+        self.field = field
         self.field_name = field_name
         self.model = model
         self.aggregates = {}
@@ -34,6 +46,10 @@ class Aggregator(object):
 
     def __iter__(self):
         return self._result_iter(self._construct())
+
+    def __eq__(self, other):
+        return self._construct() == other
+
 
     def _result_iter(self, queryset):
         agg = self.aggregates.keys()[0]

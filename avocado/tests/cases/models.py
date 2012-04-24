@@ -1,13 +1,25 @@
-import unittest
-from django.test import TestCase
-from django.conf import settings
+from django.core.cache import cache
 from django.core import management
 from avocado.tests.base import BaseTestCase
+from avocado.models import DataField, DataCategory, DataConcept
 
-__all__ = ('DataFieldTestCase', 'DataConceptTestCase', 'DataCategoryTestCase')
+
+class ModelInstanceCacheTestCase(BaseTestCase):
+    def test_datafield_cache(self):
+        cache.clear()
+
+        pk = self.is_manager.pk
+        # New query, object is fetched from cache
+        queryset = DataField.objects.filter(pk=pk)
+        self.assertEqual(queryset._result_cache, None)
+
+        self.is_manager.save()
+
+        queryset = DataField.objects.filter(pk=pk)
+        self.assertEqual(queryset._result_cache[0].pk, pk)
+
 
 class DataFieldTestCase(BaseTestCase):
-
     def test_boolean(self):
         self.assertTrue(self.is_manager.model)
         self.assertTrue(self.is_manager.field)

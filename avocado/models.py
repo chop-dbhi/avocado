@@ -16,7 +16,7 @@ from avocado.core import utils
 from avocado.core.models import Base, BasePlural
 from avocado.core.cache import post_save_cache, pre_delete_uncache, cached_property
 from avocado.conf import settings as _settings
-from avocado.managers import FieldManager, ConceptManager, DataCategoryManager
+from avocado.managers import DataFieldManager, DataConceptManager, DataCategoryManager
 from avocado.formatters import registry as formatters
 from avocado.query.translators import registry as translators
 from avocado.stats import Aggregator
@@ -33,12 +33,6 @@ class DataCategory(Base):
     # A reference to a parent for hierarchical categories
     parent = models.ForeignKey('self', null=True, related_name='children',
             blank=True)
-
-    # Certain whole categories may not be relevant or appropriate for all
-    # sites being deployed. If a category is not accessible by a certain site,
-    # all subsequent data elements are also not accessible by the site.
-    if SITES_APP_INSTALLED:
-        sites = models.ManyToManyField(Site, blank=True, related_name='categories+')
 
     order = models.FloatField(null=True, blank=True, db_column='_order')
 
@@ -85,7 +79,7 @@ class DataField(BasePlural):
     # another data source.
     data_source = models.CharField(max_length=250, null=True, blank=True)
 
-    objects = FieldManager()
+    objects = DataFieldManager()
 
     class Meta(object):
         unique_together = ('app_name', 'model_name', 'field_name')
@@ -183,35 +177,34 @@ class DataField(BasePlural):
 
     def count(self, *args):
         "Returns an the aggregated counts."
-        return Aggregator(self.field_name, self.model).count(*args)
+        return Aggregator(self.field, self.model).count(*args)
 
     def max(self, *args):
         "Returns the maximum value."
-        return Aggregator(self.field_name, self.model).max(*args)
+        return Aggregator(self.field, self.model).max(*args)
 
     def min(self, *args):
         "Returns the minimum value."
-        return Aggregator(self.field_name, self.model).min(*args)
+        return Aggregator(self.field, self.model).min(*args)
 
     def avg(self, *args):
         "Returns the average value. Only applies to quantitative data."
-        if self.datatype == 'number':
-            return Aggregator(self.field_name, self.model).avg(*args)
+        return Aggregator(self.field, self.model).avg(*args)
 
     def sum(self, *args):
         "Returns the sum of values. Only applies to quantitative data."
         if self.datatype == 'number':
-            return Aggregator(self.field_name, self.model).sum(*args)
+            return Aggregator(self.field, self.model).sum(*args)
 
     def stddev(self, *args):
         "Returns the standard deviation. Only applies to quantitative data."
         if self.datatype == 'number':
-            return Aggregator(self.field_name, self.model).stddev(*args)
+            return Aggregator(self.field, self.model).stddev(*args)
 
     def variance(self, *args):
         "Returns the variance. Only applies to quantitative data."
         if self.datatype == 'number':
-            return Aggregator(self.field_name, self.model).variance(*args)
+            return Aggregator(self.field, self.model).variance(*args)
 
 
     # Validation and Query-related Methods
@@ -258,7 +251,8 @@ class DataConcept(BasePlural):
     # NOTE this is not reliable way to prevent exposure of sensitive data.
     # This should be used to simply hide _access_ to the concepts.
     if SITES_APP_INSTALLED:
-        sites = models.ManyToManyField(Site, blank=True, related_name='concepts+')
+        sites = models.ManyToManyField(Site, blank=True,
+            related_name='concepts+')
 
     order = models.FloatField(null=True, blank=True, db_column='_order')
 
@@ -269,7 +263,7 @@ class DataConcept(BasePlural):
     formatter = models.CharField(max_length=100, blank=True, null=True,
         choices=formatters.choices)
 
-    objects = ConceptManager()
+    objects = DataConceptManager()
 
     class Meta(object):
         app_label = 'avocado'
