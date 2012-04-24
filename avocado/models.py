@@ -177,34 +177,34 @@ class DataField(BasePlural):
 
     def count(self, *args):
         "Returns an the aggregated counts."
-        return Aggregator(self.field, self.model).count(*args)
+        return Aggregator(self.field).count(*args)
 
     def max(self, *args):
         "Returns the maximum value."
-        return Aggregator(self.field, self.model).max(*args)
+        return Aggregator(self.field).max(*args)
 
     def min(self, *args):
         "Returns the minimum value."
-        return Aggregator(self.field, self.model).min(*args)
+        return Aggregator(self.field).min(*args)
 
     def avg(self, *args):
         "Returns the average value. Only applies to quantitative data."
-        return Aggregator(self.field, self.model).avg(*args)
+        return Aggregator(self.field).avg(*args)
 
     def sum(self, *args):
         "Returns the sum of values. Only applies to quantitative data."
         if self.datatype == 'number':
-            return Aggregator(self.field, self.model).sum(*args)
+            return Aggregator(self.field).sum(*args)
 
     def stddev(self, *args):
         "Returns the standard deviation. Only applies to quantitative data."
         if self.datatype == 'number':
-            return Aggregator(self.field, self.model).stddev(*args)
+            return Aggregator(self.field).stddev(*args)
 
     def variance(self, *args):
         "Returns the variance. Only applies to quantitative data."
         if self.datatype == 'number':
-            return Aggregator(self.field, self.model).variance(*args)
+            return Aggregator(self.field).variance(*args)
 
 
     # Validation and Query-related Methods
