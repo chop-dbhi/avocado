@@ -5,7 +5,7 @@
     
     
     <meta http-equiv='X-UA-Compatible' content='IE=emulateIE7' />
-    <title>Coverage for avocado/formatters: 77%</title>
+    <title>Coverage for avocado/formatters: 79%</title>
     <link rel='stylesheet' href='style.css' type='text/css'>
     <script type='text/javascript' src='jquery-1.4.3.min.js'></script>
     <script type='text/javascript' src='jquery.hotkeys.js'></script>
@@ -20,13 +20,13 @@
 <div id='header'>
     <div class='content'>
         <h1>Coverage for <b>avocado/formatters</b> :
-            <span class='pc_cov'>77%</span>
+            <span class='pc_cov'>79%</span>
         </h1>
         <img id='keyboard_icon' src='keybd_closed.png'>
         <h2 class='stats'>
             74 statements
-            <span class='run hide_run shortkey_r' onclick='coverage.toggle_lines(this, "run")'>59 run</span>
-            <span class='mis shortkey_m' onclick='coverage.toggle_lines(this, "mis")'>15 missing</span>
+            <span class='run hide_run shortkey_r' onclick='coverage.toggle_lines(this, "run")'>60 run</span>
+            <span class='mis shortkey_m' onclick='coverage.toggle_lines(this, "mis")'>14 missing</span>
             <span class='exc shortkey_x' onclick='coverage.toggle_lines(this, "exc")'>2 excluded</span>
             
                 <span class='par run hide_run shortkey_p' onclick='coverage.toggle_lines(this, "par")'>8 partial</span>
@@ -205,7 +205,7 @@
 <p id='n141' class='stm par run hide_run'><a href='#n141'>141</a></p>
 <p id='n142' class='stm mis'><a href='#n142'>142</a></p>
 <p id='n143' class='stm mis'><a href='#n143'>143</a></p>
-<p id='n144' class='stm mis'><a href='#n144'>144</a></p>
+<p id='n144' class='stm run hide_run'><a href='#n144'>144</a></p>
 <p id='n145' class='pln'><a href='#n145'>145</a></p>
 <p id='n146' class='stm run hide_run'><a href='#n146'>146</a></p>
 <p id='n147' class='stm run hide_run'><a href='#n147'>147</a></p>
@@ -250,7 +250,7 @@
 <p id='t32' class='stm run hide_run'>&nbsp; &nbsp; <span class='nam'>name</span> <span class='op'>=</span> <span class='str'>&#39;&#39;</span><span class='strut'>&nbsp;</span></p>
 <p id='t33' class='pln'><span class='strut'>&nbsp;</span></p>
 <p id='t34' class='stm run hide_run'>&nbsp; &nbsp; <span class='key'>def</span> <span class='nam'>__init__</span><span class='op'>(</span><span class='nam'>self</span><span class='op'>,</span> <span class='nam'>concept</span><span class='op'>,</span> <span class='op'>**</span><span class='nam'>context</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
-<p id='t35' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>self</span><span class='op'>.</span><span class='nam'>cfields</span> <span class='op'>=</span> <span class='nam'>OrderedDict</span><span class='op'>(</span><span class='op'>(</span><span class='nam'>x</span><span class='op'>.</span><span class='nam'>datafield</span><span class='op'>.</span><span class='nam'>field_name</span><span class='op'>,</span> <span class='nam'>x</span><span class='op'>)</span> <span class='xx'>\</span><span class='strut'>&nbsp;</span></p>
+<p id='t35' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>self</span><span class='op'>.</span><span class='nam'>cfields</span> <span class='op'>=</span> <span class='nam'>OrderedDict</span><span class='op'>(</span><span class='op'>(</span><span class='nam'>x</span><span class='op'>.</span><span class='nam'>field</span><span class='op'>.</span><span class='nam'>field_name</span><span class='op'>,</span> <span class='nam'>x</span><span class='op'>)</span> <span class='xx'>\</span><span class='strut'>&nbsp;</span></p>
 <p id='t36' class='pln'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>for</span> <span class='nam'>x</span> <span class='key'>in</span> <span class='nam'>concept</span><span class='op'>.</span><span class='nam'>concept_fields</span><span class='op'>.</span><span class='nam'>all</span><span class='op'>(</span><span class='op'>)</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t37' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>self</span><span class='op'>.</span><span class='nam'>field_keys</span> <span class='op'>=</span> <span class='nam'>self</span><span class='op'>.</span><span class='nam'>cfields</span><span class='op'>.</span><span class='nam'>keys</span><span class='op'>(</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t38' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>self</span><span class='op'>.</span><span class='nam'>context</span> <span class='op'>=</span> <span class='nam'>context</span><span class='strut'>&nbsp;</span></p>
@@ -356,10 +356,10 @@
 <p id='t138' class='pln'><span class='strut'>&nbsp;</span></p>
 <p id='t139' class='stm run hide_run'>&nbsp; &nbsp; <span class='key'>def</span> <span class='nam'>to_coded</span><span class='op'>(</span><span class='nam'>self</span><span class='op'>,</span> <span class='nam'>value</span><span class='op'>,</span> <span class='nam'>cfield</span><span class='op'>,</span> <span class='op'>**</span><span class='nam'>context</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
 <p id='t140' class='pln'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='com'># attempts to convert value to its coded representation</span><span class='strut'>&nbsp;</span></p>
-<p id='t141' class='stm par run hide_run'><span class='annotate' title='no jumps to these line numbers'>142&nbsp;&nbsp; 144</span>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>for</span> <span class='nam'>key</span><span class='op'>,</span> <span class='nam'>cvalue</span> <span class='key'>in</span> <span class='nam'>cfield</span><span class='op'>.</span><span class='nam'>datafield</span><span class='op'>.</span><span class='nam'>coded_values</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
+<p id='t141' class='stm par run hide_run'><span class='annotate' title='no jump to this line number'>142</span>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>for</span> <span class='nam'>key</span><span class='op'>,</span> <span class='nam'>cvalue</span> <span class='key'>in</span> <span class='nam'>cfield</span><span class='op'>.</span><span class='nam'>field</span><span class='op'>.</span><span class='nam'>coded_values</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
 <p id='t142' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>if</span> <span class='nam'>key</span> <span class='op'>==</span> <span class='nam'>value</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
 <p id='t143' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>return</span> <span class='nam'>cvalue</span><span class='strut'>&nbsp;</span></p>
-<p id='t144' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>raise</span> <span class='nam'>ValueError</span><span class='op'>(</span><span class='str'>&#39;No coded value for {}&#39;</span><span class='op'>.</span><span class='nam'>format</span><span class='op'>(</span><span class='nam'>value</span><span class='op'>)</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
+<p id='t144' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>raise</span> <span class='nam'>ValueError</span><span class='op'>(</span><span class='str'>&#39;No coded value for {}&#39;</span><span class='op'>.</span><span class='nam'>format</span><span class='op'>(</span><span class='nam'>value</span><span class='op'>)</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t145' class='pln'><span class='strut'>&nbsp;</span></p>
 <p id='t146' class='stm run hide_run'>&nbsp; &nbsp; <span class='key'>def</span> <span class='nam'>to_raw</span><span class='op'>(</span><span class='nam'>self</span><span class='op'>,</span> <span class='nam'>value</span><span class='op'>,</span> <span class='nam'>cfield</span><span class='op'>,</span> <span class='op'>**</span><span class='nam'>context</span><span class='op'>)</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
 <p id='t147' class='stm run hide_run'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>return</span> <span class='nam'>value</span><span class='strut'>&nbsp;</span></p>

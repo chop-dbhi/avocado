@@ -1,3 +1,4 @@
+from cases.stats import *
 from cases.exporters import *
 from cases.formatters import *
 from cases.query import *

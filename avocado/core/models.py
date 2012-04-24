@@ -1,4 +1,8 @@
+import logging
 from django.db import models
+
+log = logging.getLogger(__file__)
+
 
 class Base(models.Model):
     """Base abstract class containing general metadata.
@@ -10,8 +14,9 @@ class Base(models.Model):
         ``description`` - Will tend to be exposed in client applications since
         it provides context to the end-users.
 
-        ``keywords`` - Additional extraneous text that cannot be derived from the
-        name, description or data itself. This is solely used for search indexing.
+        ``keywords`` - Additional extraneous text that cannot be derived from
+        the name, description or data itself. This is solely used for search
+        indexing.
     """
     # Descriptor-based fields
     name = models.CharField(max_length=50)
@@ -20,7 +25,8 @@ class Base(models.Model):
 
     # Availability control mechanisms
     # Rather than deleting objects, they can be archived
-    archived = models.BooleanField(default=False)
+    archived = models.BooleanField(default=False,
+        help_text=u'Note: archived takes precedence over being published')
     # When `published` is false, it is globally not accessible.
     published = models.BooleanField(default=False)
 
@@ -41,12 +47,18 @@ class Base(models.Model):
             'keywords': self.keywords,
         }
 
+    def save(self, *args, **kwargs):
+        if self.archived and self.published:
+            self.published = False
+            log.debug('{0} is published, but is being archived. It has been unpublished'.format(self))
+        super(Base, self).save(*args, **kwargs)
+
 
 class BasePlural(Base):
     """Adds field for specifying the plural form of the name.
 
-        ``name_plural`` - Same as ``name``, but the plural form. If not provided,
-        an 's' will appended to the end of the ``name``.
+        ``name_plural`` - Same as ``name``, but the plural form. If not
+        provided, an 's' will appended to the end of the ``name``.
     """
     name_plural = models.CharField(max_length=60, null=True, blank=True)
 
@@ -70,4 +82,3 @@ class BasePlural(Base):
         else:
             plural = self.name
         return plural
-

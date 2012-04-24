@@ -1,7 +1,7 @@
 from django.utils.functional import LazyObject
-from django.conf import settings as default_settings
-
+from django.conf import settings as django_settings
 from avocado.conf import global_settings
+
 
 class Settings(object):
     def __init__(self, settings_dict):
@@ -19,9 +19,7 @@ class Settings(object):
 
 class LazySettings(LazyObject):
     def _setup(self):
-        self._wrapped = Settings(getattr(default_settings,
-            'AVOCADO_SETTINGS', {}))
+        self._wrapped = Settings(getattr(django_settings, 'AVOCADO', {}))
 
 
 settings = LazySettings()
-

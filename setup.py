@@ -97,6 +97,10 @@ setup(
     install_requires = install_requires,
     tests_require = ['coverage', 'django-haystack', 'whoosh', 'openpyxl'],
 
+    dependency_links = {
+        'modeltree': 'http://github.com/cbmi/modeltree/tarball/master#egg=modeltree'
+    }
+
     data_files = data_files,
 
     classifiers = [

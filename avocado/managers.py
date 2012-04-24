@@ -1,21 +1,47 @@
 from django.db.models import Q
 from django.db import transaction
 from django.conf import settings
-from avocado.core.cache import CacheManager
+from avocado.core.cache import CacheQuerySet
 from avocado.core.managers import PassThroughManager
 
 SITES_APP_INSTALLED = 'django.contrib.sites' in settings.INSTALLED_APPS
 
-class PublishedManager(PassThroughManager, CacheManager):
-    use_for_related_fields = True
 
-    def published(self):
-        "Returns all published datafields."
-        return self.get_query_set().filter(published=True, archived=False)
-
-
-class FieldManager(PublishedManager):
+class PublishedQuerySet(CacheQuerySet):
     "Adds additional helper methods focused around access and permissions."
+    def published(self):
+        "Returns all published non-archived objects."
+        return self.filter(published=True, archived=False)
+
+
+class PublishedManager(PassThroughManager):
+    def get_query_set(self):
+        return PublishedQuerySet(self.model, using=self._db)
+
+
+class DataConceptQuerySet(PublishedQuerySet):
+    def published(self):
+        """Concepts can be restricted to one or more sites, so the published
+        method is extended to support filtering by site. In addition, concepts
+        should not be visible if their associated fields are not all available.
+        """
+        published = super(DataConceptQuerySet, self).published()
+
+        if SITES_APP_INSTALLED:
+            # All published concepts associated with the current site
+            # (or no site)
+            sites = Q(sites=None) | Q(sites__id=settings.SITE_ID)
+            published = published.filter(sites)
+        # Concepts that contain at least one non-published datafields are
+        # removed from the set to prevent exposing non-prepared data
+        fields = Q(fields__published=False) | Q(fields__archived=True)
+        shadowed = self.filter(fields)
+
+        return published.exclude(pk__in=shadowed).distinct()
+
+
+class DataFieldManager(PublishedManager):
+    "Manager for the `DataField` model."
     def get_by_natural_key(self, app_name, model_name, field_name):
         return self.get_query_set().get(
             app_name=app_name,
@@ -24,43 +50,30 @@ class FieldManager(PublishedManager):
         )
 
 
-class ConceptManager(PublishedManager):
-
-    def published(self):
-        queryset = self.get_query_set()
-
-        if SITES_APP_INSTALLED:
-            # All published concepts associated with a category and associated with
-            # the current site (or no site)
-            sites = Q(sites=None) | Q(sites__id=settings.SITE_ID)
-        else:
-            sites = Q()
-
-        published = queryset.filter(sites, published=True, archived=False)
-        # Concepts that contain at least one non-published datafields are removed from
-        # the set to prevent exposing non-prepared data
-        shadowed = queryset.filter(fields__published=False)
-
-        return published.exclude(pk__in=shadowed).distinct()
+class DataConceptManager(PassThroughManager):
+    "Manager for the `DataConcept` model."
+    def get_query_set(self):
+        return DataConceptQuerySet(self.model, using=self._db)
 
     @transaction.commit_on_success
-    def create_from_field(self, datafield, save=False, **kwargs):
+    def create_from_field(self, datafield, save=True, **kwargs):
         """Derives a DataConcept from this DataField's descriptors. Additional
-        keyword arguments can be passed in to customize the new DataConcept object.
-        The DataConcept can also be optionally saved by setting the ``save`` flag.
+        keyword arguments can be passed in to customize the new DataConcept
+        object. The DataConcept can also be optionally saved by setting the
+        `save` flag.
         """
-        for k, v, in datafield.descriptors.iteritems():
-            kwargs.setdefault(k, v)
+        for key, value, in datafield.descriptors.iteritems():
+            kwargs.setdefault(key, value)
 
         concept = self.model(**kwargs)
 
         if save:
-            from avocado.models import ConceptField
+            from avocado.models import DataConceptField
             concept.save()
-            cfield = ConceptField(datafield=datafield, concept=concept)
+            cfield = DataConceptField(field=datafield, concept=concept)
             concept.concept_fields.add(cfield)
         return concept
 
 
-class CategoryManager(PublishedManager):
-    pass
+class DataCategoryManager(PublishedManager):
+    "Manager for the `DataCategory` model."

@@ -49,16 +49,14 @@ class Command(NoArgsCommand):
         unpublish = options.get('unpublish')
         verbosity = options.get('verbosity')
 
-        datafields = DataField.objects.all()
-
         unknown_models = []
         unknown_fields = []
 
-        for d in datafields:
-            if d.model is None:
-                unknown_models.append(d)
-            elif d.datafield is None:
-                unknown_fields.append(d)
+        for datafield in DataField.objects.iterator():
+            if datafield.model is None:
+                unknown_models.append(datafield)
+            elif datafield.field is None:
+                unknown_fields.append(datafield)
 
         if verbosity:
             if not unknown_models and not unknown_fields:

@@ -5,7 +5,7 @@
 {% for cfield in object.concept_fields.all %}
 	{{ cfield }}
 
-	{% with datafield=cfield.datafield %}
+	{% with datafield=cfield.field %}
 		{% if datafield.has_choices %}
 			{% for value in datafield.mapped_values %}
 				{{ value }}

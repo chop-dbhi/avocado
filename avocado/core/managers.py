@@ -1,5 +1,6 @@
 from django.db import models
 
+# Taken from Carl Meyer's django-model-utils
 class PassThroughManager(models.Manager):
     """Inherit from this Manager to enable you to call any methods from your
     custom QuerySet class from your manager. Simply define your QuerySet
