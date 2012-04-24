@@ -29,8 +29,8 @@ class Command(LabelCommand):
         model fields. Note this overwrites any descriptive metadata changes made
         to ``DataField`` such as ``name``, ``name_plural``, and ``description``.
 
-        ``--enable-choices-maximum=30`` - Change the threshold for ``DataField.enable_choices``.
-        The default value is defined by the setting ``ENABLE_CHOICES_MAXIMUM``.
+        ``--enable-choices-maximum=30`` - Change the threshold for ``DataField.choices_allowed``.
+        The default value is defined by the setting ``CHOICES_ALLOWED_MAXIMUM``.
     """
 
     help = '\n'.join([
@@ -55,8 +55,8 @@ class Command(LabelCommand):
             help='Updates existing metadata derived from model fields'),
 
         make_option('-c', '--enable-choices-maximum', type='int',
-            dest='choices_max', metavar='NUM', default=settings.ENABLE_CHOICES_MAXIMUM,
-            help='Maximum distinct choices for setting `enable_choices`'),
+            dest='choices_max', metavar='NUM', default=settings.CHOICES_ALLOWED_MAXIMUM,
+            help='Maximum distinct choices for setting `choices_allowed`'),
     )
 
     # These are ignored since these join fields will be determined at runtime
@@ -156,7 +156,7 @@ class Command(LabelCommand):
 
                 # Determine size of distinct values
                 if datafield.size <= choices_max:
-                    datafield.enable_choices = True
+                    datafield.choices_allowed = True
 
                 datafield.save()
 

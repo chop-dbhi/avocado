@@ -52,7 +52,7 @@ class DataFieldAdmin(PublishedAdmin):
     form = DataFieldAdminForm
 
     list_display = ('name', 'published', 'archived', 'orphan_status', 'model_name',
-        'enable_choices', 'related_dataconcepts')
+        'choices_allowed', 'related_dataconcepts')
     list_filter = ('published', 'archived', 'model_name')
 
     search_fields = ('name', 'description', 'keywords', 'name_plural')
@@ -68,7 +68,7 @@ class DataFieldAdmin(PublishedAdmin):
 
         ('Query Modifiers', {
             'classes': ('collapse',),
-            'fields': ('translator', 'enable_choices')
+            'fields': ('translator', 'choices_allowed')
         }),
 
         ('Data Source', {

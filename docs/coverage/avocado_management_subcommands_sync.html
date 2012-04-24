@@ -268,8 +268,8 @@
 <p id='t29' class='pln'><span class='str'>&nbsp; &nbsp; &nbsp; &nbsp; model fields. Note this overwrites any descriptive metadata changes made</span><span class='strut'>&nbsp;</span></p>
 <p id='t30' class='pln'><span class='str'>&nbsp; &nbsp; &nbsp; &nbsp; to ``DataField`` such as ``name``, ``name_plural``, and ``description``.</span><span class='strut'>&nbsp;</span></p>
 <p id='t31' class='pln'><span class='strut'>&nbsp;</span></p>
-<p id='t32' class='pln'><span class='str'>&nbsp; &nbsp; &nbsp; &nbsp; ``--enable-choices-maximum=30`` - Change the threshold for ``DataField.enable_choices``.</span><span class='strut'>&nbsp;</span></p>
-<p id='t33' class='pln'><span class='str'>&nbsp; &nbsp; &nbsp; &nbsp; The default value is defined by the setting ``ENABLE_CHOICES_MAXIMUM``.</span><span class='strut'>&nbsp;</span></p>
+<p id='t32' class='pln'><span class='str'>&nbsp; &nbsp; &nbsp; &nbsp; ``--enable-choices-maximum=30`` - Change the threshold for ``DataField.choices_allowed``.</span><span class='strut'>&nbsp;</span></p>
+<p id='t33' class='pln'><span class='str'>&nbsp; &nbsp; &nbsp; &nbsp; The default value is defined by the setting ``CHOICES_ALLOWED_MAXIMUM``.</span><span class='strut'>&nbsp;</span></p>
 <p id='t34' class='pln'><span class='str'>&nbsp; &nbsp; &quot;&quot;&quot;</span><span class='strut'>&nbsp;</span></p>
 <p id='t35' class='pln'><span class='strut'>&nbsp;</span></p>
 <p id='t36' class='stm mis'>&nbsp; &nbsp; <span class='nam'>help</span> <span class='op'>=</span> <span class='str'>&#39;\n&#39;</span><span class='op'>.</span><span class='nam'>join</span><span class='op'>(</span><span class='op'>[</span><span class='strut'>&nbsp;</span></p>
@@ -294,8 +294,8 @@
 <p id='t55' class='pln'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>help</span><span class='op'>=</span><span class='str'>&#39;Updates existing metadata derived from model fields&#39;</span><span class='op'>)</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
 <p id='t56' class='pln'><span class='strut'>&nbsp;</span></p>
 <p id='t57' class='pln'>&nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>make_option</span><span class='op'>(</span><span class='str'>&#39;-c&#39;</span><span class='op'>,</span> <span class='str'>&#39;--enable-choices-maximum&#39;</span><span class='op'>,</span> <span class='nam'>type</span><span class='op'>=</span><span class='str'>&#39;int&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
-<p id='t58' class='pln'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>dest</span><span class='op'>=</span><span class='str'>&#39;choices_max&#39;</span><span class='op'>,</span> <span class='nam'>metavar</span><span class='op'>=</span><span class='str'>&#39;NUM&#39;</span><span class='op'>,</span> <span class='nam'>default</span><span class='op'>=</span><span class='nam'>settings</span><span class='op'>.</span><span class='nam'>ENABLE_CHOICES_MAXIMUM</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
-<p id='t59' class='pln'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>help</span><span class='op'>=</span><span class='str'>&#39;Maximum distinct choices for setting `enable_choices`&#39;</span><span class='op'>)</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
+<p id='t58' class='pln'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>dest</span><span class='op'>=</span><span class='str'>&#39;choices_max&#39;</span><span class='op'>,</span> <span class='nam'>metavar</span><span class='op'>=</span><span class='str'>&#39;NUM&#39;</span><span class='op'>,</span> <span class='nam'>default</span><span class='op'>=</span><span class='nam'>settings</span><span class='op'>.</span><span class='nam'>CHOICES_ALLOWED_MAXIMUM</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
+<p id='t59' class='pln'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>help</span><span class='op'>=</span><span class='str'>&#39;Maximum distinct choices for setting `choices_allowed`&#39;</span><span class='op'>)</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
 <p id='t60' class='pln'>&nbsp; &nbsp; <span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t61' class='pln'><span class='strut'>&nbsp;</span></p>
 <p id='t62' class='pln'>&nbsp; &nbsp; <span class='com'># These are ignored since these join fields will be determined at runtime</span><span class='strut'>&nbsp;</span></p>
@@ -395,7 +395,7 @@
 <p id='t156' class='pln'><span class='strut'>&nbsp;</span></p>
 <p id='t157' class='pln'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='com'># Determine size of distinct values</span><span class='strut'>&nbsp;</span></p>
 <p id='t158' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='key'>if</span> <span class='nam'>datafield</span><span class='op'>.</span><span class='nam'>size</span> <span class='op'>&lt;=</span> <span class='nam'>choices_max</span><span class='op'>:</span><span class='strut'>&nbsp;</span></p>
-<p id='t159' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>datafield</span><span class='op'>.</span><span class='nam'>enable_choices</span> <span class='op'>=</span> <span class='nam'>True</span><span class='strut'>&nbsp;</span></p>
+<p id='t159' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>datafield</span><span class='op'>.</span><span class='nam'>choices_allowed</span> <span class='op'>=</span> <span class='nam'>True</span><span class='strut'>&nbsp;</span></p>
 <p id='t160' class='pln'><span class='strut'>&nbsp;</span></p>
 <p id='t161' class='stm mis'>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class='nam'>datafield</span><span class='op'>.</span><span class='nam'>save</span><span class='op'>(</span><span class='op'>)</span><span class='strut'>&nbsp;</span></p>
 <p id='t162' class='pln'><span class='strut'>&nbsp;</span></p>

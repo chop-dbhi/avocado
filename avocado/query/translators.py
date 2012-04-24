@@ -60,7 +60,7 @@ class Translator(object):
 
         # If choices are enabled for this datafield, ensure a select multiple
         # is used by default.
-        if datafield.enable_choices and 'widget' not in kwargs:
+        if datafield.choices_allowed and 'widget' not in kwargs:
             kwargs['widget'] = forms.SelectMultiple(choices=datafield.choices)
 
         # Since None is considered an empty value by the django validators

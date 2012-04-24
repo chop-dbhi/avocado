@@ -62,7 +62,7 @@ class DataField(BasePlural):
     # Explicitly enable this field to be choice-based. This should
     # only be enabled for data that contains a discrete vocabulary, i.e.
     # no full text data, most numerical data nor date or time data.
-    enable_choices = models.BooleanField(default=False)
+    choices_allowed = models.BooleanField(default=False)
 
     # Explicitly allow or disallow sorting for this field. This can be used
     # to control expensive columns from being sorted.
