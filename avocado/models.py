@@ -64,6 +64,10 @@ class DataField(BasePlural):
     # no full text data, most numerical data nor date or time data.
     enable_choices = models.BooleanField(default=False)
 
+    # Explicitly allow or disallow sorting for this field. This can be used
+    # to control expensive columns from being sorted.
+    sorting_allowed = models.BooleanField(default=True)
+
     # An optional translator which customizes input query conditions
     # to a format which is suitable for the database.
     translator = models.CharField(max_length=100, choices=translators.choices,
