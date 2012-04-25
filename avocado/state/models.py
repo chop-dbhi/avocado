@@ -6,7 +6,7 @@ from avocado.managers import PublishedManager
 
 
 class BaseUser(Base):
-    user = models.ForeignKey(User, null=True, related_name='%(class_name)ss')
+    user = models.ForeignKey(User, null=True, related_name='%(class)ss')
     session = models.BooleanField(default=False)
 
     class Meta(object):

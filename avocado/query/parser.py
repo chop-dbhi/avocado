@@ -1,10 +1,10 @@
 from django.core.exceptions import ValidationError
-from modeltree.tree import MODELTREE_DEFAULT_ALIAS
 from avocado.models import DataField
 
 BRANCH_KEYS = ('children', 'type')
 CONDITION_KEYS = ('id', 'operator', 'value')
 LOGICAL_OPERATORS = ('and', 'or')
+
 
 def has_keys(obj, keys):
     "Check the required keys are present in `obj` for this node type."
@@ -13,16 +13,15 @@ def has_keys(obj, keys):
             return False
     return True
 
+
 def is_branch(obj):
     "Validates required structure for a branch node"
     if has_keys(obj, keys=BRANCH_KEYS):
         if obj['type'] not in LOGICAL_OPERATORS:
             raise ValidationError('Invalid logical operator between conditions')
         length = len(obj['children'])
-        if length == 0:
-            raise ValidationError('Invalid format. Branch node contains no conditions')
-        elif length == 1:
-            raise ValidationError('Invalid format. Branch node contains only 1 condition')
+        if length < 2:
+            raise ValidationError('Invalid format. Branch node must contain two or more conditions')
         return True
 
 
@@ -30,6 +29,7 @@ def is_condition(obj):
     "Validates required structure for a condition node"
     if has_keys(obj, keys=CONDITION_KEYS):
         return True
+
 
 def validate(id, operator, value, **context):
     """Takes a data field id (or natural key), operator and value and
@@ -51,10 +51,10 @@ def validate(id, operator, value, **context):
         raise ValidationError(e.message)
     return datafield.validate(operator, value, **context)
 
+
 def parse(obj):
     if type(obj) is not dict:
         raise ValidationError('Object must be of type dict')
-
     if is_condition(obj):
         validate(**obj)
     elif is_branch(obj):
