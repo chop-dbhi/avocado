@@ -52,11 +52,18 @@ class DataField(BasePlural):
     model_name = models.CharField(max_length=50)
     field_name = models.CharField(max_length=50)
 
-    # Although a category does not technically need to be defined, this more
+    # An optional unit for this field's data. In some cases databases may have
+    # a separate column which denotes the unit for another column, but this is
+    # not always the case. Measurement data, for example, should be
+    # standardized in the database to allow for consistent querying, thus not
+    # requiring a separate column denoting the unit per value.
+    unit = models.CharField(max_length=30, null=True)
+    unit_plural = models.CharField(max_length=40, null=True)
+
+    # Although a category does not technically need to be defined, this is more
     # for workflow reasons than for when the concept is published. Automated
     # prcesses may create concepts on the fly, but not know which category they
-    # should be linked to initially. the admin interface enforces choosing a
-    # category when the concept is published
+    # should be linked to initially.
     category = models.ForeignKey(DataCategory, null=True, blank=True)
 
     # Explicitly enable this field to be choice-based. This should
@@ -140,6 +147,15 @@ class DataField(BasePlural):
         "Returns a `ValuesListQuerySet` for this data field."
         return self.model.objects.values(self.field_name)
 
+
+    def get_plural_unit(self):
+        if self.unit_plural:
+            plural = self.unit_plural
+        elif not self.unit.endswith('s'):
+            plural = self.unit + 's'
+        else:
+            plural = self.unit
+        return plural
 
     # Data-related Cached Properties
     # These may be cached until the underlying data changes
