@@ -1,6 +1,7 @@
 from django.db.models import Q
 from django.db import transaction
 from django.conf import settings
+from haystack.query import RelatedSearchQuerySet
 from avocado.core.cache import CacheQuerySet
 from avocado.core.managers import PassThroughManager
 
@@ -17,6 +18,21 @@ class PublishedQuerySet(CacheQuerySet):
 class PublishedManager(PassThroughManager):
     def get_query_set(self):
         return PublishedQuerySet(self.model, using=self._db)
+
+
+class DataFieldQuerySet(PublishedQuerySet):
+    def published(self):
+        """Fields can be restricted to one or more sites, so the published
+        method is extended to support filtering by site.
+        """
+        published = super(DataFieldQuerySet, self).published()
+
+        if SITES_APP_INSTALLED:
+            # All published concepts associated with the current site
+            # (or no site)
+            sites = Q(sites=None) | Q(sites__id=settings.SITE_ID)
+            published = published.filter(sites)
+        return published.distinct()
 
 
 class DataConceptQuerySet(PublishedQuerySet):
@@ -42,18 +58,44 @@ class DataConceptQuerySet(PublishedQuerySet):
 
 class DataFieldManager(PublishedManager):
     "Manager for the `DataField` model."
-    def get_by_natural_key(self, app_name, model_name, field_name):
-        return self.get_query_set().get(
-            app_name=app_name,
-            model_name=model_name,
-            field_name=field_name
-        )
+    def get_query_set(self):
+        return DataFieldQuerySet(self.model, using=self._db)
+
+    def get_by_natural_key(self, app_name, model_name=None, field_name=None):
+        queryset = self.get_query_set()
+        if type(app_name) is int:
+            datafield = queryset.get(id=app_name)
+        else:
+            keys = ['app_name', 'model_name', 'field_name']
+            if type(app_name) is str and not model_name:
+                values = app_name.split('.')
+            else:
+                values = [app_name, model_name, field_name]
+            kwargs = dict(zip(keys, values))
+            datafield = queryset.get(**kwargs)
+        return datafield
+
+    def search(self, content, queryset=None, max_results=10):
+        sqs = RelatedSearchQuerySet().models(self.model).load_all().auto_query(content)
+        if queryset is not None:
+            sqs = sqs.load_all_queryset(self.model, queryset)
+        if max_results:
+            return sqs[:max_results]
+        return sqs
 
 
 class DataConceptManager(PassThroughManager):
     "Manager for the `DataConcept` model."
     def get_query_set(self):
         return DataConceptQuerySet(self.model, using=self._db)
+
+    def search(self, content, queryset=None, max_results=10):
+        sqs = RelatedSearchQuerySet().models(self.model).load_all().auto_query(content)
+        if queryset is not None:
+            sqs = sqs.load_all_queryset(self.model, queryset)
+        if max_results:
+            return sqs[:max_results]
+        return sqs
 
     @transaction.commit_on_success
     def create_from_field(self, datafield, save=True, **kwargs):

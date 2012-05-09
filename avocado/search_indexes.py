@@ -1,12 +1,16 @@
-from haystack.indexes import *
-from haystack import site
-from avocado.models import DataConcept
-
-class ConceptIndex(RealTimeSearchIndex):
-    text = CharField(document=True, use_template=True)
-
-    def index_queryset(self):
-        return DataConcept.objects.published()
+from haystack import indexes
+from avocado.models import DataConcept, DataField
 
 
-site.register(DataConcept, ConceptIndex)
+class DataConceptIndex(indexes.SearchIndex, indexes.Indexable):
+    text = indexes.CharField(document=True, use_template=True)
+
+    def get_model(self):
+        return DataConcept
+
+
+class DataFieldIndex(indexes.SearchIndex, indexes.Indexable):
+    text = indexes.CharField(document=True, use_template=True)
+
+    def get_model(self):
+        return DataField
