@@ -1,15 +1,7 @@
-{{ object.name }}
-{{ object.description }}
-{{ object.keywords }}
-
+{{ object.name }} {{ object.name_plural }} {{ object.description }} {{ object.keywords }}
 {% for cfield in object.concept_fields.all %}
-	{{ cfield }}
-
-	{% with datafield=cfield.field %}
-		{% if datafield.has_choices %}
-			{% for value in datafield.mapped_values %}
-				{{ value }}
-			{% endfor %}
-		{% endif %}
-	{% endwith %}
+{{ cfield }}
+{% with object=cfield.field %}
+{% include "search/indexes/avocado/datafield_text.txt %}
+{% endwith %}
 {% endfor %}

@@ -1,0 +1,4 @@
+{{ object.name }} {{ object.name_plural }} {{ object.description }} {{ object.keywords }}
+{% if object.enumerable or object.searchable %}
+{% for value in object.mapped_values %}{{ value }} {% endfor %}
+{% endif %}

@@ -1,37 +1,35 @@
 # A mapping between model field internal datatypes and sensible
-# client-friendly datatypes. in virtually all cases, client programs
-# only need to differentiate between high-level types like number,
-# string, and boolean. finer separation be may desired to alter the
+# client-friendly datatypes. In virtually all cases, client programs
+# only need to differentiate between high-level types like number, string,
+# and boolean. More granular separation be may desired to alter the
 # allowed operators or may infer a different client-side representation
 INTERNAL_DATATYPE_MAP = {
     'auto': 'number',
     'biginteger': 'number',
-    'boolean': 'boolean',
-    'char': 'string',
-    'date': 'date',
-    'datetime': 'datetime',
     'decimal': 'number',
+    'float': 'number',
+    'integer': 'number',
+    'positiveinteger': 'number',
+    'positivesmallinteger': 'number',
+    'smallinteger': 'number',
+
+    'nullboolean': 'boolean',
+
+    'char': 'string',
     'email': 'string',
     'file': 'string',
     'filepath': 'string',
-    'float': 'number',
     'image': 'string',
-    'integer': 'number',
     'ipaddress': 'string',
-    'nullboolean': 'boolean',
-    'positiveinteger': 'number',
-    'positivesmallinteger': 'number',
     'slug': 'string',
-    'smallinteger': 'number',
     'text': 'string',
-    'time': 'time',
     'url': 'string',
 }
 
 # A mapping between the client-friendly datatypes and sensible operators
-# that will be used to validate a query condition. in many cases, these types
+# that will be used to validate a query condition. In many cases, these types
 # support more operators than what are defined, but are not include because
-# they are not commonly used
+# they are not commonly used.
 DATATYPE_OPERATOR_MAP = {
     'boolean': ('exact', '-exact'),
     'date': ('exact', '-exact', 'in', '-in', 'lt', 'lte', 'gt', 'gte', 'range'),
@@ -45,9 +43,8 @@ DATATYPE_OPERATOR_MAP = {
 # readable representation. this will only ever be applicable when values
 # are being presented to client programs as potential choices
 DATA_CHOICES_MAP = {
-#    False: 'No',
-#    True: 'Yes',
     None: 'Null',
+    '': '(empty string)',
 }
 
 # A general mapping of formfield overrides for all subclasses. the mapping is
@@ -66,6 +63,7 @@ INTERNAL_DATATYPE_FORMFIELDS = {
     'number': 'FloatField',
 }
 
-# The maximum number of distinct choices allowed when determining to set the
-# `choices_allowed` flag on `DataField` instances during the `sync` process.
-CHOICES_ALLOWED_MAXIMUM = 30
+# The minimum number of distinct values required when determining to set the
+# `searchable` flag on `DataField` instances during the `sync` process. This
+# will only be applied to fields with a Avocado datatype of 'string'
+SYNC_SEARCHABLE_MINIMUM = 50

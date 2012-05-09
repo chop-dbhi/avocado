@@ -1,6 +1,7 @@
+from django import forms
 from django.db.models import Q
 from django.core.exceptions import ValidationError
-
+from modeltree.tree import trees
 from avocado.core import loader
 from avocado.conf import settings
 from avocado.core.utils import get_form_class
@@ -58,9 +59,9 @@ class Translator(object):
                 name = INTERNAL_DATATYPE_FORMFIELDS[datatype]
                 kwargs['form_class'] = get_form_class(name)
 
-        # If choices are enabled for this datafield, ensure a select multiple
-        # is used by default.
-        if datafield.choices_allowed and 'widget' not in kwargs:
+        # If this datafield is flagged as enumerable, use a select multiple
+        # by default.
+        if datafield.enumerable and 'widget' not in kwargs:
             kwargs['widget'] = forms.SelectMultiple(choices=datafield.choices)
 
         # Since None is considered an empty value by the django validators
@@ -91,41 +92,40 @@ class Translator(object):
             return new_value
         return formfield.clean(value)
 
-    def _get_not_null_pk(self, datafield, tree):
-        # XXX the below logic is required to get the expected results back
-        # when querying for NULL values. since NULL can be a value and a
+    def _get_not_null_pk(self, field, tree):
+        # XXX The below logic is required to get the expected results back
+        # when querying for NULL values. Since NULL can be a value and a
         # placeholder for non-existent values, then a condition to ensure
         # the row's primary key is also NOT NULL must be added. Django
         # assumes in all cases when querying on a NULL value all joins in
         # the chain up to that point must be promoted to LEFT OUTER JOINs,
         # which could be a reasonable assumption for some cases, but for
         # getting the existent rows of data back for our purposes, the
-        # assumption is wrong. the conditions defined for the query are not
+        # assumption is wrong. The conditions defined for the query are not
         # necessarily going to also be the data selected
 
-        # if this field is already the primary key, then don't bother
+        # If this field is already the primary key, then don't bother
         # adding this condition, since it would be redundant
-        if datafield.field.primary_key:
+        if field.primary_key:
             return Q()
 
-        from avocado.models import DataField
-        pk_name = datafield.model._meta.pk.name
-
-        # instantiate a new object to utilize the shortcut methods
-        _field = DataField(app_name=datafield.app_name, model_name=datafield.model_name, field_name=pk_name)
-        key = _field.query_string('isnull', tree=tree)
+        pk_field = field.model._meta.pk
+        key = trees[tree].query_string_for_field(pk_field, 'isnull')
 
         return Q(**{key: False})
 
     def _condition(self, datafield, operator, value, tree):
-        # assuming the operator and value validate, check for a NoneType value
+        tree = trees[tree]
+        field = datafield.field
+
+        # Assuming the operator and value validate, check for a NoneType value
         # if the operator is 'in'. This condition will be broken out into a
         # separate Q object
         if operator.operator == 'in' and None in value:
             value = value[:]
             value.remove(None)
 
-            key = datafield.query_string('isnull', tree=tree)
+            key = trees[tree].query_string_for_field(field, 'isnull')
 
             # simplifies the logic here for a cleaner query. the latter
             # condition allows for null values for the specified column, so
@@ -133,20 +133,20 @@ class Translator(object):
             # primary keys be null. this mimics an INNER JOINs behavior. see
             # ``_get_not_null_pk`` above 
             if operator.negated:
-                condition = Q(**{key: False}) & self._get_not_null_pk(datafield, tree)
+                condition = Q(**{key: False}) & self._get_not_null_pk(field, tree)
             else:
                 condition = Q(**{key: True})
 
             # finally, if there are any more values in the list, we include
             # them here
             if value:
-                key = datafield.query_string(operator.operator, tree=tree)
+                key = trees[tree].query_string_for_field(field, operator.operator)
                 condition = Q(**{key: value}) | condition
 
         else:
             # The statement 'foo=None' is equivalent to 'foo__isnull=True'
             if (operator.operator == 'isnull' or (operator.operator == 'exact' and value is None)):
-                key = datafield.query_string('isnull', tree=tree)
+                key = trees[tree].query_string_for_field(field, 'isnull')
 
                 # Now that isnull is being used instead, set the value to True
                 if value is None:
@@ -160,12 +160,12 @@ class Translator(object):
 
                 # again, we need to account for the LOJ assumption
                 if value is False:
-                    condition = condition & self._get_not_null_pk(datafield, tree)
+                    condition = condition & self._get_not_null_pk(field, tree)
 
             # handle all other conditions
             else:
-                key = datafield.query_string(operator.operator, tree=tree)
-                condition = Q(**{key: value}) & self._get_not_null_pk(datafield, tree)
+                key = trees[tree].query_string_for_field(field, operator.operator)
+                condition = Q(**{key: value}) & self._get_not_null_pk(field, tree)
 
                 condition = ~condition if operator.negated else condition
 

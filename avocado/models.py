@@ -66,29 +66,44 @@ class DataField(BasePlural):
     # should be linked to initially.
     category = models.ForeignKey(DataCategory, null=True, blank=True)
 
-    # Explicitly enable this field to be choice-based. This should
+    # Set this field to true to make this field's values enumerable. This should
     # only be enabled for data that contains a discrete vocabulary, i.e.
     # no full text data, most numerical data nor date or time data.
-    choices_allowed = models.BooleanField(default=False)
+    enumerable = models.BooleanField(default=False)
 
-    # Explicitly allow or disallow sorting for this field. This can be used
-    # to control expensive columns from being sorted.
-    sorting_allowed = models.BooleanField(default=True)
+    # Set his field to true to denote this field may be searched via some means
+    # of free-text input.
+    searchable = models.BooleanField(default=False)
 
     # An optional translator which customizes input query conditions
     # to a format which is suitable for the database.
-    translator = models.CharField(max_length=100, choices=translators.choices,
-        blank=True, null=True)
+    translator = models.CharField(max_length=100, blank=True, null=True,
+        choices=translators.choices)
 
     # The timestamp of the last time the underlying data for this field
     # has been modified. This is used for the cache key and for general
-    # reference. The underlying table not have a timestamp nor is it optimal
-    # to have to query the data for the max `modified` time.
-    data_modified = models.DateTimeField(null=True)
+    # reference. The underlying table may not have a timestamp nor is it
+    # optimal to have to query the data for the max `modified` time.
+    data_modified = models.DateTimeField(null=True, help_text='The last time ' \
+        ' the underlying data for this field was modified.')
 
     # Enables recording where this particular data comes if derived from
     # another data source.
     data_source = models.CharField(max_length=250, null=True, blank=True)
+
+    # Certain concepts may not be relevant or appropriate for all
+    # sites being deployed. This is primarily for preventing exposure of
+    # access to private data from certain sites. For example, there may and
+    # internal and external deployment of the same site. The internal site
+    # has full access to all fields, while the external may have a limited set.
+    # NOTE this is not reliable way to prevent exposure of sensitive data.
+    # This should be used to simply hide _access_ to the concepts.
+    if SITES_APP_INSTALLED:
+        sites = models.ManyToManyField(Site, blank=True,
+            related_name='fields+')
+
+    # The order of this datafield with respect to the category (if defined).
+    order = models.FloatField(null=True, blank=True, db_column='_order')
 
     objects = DataFieldManager()
 
@@ -132,13 +147,12 @@ class DataField(BasePlural):
     def datatype(self):
         """Returns the datatype of the field this datafield represents.
 
-        By default, it will use the field's internal type, but can be overridden
-        by the ``INTERNAL_DATATYPE_MAP`` setting.
+        By default, it will use the field's internal type, but can be
+        overridden by the ``INTERNAL_DATATYPE_MAP`` setting.
         """
         datatype = utils.get_internal_type(self.field)
         # if a mapping exists, replace the datatype
         return INTERNAL_DATATYPE_MAP.get(datatype, datatype)
-
 
     # Convenience Methods
     # Easier access to the underlying data for this data field
@@ -147,6 +161,12 @@ class DataField(BasePlural):
         "Returns a `ValuesListQuerySet` for this data field."
         return self.model.objects.values(self.field_name)
 
+    def search_values(self, query):
+        "Rudimentary search for string-based values."
+        if self.datatype == 'string':
+            filters = {'{}__icontains'.format(self.field_name): query}
+            return self.query().filter(**filters).values_list(self.field_name,
+                flat=True).iterator()
 
     def get_plural_unit(self):
         if self.unit_plural:
@@ -168,8 +188,9 @@ class DataField(BasePlural):
     @cached_property('values', timestamp='data_modified')
     def values(self):
         "Introspects the data and returns a distinct list of the values."
-        return self.query().order_by(self.field_name)\
-                .values_list(self.field_name, flat=True).distinct()
+        return tuple(self.query().order_by(self.field_name)\
+                .values_list(self.field_name, flat=True)\
+                .order_by(self.field_name).distinct())
 
     @cached_property('coded_values', timestamp='data_modified')
     def coded_values(self):
@@ -226,11 +247,7 @@ class DataField(BasePlural):
         if self.datatype == 'number':
             return Aggregator(self.field).variance(*args)
 
-
-    # Validation and Query-related Methods
-
-    def query_string(self, operator=None, tree=MODELTREE_DEFAULT_ALIAS):
-        return trees[tree].query_string_for_field(self.field, operator)
+    # Translator Convenience Methods
 
     def translate(self, operator=None, value=None, tree=MODELTREE_DEFAULT_ALIAS, **context):
         "Convenince method for performing a translation on a query condition."

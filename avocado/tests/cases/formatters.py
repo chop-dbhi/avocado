@@ -11,6 +11,7 @@ __all__ = ('FormatterTestCase',)
 
 class FormatterTestCase(BaseTestCase):
     def setUp(self):
+        super(FormatterTestCase, self).setUp()
         name_field = DataField.objects.get_by_natural_key('tests', 'title', 'name')
         salary_field = DataField.objects.get_by_natural_key('tests', 'title', 'salary')
         boss_field = DataField.objects.get_by_natural_key('tests', 'title', 'boss')

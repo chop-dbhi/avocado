@@ -74,7 +74,7 @@ class BasePlural(Base):
             'keywords': self.keywords,
         }
 
-    def get_name_plural(self):
+    def get_plural_name(self):
         if self.name_plural:
             plural = self.name_plural
         elif not self.name.endswith('s'):

@@ -51,11 +51,12 @@ class PublishedAdmin(admin.ModelAdmin):
 class DataFieldAdmin(PublishedAdmin):
     form = DataFieldAdminForm
 
-    list_display = ('name', 'published', 'archived', 'orphan_status', 'model_name',
-        'choices_allowed', 'related_dataconcepts')
-    list_filter = ('published', 'archived', 'model_name')
+    list_display = ('name', 'published', 'archived', 'orphan_status',
+        'model_name', 'enumerable', 'searchable', 'related_dataconcepts')
+    list_filter = ('published', 'archived', 'model_name', 'enumerable',
+        'searchable')
 
-    search_fields = ('name', 'description', 'keywords', 'name_plural')
+    search_fields = ('name', 'description', 'keywords')
     readonly_fields = ('created', 'modified', 'data_modified')
     actions = ('mark_published', 'mark_unpublished', 'mark_archived',
         'mark_unarchived', 'create_dataconcept')
@@ -67,8 +68,7 @@ class DataFieldAdmin(PublishedAdmin):
         }),
 
         ('Query Modifiers', {
-            'classes': ('collapse',),
-            'fields': ('translator', 'choices_allowed')
+            'fields': ('translator', 'enumerable', 'searchable')
         }),
 
         ('Data Source', {

@@ -5,8 +5,10 @@ from avocado.tests.base import BaseTestCase
 from avocado.models import DataField, DataConcept, DataConceptField
 from avocado import exporters
 
+
 class ExportTestCase(BaseTestCase):
     def setUp(self):
+        super(ExportTestCase, self).setUp()
         self.query = models.Employee.objects.all()
 
         first_name_field = DataField.objects.get_by_natural_key('tests', 'employee', 'first_name')
@@ -69,4 +71,3 @@ class ExportTestCase(BaseTestCase):
         buff = open('json_export.json', 'wb+')
         exporter.write(buff)
         os.remove('json_export.json')
-

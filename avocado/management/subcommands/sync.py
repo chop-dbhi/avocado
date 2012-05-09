@@ -29,8 +29,8 @@ class Command(LabelCommand):
         model fields. Note this overwrites any descriptive metadata changes made
         to ``DataField`` such as ``name``, ``name_plural``, and ``description``.
 
-        ``--enable-choices-maximum=30`` - Change the threshold for ``DataField.choices_allowed``.
-        The default value is defined by the setting ``CHOICES_ALLOWED_MAXIMUM``.
+        ``--searchable-minimum=50`` - Change the threshold for ``DataField.searchable``.
+        The default value is defined by the setting ````.
     """
 
     help = '\n'.join([
@@ -54,9 +54,9 @@ class Command(LabelCommand):
             dest='update_existing', default=False,
             help='Updates existing metadata derived from model fields'),
 
-        make_option('-c', '--enable-choices-maximum', type='int',
-            dest='choices_max', metavar='NUM', default=settings.CHOICES_ALLOWED_MAXIMUM,
-            help='Maximum distinct choices for setting `choices_allowed`'),
+        make_option('-c', '--searchable-minimum', type='int',
+            dest='searchable_min', metavar='NUM', default=settings.SYNC_SEARCHABLE_MINIMUM,
+            help='Mininum required distinct values for setting `searchable`'),
     )
 
     # These are ignored since these join fields will be determined at runtime
@@ -75,7 +75,7 @@ class Command(LabelCommand):
         include_non_editable = options.get('include_non_editable')
         include_keys = options.get('include_keys')
         update_existing = options.get('update_existing')
-        choices_max = options.get('choices_max')
+        searchable_min = options.get('searchable_min')
 
         if update_existing:
             resp = raw_input('Are you sure you want to update existing metadata?\n'
@@ -154,9 +154,13 @@ class Command(LabelCommand):
                     datafield.__dict__.update([(k, v) for k, v in kwargs.items()])
                     update_count += 1
 
-                # Determine size of distinct values
-                if datafield.size <= choices_max:
-                    datafield.choices_allowed = True
+                # For string-based data, set the enumerable flag by default
+                if datafield.datatype == 'string':
+                    datafield.enumerable = True
+
+                    # Determine size of distinct values
+                    if datafield.size >= searchable_min:
+                        datafield.searchable = True
 
                 datafield.save()
 
