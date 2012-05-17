@@ -11,18 +11,17 @@ class DataFieldAdminForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super(DataFieldAdminForm, self).clean()
-        app_name = cleaned_data['app_name']
+        instance = super(DataFieldAdminForm, self).save(commit=False)
 
-        # test `model_name'
         model_name = cleaned_data['model_name']
-        if self.instance._get_model(app_name, model_name) is None:
+        if instance.model is None:
             del cleaned_data['model_name']
             msg = 'The model "{0}" could not be found'.format(model_name)
             self._errors['model_name'] = self.error_class([msg])
 
         # test `field_name'
         field_name = cleaned_data['field_name']
-        if self.instance._get_field(field_name) is None:
+        if instance.field is None:
             del cleaned_data['field_name']
             msg = 'The model "{0}" does not have a field named "{1}"'.format(model_name, field_name)
             self._errors['field_name'] = self.error_class([msg])
