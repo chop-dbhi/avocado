@@ -3,7 +3,6 @@ try:
 except ImportError:
     from ordereddict import OrderedDict
 
-from django import forms
 from django.conf import settings
 from django.db import models
 from django.contrib.sites.models import Site
@@ -11,7 +10,7 @@ from django.utils.encoding import smart_unicode
 from django.db.models.fields import FieldDoesNotExist
 from django.db.models.signals import post_save, pre_delete
 from django.core.exceptions import ImproperlyConfigured
-from modeltree.tree import MODELTREE_DEFAULT_ALIAS, trees
+from modeltree.tree import MODELTREE_DEFAULT_ALIAS
 from avocado.core import utils
 from avocado.core.models import Base, BasePlural
 from avocado.core.cache import post_save_cache, pre_delete_uncache, cached_property
@@ -19,7 +18,7 @@ from avocado.conf import settings as _settings
 from avocado.managers import DataFieldManager, DataConceptManager, DataCategoryManager
 from avocado.formatters import registry as formatters
 from avocado.query.translators import registry as translators
-from avocado.stats import Aggregator
+from avocado.stats.agg import Aggregator
 
 __all__ = ('DataCategory', 'DataConcept', 'DataField')
 
@@ -213,8 +212,9 @@ class DataField(BasePlural):
         "Returns a distinct set of choices for this field."
         return zip(self.values, self.mapped_values)
 
-
     # Data Aggregation Properties
+    def groupby(self, *args):
+        return Aggregator(self.field).groupby(*args)
 
     def count(self, *args):
         "Returns an the aggregated counts."

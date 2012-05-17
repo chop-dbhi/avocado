@@ -1,10 +1,10 @@
 from copy import deepcopy
 from django.db import models
 from django.db.models import Q, Count, Sum, Avg, Max, Min, StdDev, Variance
-from django.db.models.query import REPR_OUTPUT_SIZE, QuerySet
+from django.db.models.query import REPR_OUTPUT_SIZE
 from django.db.models.sql.constants import LOOKUP_SEP
-from modeltree.utils import M, resolve_lookup
-from avocado.core import utils
+from modeltree.utils import M
+
 
 class Aggregator(object):
     def __init__(self, field, model=None):
@@ -20,129 +20,170 @@ class Aggregator(object):
         self.field = field
         self.field_name = field_name
         self.model = model
-        self.aggregates = {}
-        self.where = []
-        self.having = []
-        self.groupby = []
-        self.orderby = []
+        self._aggregates = {}
+        self._filter = []
+        self._exclude = []
+        self._having = []
+        self._groupby = []
+        self._orderby = []
+        self.fixed_groupby = False
+
+    def __eq__(self, other):
+        return list(self) == other
 
     def __deepcopy__(self):
         return self._clone()
 
     def __len__(self):
+        # If the result cache is filled, use the length otherwise
+        # performa databse hit
+        if hasattr(self, '_length'):
+            return self._length
         return len(self._construct())
 
     def __repr__(self):
-        queryset = self._construct()
-        if not isinstance(queryset, QuerySet):
-            return str(queryset)
         data = list(self[:REPR_OUTPUT_SIZE + 1])
         if len(data) > REPR_OUTPUT_SIZE:
             data[-1] = '...(remaining elements results)...'
         return repr(data)
 
     def __getitem__(self, key):
-        return self._result_iter(self._construct().__getitem__(key))
+        return list(self._result_iter())[key]
 
     def __iter__(self):
-        return self._result_iter(self._construct())
+        return self._result_iter()
 
-    def __eq__(self, other):
-        return self._construct() == other
+    def _result_iter(self):
+        if hasattr(self, '_result_cache'):
+            for obj in self._result_cache:
+                yield obj
+        else:
+            queryset = self._construct()
+            cache = []
+            length = 0
 
+            for obj in iter(queryset):
+                if self._groupby:
+                    keys = []
+                    for key in self._groupby:
+                        keys.append(obj[key])
+                        del obj[key]
+                    obj['values'] = keys
 
-    def _result_iter(self, queryset):
-        agg = self.aggregates.keys()[0]
-        for obj in queryset.iterator():
-            keys = []
-            for key in self.groupby:
-                keys.append(obj[key])
-            if len(keys) == 1:
-                yield {keys[0]: obj[agg]}
-            else:
-                yield {tuple(keys): obj[agg]}
+                length += 1
+                cache.append(obj)
+                yield obj
+
+            self._result_cache = cache
+            self._length = length
 
     def _construct(self):
         queryset = self.model.objects.all()
-        # If no group by clause is defined, this is a full table aggregation
-        if self.groupby:
-            queryset = queryset.values(*self.groupby)
-        if self.where:
-            queryset = queryset.filter(*self.where)
-        if self.aggregates:
-            if self.groupby:
-                queryset = queryset.annotate(**self.aggregates)
+        if self._filter:
+            queryset = queryset.filter(*self._filter)
+        if self._exclude:
+            queryset = queryset.exclude(*self._exclude)
+        if self._groupby:
+            queryset = queryset.values(*self._groupby)
+        if self._aggregates:
+            if self._groupby:
+                queryset = queryset.annotate(**self._aggregates)
             else:
-                queryset = queryset.aggregate(**self.aggregates)
-        if self.having:
-            queryset = queryset.filter(*self.having)
-        if self.orderby:
-            queryset = queryset.order_by(*self.orderby)
-        if not self.groupby:
-            return dict(queryset)
+                queryset = queryset.aggregate(**self._aggregates)
+        if self._having:
+            queryset = queryset.filter(*self._having)
+        if self._orderby:
+            queryset = queryset.order_by(*self._orderby)
+        if not self._groupby:
+            return [dict(queryset)]
         return queryset
 
     def _clone(self):
         clone = self.__class__(self.field_name, self.model)
-        clone.aggregates = deepcopy(self.aggregates)
-        clone.where = deepcopy(self.where)
-        clone.having = deepcopy(self.having)
-        clone.groupby = deepcopy(self.groupby)
-        clone.orderby = deepcopy(self.orderby)
+        clone._aggregates = deepcopy(self._aggregates)
+        clone._filter = deepcopy(self._filter)
+        clone._exclude = deepcopy(self._exclude)
+        clone._having = deepcopy(self._having)
+        clone._groupby = deepcopy(self._groupby)
+        clone._orderby = deepcopy(self._orderby)
+        clone.fixed_groupby = self.fixed_groupby
         return clone
 
     def _aggregate(self, *groupby, **aggregates):
         clone = self._clone()
-        clone.aggregates.update(aggregates)
-        clone.groupby = [resolve_lookup(x, tree=clone.model) for x in groupby]
+        clone._aggregates.update(aggregates)
+        if not clone.fixed_groupby:
+            clone._groupby = groupby
         return clone
 
     def filter(self, *values, **filters):
         clone = self._clone()
+
+        raw = []
+        args = []
+        for v in values:
+            if isinstance(v, Q):
+                args.append(v)
+            else:
+                raw.append(v)
+
         # One or more values allowed values for the applied to this
         # data field. This is currently restricted to an `exact` or `in`
         # operator.
-        if values:
-            if len(values) == 1:
-                condition = clone.field_name, values[0]
+        if raw:
+            if len(raw) == 1:
+                condition = clone.field_name, raw[0]
             else:
-                condition = '{0}__in'.format(clone.field_name), values
-            clone.where.append(M(tree=clone.model, **dict([condition])))
+                condition = '{0}__in'.format(clone.field_name), raw
+            clone._filter.append(M(tree=clone.model, **dict([condition])))
+
+        clone._filter.extend(args)
 
         # Separate out the conditions that apply to aggregations. The
         # non-aggregation conditions will always be applied before the
         # aggregation is applied.
         for key, value in filters.iteritems():
-            if key.split(LOOKUP_SEP)[0] in clone.aggregates:
+            if key.split(LOOKUP_SEP)[0] in clone._aggregates:
                 condition = Q(**dict([(key, value)]))
-                clone.having.append(condition)
+                clone._having.append(condition)
             else:
                 condition = M(tree=clone.model, **dict([(key, value)]))
-                clone.where.append(condition)
+                clone._filter.append(condition)
         return clone
 
     def exclude(self, *values, **filters):
         clone = self._clone()
+
+        raw = []
+        args = []
+        for v in values:
+            if isinstance(v, Q):
+                args.append(v)
+            else:
+                raw.append(v)
+
         # One or more values allowed values for the applied to this
         # data field. This is currently restricted to an `exact` or `in`
         # operator.
-        if values:
-            if len(values) == 1:
-                condition = clone.field_name, values[0]
+        if raw:
+            if len(raw) == 1:
+                condition = clone.field_name, raw[0]
             else:
-                condition = '{0}__in'.format(clone.field_name), values
-            clone.where.append(~M(tree=clone.model, **dict([condition])))
+                condition = '{0}__in'.format(clone.field_name), raw
+            clone._exclude.append(M(tree=clone.model, **dict([condition])))
+
+        clone._exclude.extend(args)
 
         # Separate out the conditions that apply to aggregations. The
         # non-aggregation conditions will always be applied before the
         # aggregation is applied.
         for key, value in filters.iteritems():
-            if key.split(LOOKUP_SEP)[0] in clone.aggregates:
+            if key.split(LOOKUP_SEP)[0] in clone._aggregates:
                 condition = ~Q(**dict([(key, value)]))
-                clone.having.append(condition)
+                clone._having.append(condition)
             else:
                 condition = ~M(tree=clone.model, **dict([(key, value)]))
-                clone.where.append(condition)
+                clone._exclude.append(condition)
         return clone
 
     def order_by(self, *fields):
@@ -153,10 +194,13 @@ class Aggregator(object):
             if f.startswith('-'):
                 f = f[1:]
                 direction = '-'
-            if f not in self.aggregates:
-                f = resolve_lookup(f, tree=clone.model)
             orderby.append(direction + f)
-        clone.orderby = orderby
+        clone._orderby = orderby
+        return clone
+
+    def groupby(self, *groupby):
+        clone = self._aggregate(*groupby)
+        clone.fixed_groupby = True
         return clone
 
     def count(self, *groupby):
@@ -193,4 +237,3 @@ class Aggregator(object):
         "Performs an VARIANCE aggregation."
         aggregates = {'variance': Variance(self.field_name)}
         return self._aggregate(*groupby, **aggregates)
-
