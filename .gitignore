@@ -2,8 +2,9 @@
 .coverage
 .watch-pid
 .sass-cache
-*.swp
-*.pyc
+*.ipynb
+*.sw[po]
+*.py[co]
 docs/build
 MANIFEST
 dist
