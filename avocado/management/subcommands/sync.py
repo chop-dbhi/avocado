@@ -157,13 +157,11 @@ class Command(LabelCommand):
                 # For string-based data, set the enumerable flag by default
                 if datafield.datatype == 'string':
                     datafield.enumerable = True
-
                     # Determine size of distinct values
                     if datafield.size >= searchable_min:
                         datafield.searchable = True
 
                 datafield.save()
-
 
             if new_count == 1:
                 print '1 field added for %s' % model_name

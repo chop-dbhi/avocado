@@ -4,8 +4,15 @@ source = avocado
 
 [report]
 omit =
+    avocado/admin.py
+    avocado/forms.py
     avocado/core/decorators.py
     avocado/tests/*
+    avocado/__init__.py
+    avocado/*/__init__.py
+    avocado/*/*/__init__.py
+    avocado/*/*/*/__init__.py
+
 exclude_lines =
     pragma: no cover
     def __repr__

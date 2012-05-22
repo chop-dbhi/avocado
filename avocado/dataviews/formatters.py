@@ -2,7 +2,6 @@ try:
     from collections import OrderedDict
 except ImportError:
     from ordereddict import OrderedDict
-
 from django.utils.encoding import force_unicode
 from avocado.core import loader
 from avocado.conf import settings

@@ -1,8 +1,8 @@
+import jsonfield
 try:
     from collections import OrderedDict
 except ImportError:
     from ordereddict import OrderedDict
-
 from django.conf import settings
 from django.db import models
 from django.contrib.sites.models import Site
@@ -16,9 +16,11 @@ from avocado.core.models import Base, BasePlural
 from avocado.core.cache import post_save_cache, pre_delete_uncache, cached_property
 from avocado.conf import settings as _settings
 from avocado.managers import DataFieldManager, DataConceptManager, DataCategoryManager
-from avocado.formatters import registry as formatters
+from avocado.query import parser as dcparser
 from avocado.query.translators import registry as translators
 from avocado.stats.agg import Aggregator
+from avocado.dataviews.formatters import registry as formatters
+from avocado.dataviews.queryview import registry as queryviews
 
 __all__ = ('DataCategory', 'DataConcept', 'DataField')
 
@@ -30,9 +32,8 @@ DATA_CHOICES_MAP = _settings.DATA_CHOICES_MAP
 class DataCategory(Base):
     "A high-level organization for data concepts."
     # A reference to a parent for hierarchical categories
-    parent = models.ForeignKey('self', null=True, related_name='children',
-            blank=True)
-
+    parent = models.ForeignKey('self', null=True, blank=True,
+        related_name='children')
     order = models.FloatField(null=True, blank=True, db_column='_order')
 
     objects = DataCategoryManager()
@@ -56,8 +57,8 @@ class DataField(BasePlural):
     # not always the case. Measurement data, for example, should be
     # standardized in the database to allow for consistent querying, thus not
     # requiring a separate column denoting the unit per value.
-    unit = models.CharField(max_length=30, null=True)
-    unit_plural = models.CharField(max_length=40, null=True)
+    unit = models.CharField(max_length=30, null=True, blank=True)
+    unit_plural = models.CharField(max_length=40, null=True, blank=True)
 
     # Although a category does not technically need to be defined, this is more
     # for workflow reasons than for when the concept is published. Automated
@@ -170,7 +171,7 @@ class DataField(BasePlural):
     def get_plural_unit(self):
         if self.unit_plural:
             plural = self.unit_plural
-        elif not self.unit.endswith('s'):
+        elif self.unit and not self.unit.endswith('s'):
             plural = self.unit + 's'
         else:
             plural = self.unit
@@ -300,6 +301,9 @@ class DataConcept(BasePlural):
     formatter = models.CharField(max_length=100, blank=True, null=True,
         choices=formatters.choices)
 
+    queryview = models.CharField(max_length=100, blank=True, null=True,
+        choices=queryviews.choices)
+
     objects = DataConceptManager()
 
     class Meta(object):
@@ -309,15 +313,18 @@ class DataConcept(BasePlural):
             ('view_dataconcept', 'Can view dataconcept'),
         )
 
-    def __len__(self):
-        return self.fields.count()
 
-
-class DataConceptField(BasePlural):
+class DataConceptField(models.Model):
     "Through model between DataConcept and DataField relationships."
     field = models.ForeignKey(DataField, related_name='concept_fields')
     concept = models.ForeignKey(DataConcept, related_name='concept_fields')
-    order = models.FloatField(null=True, db_column='_order')
+
+    name = models.CharField(max_length=100, null=True, blank=True)
+    name_plural = models.CharField(max_length=100, null=True, blank=True)
+    order = models.FloatField(null=True, blank=True, db_column='_order')
+
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
 
     class Meta(object):
         ordering = ('order',)
@@ -327,6 +334,19 @@ class DataConceptField(BasePlural):
 
     def get_plural_name(self):
         return self.name_plural or self.field.get_plural_name()
+
+
+class DataContext(Base):
+    """JSON object representing one or more data field conditions. The data may
+    be a single condition, an array of conditions or a tree stucture.
+
+    This corresponds to the `WHERE` statements in a SQL query.
+    """
+    json = jsonfield.JSONField(null=True, validators=[dcparser.validate])
+
+    def get_queryset(self, queryset=None, tree=MODELTREE_DEFAULT_ALIAS):
+        return dcparser.parse(self.json, tree=tree).apply(queryset=queryset)
+
 
 
 # Register instance-level cache invalidation handlers

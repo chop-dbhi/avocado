@@ -1,16 +1,16 @@
-from avocado.tests.base import BaseTestCase
-from avocado.formatters import Formatter
-from avocado.models import DataField, DataConcept, DataConceptField
-
 try:
     from collections import OrderedDict
 except ImportError:
     from ordereddict import OrderedDict
+from avocado.tests.base import BaseTestCase
+from avocado.dataviews.formatters import Formatter
 
-__all__ = ('FormatterTestCase',)
+__all__ = ['FormatterTestCase']
+
 
 class FormatterTestCase(BaseTestCase):
     def setUp(self):
+        from avocado.models import DataField, DataConcept, DataConceptField
         super(FormatterTestCase, self).setUp()
         name_field = DataField.objects.get_by_natural_key('tests', 'title', 'name')
         salary_field = DataField.objects.get_by_natural_key('tests', 'title', 'salary')

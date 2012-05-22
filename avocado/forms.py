@@ -2,6 +2,7 @@ from django import forms
 from django.db import models
 from avocado.models import DataField
 
+
 class DataFieldAdminForm(forms.ModelForm):
     def clean_app_name(self):
         app_name = self.cleaned_data['app_name']

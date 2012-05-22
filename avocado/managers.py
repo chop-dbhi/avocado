@@ -67,12 +67,14 @@ class DataFieldManager(PublishedManager):
             datafield = queryset.get(id=app_name)
         else:
             keys = ['app_name', 'model_name', 'field_name']
-            if type(app_name) is str and not model_name:
-                values = app_name.split('.')
-            else:
-                values = [app_name, model_name, field_name]
-            kwargs = dict(zip(keys, values))
-            datafield = queryset.get(**kwargs)
+            if type(app_name) is str:
+                if not model_name:
+                    values = app_name.split('.')
+                else:
+                    values = [app_name, model_name, field_name]
+            elif type(app_name) is list:
+                values = app_name
+            datafield = queryset.get(**dict(zip(keys, values)))
         return datafield
 
     def search(self, content, queryset=None, max_results=10):

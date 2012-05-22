@@ -1,6 +1,7 @@
 from avocado.conf import settings
 from avocado.core import loader
 
+
 class BaseOperatorMetaclass(type):
     def __new__(cls, name, bases, attrs):
         new_cls = type.__new__(cls, name, bases, attrs)

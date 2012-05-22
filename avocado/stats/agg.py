@@ -20,13 +20,14 @@ class Aggregator(object):
         self.field = field
         self.field_name = field_name
         self.model = model
+
         self._aggregates = {}
         self._filter = []
         self._exclude = []
         self._having = []
         self._groupby = []
         self._orderby = []
-        self.fixed_groupby = False
+        self._fixed_groupby = False
 
     def __eq__(self, other):
         return list(self) == other
@@ -106,13 +107,13 @@ class Aggregator(object):
         clone._having = deepcopy(self._having)
         clone._groupby = deepcopy(self._groupby)
         clone._orderby = deepcopy(self._orderby)
-        clone.fixed_groupby = self.fixed_groupby
+        clone._fixed_groupby = self._fixed_groupby
         return clone
 
     def _aggregate(self, *groupby, **aggregates):
         clone = self._clone()
         clone._aggregates.update(aggregates)
-        if not clone.fixed_groupby:
+        if not clone._fixed_groupby:
             clone._groupby = groupby
         return clone
 
@@ -200,7 +201,7 @@ class Aggregator(object):
 
     def groupby(self, *groupby):
         clone = self._aggregate(*groupby)
-        clone.fixed_groupby = True
+        clone._fixed_groupby = True
         return clone
 
     def count(self, *groupby):

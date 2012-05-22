@@ -19,6 +19,8 @@ class Registry(object):
         self.register_instance = register_instance
         self.default = default
         self._registry = {}
+        if default:
+            self.register(default)
 
     def __getitem__(self, name):
         return self._registry.get(name, self.default)

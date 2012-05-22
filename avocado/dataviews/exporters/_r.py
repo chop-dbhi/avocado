@@ -1,7 +1,6 @@
 from zipfile import ZipFile
 from cStringIO import StringIO
 from string import punctuation
-
 from _base import BaseExporter
 from _csv import CSVExporter
 

@@ -19,7 +19,7 @@ class Base(models.Model):
         indexing.
     """
     # Descriptor-based fields
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=50, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     keywords = models.CharField(max_length=100, null=True, blank=True)
 
@@ -77,7 +77,7 @@ class BasePlural(Base):
     def get_plural_name(self):
         if self.name_plural:
             plural = self.name_plural
-        elif not self.name.endswith('s'):
+        elif self.name and not self.name.endswith('s'):
             plural = self.name + 's'
         else:
             plural = self.name

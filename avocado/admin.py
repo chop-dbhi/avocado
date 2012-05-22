@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.core.urlresolvers import reverse
-from avocado.models import DataField, DataConcept, DataCategory
+from avocado.models import DataField, DataConcept, DataCategory, DataConceptField
 from avocado.forms import DataFieldAdminForm
 
 class PublishedAdmin(admin.ModelAdmin):
@@ -63,8 +63,16 @@ class DataFieldAdmin(PublishedAdmin):
 
     fieldsets = (
         (None, {
-            'fields': ('name', 'name_plural', 'description', 'keywords',
-                ('published', 'archived')),
+            'fields': (
+                'name',
+                'name_plural',
+                'description',
+                'keywords',
+                'unit',
+                'unit_plural',
+                'published',
+                'archived',
+            ),
         }),
 
         ('Query Modifiers', {
@@ -106,13 +114,29 @@ class DataFieldAdmin(PublishedAdmin):
     create_dataconcept.short_description = 'Create Data Concept'
 
 
+class DataConceptFieldInlineAdmin(admin.TabularInline):
+    model = DataConceptField
+
+
 class DataConceptAdmin(PublishedAdmin):
     list_display = ('name', 'published', 'archived', 'related_datafields')
+    inlines = [DataConceptFieldInlineAdmin]
 
     fieldsets = (
         (None, {
-            'fields': ('name', 'name_plural', 'description', 'keywords',
-                ('published', 'archived'), 'category'),
+            'fields': (
+                'name',
+                'name_plural',
+                'description',
+                'keywords',
+                'category',
+                'published',
+                'archived',
+            ),
+        }),
+
+        ('Modifiers', {
+            'fields': ('queryview', 'formatter'),
         }),
 
         ('Times of Interest', {

@@ -5,7 +5,7 @@ from modeltree.tree import trees
 from avocado.core import loader
 from avocado.conf import settings
 from avocado.core.utils import get_form_class
-from avocado.query.operators import registry as operators
+from .operators import registry as operators
 
 DEFAULT_OPERATOR = 'exact'
 DATATYPE_OPERATOR_MAP = settings.DATATYPE_OPERATOR_MAP
@@ -43,11 +43,11 @@ class Translator(object):
 
         # Ensure the operator is allowed
         if operator.uid not in allowed_operators:
-            raise OperatorNotPermitted('operator "{0}" cannot be used for this translator'.format(operator))
+            raise OperatorNotPermitted('Operator "{0}" cannot be used for this translator'.format(operator))
 
         return operator
 
-    def _validate_value(self, datafield, value, **kwargs):
+    def _validate_value(self, datafield, value, lookup_value=False, **kwargs):
         # If a form class is not specified, check to see if there is a custom
         # form_class specified for this datatype or if this translator has
         # one defined
@@ -61,7 +61,7 @@ class Translator(object):
 
         # If this datafield is flagged as enumerable, use a select multiple
         # by default.
-        if datafield.enumerable and 'widget' not in kwargs:
+        if lookup_value and datafield.enumerable and 'widget' not in kwargs:
             kwargs['widget'] = forms.SelectMultiple(choices=datafield.choices)
 
         # Since None is considered an empty value by the django validators
@@ -117,6 +117,7 @@ class Translator(object):
     def _condition(self, datafield, operator, value, tree):
         tree = trees[tree]
         field = datafield.field
+        same_model = tree.root_model is field.model
 
         # Assuming the operator and value validate, check for a NoneType value
         # if the operator is 'in'. This condition will be broken out into a
@@ -159,13 +160,15 @@ class Translator(object):
                 condition = Q(**{key: value})
 
                 # again, we need to account for the LOJ assumption
-                if value is False:
+                if value is False and not same_model:
                     condition = condition & self._get_not_null_pk(field, tree)
 
             # handle all other conditions
             else:
                 key = trees[tree].query_string_for_field(field, operator.operator)
-                condition = Q(**{key: value}) & self._get_not_null_pk(field, tree)
+                condition = Q(**{key: value})
+                if not same_model:
+                    condition = condition & self._get_not_null_pk(field, tree)
 
                 condition = ~condition if operator.negated else condition
 

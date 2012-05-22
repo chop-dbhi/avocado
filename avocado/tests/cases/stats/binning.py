@@ -1,8 +1,9 @@
 from avocado.tests.base import BaseTestCase
-from avocado.core.binning import distribution
+from avocado.stats.binning import distribution
 from avocado.tests.models import Title
 
-__all__ = ('DistributionTestCase',)
+__all__ = ['DistributionTestCase']
+
 
 class DistributionTestCase(BaseTestCase):
     def setUp(self):
@@ -15,4 +16,4 @@ class DistributionTestCase(BaseTestCase):
 
     def test_distribution_flat(self):
         self.assertEqual(distribution(self.title_qs.all(), 'salary', 'number'),
-        	[(10000.0, 1), (200000.0, 1)])
+                [(10000.0, 1), (200000.0, 1)])

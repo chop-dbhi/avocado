@@ -1,10 +1,10 @@
-from modeltree.query import ModelTreeQuerySet
-from avocado.formatters import registry
-
 try:
     from collections import OrderedDict
 except ImportError:
     from ordereddict import OrderedDict
+from modeltree.query import ModelTreeQuerySet
+from avocado.dataviews.formatters import registry as formatters
+
 
 class BaseExporter(object):
     "Base class for all exporters"
@@ -51,7 +51,7 @@ class BaseExporter(object):
             cfields = concept.concept_fields.select_related('datafield')
             fields = [c.field for c in cfields]
             select_fields.extend(f.field for f in fields)
-            formatter = registry[concept.formatter](concept)
+            formatter = formatters[concept.formatter](concept)
             params.append((self._get_keys(fields), len(cfields), formatter))
 
         for row in iter(self._get_rows(select_fields)):

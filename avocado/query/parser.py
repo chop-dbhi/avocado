@@ -1,20 +1,22 @@
+from modeltree.tree import trees
 from django.core.exceptions import ValidationError
-from avocado.models import DataField
 
+AND = 'AND'
+OR = 'OR'
 BRANCH_KEYS = ('children', 'type')
-CONDITION_KEYS = ('id', 'operator', 'value')
+CONDITION_KEYS = ('id', 'value')
 LOGICAL_OPERATORS = ('and', 'or')
 
 
 def has_keys(obj, keys):
-    "Check the required keys are present in `obj` for this node type."
+    "Check the required keys are present in `obj`"
     for key in keys:
         if key not in obj:
             return False
     return True
 
 
-def is_branch(obj):
+def parse_branch(obj):
     "Validates required structure for a branch node"
     if has_keys(obj, keys=BRANCH_KEYS):
         if obj['type'] not in LOGICAL_OPERATORS:
@@ -25,39 +27,144 @@ def is_branch(obj):
         return True
 
 
-def is_condition(obj):
+def parse_condition(obj):
     "Validates required structure for a condition node"
     if has_keys(obj, keys=CONDITION_KEYS):
         return True
 
 
-def validate(id, operator, value, **context):
-    """Takes a data field id (or natural key), operator and value and
-    validates the condition.
+class Node(object):
+    condition = None
+    annotations = None
+    extra = None
 
-    The `id` may be:
-        - the primary key itself as an integer, e.g. 10
-        - the natural key as a list of values, ['app', 'model', 'field']
-        - the natural key as a dotted string, 'app.model.field'
-    """
-    try:
-        if type(id) is int:
-            datafield = DataField.objects.get(id=id)
-        elif type(id) is str:
-            datafield = DataField.objects.get_by_natural_key(*id.split('.'))
-        else:
-            datafield = DataField.objects.get_by_natural_key(*id)
-    except DataField.DoesNotExist, e:
-        raise ValidationError(e.message)
-    return datafield.validate(operator, value, **context)
+    def apply(self, queryset=None):
+        if queryset is None:
+            queryset = trees[self.tree].get_queryset()
+        if self.annotations:
+            queryset = queryset.values('pk').annotate(**self.annotations)
+        if self.condition:
+            queryset = queryset.filter(self.condition)
+        if self.extra:
+            queryset = queryset.extra(**self.extra)
+        return queryset
 
 
-def parse(obj):
-    if type(obj) is not dict:
+class Condition(Node):
+    "Contains information for a single query condition."
+    def __init__(self, id, value, operator=None, **context):
+        self.id = id
+        self.value = value
+        self.operator = operator
+        self.tree = context.pop('tree', None)
+        self.context = context
+
+    @property
+    def _meta(self, tree=None):
+        if not hasattr(self, '__meta'):
+            self.__meta = self.field.translate(self.operator, self.value,
+                tree=self.tree, **self.context)
+        return self.__meta
+
+    @property
+    def field(self):
+        if not hasattr(self, '_field'):
+            from avocado.models import DataField
+            self._field = DataField.objects.get(pk=self.id)
+        return self._field
+
+    @property
+    def condition(self):
+        return self._meta.get('condition', None)
+
+    @property
+    def annotations(self):
+        return self._meta.get('annotations', None)
+
+    @property
+    def extra(self):
+        return self._meta.get('extra', None)
+
+
+class Branch(Node):
+    "Provides a logical relationship between it's children."
+    def __init__(self, type, **context):
+        self.type = (type.upper() == AND) and AND or OR
+        self.tree = context.pop('tree', None)
+        self.context = context
+        self.children = []
+
+    def _combine(self, q1, q2):
+        if self.type.upper() == OR:
+            return q1 | q2
+        return q1 & q2
+
+    @property
+    def condition(self):
+        if not hasattr(self, '_condition'):
+            condition = None
+            for node in self.children:
+                if node.condition:
+                    if condition:
+                        condition = self._combine(node.condition, condition)
+                    else:
+                        condition = node.condition
+            self._condition = condition
+        return self._condition
+
+    @property
+    def annotations(self):
+        if not hasattr(self, '_annotations'):
+            self._annotations = {}
+            for node in self.children:
+                if node.annotations:
+                    self._annotations.update(node.annotations)
+        return self._annotations
+
+    @property
+    def extra(self):
+        if not hasattr(self, '_extra'):
+            self._extra = {}
+            for node in self.children:
+                if node.extra:
+                    for key, value in node.extra.items():
+                        _type = type(value)
+                        # Initialize an empty container for the value type..
+                        self._extra.setdefault(key, _type())
+                        if _type is list:
+                            current = self._extra[key][:]
+                            [self._extra[key].append(x) for x in value if x not in current]
+                        elif _type is dict:
+                            self._extra[key].update(value)
+                        else:
+                            raise TypeError('The `.extra()` method only takes '
+                                'list of dicts as keyword values')
+        return self._extra
+
+
+def validate(attrs):
+    if type(attrs) is not dict:
         raise ValidationError('Object must be of type dict')
-    if is_condition(obj):
-        validate(**obj)
-    elif is_branch(obj):
-        map(lambda x: parse(x), obj['children'])
+    if parse_condition(attrs):
+        from avocado.models import DataField
+        try:
+            datafield = DataField.objects.get_by_natural_key(attrs.pop('id'))
+        except DataField.DoesNotExist, e:
+            raise ValidationError(e.message)
+        datafield.validate(**attrs)
+    elif parse_branch(attrs):
+        map(lambda x: validate(x), attrs['children'])
     else:
-        raise ValidationError('Object neither a branch nor condition: {0}'.format(obj))
+        raise ValidationError('Object neither a branch nor condition: {0}'.format(attrs))
+
+
+def parse(attrs, **context):
+    if not attrs:
+        node = Node()
+    elif parse_condition(attrs):
+        node = Condition(attrs['id'], attrs['value'],
+            attrs.get('operator', None), **context)
+    else:
+        node = Branch(attrs['type'], **context)
+        node.children = map(lambda x: parse(x, **context), attrs['children'])
+    return node

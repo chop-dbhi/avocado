@@ -19,8 +19,9 @@ INSTALLED_APPS = (
     'haystack',
     'avocado',
     'avocado.coded',
-    'avocado.state',
+    'avocado.stats',
     'avocado.tests',
+    'avocado.dataviews',
 )
 
 CACHES = {

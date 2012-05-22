@@ -1,13 +1,15 @@
 import os
 import unittest
-from avocado.tests import models
 from avocado.tests.base import BaseTestCase
-from avocado.models import DataField, DataConcept, DataConceptField
-from avocado import exporters
+from avocado.dataviews import exporters
+
+__all__ = ['ExportTestCase']
 
 
 class ExportTestCase(BaseTestCase):
     def setUp(self):
+        from avocado.tests import models
+        from avocado.models import DataField, DataConcept, DataConceptField
         super(ExportTestCase, self).setUp()
         self.query = models.Employee.objects.all()
 
