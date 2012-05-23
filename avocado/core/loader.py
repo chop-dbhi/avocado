@@ -3,6 +3,7 @@ from django.conf import settings
 from django.utils.importlib import import_module
 from django.core.exceptions import ImproperlyConfigured
 
+
 class AlreadyRegistered(Exception):
     pass
 
