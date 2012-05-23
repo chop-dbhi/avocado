@@ -1,7 +1,7 @@
 from django.core.exceptions import ImproperlyConfigured
-from avocado.conf import INSTALLED_LIBS
+from avocado.conf import OPTIONAL_DEPS
 
-if not INSTALLED_LIBS['scipy']:
+if not OPTIONAL_DEPS['scipy']:
     raise ImproperlyConfigured('Numpy and SciPy must be installed to use the clustering utilities.')
 
 import math

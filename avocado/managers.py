@@ -1,7 +1,7 @@
 from django.db.models import Q
 from django.db import transaction
 from django.conf import settings
-from avocado.conf import INSTALLED_LIBS, lib_required
+from avocado.conf import OPTIONAL_DEPS, requires_dep
 from avocado.core.cache import CacheQuerySet
 from avocado.core.managers import PassThroughManager
 
@@ -25,7 +25,7 @@ class DataFieldQuerySet(PublishedQuerySet):
         """
         published = super(DataFieldQuerySet, self).published()
 
-        if INSTALLED_LIBS['django.contrib.sites']:
+        if OPTIONAL_DEPS['django.contrib.sites']:
             # All published concepts associated with the current site
             # (or no site)
             sites = Q(sites=None) | Q(sites__id=settings.SITE_ID)
@@ -41,7 +41,7 @@ class DataConceptQuerySet(PublishedQuerySet):
         """
         published = super(DataConceptQuerySet, self).published()
 
-        if INSTALLED_LIBS['django.contrib.sites']:
+        if OPTIONAL_DEPS['django.contrib.sites']:
             # All published concepts associated with the current site
             # (or no site)
             sites = Q(sites=None) | Q(sites__id=settings.SITE_ID)
@@ -75,7 +75,7 @@ class DataFieldManager(PublishedManager):
             datafield = queryset.get(**dict(zip(keys, values)))
         return datafield
 
-    @lib_required('haystack')
+    @requires_dep('haystack')
     def search(self, content, queryset=None, max_results=10):
         from haystack.query import RelatedSearchQuerySet
         sqs = RelatedSearchQuerySet().models(self.model).load_all().auto_query(content)
@@ -91,7 +91,7 @@ class DataConceptManager(PassThroughManager):
     def get_query_set(self):
         return DataConceptQuerySet(self.model, using=self._db)
 
-    @lib_required('haystack')
+    @requires_dep('haystack')
     def search(self, content, queryset=None, max_results=10):
         from haystack.query import RelatedSearchQuerySet
         sqs = RelatedSearchQuerySet().models(self.model).load_all().auto_query(content)

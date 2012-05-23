@@ -29,7 +29,7 @@ settings = LazySettings()
 
 # Keep track of the officially supported apps and libraries used for various
 # features.
-INSTALLED_LIBS = {
+OPTIONAL_DEPS = {
     'django.contrib.sites': False,
     'haystack': False,
     'numpy': False,
@@ -40,26 +40,26 @@ INSTALLED_LIBS = {
 
 # Support for django sites framework
 if 'django.contrib.sites' in django_settings.INSTALLED_APPS:
-    INSTALLED_LIBS['django.contrib.sites'] = True
+    OPTIONAL_DEPS['django.contrib.sites'] = True
 
 # Full-text search engine
 try:
     import haystack
-    INSTALLED_LIBS['haystack'] = True
+    OPTIONAL_DEPS['haystack'] = True
 except ImportError:
     pass
 
 # High performance data structures
 try:
     import numpy
-    INSTALLED_LIBS['numpy'] = True
+    OPTIONAL_DEPS['numpy'] = True
 except ImportError:
     pass
 
 # Statistical functions
 try:
     import scipy
-    INSTALLED_LIBS['scipy'] = True
+    OPTIONAL_DEPS['scipy'] = True
 except ImportError:
     pass
 
@@ -67,23 +67,23 @@ except ImportError:
 try:
     import actstream
     if 'actstream' in django_settings.INSTALLED_APPS:
-        INSTALLED_LIBS['acstream'] = True
+        OPTIONAL_DEPS['acstream'] = True
 except ImportError:
     pass
 
 try:
     import openpyxl
-    INSTALLED_LIBS['openpyxl'] = True
+    OPTIONAL_DEPS['openpyxl'] = True
 except ImportError:
     pass
 
 
-def lib_required(lib):
+def requires_dep(lib):
     "Decorator for functions that require a supported third-party library."
     def decorator(f):
         @functools.wraps(f)
         def wrapper(*args, **kwargs):
-            if not INSTALLED_LIBS[lib]:
+            if not OPTIONAL_DEPS[lib]:
                 raise ImproperlyConfigured('{0} must be installed to use this feature.'.format(lib))
             return f(*args, **kwargs)
         return wrapper

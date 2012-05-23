@@ -1,5 +1,5 @@
 from avocado.core import loader
-from avocado.conf import INSTALLED_LIBS
+from avocado.conf import OPTIONAL_DEPS
 from _csv import CSVExporter
 from _sas import SasExporter
 from _r import RExporter
@@ -12,7 +12,7 @@ registry.register(SasExporter)
 registry.register(RExporter)
 registry.register(JSONExporter)
 
-if INSTALLED_LIBS['openpyxl']:
+if OPTIONAL_DEPS['openpyxl']:
     from _excel import ExcelExporter
     registry.register(ExcelExporter)
 

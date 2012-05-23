@@ -14,7 +14,7 @@ from django.core.exceptions import ImproperlyConfigured
 from avocado.core import utils
 from avocado.core.models import Base, BasePlural
 from avocado.core.cache import post_save_cache, pre_delete_uncache, cached_property
-from avocado.conf import INSTALLED_LIBS, settings as _settings
+from avocado.conf import OPTIONAL_DEPS, settings as _settings
 from avocado.managers import DataFieldManager, DataConceptManager, DataCategoryManager
 from avocado.query import parser as dcparser
 from avocado.query.translators import registry as translators
@@ -97,7 +97,7 @@ class DataField(BasePlural):
     # has full access to all fields, while the external may have a limited set.
     # NOTE this is not reliable way to prevent exposure of sensitive data.
     # This should be used to simply hide _access_ to the concepts.
-    if INSTALLED_LIBS['django.contrib.sites']:
+    if OPTIONAL_DEPS['django.contrib.sites']:
         sites = models.ManyToManyField(Site, blank=True,
             related_name='fields+')
 
@@ -294,7 +294,7 @@ class DataConcept(BasePlural):
     # has full access to all fields, while the external may have a limited set.
     # NOTE this is not reliable way to prevent exposure of sensitive data.
     # This should be used to simply hide _access_ to the concepts.
-    if INSTALLED_LIBS['django.contrib.sites']:
+    if OPTIONAL_DEPS['django.contrib.sites']:
         sites = models.ManyToManyField(Site, blank=True,
             related_name='concepts+')
 
