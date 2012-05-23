@@ -38,6 +38,10 @@ class Node(object):
     annotations = None
     extra = None
 
+    def __init__(self, **context):
+        self.tree = context.pop('tree', None)
+        self.context = context
+
     def apply(self, queryset=None):
         if queryset is None:
             queryset = trees[self.tree].get_queryset()
@@ -160,7 +164,7 @@ def validate(attrs):
 
 def parse(attrs, **context):
     if not attrs:
-        node = Node()
+        node = Node(**context)
     elif parse_condition(attrs):
         node = Condition(attrs['id'], attrs['value'],
             attrs.get('operator', None), **context)

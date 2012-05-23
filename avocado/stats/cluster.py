@@ -1,3 +1,9 @@
+from django.core.exceptions import ImproperlyConfigured
+from avocado.conf import INSTALLED_LIBS
+
+if not INSTALLED_LIBS['scipy']:
+    raise ImproperlyConfigured('Numpy and SciPy must be installed to use the clustering utilities.')
+
 import math
 import numpy
 from scipy.cluster import vq

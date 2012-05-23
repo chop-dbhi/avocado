@@ -21,13 +21,13 @@ class Aggregator(object):
         self.field_name = field_name
         self.model = model
 
+        self._queryset = None
         self._aggregates = {}
         self._filter = []
         self._exclude = []
         self._having = []
         self._groupby = []
         self._orderby = []
-        self._fixed_groupby = False
 
     def __eq__(self, other):
         return list(self) == other
@@ -79,7 +79,10 @@ class Aggregator(object):
             self._length = length
 
     def _construct(self):
-        queryset = self.model.objects.all()
+        if self._queryset is None:
+            queryset = self.model.objects.all()
+        else:
+            queryset = self._queryset
         if self._filter:
             queryset = queryset.filter(*self._filter)
         if self._exclude:
@@ -107,14 +110,19 @@ class Aggregator(object):
         clone._having = deepcopy(self._having)
         clone._groupby = deepcopy(self._groupby)
         clone._orderby = deepcopy(self._orderby)
-        clone._fixed_groupby = self._fixed_groupby
+        clone._queryset = self._queryset
         return clone
 
     def _aggregate(self, *groupby, **aggregates):
         clone = self._clone()
         clone._aggregates.update(aggregates)
-        if not clone._fixed_groupby:
+        if groupby:
             clone._groupby = groupby
+        return clone
+
+    def apply(self, queryset):
+        clone = self._clone()
+        clone._queryset = queryset
         return clone
 
     def filter(self, *values, **filters):
@@ -201,7 +209,6 @@ class Aggregator(object):
 
     def groupby(self, *groupby):
         clone = self._aggregate(*groupby)
-        clone._fixed_groupby = True
         return clone
 
     def count(self, *groupby):

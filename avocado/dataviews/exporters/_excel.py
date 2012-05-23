@@ -1,9 +1,12 @@
-try:
-    from openpyxl.workbook import Workbook
-except ImportError:
-    raise ImportError('To use the Excel exporter, you must install openpyxl')
+from django.core.exceptions import ImproperlyConfigured
+from avocado.conf import INSTALLED_LIBS
+if not INSTALLED_LIBS['openpyxl']:
+    raise ImproperlyConfigured('openpyxl must be installed to use this exporter.')
+
+from openpyxl.workbook import Workbook
 from openpyxl.writer.excel import save_virtual_workbook
 from _base import BaseExporter
+
 
 class ExcelExporter(BaseExporter):
     preferred_formats = ('boolean', 'number', 'string')

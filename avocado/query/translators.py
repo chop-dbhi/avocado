@@ -28,9 +28,13 @@ class Translator(object):
     # used for validation. this is usually never necessary to override
     form_class = None
 
+    def get_operators(self, datafield):
+        # Determine list of allowed operators
+        return self.operators or DATATYPE_OPERATOR_MAP[datafield.datatype]
+
     def _validate_operator(self, datafield, uid, **kwargs):
         # Determine list of allowed operators
-        allowed_operators = self.operators or DATATYPE_OPERATOR_MAP[datafield.datatype]
+        allowed_operators = self.get_operators(datafield)
         uid = uid or allowed_operators[0]
 
         # Attempt to retrieve the operator. no exception handling for

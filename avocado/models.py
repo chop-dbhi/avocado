@@ -6,15 +6,15 @@ except ImportError:
 from django.conf import settings
 from django.db import models
 from django.contrib.sites.models import Site
+from django.contrib.auth.models import User
 from django.utils.encoding import smart_unicode
 from django.db.models.fields import FieldDoesNotExist
 from django.db.models.signals import post_save, pre_delete
 from django.core.exceptions import ImproperlyConfigured
-from modeltree.tree import MODELTREE_DEFAULT_ALIAS
 from avocado.core import utils
 from avocado.core.models import Base, BasePlural
 from avocado.core.cache import post_save_cache, pre_delete_uncache, cached_property
-from avocado.conf import settings as _settings
+from avocado.conf import INSTALLED_LIBS, settings as _settings
 from avocado.managers import DataFieldManager, DataConceptManager, DataCategoryManager
 from avocado.query import parser as dcparser
 from avocado.query.translators import registry as translators
@@ -22,9 +22,8 @@ from avocado.stats.agg import Aggregator
 from avocado.dataviews.formatters import registry as formatters
 from avocado.dataviews.queryview import registry as queryviews
 
-__all__ = ('DataCategory', 'DataConcept', 'DataField')
+__all__ = ('DataCategory', 'DataConcept', 'DataField', 'DataContext')
 
-SITES_APP_INSTALLED = 'django.contrib.sites' in settings.INSTALLED_APPS
 INTERNAL_DATATYPE_MAP = _settings.INTERNAL_DATATYPE_MAP
 DATA_CHOICES_MAP = _settings.DATA_CHOICES_MAP
 
@@ -98,7 +97,7 @@ class DataField(BasePlural):
     # has full access to all fields, while the external may have a limited set.
     # NOTE this is not reliable way to prevent exposure of sensitive data.
     # This should be used to simply hide _access_ to the concepts.
-    if SITES_APP_INSTALLED:
+    if INSTALLED_LIBS['django.contrib.sites']:
         sites = models.ManyToManyField(Site, blank=True,
             related_name='fields+')
 
@@ -153,6 +152,7 @@ class DataField(BasePlural):
         datatype = utils.get_internal_type(self.field)
         # if a mapping exists, replace the datatype
         return INTERNAL_DATATYPE_MAP.get(datatype, datatype)
+
 
     # Convenience Methods
     # Easier access to the underlying data for this data field
@@ -250,12 +250,18 @@ class DataField(BasePlural):
 
     # Translator Convenience Methods
 
-    def translate(self, operator=None, value=None, tree=MODELTREE_DEFAULT_ALIAS, **context):
+    @property
+    def operators(self):
+        "Returns the valid operators for this datafield."
+        trans = translators[self.translator]
+        return tuple(trans.get_operators(self))
+
+    def translate(self, operator=None, value=None, tree=None, **context):
         "Convenince method for performing a translation on a query condition."
         trans = translators[self.translator]
         return trans.translate(self, operator, value, tree, **context)
 
-    def validate(self, operator=None, value=None, tree=MODELTREE_DEFAULT_ALIAS, **context):
+    def validate(self, operator=None, value=None, tree=None, **context):
         "Convenince method for performing a translation on a query condition."
         trans = translators[self.translator]
         return trans.validate(self, operator, value, tree, **context)
@@ -288,7 +294,7 @@ class DataConcept(BasePlural):
     # has full access to all fields, while the external may have a limited set.
     # NOTE this is not reliable way to prevent exposure of sensitive data.
     # This should be used to simply hide _access_ to the concepts.
-    if SITES_APP_INSTALLED:
+    if INSTALLED_LIBS['django.contrib.sites']:
         sites = models.ManyToManyField(Site, blank=True,
             related_name='concepts+')
 
@@ -343,8 +349,13 @@ class DataContext(Base):
     This corresponds to the `WHERE` statements in a SQL query.
     """
     json = jsonfield.JSONField(null=True, validators=[dcparser.validate])
+    session = models.BooleanField(default=False)
+    user = models.ForeignKey(User, null=True, blank=True, related_name='datacontext+')
 
-    def get_queryset(self, queryset=None, tree=MODELTREE_DEFAULT_ALIAS):
+    def apply(self, queryset=None, tree=None):
+        "Applies this context to a QuerySet."
+        if tree is None and queryset is not None:
+            tree = queryset.model
         return dcparser.parse(self.json, tree=tree).apply(queryset=queryset)
 
 
