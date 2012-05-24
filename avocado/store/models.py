@@ -194,8 +194,8 @@ class Scope(Context):
     def _get_contents(self, obj):
         return logictree.transform(obj).get_field_ids()
 
-    def _parse_contents(self, obj, *args, **kwargs):
-        return logictree.transform(obj).apply
+    def _parse_contents(self, obj, using=DEFAULT_MODELTREE_ALIAS, *args, **kwargs):
+        return logictree.transform(obj, using=using, *args, **kwargs).apply
 
     def save(self, *args, **kwargs):
         self.count = self.get_queryset().distinct().count()
