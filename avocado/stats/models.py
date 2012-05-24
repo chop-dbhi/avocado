@@ -10,7 +10,7 @@ class Distribution(models.Model):
     nulls = models.NullBooleanField()
 
     user = models.ForeignKey(User, null=True, blank=True,
-        related_name='distributions')
+        related_name='distribution+')
 
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)

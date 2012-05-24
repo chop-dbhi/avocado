@@ -37,6 +37,7 @@ class Node(object):
     condition = None
     annotations = None
     extra = None
+    text = None
 
     def __init__(self, **context):
         self.tree = context.pop('tree', None)
@@ -60,8 +61,7 @@ class Condition(Node):
         self.id = id
         self.value = value
         self.operator = operator
-        self.tree = context.pop('tree', None)
-        self.context = context
+        super(Condition, self).__init__(**context)
 
     @property
     def _meta(self, tree=None):
@@ -89,14 +89,22 @@ class Condition(Node):
     def extra(self):
         return self._meta.get('extra', None)
 
+    @property
+    def text(self):
+        operator = self._meta['cleaned_data']['operator']
+        # The original value is used here to prevent representing a different
+        # value from what the client had submitted. This text has no impact
+        # on the stored 'cleaned' data structure
+        value = self._meta['raw_data']['value']
+        return {'conditions': [u'{} {}'.format(self.field.name, operator.text(value))]}
+
 
 class Branch(Node):
     "Provides a logical relationship between it's children."
     def __init__(self, type, **context):
         self.type = (type.upper() == AND) and AND or OR
-        self.tree = context.pop('tree', None)
-        self.context = context
         self.children = []
+        super(Branch, self).__init__(**context)
 
     def _combine(self, q1, q2):
         if self.type.upper() == OR:
@@ -127,23 +135,34 @@ class Branch(Node):
 
     @property
     def extra(self):
-        if not hasattr(self, '_extra'):
-            self._extra = {}
-            for node in self.children:
-                if node.extra:
-                    for key, value in node.extra.items():
-                        _type = type(value)
-                        # Initialize an empty container for the value type..
-                        self._extra.setdefault(key, _type())
-                        if _type is list:
-                            current = self._extra[key][:]
-                            [self._extra[key].append(x) for x in value if x not in current]
-                        elif _type is dict:
-                            self._extra[key].update(value)
-                        else:
-                            raise TypeError('The `.extra()` method only takes '
-                                'list of dicts as keyword values')
-        return self._extra
+        extra = {}
+        for node in self.children:
+            if not node.extra:
+                continue
+            for key, value in node.extra.items():
+                _type = type(value)
+                # Initialize an empty container for the value type..
+                extra.setdefault(key, _type())
+                if _type is list:
+                    current = extra[key][:]
+                    [extra[key].append(x) for x in value if x not in current]
+                elif _type is dict:
+                    extra[key].update(value)
+                else:
+                    raise TypeError('The `.extra()` method only takes list of dicts as keyword values')
+        return extra
+
+    @property
+    def text(self):
+        text = {'type': self.type.lower(), 'conditions': []}
+        for node in self.children:
+            t = node.text
+            # Flatten if nested conditions are also AND's
+            if 'type' not in t or t['type'] == self.type.lower():
+                text['conditions'].extend(t['conditions'])
+            else:
+                text['conditions'].append(t['conditions'])
+        return text
 
 
 def validate(attrs):

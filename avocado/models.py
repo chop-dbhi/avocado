@@ -18,6 +18,7 @@ from avocado.conf import OPTIONAL_DEPS, settings as _settings
 from avocado.managers import DataFieldManager, DataConceptManager, DataCategoryManager
 from avocado.query import parser as dcparser
 from avocado.query.translators import registry as translators
+from avocado.query.operators import registry as operators
 from avocado.stats.agg import Aggregator
 from avocado.dataviews.formatters import registry as formatters
 from avocado.dataviews.queryview import registry as queryviews
@@ -179,6 +180,7 @@ class DataField(BasePlural):
 
     # Data-related Cached Properties
     # These may be cached until the underlying data changes
+    # TODO add maximum data size restriction
 
     @cached_property('size', timestamp='data_modified')
     def size(self):
@@ -255,6 +257,10 @@ class DataField(BasePlural):
         "Returns the valid operators for this datafield."
         trans = translators[self.translator]
         return tuple(trans.get_operators(self))
+
+    @property
+    def operator_choices(self):
+        return [(x, operators[x].verbose_name) for x in self.operators]
 
     def translate(self, operator=None, value=None, tree=None, **context):
         "Convenince method for performing a translation on a query condition."
@@ -358,6 +364,8 @@ class DataContext(Base):
             tree = queryset.model
         return dcparser.parse(self.json, tree=tree).apply(queryset=queryset)
 
+    def text(self, tree=None):
+        return dcparser.parse(self.json, tree=tree).text
 
 
 # Register instance-level cache invalidation handlers
