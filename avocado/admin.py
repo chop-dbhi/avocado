@@ -55,6 +55,7 @@ class DataFieldAdmin(PublishedAdmin):
         'model_name', 'enumerable', 'searchable', 'related_dataconcepts')
     list_filter = ('published', 'archived', 'model_name', 'enumerable',
         'searchable')
+    list_editable = ('published', 'archived', 'enumerable', 'searchable')
 
     search_fields = ('name', 'description', 'keywords')
     readonly_fields = ('created', 'modified', 'data_modified')
@@ -119,7 +120,8 @@ class DataConceptFieldInlineAdmin(admin.TabularInline):
 
 
 class DataConceptAdmin(PublishedAdmin):
-    list_display = ('name', 'published', 'archived', 'related_datafields')
+    list_display = ('name', 'published', 'archived', 'category', 'queryview', 'related_datafields')
+    list_editable = ('published', 'archived', 'category', 'queryview')
     inlines = [DataConceptFieldInlineAdmin]
 
     fieldsets = (
