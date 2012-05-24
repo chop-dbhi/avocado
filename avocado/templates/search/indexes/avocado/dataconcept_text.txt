@@ -2,6 +2,6 @@
 {% for cfield in object.concept_fields.all %}
 {{ cfield }}
 {% with object=cfield.field %}
-{% include "search/indexes/avocado/datafield_text.txt %}
+{% include "search/indexes/avocado/datafield_text.txt" %}
 {% endwith %}
 {% endfor %}
