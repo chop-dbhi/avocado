@@ -376,11 +376,3 @@ post_save.connect(post_save_cache, sender=DataCategory)
 pre_delete.connect(pre_delete_uncache, sender=DataField)
 pre_delete.connect(pre_delete_uncache, sender=DataConcept)
 pre_delete.connect(pre_delete_uncache, sender=DataCategory)
-
-# If django-reversion is installed, register the models
-if 'reversion' in settings.INSTALLED_APPS:
-    import reversion
-    reversion.register(DataField)
-    reversion.reversion(DataConceptField)
-    reversion.register(DataConcept, follow=['concept_fields'])
-    reversion.register(DataCategory)
