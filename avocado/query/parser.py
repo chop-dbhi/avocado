@@ -5,6 +5,7 @@ AND = 'AND'
 OR = 'OR'
 BRANCH_KEYS = ('children', 'type')
 CONDITION_KEYS = ('id', 'value')
+COMPOSITE_KEYS = ('id', 'composite')
 LOGICAL_OPERATORS = ('and', 'or')
 
 
@@ -16,7 +17,7 @@ def has_keys(obj, keys):
     return True
 
 
-def parse_branch(obj):
+def is_branch(obj):
     "Validates required structure for a branch node"
     if has_keys(obj, keys=BRANCH_KEYS):
         if obj['type'] not in LOGICAL_OPERATORS:
@@ -27,9 +28,16 @@ def parse_branch(obj):
         return True
 
 
-def parse_condition(obj):
+def is_condition(obj):
     "Validates required structure for a condition node"
     if has_keys(obj, keys=CONDITION_KEYS):
+        return True
+
+
+def is_composite(obj):
+    if has_keys(obj, keys=COMPOSITE_KEYS):
+        if obj['composite'] is not True:
+            raise ValidationError('Composite key must be set to true.')
         return True
 
 
@@ -165,17 +173,27 @@ class Branch(Node):
         return text
 
 
-def validate(attrs):
+def validate(attrs, **context):
     if type(attrs) is not dict:
         raise ValidationError('Object must be of type dict')
-    if parse_condition(attrs):
+    if is_composite(attrs):
+        from avocado.models import DataContext
+        try:
+            if 'user' in context:
+                cxt = DataContext.objects.get(id=attrs['id'], user=context['user'])
+            else:
+                cxt = DataContext.objects.get(id=attrs['id'])
+        except DataContext.DoesNotExist:
+            raise ValidationError('DataContext "{}" does not exist.'.format(attrs['id']))
+        validate(cxt.json, **context)
+    elif is_condition(attrs):
         from avocado.models import DataField
         try:
             datafield = DataField.objects.get_by_natural_key(attrs.pop('id'))
         except DataField.DoesNotExist, e:
             raise ValidationError(e.message)
         datafield.validate(**attrs)
-    elif parse_branch(attrs):
+    elif is_branch(attrs):
         map(lambda x: validate(x), attrs['children'])
     else:
         raise ValidationError('Object neither a branch nor condition: {0}'.format(attrs))
@@ -184,7 +202,14 @@ def validate(attrs):
 def parse(attrs, **context):
     if not attrs:
         node = Node(**context)
-    elif parse_condition(attrs):
+    elif is_composite(attrs):
+        from avocado.models import DataContext
+        if 'user' in context:
+            cxt = DataContext.objects.get(id=attrs['id'], user=context['user'])
+        else:
+            cxt = DataContext.objects.get(id=attrs['id'])
+        return parse(cxt.json, **context)
+    elif is_condition(attrs):
         node = Condition(attrs['id'], attrs['value'],
             attrs.get('operator', None), **context)
     else:

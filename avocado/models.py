@@ -356,16 +356,44 @@ class DataContext(Base):
     """
     json = jsonfield.JSONField(null=True, validators=[dcparser.validate])
     session = models.BooleanField(default=False)
+    composite = models.BooleanField(default=False)
     user = models.ForeignKey(User, null=True, blank=True, related_name='datacontext+')
+
+    def _combine(self, other, operator):
+        if not isinstance(other, self.__class__):
+            raise TypeError('Other object must be a DataContext instance')
+        cxt = self.__class__(composite=True)
+        cxt.user_id = self.user_id or other.user_id
+        if self.json and other.json:
+            cxt.json = {
+                'type': operator,
+                'children': [
+                    {'id': self.pk, 'composite': True},
+                    {'id': other.pk, 'composite': True}
+                ]
+            }
+        elif self.json:
+            cxt.json = {'id': self.pk, 'composite': True}
+        elif other.json:
+            cxt.json = {'id': other.pk, 'composite': True}
+        return cxt
+
+    def __and__(self, other):
+        return self._combine(other, 'and')
+
+    def __or__(self, other):
+        return self._combine(other, 'or')
 
     def apply(self, queryset=None, tree=None):
         "Applies this context to a QuerySet."
         if tree is None and queryset is not None:
             tree = queryset.model
-        return dcparser.parse(self.json, tree=tree).apply(queryset=queryset)
+        context = {'tree': tree}
+        return dcparser.parse(self.json, **context).apply(queryset=queryset)
 
     def text(self, tree=None):
-        return dcparser.parse(self.json, tree=tree).text
+        context = {'tree': tree}
+        return dcparser.parse(self.json, **context).text
 
 
 # Register instance-level cache invalidation handlers
