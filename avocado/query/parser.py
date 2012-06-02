@@ -189,10 +189,10 @@ def validate(attrs, **context):
     elif is_condition(attrs):
         from avocado.models import DataField
         try:
-            datafield = DataField.objects.get_by_natural_key(attrs.pop('id'))
+            datafield = DataField.objects.get_by_natural_key(attrs['id'])
         except DataField.DoesNotExist, e:
             raise ValidationError(e.message)
-        datafield.validate(**attrs)
+        datafield.validate(operator=attrs['operator'], value=attrs['value'])
     elif is_branch(attrs):
         map(lambda x: validate(x), attrs['children'])
     else:
