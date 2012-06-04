@@ -436,7 +436,7 @@ class DataView(Base):
         "Applies this context to a QuerySet."
         if tree is None and queryset is not None:
             tree = queryset.model
-        return parsers.dataview.parse(tree=tree, **self.json).apply(queryset=queryset)
+        return parsers.dataview.parse(self.json, tree=tree).apply(queryset=queryset)
 
 
 # Register instance-level cache invalidation handlers

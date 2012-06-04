@@ -54,13 +54,20 @@ class Node(object):
         return order_by
 
 
-def validate(fields=None, ordering=None, **context):
+def validate(attrs, **context):
+    fields = attrs.get('fields', [])
+    ordering = attrs.get('ordering', [])
+
     node = Node(fields, ordering, **context)
+
     if fields and len(node.fields) != len(fields):
         raise ValidationError('One or more fields do not exist')
     if ordering and len(node.order_by) != len(ordering):
         raise ValidationError('One or more fields do not exist')
 
 
-def parse(fields=None, ordering=None, **context):
+def parse(attrs, **context):
+    fields = attrs.get('fields', None)
+    ordering = attrs.get('ordering', None)
+
     return Node(fields, ordering, **context)
