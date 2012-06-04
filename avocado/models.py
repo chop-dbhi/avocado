@@ -408,6 +408,37 @@ class DataContext(Base):
         return parsers.datacontext.parse(self.json, tree=tree).language
 
 
+class DataView(Base):
+    """JSON object representing one or more data field conditions. The data may
+    be a single condition, an array of conditions or a tree stucture.
+
+    This corresponds to the `SELECT` and `ORDER BY` statements in a SQL query.
+    """
+    json = jsonfield.JSONField(null=True, blank=True,
+        validators=[parsers.dataview.validate])
+    session = models.BooleanField(default=False)
+
+    # For authenticated users the `user` can be directly referenced,
+    # otherwise the session key can be used.
+    user = models.ForeignKey(User, null=True, blank=True, related_name='dataview+')
+    session_key = models.CharField(max_length=40, null=True, blank=True)
+
+    def archive(self):
+        if self.archived:
+            return False
+        backup = self.pk, self.session, self.archived
+        self.pk, self.session, self.archived = None, False, True
+        self.save()
+        self.pk, self.session, self.archived = backup
+        return True
+
+    def apply(self, queryset=None, tree=None):
+        "Applies this context to a QuerySet."
+        if tree is None and queryset is not None:
+            tree = queryset.model
+        return parsers.dataview.parse(tree=tree, **self.json).apply(queryset=queryset)
+
+
 # Register instance-level cache invalidation handlers
 post_save.connect(post_save_cache, sender=DataField)
 post_save.connect(post_save_cache, sender=DataConcept)
