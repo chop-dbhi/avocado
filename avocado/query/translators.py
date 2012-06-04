@@ -48,7 +48,6 @@ class Translator(object):
         # Ensure the operator is allowed
         if operator.uid not in allowed_operators:
             raise OperatorNotPermitted('Operator "{0}" cannot be used for this translator'.format(operator))
-
         return operator
 
     def _validate_value(self, datafield, value, lookup_value=False, **kwargs):
@@ -136,7 +135,7 @@ class Translator(object):
             # condition allows for null values for the specified column, so
             # we must enforce the additional condition of not letting the
             # primary keys be null. this mimics an INNER JOINs behavior. see
-            # ``_get_not_null_pk`` above 
+            # ``_get_not_null_pk`` above
             if operator.negated:
                 condition = Q(**{key: False}) & self._get_not_null_pk(field, tree)
             else:
