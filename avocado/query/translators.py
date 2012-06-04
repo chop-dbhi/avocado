@@ -187,6 +187,13 @@ class Translator(object):
 
         return operator, value
 
+    def language(self, datafield, roperator, rvalue, tree, **kwargs):
+        operator, value = self.validate(datafield, roperator, rvalue, tree, **kwargs)
+        # The original value is used here to prevent representing a different
+        # value from what the client had submitted. This text has no impact
+        # on the stored 'cleaned' data structure
+        return u'{} {}'.format(datafield.name, operator.text(rvalue))
+
     def translate(self, datafield, roperator, rvalue, tree, **kwargs):
         """Returns two types of queryset modifiers including:
             - the raw operator and value supplied
@@ -199,22 +206,23 @@ class Translator(object):
         """
         operator, value = self.validate(datafield, roperator, rvalue, tree, **kwargs)
         condition = self._condition(datafield, operator, value, tree)
+        language = self.language(datafield, roperator, rvalue, tree, **kwargs)
 
-        meta = {
-            'condition': condition,
-            'annotations': None,
-            'extra': None,
+        return {
+            'id': datafield.pk,
+            'operator': roperator,
+            'value': rvalue,
             'cleaned_data': {
+                'value': value,
                 'operator': operator,
-                'value': value
+                'language': language,
             },
-            'raw_data': {
-                'operator': roperator,
-                'value': rvalue,
+            'query_modifiers': {
+                'condition': condition,
+                'annotations': None,
+                'extra': None,
             }
         }
-
-        return meta
 
 
 registry = loader.Registry(default=Translator)

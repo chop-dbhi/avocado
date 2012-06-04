@@ -16,7 +16,7 @@ from avocado.core.models import Base, BasePlural
 from avocado.core.cache import post_save_cache, pre_delete_uncache, cached_property
 from avocado.conf import OPTIONAL_DEPS, settings as _settings
 from avocado.managers import DataFieldManager, DataConceptManager, DataCategoryManager
-from avocado.query import parser as dcparser
+from avocado.query import parsers
 from avocado.query.translators import registry as translators
 from avocado.query.operators import registry as operators
 from avocado.stats.agg import Aggregator
@@ -354,7 +354,8 @@ class DataContext(Base):
 
     This corresponds to the `WHERE` statements in a SQL query.
     """
-    json = jsonfield.JSONField(null=True, validators=[dcparser.validate])
+    json = jsonfield.JSONField(null=True, blank=True,
+        validators=[parsers.datacontext.validate])
     session = models.BooleanField(default=False)
     composite = models.BooleanField(default=False)
 
@@ -401,12 +402,10 @@ class DataContext(Base):
         "Applies this context to a QuerySet."
         if tree is None and queryset is not None:
             tree = queryset.model
-        context = {'tree': tree}
-        return dcparser.parse(self.json, **context).apply(queryset=queryset)
+        return parsers.datacontext.parse(self.json, tree=tree).apply(queryset=queryset)
 
-    def text(self, tree=None):
-        context = {'tree': tree}
-        return dcparser.parse(self.json, **context).text
+    def language(self, tree=None):
+        return parsers.datacontext.parse(self.json, tree=tree).language
 
 
 # Register instance-level cache invalidation handlers
