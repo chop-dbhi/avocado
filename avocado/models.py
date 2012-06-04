@@ -357,7 +357,20 @@ class DataContext(Base):
     json = jsonfield.JSONField(null=True, validators=[dcparser.validate])
     session = models.BooleanField(default=False)
     composite = models.BooleanField(default=False)
+
+    # For authenticated users the `user` can be directly referenced,
+    # otherwise the session key can be used.
     user = models.ForeignKey(User, null=True, blank=True, related_name='datacontext+')
+    session_key = models.CharField(max_length=40, null=True, blank=True)
+
+    def archive(self):
+        if self.archived:
+            return False
+        backup = self.pk, self.session, self.archived
+        self.pk, self.session, self.archived = None, False, True
+        self.save()
+        self.pk, self.session, self.archived = backup
+        return True
 
     def _combine(self, other, operator):
         if not isinstance(other, self.__class__):
