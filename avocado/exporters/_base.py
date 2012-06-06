@@ -2,7 +2,6 @@ try:
     from collections import OrderedDict
 except ImportError:
     from ordereddict import OrderedDict
-from django.db.models.query import QuerySet
 from avocado.formatters import registry as formatters
 
 
@@ -12,8 +11,6 @@ class BaseExporter(object):
     preferred_formats = []
 
     def __init__(self, concepts):
-        if isinstance(concepts, QuerySet):
-            concepts = concepts.prefetch_related('concept_fields__field')
         self.concepts = concepts
         self.params = []
 
