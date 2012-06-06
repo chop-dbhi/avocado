@@ -14,7 +14,8 @@ class HTMLExporter(BaseExporter):
 
         if buff:
             for row in generator:
-                buff.write(row)
+                for item in row:
+                    buff.write(item)
             return buff
 
         context = Context({'rows': generator})
