@@ -12,8 +12,8 @@ def has_keys(obj, keys):
 
 
 class Node(object):
-    def __init__(self, fields=None, ordering=None, **context):
-        self.field_ids = fields or []
+    def __init__(self, concepts=None, ordering=None, **context):
+        self.concept_ids = concepts or []
         self.ordering = ordering or []
         self.tree = context.pop('tree', None)
         self.context = context
@@ -23,51 +23,66 @@ class Node(object):
         if queryset is None:
             queryset = tree.get_queryset()
         queryset = ModelTreeQuerySet(tree, query=queryset.query)
-        if self.field_ids:
+        if self.concept_ids:
             queryset = queryset.select(*[f.field for f in self.fields])
         if self.ordering:
             queryset = queryset.order_by(*self.order_by)
         return queryset
 
-    def raw(self, queryset=None):
-        queryset = self.apply(queryset)
-        return queryset.raw()
+    @property
+    def concepts(self):
+        from avocado.models import DataConcept
+        concepts = list(DataConcept.objects.filter(pk__in=self.concept_ids))
+        concepts.sort(key=lambda o: self.concept_ids.index(o.pk))
+        return concepts
 
     @property
     def fields(self):
-        from avocado.models import DataField
-        return DataField.objects.filter(pk__in=self.field_ids)
+        fields = []
+        for concept in self.concepts:
+            fields.extend(list(concept.fields.select_related('concept_fields')\
+                .order_by('concept_fields__order')))
+        return fields
 
     @property
     def order_by(self):
-        from avocado.models import DataField
-        tree = trees[self.tree]
-        fields = {f.pk: f for f in DataField.objects.filter(pk__in=[x[0] \
-                for x in self.ordering])}
-
         order_by = []
-        for pk, direction in self.ordering:
-            qstr = tree.query_string_for_field(fields[pk].field)
-            if direction == 'desc':
-                qstr = '-' + qstr
-            order_by.append(qstr)
+        if self.ordering:
+            from avocado.models import DataConcept
+            tree = trees[self.tree]
+            ids, directions = zip(*self.ordering)
+
+            concepts = list(DataConcept.objects.filter(pk__in=ids))
+            concepts.sort(key=lambda o: ids.index(o.pk))
+
+            fields = []
+            for concept in self.concepts:
+                fields.append(concept.fields.select_related('concept_fields')\
+                    .order_by('concept_fields__order'))
+
+            for i, direction in enumerate(directions):
+                for f in fields[i]:
+                    qstr = tree.query_string_for_field(f.field)
+                    if direction == 'desc':
+                        qstr = '-' + qstr
+                    order_by.append(qstr)
         return order_by
 
 
 def validate(attrs, **context):
-    fields = attrs.get('fields', [])
+    concepts = attrs.get('concepts', [])
     ordering = attrs.get('ordering', [])
 
-    node = Node(fields, ordering, **context)
+    node = Node(concepts, ordering, **context)
 
-    if fields and len(node.fields) != len(fields):
-        raise ValidationError('One or more fields do not exist')
+    if concepts and len(node.concepts) != len(concepts):
+        raise ValidationError('One or more concepts do not exist')
     if ordering and len(node.order_by) != len(ordering):
-        raise ValidationError('One or more fields do not exist')
+        raise ValidationError('One or more concepts do not exist')
 
 
 def parse(attrs, **context):
-    fields = attrs.get('fields', None)
+    concepts = attrs.get('concepts', None)
     ordering = attrs.get('ordering', None)
 
-    return Node(fields, ordering, **context)
+    return Node(concepts, ordering, **context)
