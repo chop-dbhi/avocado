@@ -1,17 +1,18 @@
 import csv
 from _base import BaseExporter
 
+
 class CSVExporter(BaseExporter):
     preferred_formats = ('number', 'string')
 
-    def write(self, buff):
+    def write(self, iterable, buff):
         """Export to csv method
         `buff` - file-like object that is being written to
         """
+        header = []
         writer = csv.writer(buff, quoting=csv.QUOTE_MINIMAL)
 
-        header = []
-        for i, row_gen in enumerate(self.read()):
+        for i, row_gen in enumerate(self.read(iterable)):
             row = []
             for data in row_gen:
                 if i == 0:

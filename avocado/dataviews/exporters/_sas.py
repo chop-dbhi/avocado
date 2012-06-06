@@ -62,9 +62,9 @@ class SasExporter(BaseExporter):
         """
         value_format = '\tformat {0} {0}_f.;\n'.format(name)
         value = '\tvalue {0}_f '.format(name)
-        values_len = len(datafield.coded_values)
+        values_len = len(field.coded_values)
 
-        for i, (val, code) in enumerate(datafield.coded_values):
+        for i, (val, code) in enumerate(field.coded_values):
             value += '{0}="{1}" '.format(code, val)
             if (i != values_len - 1 and (i % 2) == 1 and i != 0):
                 value += '\n\t\t'
@@ -72,7 +72,7 @@ class SasExporter(BaseExporter):
 
         return value_format, value
 
-    def write(self, buff):
+    def write(self, iterable, buff):
         zip_file = ZipFile(buff, 'w')
         script = StringIO()
 
@@ -89,37 +89,37 @@ class SasExporter(BaseExporter):
         for c in self.concepts:
             cfields = c.concept_fields.select_related('datafield')
             for cfield in cfields:
-                datafield = cfield.field
-                name = self._format_name(datafield.field_name)
+                field = cfield.field
+                name = self._format_name(field.field_name)
 
                 # setting up formats/informats
-                sas_form = self._get_formats(name, datafield)
+                sas_form = self._get_formats(name, field)
                 formats += sas_form[0]
                 informats += sas_form[1]
 
                 # add the field names to the input statement
                 inputs += '\t\t' + name
-                if datafield.datatype == 'string':
+                if field.datatype == 'string':
                     inputs += ' $'
                 inputs += '\n'
 
-                # if a datafield can be coded create a SAS PROC Format statement
+                # if a field can be coded create a SAS PROC Format statement
                 # that creates a value dictionary
-                if datafield.coded_values:
-                   codes = self._code_value(name, datafield)
-                   value_formats += codes[0]
-                   values += codes[1]
+                if field.coded_values:
+                    codes = self._code_value(name, field)
+                    value_formats += codes[0]
+                    values += codes[1]
 
                 # construct labels
-                labels += '\tlabel {0}="{1}";\n'.format(name, datafield.description)
+                labels += '\tlabel {0}="{1}";\n'.format(name, field.description)
 
         # Write the SAS File
         script.write(informats + '\n')
         script.write(formats + '\n')
-        script.write('input\n' + inputs +';\n\nrun;\n')
+        script.write('input\n' + inputs + ';\n\nrun;\n')
         script.write('proc contents;run;\n\ndata SAS_EXPORT;\n')
         script.write('\tset SAS_EXPORT;\n')
-        script.write(labels +'\trun;\n\n')
+        script.write(labels + '\trun;\n\n')
         script.write('proc format;\n')
         script.write(values + '\nrun;\n\n')
         script.write('data SAS_EXPORT;\n\tset SAS_EXPORT;\n\n')
@@ -133,9 +133,9 @@ class SasExporter(BaseExporter):
 
         # Write data CSV
         csv_file = StringIO()
-        csv_export = CSVExporter(self.queryset, self.concepts)
+        csv_export = CSVExporter(self.concepts)
         csv_export.preferred_formats = self.preferred_formats
-        zip_file.writestr('data.csv', csv_export.write(csv_file).getvalue())
+        zip_file.writestr('data.csv', csv_export.write(iterable, csv_file).getvalue())
         csv_file.close()
 
         zip_file.close()

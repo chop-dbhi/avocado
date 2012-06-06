@@ -11,7 +11,7 @@ from _base import BaseExporter
 class ExcelExporter(BaseExporter):
     preferred_formats = ('boolean', 'number', 'string')
 
-    def write(self, buff, virtual=True):
+    def write(self, iterable, buff, virtual=True):
         """ Creates an XML based excel spreadsheet
         `buff` - either a file name or a file-like object to be
             written to.
@@ -34,12 +34,12 @@ class ExcelExporter(BaseExporter):
             cfields = c.concept_fields.select_related('datafield')
             for cfield in cfields:
                 datafield = cfield.field
-                ws_dict.append((datafield.field_name, datafield.datatype, datafield.description,
-                    c.name, c.description))
+                ws_dict.append((datafield.field_name, datafield.datatype,
+                    datafield.description, c.name, c.description))
 
         header = []
         # Create the data worksheet
-        for i, row_gen in enumerate(self.read()):
+        for i, row_gen in enumerate(self.read(iterable)):
             row = []
             for data in row_gen:
                 if i == 0:

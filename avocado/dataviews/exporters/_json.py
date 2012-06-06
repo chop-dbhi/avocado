@@ -2,6 +2,7 @@ import json
 import inspect
 from _base import BaseExporter
 
+
 class JSONGeneratorEncoder(json.JSONEncoder):
     "Handle generator objects and expressions."
     def default(self, obj):
@@ -14,10 +15,10 @@ class JSONExporter(BaseExporter):
 
     preferred_formats = ('number', 'string')
 
-    def write(self, buff):
+    def write(self, iterable, buff):
         """Export to csv method
         `buff` - file-like object that is being written to
         """
         encoder = JSONGeneratorEncoder()
-        for chunk in encoder.iterencode(self.read()):
+        for chunk in encoder.iterencode(self.read(iterable)):
             buff.write(chunk)

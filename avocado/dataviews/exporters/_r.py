@@ -29,10 +29,10 @@ class RExporter(BaseExporter):
         factor = '{0}.factor = factor({0},levels=c('.format(data_field)
         level = 'levels({0}.factor)=c('.format(data_field)
 
-        for i, (val, code) in enumerate(datafield.coded_values):
+        for i, (val, code) in enumerate(field.coded_values):
             factor += str(code)
             level += '"{0}"'.format(str(val))
-            if i == len(datafield.coded_values) - 1:
+            if i == len(field.coded_values) - 1:
                 factor += '))\n'
                 level += ')\n'
                 continue
@@ -40,7 +40,7 @@ class RExporter(BaseExporter):
             level += ' ,'
         return factor, level
 
-    def write(self, buff):
+    def write(self, iterable, buff):
         zip_file = ZipFile(buff, 'w')
         script = StringIO()
 
@@ -50,14 +50,14 @@ class RExporter(BaseExporter):
         labels = []       # data labels
 
         for c in self.concepts:
-            cfields = c.concept_fields.select_related('datafield')
+            cfields = c.concept_fields.all()
             for cfield in cfields:
-                datafield = cfield.field
-                name = self._format_name(datafield.field_name)
-                labels.append('attr(data${0}, "label") = "{1}"'.format(name, datafield.description))
+                field = cfield.field
+                name = self._format_name(field.field_name)
+                labels.append('attr(data${0}, "label") = "{1}"'.format(name, field.description))
 
-                if datafield.coded_values:
-                    codes = self._code_value(name, datafield)
+                if field.coded_values:
+                    codes = self._code_value(name, field)
                     factors.append(codes[0])
                     levels.append(codes[1])
 
@@ -74,11 +74,11 @@ class RExporter(BaseExporter):
         zip_file.writestr('export.R', script.getvalue())
         script.close()
 
-        # WRITE CSV 
+        # WRITE CSV
         csv_file = StringIO()
-        csv_export = CSVExporter(self.queryset, self.concepts)
+        csv_export = CSVExporter(self.concepts)
         csv_export.preferred_formats = self.preferred_formats
-        zip_file.writestr('data.csv', csv_export.write(csv_file).getvalue())
+        zip_file.writestr('data.csv', csv_export.write(iterable, csv_file).getvalue())
         csv_file.close()
 
         zip_file.close()

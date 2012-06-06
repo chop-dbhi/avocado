@@ -87,7 +87,7 @@ class Formatter(object):
         # Attempt to process each
         for i, (key, value) in enumerate(values.iteritems()):
             for f in preferred_formats:
-                method = getattr(self, 'to_{0}'.format(f))
+                method = getattr(self, 'to_{}'.format(f))
                 try:
                     fvalue = method(value, cfield=self.cfields[key], **self.context)
                     if type(fvalue) is dict:
@@ -100,13 +100,13 @@ class Formatter(object):
         return output
 
     def __contains__(self, choice):
-        return hasattr(self, 'to_%s' % choice)
+        return hasattr(self, 'to_{}'.format(choice))
 
     def __unicode__(self):
-        return u'%s' % self.name
+        return u'{}'.format(self.name)
 
     def to_string(self, value, cfield, **context):
-        # attempt to coerce non-strings to strings. depending on the data
+        # Attempt to coerce non-strings to strings. Depending on the data
         # types that are being passed into this, this may not be good
         # enough for certain datatypes or complext data structures
         if value is None:
@@ -114,7 +114,7 @@ class Formatter(object):
         return force_unicode(value, strings_only=False)
 
     def to_boolean(self, value, cfield, **context):
-        # if value is native True or False value, return it
+        # If value is native True or False value, return it
         # Change value to bool if value is a string of false or true
         if type(value) is bool:
             return value
@@ -122,10 +122,10 @@ class Formatter(object):
             return True
         if value in ('false', 'False', '0', 0):
             return False
-        raise Exception('Cannot convert {0} to boolean'.format(value))
+        raise Exception('Cannot convert {} to boolean'.format(value))
 
     def to_number(self, value, cfield, **context):
-        # attempts to convert a number. Starting with ints and floats
+        # Attempts to convert a number. Starting with ints and floats
         # Eventually create to_decimal using the decimal library.
         if type(value) is int or type(value) is float:
             return value
@@ -136,7 +136,7 @@ class Formatter(object):
         return value
 
     def to_coded(self, value, cfield, **context):
-        # attempts to convert value to its coded representation
+        # Attempts to convert value to its coded representation
         for key, cvalue in cfield.field.coded_values:
             if key == value:
                 return cvalue

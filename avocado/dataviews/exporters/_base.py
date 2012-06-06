@@ -2,7 +2,7 @@ try:
     from collections import OrderedDict
 except ImportError:
     from ordereddict import OrderedDict
-from modeltree.query import ModelTreeQuerySet
+from django.db.models.query import QuerySet
 from avocado.dataviews.formatters import registry as formatters
 
 
@@ -11,18 +11,20 @@ class BaseExporter(object):
 
     preferred_formats = []
 
-    def __init__(self, queryset, concepts):
-        if not isinstance(queryset, ModelTreeQuerySet):
-            queryset = queryset._clone(klass=ModelTreeQuerySet)
-
-        self.queryset = queryset
+    def __init__(self, concepts):
+        if isinstance(concepts, QuerySet):
+            concepts = concepts.prefetch_related('concept_fields__field')
         self.concepts = concepts
+        self.params = []
 
-    def _get_rows(self, fields):
-        return self.queryset.select(*fields, inclue_pk=False)
+        for concept in concepts:
+            cfields = concept.concept_fields.select_related('field')
+            fields = [c.field for c in cfields]
+            formatter = formatters[concept.formatter](concept)
+            self.params.append((self._get_keys(fields), len(cfields), formatter))
 
-    def _format_row(self, row, params):
-        for i, (keys, length, formatter) in enumerate(params):
+    def _format_row(self, row):
+        for keys, length, formatter in self.params:
             part, row = row[:length], row[length:]
             values = OrderedDict(zip(keys, part))
             yield formatter(values, self.preferred_formats)
@@ -42,20 +44,10 @@ class BaseExporter(object):
                     cnts[key] += 1
         return keys
 
-    def read(self, concepts=None):
-        concepts = concepts or self.concepts
-        params = []
-        select_fields = []
+    def read(self, iterable):
+        "Takes an iterable that produces rows to be formatted."
+        for row in iterable:
+            yield self._format_row(row)
 
-        for concept in concepts:
-            cfields = concept.concept_fields.select_related('datafield')
-            fields = [c.field for c in cfields]
-            select_fields.extend(f.field for f in fields)
-            formatter = formatters[concept.formatter](concept)
-            params.append((self._get_keys(fields), len(cfields), formatter))
-
-        for row in iter(self._get_rows(select_fields)):
-            yield self._format_row(row, params)
-
-    def write(self, *args, **kwargs):
+    def write(self, iterable, *args, **kwargs):
         raise NotImplemented
