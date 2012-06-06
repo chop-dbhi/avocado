@@ -21,7 +21,6 @@ INSTALLED_APPS = (
     'avocado.coded',
     'avocado.stats',
     'avocado.tests',
-    'avocado.dataviews',
 )
 
 CACHES = {

@@ -1,7 +1,7 @@
 import os
 import unittest
 from avocado.tests.base import BaseTestCase
-from avocado.dataviews import exporters
+from avocado import exporters
 
 __all__ = ['ExportTestCase']
 

@@ -145,6 +145,10 @@ class Formatter(object):
     def to_raw(self, value, cfield, **context):
         return value
 
+    def to_html(self, values, cfields, **context):
+        string = ' '.join([self.to_string(value) for value in values])
+        return '<span>{}</span>'.format(string)
+
 
 registry = loader.Registry(default=Formatter, register_instance=False)
 loader.autodiscover('formatters')

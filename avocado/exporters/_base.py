@@ -3,7 +3,7 @@ try:
 except ImportError:
     from ordereddict import OrderedDict
 from django.db.models.query import QuerySet
-from avocado.dataviews.formatters import registry as formatters
+from avocado.formatters import registry as formatters
 
 
 class BaseExporter(object):

@@ -20,8 +20,8 @@ from avocado.query import parsers
 from avocado.query.translators import registry as translators
 from avocado.query.operators import registry as operators
 from avocado.stats.agg import Aggregator
-from avocado.dataviews.formatters import registry as formatters
-from avocado.dataviews.queryview import registry as queryviews
+from avocado.formatters import registry as formatters
+from avocado.queryview import registry as queryviews
 
 __all__ = ('DataCategory', 'DataConcept', 'DataField', 'DataContext')
 

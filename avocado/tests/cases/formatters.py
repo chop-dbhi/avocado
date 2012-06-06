@@ -3,7 +3,7 @@ try:
 except ImportError:
     from ordereddict import OrderedDict
 from avocado.tests.base import BaseTestCase
-from avocado.dataviews.formatters import Formatter
+from avocado.formatters import Formatter
 
 __all__ = ['FormatterTestCase']
 
