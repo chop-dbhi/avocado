@@ -354,7 +354,7 @@ class DataContext(Base):
 
     This corresponds to the `WHERE` statements in a SQL query.
     """
-    json = jsonfield.JSONField(null=True, blank=True,
+    json = jsonfield.JSONField(null=True, blank=True, default=dict,
         validators=[parsers.datacontext.validate])
     session = models.BooleanField(default=False)
     composite = models.BooleanField(default=False)
@@ -414,7 +414,7 @@ class DataView(Base):
 
     This corresponds to the `SELECT` and `ORDER BY` statements in a SQL query.
     """
-    json = jsonfield.JSONField(null=True, blank=True,
+    json = jsonfield.JSONField(null=True, blank=True, default=dict,
         validators=[parsers.dataview.validate])
     session = models.BooleanField(default=False)
 
@@ -431,6 +431,9 @@ class DataView(Base):
         self.save()
         self.pk, self.session, self.archived = backup
         return True
+
+    def node(self, tree=None):
+        return parsers.dataview.parse(self.json, tree=tree)
 
     def apply(self, queryset=None, tree=None):
         "Applies this context to a QuerySet."
