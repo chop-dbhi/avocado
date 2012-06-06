@@ -7,13 +7,13 @@ from _json import JSONExporter
 
 registry = loader.Registry(register_instance=False)
 
-registry.register(CSVExporter)
-registry.register(SasExporter)
-registry.register(RExporter)
-registry.register(JSONExporter)
+registry.register(CSVExporter, 'csv')
+registry.register(SasExporter, 'sas')
+registry.register(RExporter, 'r')
+registry.register(JSONExporter, 'json')
 
 if OPTIONAL_DEPS['openpyxl']:
     from _excel import ExcelExporter
-    registry.register(ExcelExporter)
+    registry.register(ExcelExporter, 'excel')
 
 loader.autodiscover('exporters')
