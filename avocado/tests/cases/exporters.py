@@ -75,3 +75,16 @@ class ExportTestCase(BaseTestCase):
         buff = open('json_export.json', 'wb+')
         exporter.write(self.query, buff)
         os.remove('json_export.json')
+
+    def test_html(self):
+        from django.template import Template
+        exporter = exporters.HTMLExporter(self.concepts)
+        template = Template("""<table>
+{% for row in rows %}
+    <tr>
+    {% for item in row %}
+        <td>{{ item|safe }}</td>
+    {% endfor %}
+{% endfor %}
+</table>""")
+        self.assertEqual(exporter.write(self.query, template=template), '<table>\n\n    <tr>\n    \n        <td><span>Eric Smith True Programmer 15000</span></td>\n    \n\n    <tr>\n    \n        <td><span>Erin Jones False Analyst 20000</span></td>\n    \n\n    <tr>\n    \n        <td><span>Erick Smith False Programmer 15000</span></td>\n    \n\n    <tr>\n    \n        <td><span>Aaron Harris False Analyst 20000</span></td>\n    \n\n    <tr>\n    \n        <td><span>Zac Cook False Programmer 15000</span></td>\n    \n\n    <tr>\n    \n        <td><span>Mel Brooks False Analyst 20000</span></td>\n    \n\n</table>')

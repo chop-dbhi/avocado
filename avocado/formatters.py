@@ -1,3 +1,4 @@
+import logging
 try:
     from collections import OrderedDict
 except ImportError:
@@ -7,6 +8,8 @@ from avocado.core import loader
 from avocado.conf import settings
 
 DATA_CHOICES_MAP = settings.DATA_CHOICES_MAP
+
+log = logging.getLogger(__file__)
 
 class Formatter(object):
     """Provides support for the core data formats with sensible defaults
@@ -58,7 +61,7 @@ class Formatter(object):
         # If no preferred multi-value methods succeed, each value is processed
         # independently with the remaining formats
         for f in iter(preferred_formats):
-            method = getattr(self, 'to_{0}'.format(f), None)
+            method = getattr(self, 'to_{}'.format(f), None)
             # This formatter does not support this format, remove it
             # from the available list
             if not method:
@@ -77,7 +80,9 @@ class Formatter(object):
                 try:
                     return method(values, cfields=self.cfields, **self.context)
                 # Remove from the preferred formats list since it failed
-                except:
+                except Exception, e:
+                    log.error('{}: {}\nFormatter:\t{}.{}\nMultiple:\ntrue\nType:\t{}'.format(e.__class__.__name__,
+                        e.message, str(self), method, [type(value) for value in values]))
                     preferred_formats.pop(0)
 
         # The output is independent of the input. Formatters may output more
@@ -95,17 +100,18 @@ class Formatter(object):
                     else:
                         output[key] = fvalue
                     break
-                except:
-                    pass
+                except Exception, e:
+                    log.error('{}: {}\nFormatter:\t{}.{}\nMultiple:\nfalse\nType:\t{}'.format(e.__class__.__name__,
+                        e.message, str(self), method, type(value)))
         return output
 
     def __contains__(self, choice):
         return hasattr(self, 'to_{}'.format(choice))
 
     def __unicode__(self):
-        return u'{}'.format(self.name)
+        return u'{}'.format(self.name or self.__class__.__name__)
 
-    def to_string(self, value, cfield, **context):
+    def to_string(self, value, cfield=None, **context):
         # Attempt to coerce non-strings to strings. Depending on the data
         # types that are being passed into this, this may not be good
         # enough for certain datatypes or complext data structures
@@ -113,7 +119,7 @@ class Formatter(object):
             return u''
         return force_unicode(value, strings_only=False)
 
-    def to_boolean(self, value, cfield, **context):
+    def to_boolean(self, value, cfield=None, **context):
         # If value is native True or False value, return it
         # Change value to bool if value is a string of false or true
         if type(value) is bool:
@@ -124,7 +130,7 @@ class Formatter(object):
             return False
         raise Exception('Cannot convert {} to boolean'.format(value))
 
-    def to_number(self, value, cfield, **context):
+    def to_number(self, value, cfield=None, **context):
         # Attempts to convert a number. Starting with ints and floats
         # Eventually create to_decimal using the decimal library.
         if type(value) is int or type(value) is float:
@@ -135,19 +141,21 @@ class Formatter(object):
             value = float(value)
         return value
 
-    def to_coded(self, value, cfield, **context):
+    def to_coded(self, value, cfield=None, **context):
         # Attempts to convert value to its coded representation
         for key, cvalue in cfield.field.coded_values:
             if key == value:
                 return cvalue
         raise ValueError('No coded value for {}'.format(value))
 
-    def to_raw(self, value, cfield, **context):
+    def to_raw(self, value, cfield=None, **context):
         return value
 
-    def to_html(self, values, cfields, **context):
-        string = ' '.join([self.to_string(value) for value in values])
+    def to_html(self, values, cfields=None, **context):
+        string = ' '.join([self.to_string(value) for value in values.values()])
         return '<span>{}</span>'.format(string)
+
+    to_html.process_multiple = True
 
 
 registry = loader.Registry(default=Formatter, register_instance=False)
