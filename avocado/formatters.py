@@ -89,7 +89,10 @@ class Formatter(object):
             # each value is handled independently
             if getattr(method, 'process_multiple', False):
                 try:
-                    return method(values, fields=self.fields, **self.context)
+                    output = method(values, fields=self.fields, **self.context)
+                    if not isinstance(output, dict):
+                        return OrderedDict([(self.concept.name, output)])
+                    return output
                 # Remove from the preferred formats list since it failed
                 except Exception, e:
                     if not isinstance(e, FormatterException):
