@@ -4,7 +4,9 @@ from string import punctuation
 from _base import BaseExporter
 from _csv import CSVExporter
 
+
 class RExporter(BaseExporter):
+    file_extension = 'zip'
     preferred_formats = ('coded', 'number', 'string')
 
     def _format_name(self, name):
@@ -40,7 +42,9 @@ class RExporter(BaseExporter):
             level += ' ,'
         return factor, level
 
-    def write(self, iterable, buff):
+    def write(self, iterable, buff=None):
+        buff = self.get_file_obj(buff)
+
         zip_file = ZipFile(buff, 'w')
         script = StringIO()
 

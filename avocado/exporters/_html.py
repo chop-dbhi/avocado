@@ -7,18 +7,16 @@ class HTMLExporter(BaseExporter):
     preferred_formats = ('html', 'string')
 
     def write(self, iterable, buff=None, template=None):
-        if not buff and not template:
-            raise Exception('Either a file-like object or template must be supplied')
-
         generator = self.read(iterable)
 
-        if buff:
-            for row in generator:
-                for item in row:
-                    buff.write(item)
-            return buff
+        if template:
+            context = Context({'rows': generator})
+            if isinstance(template, basestring):
+                template = get_template(template)
+            return template.render(context)
 
-        context = Context({'rows': generator})
-        if isinstance(template, basestring):
-            template = get_template(template)
-        return template.render(context)
+        buff = self.get_file_obj(buff)
+        for row in generator:
+            for item in row:
+                buff.write(item)
+        return buff

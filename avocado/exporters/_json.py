@@ -12,13 +12,13 @@ class JSONGeneratorEncoder(json.JSONEncoder):
 
 
 class JSONExporter(BaseExporter):
-
+    file_extension = 'json'
     preferred_formats = ('number', 'string')
 
-    def write(self, iterable, buff):
-        """Export to csv method
-        `buff` - file-like object that is being written to
-        """
+    def write(self, iterable, buff=None):
+        buff = self.get_file_obj(buff)
+
         encoder = JSONGeneratorEncoder()
         for chunk in encoder.iterencode(self.read(iterable)):
             buff.write(chunk)
+        return buff

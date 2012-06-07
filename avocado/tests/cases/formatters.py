@@ -60,7 +60,7 @@ class FormatterTestCase(BaseTestCase):
 
     def test_to_html(self):
         class HtmlFormatter(Formatter):
-            def to_html(self, values, cfields, **context):
+            def to_html(self, values, fields, **context):
                 fvalues = self(values, preferred_formats=['string'])
                 return OrderedDict({
                     'profile': '<span>' + '</span><span>'.join(fvalues.values()) + '</span>'

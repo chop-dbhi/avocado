@@ -6,6 +6,7 @@ from _csv import CSVExporter
 
 
 class SasExporter(BaseExporter):
+    file_extension = 'zip'
     preferred_formats = ('coded', 'number', 'string')
 
     num_lg_names = 0
@@ -72,7 +73,9 @@ class SasExporter(BaseExporter):
 
         return value_format, value
 
-    def write(self, iterable, buff):
+    def write(self, iterable, buff=None):
+        buff = self.get_file_obj(buff)
+
         zip_file = ZipFile(buff, 'w')
         script = StringIO()
 

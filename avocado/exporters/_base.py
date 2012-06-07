@@ -2,6 +2,7 @@ try:
     from collections import OrderedDict
 except ImportError:
     from ordereddict import OrderedDict
+from cStringIO import StringIO
 from avocado.formatters import registry as formatters
 
 
@@ -19,6 +20,13 @@ class BaseExporter(object):
             fields = [c.field for c in cfields]
             formatter = formatters[concept.formatter](concept)
             self.params.append((self._get_keys(fields), len(cfields), formatter))
+
+    def get_file_obj(self, name):
+        if name is None:
+            return StringIO()
+        if isinstance(name, basestring):
+            return open(name, 'w+')
+        return name
 
     def _format_row(self, row):
         for keys, length, formatter in self.params:

@@ -3,27 +3,23 @@ from avocado.conf import OPTIONAL_DEPS
 if not OPTIONAL_DEPS['openpyxl']:
     raise ImproperlyConfigured('openpyxl must be installed to use this exporter.')
 
-from openpyxl.workbook import Workbook
+from openpyxl import Workbook
 from openpyxl.writer.excel import save_virtual_workbook
 from _base import BaseExporter
 
 
 class ExcelExporter(BaseExporter):
+    file_extension = 'xlsx'
     preferred_formats = ('boolean', 'number', 'string')
 
-    def write(self, iterable, buff, virtual=True):
-        """ Creates an XML based excel spreadsheet
-        `buff` - either a file name or a file-like object to be
-            written to.
-        `virtual` - if true a virtual worksheet will be saved that can
-            be passed to a django response. If false, worksheet is saved
-            to buff.
-        """
+    def write(self, iterable, buff=None):
+        buff = self.get_file_obj(buff)
+
         # Create the workbook and sheets
         wb = Workbook(optimized_write=True)
-        ws_data = wb.create_sheet(0)
+        ws_data = wb.create_sheet()
         ws_data.title = 'Data'
-        ws_dict = wb.create_sheet(1)
+        ws_dict = wb.create_sheet()
         ws_dict.title = 'Data Dictionary'
 
         # Create the Data Dictionary Worksheet
@@ -31,7 +27,7 @@ class ExcelExporter(BaseExporter):
             'Concept Name', 'Concept Discription'))
 
         for c in self.concepts:
-            cfields = c.concept_fields.select_related('datafield')
+            cfields = c.concept_fields.select_related('field')
             for cfield in cfields:
                 datafield = cfield.field
                 ws_dict.append((datafield.field_name, datafield.datatype,
@@ -53,9 +49,8 @@ class ExcelExporter(BaseExporter):
             ws_data.append(row)
 
         # Save the workbook
-        if virtual:
-            buff = save_virtual_workbook(wb)
-        else:
+        if isinstance(buff, file):
             wb.save(buff)
-
+        else:
+            buff.write(save_virtual_workbook(wb))
         return buff

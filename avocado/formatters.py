@@ -11,6 +11,11 @@ DATA_CHOICES_MAP = settings.DATA_CHOICES_MAP
 
 log = logging.getLogger(__file__)
 
+
+class FormatterException(Exception):
+    pass
+
+
 class Formatter(object):
     """Provides support for the core data formats with sensible defaults
     for handling converting Python datatypes to their formatted equivalent.
@@ -20,7 +25,7 @@ class Formatter(object):
         OrderedDict/sequence of key-value pairs
 
         If the format method is unable to do either of these for the given
-        value a FormatException must be raised.
+        value a FormatterException must be raised.
 
         ``values`` - A list, tuple or OrderedDict containing the values to
         be formatted. If a list or tuple is passed, it will be wrapped in
@@ -31,12 +36,18 @@ class Formatter(object):
             values = ['Bob', 'Smith']
 
     """
-    name = ''
+    def __init__(self, concept=None, keys=None, **context):
+        if concept:
+            self.concept = concept
+            self.fields = OrderedDict((f.field_name, f) \
+                for f in concept.fields.order_by('concept_fields__order'))
+            self.keys = self.fields.keys()
+        elif keys:
+            self.keys = keys
+            self.fields = None
+        else:
+            raise Exception('A concept or list of keys must be supplied.')
 
-    def __init__(self, concept, **context):
-        self.cfields = OrderedDict((x.field.field_name, x) \
-                for x in concept.concept_fields.all())
-        self.field_keys = self.cfields.keys()
         self.context = context
 
     def __call__(self, values, preferred_formats=None):
@@ -53,7 +64,7 @@ class Formatter(object):
         # enables key-based access to the values rather than
         # relying on position.
         if not isinstance(values, OrderedDict):
-            values = OrderedDict(zip(self.field_keys, values))
+            values = OrderedDict(zip(self.keys, values))
 
         # Iterate over all preferred formats and attempt to process the values.
         # For formatter methods that process all values must be tracked and
@@ -78,11 +89,12 @@ class Formatter(object):
             # each value is handled independently
             if getattr(method, 'process_multiple', False):
                 try:
-                    return method(values, cfields=self.cfields, **self.context)
+                    return method(values, fields=self.fields, **self.context)
                 # Remove from the preferred formats list since it failed
                 except Exception, e:
-                    log.error('{}: {}\nFormatter:\t{}.{}\nMultiple:\ntrue\nType:\t{}'.format(e.__class__.__name__,
-                        e.message, str(self), method, [type(value) for value in values]))
+                    if not isinstance(e, FormatterException):
+                        log.error('{}: {}\nFormatter:\t{}.{}\nMultiple:\ntrue\nType:\t{}'.format(e.__class__.__name__,
+                            e.message, str(self), method, [type(value) for value in values]))
                     preferred_formats.pop(0)
 
         # The output is independent of the input. Formatters may output more
@@ -94,15 +106,17 @@ class Formatter(object):
             for f in preferred_formats:
                 method = getattr(self, 'to_{}'.format(f))
                 try:
-                    fvalue = method(value, cfield=self.cfields[key], **self.context)
-                    if type(fvalue) is dict:
+                    field = self.fields[key] if self.fields else None
+                    fvalue = method(value, field=field, **self.context)
+                    if isinstance(fvalue, dict):
                         output.update(fvalue)
                     else:
                         output[key] = fvalue
                     break
                 except Exception, e:
-                    log.error('{}: {}\nFormatter:\t{}.{}\nMultiple:\nfalse\nType:\t{}'.format(e.__class__.__name__,
-                        e.message, str(self), method, type(value)))
+                    if not isinstance(e, FormatterException):
+                        log.error('{}: {}\nFormatter:\t{}.{}\nMultiple:\nfalse\nType:\t{}'.format(e.__class__.__name__,
+                            e.message, str(self), method, type(value)))
         return output
 
     def __contains__(self, choice):
@@ -111,7 +125,7 @@ class Formatter(object):
     def __unicode__(self):
         return u'{}'.format(self.name or self.__class__.__name__)
 
-    def to_string(self, value, cfield=None, **context):
+    def to_string(self, value, field=None, **context):
         # Attempt to coerce non-strings to strings. Depending on the data
         # types that are being passed into this, this may not be good
         # enough for certain datatypes or complext data structures
@@ -119,43 +133,41 @@ class Formatter(object):
             return u''
         return force_unicode(value, strings_only=False)
 
-    def to_boolean(self, value, cfield=None, **context):
+    def to_boolean(self, value, field=None, **context):
         # If value is native True or False value, return it
-        # Change value to bool if value is a string of false or true
         if type(value) is bool:
             return value
-        if value in ('true', 'True', '1', 1):
-            return True
-        if value in ('false', 'False', '0', 0):
-            return False
-        raise Exception('Cannot convert {} to boolean'.format(value))
+        raise FormatterException('Cannot convert {} to boolean'.format(value))
 
-    def to_number(self, value, cfield=None, **context):
+    def to_number(self, value, field=None, **context):
         # Attempts to convert a number. Starting with ints and floats
         # Eventually create to_decimal using the decimal library.
         if type(value) is int or type(value) is float:
             return value
-        try:
-            value = int(value)
-        except (ValueError, TypeError):
-            value = float(value)
-        return value
+        if isinstance(value, basestring):
+            try:
+                value = int(value)
+            except (ValueError, TypeError):
+                value = float(value)
+            return value
+        raise FormatterException('Cannot convert {} to number'.format(value))
 
-    def to_coded(self, value, cfield=None, **context):
+    def to_coded(self, value, field=None, **context):
         # Attempts to convert value to its coded representation
-        for key, cvalue in cfield.field.coded_values:
-            if key == value:
-                return cvalue
-        raise ValueError('No coded value for {}'.format(value))
+        if field:
+            for key, coded in field.coded_values:
+                if key == value:
+                    return coded
+        raise FormatterException('No coded value for {}'.format(value))
 
-    def to_raw(self, value, cfield=None, **context):
+    def to_raw(self, value, field=None, **context):
         return value
 
-    def to_html(self, values, cfields=None, **context):
-        string = ' '.join([self.to_string(value) for value in values.values()])
-        return '<span>{}</span>'.format(string)
 
-    to_html.process_multiple = True
+class RawFormatter(Formatter):
+    def __call__(self, values, *args, **kwargs):
+        preferred_formats = ['raw']
+        return super(RawFormatter, self).__call__(values, preferred_formats)
 
 
 registry = loader.Registry(default=Formatter, register_instance=False)

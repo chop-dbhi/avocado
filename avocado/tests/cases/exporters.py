@@ -43,18 +43,16 @@ class ExportTestCase(BaseTestCase):
                 'is_manager', 'title__name', 'title__salary')
 
     def test_csv(self):
-        buff = open('csv_export.csv', 'wb+')
         exporter = exporters.CSVExporter(self.concepts)
-        exporter.write(self.query, buff)
+        buff = exporter.write(self.query)
         buff.seek(0)
-        self.assertEqual(buff.read(), 'first_name,last_name,is_manager,name,salary\r\nEric,Smith,1,Programmer,15000\r\nErin,Jones,0,Analyst,20000\r\nErick,Smith,0,Programmer,15000\r\nAaron,Harris,0,Analyst,20000\r\nZac,Cook,0,Programmer,15000\r\nMel,Brooks,0,Analyst,20000\r\n')
-        os.remove('csv_export.csv')
+        self.assertEqual(buff.read(), 'first_name,last_name,is_manager,name,salary\r\nEric,Smith,True,Programmer,15000\r\nErin,Jones,False,Analyst,20000\r\nErick,Smith,False,Programmer,15000\r\nAaron,Harris,False,Analyst,20000\r\nZac,Cook,False,Programmer,15000\r\nMel,Brooks,False,Analyst,20000\r\n')
 
     # Skip test if deps are not installed
     @unittest.skipUnless(exporters.ExcelExporter, 'openpyxl must be installed to test ExcelExporter')
     def test_excel(self):
         exporter = exporters.ExcelExporter(self.concepts)
-        exporter.write(self.query, 'excel_export.xlsx', virtual=False)
+        exporter.write(self.query, 'excel_export.xlsx')
         self.assertTrue(os.path.exists('excel_export.xlsx'))
         os.remove('excel_export.xlsx')
 
@@ -72,9 +70,9 @@ class ExportTestCase(BaseTestCase):
 
     def test_json(self):
         exporter = exporters.JSONExporter(self.concepts)
-        buff = open('json_export.json', 'wb+')
-        exporter.write(self.query, buff)
-        os.remove('json_export.json')
+        buff = exporter.write(self.query)
+        buff.seek(0)
+        self.assertEqual(buff.read(), '[[{"first_name": "Eric", "last_name": "Smith", "is_manager": "True", "name": "Programmer", "salary": 15000}], [{"first_name": "Erin", "last_name": "Jones", "is_manager": "False", "name": "Analyst", "salary": 20000}], [{"first_name": "Erick", "last_name": "Smith", "is_manager": "False", "name": "Programmer", "salary": 15000}], [{"first_name": "Aaron", "last_name": "Harris", "is_manager": "False", "name": "Analyst", "salary": 20000}], [{"first_name": "Zac", "last_name": "Cook", "is_manager": "False", "name": "Programmer", "salary": 15000}], [{"first_name": "Mel", "last_name": "Brooks", "is_manager": "False", "name": "Analyst", "salary": 20000}]]')
 
     def test_html(self):
         from django.template import Template
@@ -83,8 +81,8 @@ class ExportTestCase(BaseTestCase):
 {% for row in rows %}
     <tr>
     {% for item in row %}
-        <td>{{ item|safe }}</td>
+        <td>{{ item.values|join:" " }}</td>
     {% endfor %}
 {% endfor %}
 </table>""")
-        self.assertEqual(exporter.write(self.query, template=template), '<table>\n\n    <tr>\n    \n        <td><span>Eric Smith True Programmer 15000</span></td>\n    \n\n    <tr>\n    \n        <td><span>Erin Jones False Analyst 20000</span></td>\n    \n\n    <tr>\n    \n        <td><span>Erick Smith False Programmer 15000</span></td>\n    \n\n    <tr>\n    \n        <td><span>Aaron Harris False Analyst 20000</span></td>\n    \n\n    <tr>\n    \n        <td><span>Zac Cook False Programmer 15000</span></td>\n    \n\n    <tr>\n    \n        <td><span>Mel Brooks False Analyst 20000</span></td>\n    \n\n</table>')
+        self.assertEqual(exporter.write(self.query, template=template), '<table>\n\n    <tr>\n    \n        <td>Eric Smith True Programmer 15000</td>\n    \n\n    <tr>\n    \n        <td>Erin Jones False Analyst 20000</td>\n    \n\n    <tr>\n    \n        <td>Erick Smith False Programmer 15000</td>\n    \n\n    <tr>\n    \n        <td>Aaron Harris False Analyst 20000</td>\n    \n\n    <tr>\n    \n        <td>Zac Cook False Programmer 15000</td>\n    \n\n    <tr>\n    \n        <td>Mel Brooks False Analyst 20000</td>\n    \n\n</table>')
