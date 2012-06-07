@@ -358,6 +358,7 @@ class DataContext(Base):
         validators=[parsers.datacontext.validate])
     session = models.BooleanField(default=False)
     composite = models.BooleanField(default=False)
+    count = models.IntegerField(null=True, db_column='_count')
 
     # For authenticated users the `user` can be directly referenced,
     # otherwise the session key can be used.
@@ -417,6 +418,7 @@ class DataView(Base):
     json = jsonfield.JSONField(null=True, blank=True, default=dict,
         validators=[parsers.dataview.validate])
     session = models.BooleanField(default=False)
+    count = models.IntegerField(null=True, db_column='_count')
 
     # For authenticated users the `user` can be directly referenced,
     # otherwise the session key can be used.
