@@ -18,13 +18,13 @@ class Node(object):
         self.tree = context.pop('tree', None)
         self.context = context
 
-    def apply(self, queryset=None):
+    def apply(self, queryset=None, include_pk=True):
         tree = trees[self.tree]
         if queryset is None:
             queryset = tree.get_queryset()
         queryset = ModelTreeQuerySet(tree, query=queryset.query)
         if self.concept_ids:
-            queryset = queryset.select(*[f.field for f in self.fields])
+            queryset = queryset.select(*[f.field for f in self.fields], include_pk=include_pk)
         if self.ordering:
             queryset = queryset.order_by(*self.order_by)
         return queryset
