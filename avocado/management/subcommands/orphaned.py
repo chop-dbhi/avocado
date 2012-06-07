@@ -33,7 +33,7 @@ class Command(NoArgsCommand):
 
     def _print(self, objs, msg, unpublish=False):
         print
-        print '%s:\n', msg
+        print '{}:\n'.format(msg)
         for o in objs:
             print '\t',
             if o.published:
@@ -44,6 +44,7 @@ class Command(NoArgsCommand):
             else:
                 print '   ',
             print o
+        print
 
     def handle_noargs(self, **options):
         unpublish = options.get('unpublish')
