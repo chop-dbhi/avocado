@@ -19,7 +19,7 @@ def instance_cache_key(instance, label=None, timestamp=None):
     return key
 
 
-def cached_property(label, timestamp=None, timeout=NEVER_EXPIRE):
+def cached_property(label, timestamp=None, check=lambda x: True, timeout=NEVER_EXPIRE):
     "Wraps a function and caches the output indefinitely."
     def decorator(func):
         def wrapped(self):
@@ -29,7 +29,7 @@ def cached_property(label, timestamp=None, timeout=NEVER_EXPIRE):
             if data is None:
                 data = func(self)
                 # Don't bother caching if the data is None
-                if data is not None:
+                if data is not None and check(self):
                     cache.set(key, data, timeout=timeout)
             return data
         return property(wrapped)
