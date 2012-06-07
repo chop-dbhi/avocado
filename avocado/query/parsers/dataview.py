@@ -70,6 +70,8 @@ class Node(object):
 
 
 def validate(attrs, **context):
+    if not attrs:
+        return
     concepts = attrs.get('concepts', [])
     ordering = attrs.get('ordering', [])
 
@@ -82,7 +84,9 @@ def validate(attrs, **context):
 
 
 def parse(attrs, **context):
+    if not attrs:
+        return Node(**context)
+
     concepts = attrs.get('concepts', None)
     ordering = attrs.get('ordering', None)
-
     return Node(concepts, ordering, **context)
