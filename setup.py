@@ -98,7 +98,8 @@ setup(
     tests_require = ['coverage', 'django-haystack', 'whoosh', 'openpyxl'],
 
     dependency_links = {
-        'modeltree': 'http://github.com/cbmi/modeltree/tarball/master#egg=modeltree'
+        'modeltree': 'http://github.com/cbmi/modeltree/tarball/master#egg=modeltree',
+        'django-jsonfield': 'https://github.com/bradjasper/django-jsonfield/tarball/master#egg=django-jsonfield',
     }
 
     data_files = data_files,
