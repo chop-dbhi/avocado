@@ -28,8 +28,6 @@ class BufferedPaginator(Paginator):
     assuming `_count` is greater than `buf_size`..
     """
     def __init__(self, count, object_list=None, offset=0, buf_size=None, *args, **kwargs):
-        if object_list is None and buf_size is None:
-            raise ValueError('An "object_list" or a "buf_size" must be defined')
         if offset > count:
             raise ValueError('"offset" cannot be greater than the "count"')
 
@@ -42,7 +40,7 @@ class BufferedPaginator(Paginator):
             offset = count + offset
 
         self.offset = offset
-        self.buf_size = buf_size or len(object_list)
+        self.buf_size = buf_size or count
 
     def page(self, number):
         """Returns a `BufferedPage` object representing the slice of data
