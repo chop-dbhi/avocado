@@ -120,8 +120,10 @@ class DataConceptFieldInlineAdmin(admin.TabularInline):
 
 
 class DataConceptAdmin(PublishedAdmin):
-    list_display = ('name', 'published', 'archived', 'category', 'queryview', 'related_datafields')
-    list_editable = ('published', 'archived', 'category', 'queryview')
+    list_display = ('name', 'published', 'archived', 'category',
+        'queryview', 'formatter', 'related_datafields')
+    list_editable = ('published', 'archived', 'category', 'queryview',
+        'formatter')
     inlines = [DataConceptFieldInlineAdmin]
 
     fieldsets = (
