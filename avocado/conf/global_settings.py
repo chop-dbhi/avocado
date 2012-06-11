@@ -31,11 +31,11 @@ INTERNAL_DATATYPE_MAP = {
 # support more operators than what are defined, but are not include because
 # they are not commonly used.
 DATATYPE_OPERATOR_MAP = {
-    'boolean': ('exact', '-exact'),
+    'boolean': ('exact', '-exact', 'in', '-in'),
     'date': ('exact', '-exact', 'in', '-in', 'lt', 'lte', 'gt', 'gte', 'range'),
-    'datetime': ('exact', '-exact', 'in', '-in', 'lt', 'lte', 'gt', 'gte', 'range'),
     'number': ('exact', '-exact', 'in', '-in', 'lt', 'lte', 'gt', 'gte', 'range'),
     'string': ('exact', '-exact', 'iexact', '-iexact', 'in', '-in', 'icontains', '-icontains'),
+    'datetime': ('exact', '-exact', 'in', '-in', 'lt', 'lte', 'gt', 'gte', 'range'),
     'time': ('exact', '-exact', 'in', '-in', 'lt', 'lte', 'gt', 'gte', 'range'),
 }
 
