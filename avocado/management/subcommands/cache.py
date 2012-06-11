@@ -1,5 +1,5 @@
-from datetime import datetime
-from optparse import make_option
+import sys
+from django.conf import settings
 from django.db.models import Q
 from django.core.management.base import BaseCommand
 from avocado.models import DataField
@@ -9,43 +9,25 @@ class Command(BaseCommand):
     """
     SYNOPSIS::
 
-        python manage.py avocado data [options...] labels...
+        python manage.py avocado cache [options...] labels...
 
     DESCRIPTION:
 
         Finds all models referenced by the app or model ``labels`` and
-        updates data-related properties such as caches and pre-calculated
-        values.
-
-    OPTIONS:
-
-        ``--modified`` - Updates the ``data_modified`` on ``DataField`` instances
-        corresponding the labels. This is primarily used for cache invalidation.
+        explicitly updates various cached properties relative to the
+        `data_modified` on ``DataField`` instances.
     """
 
     help = '\n'.join([
         'Finds all models referenced by the app or model ``labels`` and',
-        'updates data-related properties such as caches and pre-calculated',
-        'values.',
+        'explicitly updates various cached properties relative to the',
+        '`data_modified` on ``DataField`` instances.',
     ])
 
     args = 'app [app.model, [app.model.field, [...]]]'
 
-    option_list = BaseCommand.option_list + (
-        make_option('-m', '--modified', action='store_true',
-            dest='update_data_modified', default=False,
-            help='Update ``data_modified`` timestamp on ``DataField`` instances'),
-    )
-
     def handle(self, *args, **options):
         "Handles app_label or app_label.model_label formats."
-
-        update_data_modified = options['update_data_modified']
-
-        if not update_data_modified:
-            print 'Nothing to do.'
-            return
-
         conditions = []
 
         for label in args:
@@ -67,5 +49,15 @@ class Command(BaseCommand):
         q = Q()
         for x in conditions:
             q = q | x
-        updated = DataField.objects.filter(q).update(data_modified=datetime.now())
-        print '{} DataFields have been updated'.format(updated)
+        fields = DataField.objects.filter(q, enumerable=True).distinct()
+
+        count = 0
+        for datafield in fields:
+            datafield.values
+            datafield.size
+            if 'avocado.coded' in settings.INSTALLED_APPS:
+                datafield.coded_values
+            sys.stdout.write('.')
+            count += 1
+
+        print '\n{} DataFields have been updated'.format(count)

@@ -1,9 +1,8 @@
 from django.db import models
-from django.conf import settings
 from django.core.cache import cache
 from django.db.models.query import QuerySet
 
-NEVER_EXPIRE = 0
+NEVER_EXPIRE = 60 * 60 * 24 * 30 # 30 days
 DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'
 INSTANCE_CACHE_KEY = '{0}.{1}:{2}'
 

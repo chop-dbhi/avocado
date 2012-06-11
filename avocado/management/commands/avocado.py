@@ -1,12 +1,13 @@
 import sys
 from optparse import NO_DEFAULT, OptionParser
-from django.core.management.base import BaseCommand, handle_default_options
+from django.core.management.base import CommandError, BaseCommand, handle_default_options
 from django.utils.importlib import import_module
+
 
 class Command(BaseCommand):
     help = "A wrapper for Avocado subcommands"
 
-    commands = ['sync', 'orphaned', 'data']
+    commands = ['sync', 'orphaned', 'data', 'cache']
 
     def print_subcommands(self, prog_name):
         usage = ['', 'Available subcommands:']
@@ -55,10 +56,10 @@ class Command(BaseCommand):
         subcommand, args = args[0], args[1:]
 
         klass = self.get_subcommand(subcommand)
-        # Grab out a list of defaults from the options. optparse does this for us
-        # when the script runs from the command line, but since call_command can
-        # be called programatically, we need to simulate the loading and handling
-        # of defaults (see #10080 for details).
+        # Grab out a list of defaults from the options. optparse does this for
+        # us when the script runs from the command line, but since
+        # call_command can be called programatically, we need to simulate the
+        # loading and handling of defaults (see #10080 for details).
         defaults = {}
         for opt in klass.option_list:
             if opt.default is NO_DEFAULT:

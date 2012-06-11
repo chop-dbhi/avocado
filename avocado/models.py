@@ -5,6 +5,7 @@ except ImportError:
     from ordereddict import OrderedDict
 from django.conf import settings
 from django.db import models
+from django.core.cache import cache
 from django.contrib.sites.models import Site
 from django.contrib.auth.models import User
 from django.utils.encoding import smart_unicode
@@ -13,7 +14,7 @@ from django.db.models.signals import post_save, pre_delete
 from django.core.exceptions import ImproperlyConfigured
 from avocado.core import utils
 from avocado.core.models import Base, BasePlural
-from avocado.core.cache import post_save_cache, pre_delete_uncache, cached_property
+from avocado.core.cache import instance_cache_key, post_save_cache, pre_delete_uncache, cached_property
 from avocado.conf import OPTIONAL_DEPS, settings as _settings
 from avocado.managers import DataFieldManager, DataConceptManager, DataCategoryManager
 from avocado.query import parsers
@@ -181,11 +182,19 @@ class DataField(BasePlural):
     # Data-related Cached Properties
     # These may be cached until the underlying data changes
     # TODO add maximum data size restriction
+    def in_cache(self, prop, timestamp='data_modified'):
+        _timestamp = getattr(self, timestamp) if timestamp else None
+        key = instance_cache_key(self, prop, _timestamp)
+        return key in cache, key
 
     @cached_property('size', timestamp='data_modified')
     def size(self):
         "Returns the size of distinct values."
-        return self.query().distinct().count()
+        cached, key = self.in_cache('values')
+        if cached:
+            return len(cache.get(key))
+        else:
+            return self.query().distinct().count()
 
     @cached_property('values', timestamp='data_modified')
     def values(self):
