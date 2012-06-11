@@ -56,9 +56,9 @@ class Node(object):
             concepts.sort(key=lambda o: ids.index(o.pk))
 
             fields = []
-            for concept in self.concepts:
-                fields.append(concept.fields.select_related('concept_fields')\
-                    .order_by('concept_fields__order'))
+            for concept in concepts:
+                fields.append(list(concept.fields.select_related('concept_fields')\
+                    .order_by('concept_fields__order')))
 
             for i, direction in enumerate(directions):
                 for f in fields[i]:
@@ -79,8 +79,10 @@ def validate(attrs, **context):
 
     if concepts and len(node.concepts) != len(concepts):
         raise ValidationError('One or more concepts do not exist')
-    if ordering and len(node.order_by) != len(ordering):
-        raise ValidationError('One or more concepts do not exist')
+    if ordering:
+        for pk, direction in ordering:
+            if direction not in ('asc', 'desc') or (type(pk) is not int and str(pk).isdigit()):
+                raise ValidationError('One or more concepts do not exist')
 
 
 def parse(attrs, **context):
