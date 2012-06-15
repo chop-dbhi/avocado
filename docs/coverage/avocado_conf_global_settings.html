@@ -94,9 +94,9 @@
 <p id='n30' class='pln'><a href='#n30'>30</a></p>
 <p id='n31' class='pln'><a href='#n31'>31</a></p>
 <p id='n32' class='pln'><a href='#n32'>32</a></p>
-<p id='n33' class='pln'><a href='#n33'>33</a></p>
+<p id='n33' class='stm run hide_run'><a href='#n33'>33</a></p>
 <p id='n34' class='pln'><a href='#n34'>34</a></p>
-<p id='n35' class='stm run hide_run'><a href='#n35'>35</a></p>
+<p id='n35' class='pln'><a href='#n35'>35</a></p>
 <p id='n36' class='pln'><a href='#n36'>36</a></p>
 <p id='n37' class='pln'><a href='#n37'>37</a></p>
 <p id='n38' class='pln'><a href='#n38'>38</a></p>
@@ -106,9 +106,9 @@
 <p id='n42' class='pln'><a href='#n42'>42</a></p>
 <p id='n43' class='pln'><a href='#n43'>43</a></p>
 <p id='n44' class='pln'><a href='#n44'>44</a></p>
-<p id='n45' class='pln'><a href='#n45'>45</a></p>
+<p id='n45' class='stm run hide_run'><a href='#n45'>45</a></p>
 <p id='n46' class='pln'><a href='#n46'>46</a></p>
-<p id='n47' class='stm run hide_run'><a href='#n47'>47</a></p>
+<p id='n47' class='pln'><a href='#n47'>47</a></p>
 <p id='n48' class='pln'><a href='#n48'>48</a></p>
 <p id='n49' class='pln'><a href='#n49'>49</a></p>
 <p id='n50' class='pln'><a href='#n50'>50</a></p>
@@ -116,10 +116,10 @@
 <p id='n52' class='pln'><a href='#n52'>52</a></p>
 <p id='n53' class='pln'><a href='#n53'>53</a></p>
 <p id='n54' class='pln'><a href='#n54'>54</a></p>
-<p id='n55' class='pln'><a href='#n55'>55</a></p>
+<p id='n55' class='stm run hide_run'><a href='#n55'>55</a></p>
 <p id='n56' class='pln'><a href='#n56'>56</a></p>
 <p id='n57' class='pln'><a href='#n57'>57</a></p>
-<p id='n58' class='stm run hide_run'><a href='#n58'>58</a></p>
+<p id='n58' class='pln'><a href='#n58'>58</a></p>
 <p id='n59' class='pln'><a href='#n59'>59</a></p>
 <p id='n60' class='pln'><a href='#n60'>60</a></p>
 <p id='n61' class='pln'><a href='#n61'>61</a></p>
@@ -130,83 +130,79 @@
 <p id='n66' class='pln'><a href='#n66'>66</a></p>
 <p id='n67' class='pln'><a href='#n67'>67</a></p>
 <p id='n68' class='pln'><a href='#n68'>68</a></p>
-<p id='n69' class='pln'><a href='#n69'>69</a></p>
-<p id='n70' class='pln'><a href='#n70'>70</a></p>
-<p id='n71' class='stm run hide_run'><a href='#n71'>71</a></p>
+<p id='n69' class='stm run hide_run'><a href='#n69'>69</a></p>
                 
             </td>
             <td class='text' valign='top'>
 <p id='t1' class='pln'><span class='com'># A mapping between model field internal datatypes and sensible</span><span class='strut'>&nbsp;</span></p>
-<p id='t2' class='pln'><span class='com'># client-friendly datatypes. in virtually all cases, client programs</span><span class='strut'>&nbsp;</span></p>
-<p id='t3' class='pln'><span class='com'># only need to differentiate between high-level types like number,</span><span class='strut'>&nbsp;</span></p>
-<p id='t4' class='pln'><span class='com'># string, and boolean. finer separation be may desired to alter the</span><span class='strut'>&nbsp;</span></p>
+<p id='t2' class='pln'><span class='com'># client-friendly datatypes. In virtually all cases, client programs</span><span class='strut'>&nbsp;</span></p>
+<p id='t3' class='pln'><span class='com'># only need to differentiate between high-level types like number, string,</span><span class='strut'>&nbsp;</span></p>
+<p id='t4' class='pln'><span class='com'># and boolean. More granular separation be may desired to alter the</span><span class='strut'>&nbsp;</span></p>
 <p id='t5' class='pln'><span class='com'># allowed operators or may infer a different client-side representation</span><span class='strut'>&nbsp;</span></p>
 <p id='t6' class='stm run hide_run'><span class='nam'>INTERNAL_DATATYPE_MAP</span> <span class='op'>=</span> <span class='op'>{</span><span class='strut'>&nbsp;</span></p>
 <p id='t7' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;auto&#39;</span><span class='op'>:</span> <span class='str'>&#39;number&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
 <p id='t8' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;biginteger&#39;</span><span class='op'>:</span> <span class='str'>&#39;number&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
-<p id='t9' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;boolean&#39;</span><span class='op'>:</span> <span class='str'>&#39;boolean&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
-<p id='t10' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;char&#39;</span><span class='op'>:</span> <span class='str'>&#39;string&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
-<p id='t11' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;date&#39;</span><span class='op'>:</span> <span class='str'>&#39;date&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
-<p id='t12' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;datetime&#39;</span><span class='op'>:</span> <span class='str'>&#39;datetime&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
-<p id='t13' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;decimal&#39;</span><span class='op'>:</span> <span class='str'>&#39;number&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
-<p id='t14' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;email&#39;</span><span class='op'>:</span> <span class='str'>&#39;string&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
-<p id='t15' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;file&#39;</span><span class='op'>:</span> <span class='str'>&#39;string&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
-<p id='t16' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;filepath&#39;</span><span class='op'>:</span> <span class='str'>&#39;string&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
-<p id='t17' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;float&#39;</span><span class='op'>:</span> <span class='str'>&#39;number&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
-<p id='t18' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;image&#39;</span><span class='op'>:</span> <span class='str'>&#39;string&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
-<p id='t19' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;integer&#39;</span><span class='op'>:</span> <span class='str'>&#39;number&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
-<p id='t20' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;ipaddress&#39;</span><span class='op'>:</span> <span class='str'>&#39;string&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
-<p id='t21' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;nullboolean&#39;</span><span class='op'>:</span> <span class='str'>&#39;boolean&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
-<p id='t22' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;positiveinteger&#39;</span><span class='op'>:</span> <span class='str'>&#39;number&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
-<p id='t23' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;positivesmallinteger&#39;</span><span class='op'>:</span> <span class='str'>&#39;number&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
+<p id='t9' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;decimal&#39;</span><span class='op'>:</span> <span class='str'>&#39;number&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
+<p id='t10' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;float&#39;</span><span class='op'>:</span> <span class='str'>&#39;number&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
+<p id='t11' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;integer&#39;</span><span class='op'>:</span> <span class='str'>&#39;number&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
+<p id='t12' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;positiveinteger&#39;</span><span class='op'>:</span> <span class='str'>&#39;number&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
+<p id='t13' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;positivesmallinteger&#39;</span><span class='op'>:</span> <span class='str'>&#39;number&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
+<p id='t14' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;smallinteger&#39;</span><span class='op'>:</span> <span class='str'>&#39;number&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
+<p id='t15' class='pln'><span class='strut'>&nbsp;</span></p>
+<p id='t16' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;nullboolean&#39;</span><span class='op'>:</span> <span class='str'>&#39;boolean&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
+<p id='t17' class='pln'><span class='strut'>&nbsp;</span></p>
+<p id='t18' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;char&#39;</span><span class='op'>:</span> <span class='str'>&#39;string&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
+<p id='t19' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;email&#39;</span><span class='op'>:</span> <span class='str'>&#39;string&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
+<p id='t20' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;file&#39;</span><span class='op'>:</span> <span class='str'>&#39;string&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
+<p id='t21' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;filepath&#39;</span><span class='op'>:</span> <span class='str'>&#39;string&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
+<p id='t22' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;image&#39;</span><span class='op'>:</span> <span class='str'>&#39;string&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
+<p id='t23' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;ipaddress&#39;</span><span class='op'>:</span> <span class='str'>&#39;string&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
 <p id='t24' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;slug&#39;</span><span class='op'>:</span> <span class='str'>&#39;string&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
-<p id='t25' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;smallinteger&#39;</span><span class='op'>:</span> <span class='str'>&#39;number&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
-<p id='t26' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;text&#39;</span><span class='op'>:</span> <span class='str'>&#39;string&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
-<p id='t27' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;time&#39;</span><span class='op'>:</span> <span class='str'>&#39;time&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
-<p id='t28' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;url&#39;</span><span class='op'>:</span> <span class='str'>&#39;string&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
-<p id='t29' class='pln'><span class='op'>}</span><span class='strut'>&nbsp;</span></p>
-<p id='t30' class='pln'><span class='strut'>&nbsp;</span></p>
-<p id='t31' class='pln'><span class='com'># A mapping between the client-friendly datatypes and sensible operators</span><span class='strut'>&nbsp;</span></p>
-<p id='t32' class='pln'><span class='com'># that will be used to validate a query condition. in many cases, these types</span><span class='strut'>&nbsp;</span></p>
-<p id='t33' class='pln'><span class='com'># support more operators than what are defined, but are not include because</span><span class='strut'>&nbsp;</span></p>
-<p id='t34' class='pln'><span class='com'># they are not commonly used</span><span class='strut'>&nbsp;</span></p>
-<p id='t35' class='stm run hide_run'><span class='nam'>DATATYPE_OPERATOR_MAP</span> <span class='op'>=</span> <span class='op'>{</span><span class='strut'>&nbsp;</span></p>
-<p id='t36' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;boolean&#39;</span><span class='op'>:</span> <span class='op'>(</span><span class='str'>&#39;exact&#39;</span><span class='op'>,</span> <span class='str'>&#39;-exact&#39;</span><span class='op'>)</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
-<p id='t37' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;date&#39;</span><span class='op'>:</span> <span class='op'>(</span><span class='str'>&#39;exact&#39;</span><span class='op'>,</span> <span class='str'>&#39;-exact&#39;</span><span class='op'>,</span> <span class='str'>&#39;in&#39;</span><span class='op'>,</span> <span class='str'>&#39;-in&#39;</span><span class='op'>,</span> <span class='str'>&#39;lt&#39;</span><span class='op'>,</span> <span class='str'>&#39;lte&#39;</span><span class='op'>,</span> <span class='str'>&#39;gt&#39;</span><span class='op'>,</span> <span class='str'>&#39;gte&#39;</span><span class='op'>,</span> <span class='str'>&#39;range&#39;</span><span class='op'>)</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
+<p id='t25' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;text&#39;</span><span class='op'>:</span> <span class='str'>&#39;string&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
+<p id='t26' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;url&#39;</span><span class='op'>:</span> <span class='str'>&#39;string&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
+<p id='t27' class='pln'><span class='op'>}</span><span class='strut'>&nbsp;</span></p>
+<p id='t28' class='pln'><span class='strut'>&nbsp;</span></p>
+<p id='t29' class='pln'><span class='com'># A mapping between the client-friendly datatypes and sensible operators</span><span class='strut'>&nbsp;</span></p>
+<p id='t30' class='pln'><span class='com'># that will be used to validate a query condition. In many cases, these types</span><span class='strut'>&nbsp;</span></p>
+<p id='t31' class='pln'><span class='com'># support more operators than what are defined, but are not include because</span><span class='strut'>&nbsp;</span></p>
+<p id='t32' class='pln'><span class='com'># they are not commonly used.</span><span class='strut'>&nbsp;</span></p>
+<p id='t33' class='stm run hide_run'><span class='nam'>DATATYPE_OPERATOR_MAP</span> <span class='op'>=</span> <span class='op'>{</span><span class='strut'>&nbsp;</span></p>
+<p id='t34' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;boolean&#39;</span><span class='op'>:</span> <span class='op'>(</span><span class='str'>&#39;exact&#39;</span><span class='op'>,</span> <span class='str'>&#39;-exact&#39;</span><span class='op'>,</span> <span class='str'>&#39;in&#39;</span><span class='op'>,</span> <span class='str'>&#39;-in&#39;</span><span class='op'>)</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
+<p id='t35' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;date&#39;</span><span class='op'>:</span> <span class='op'>(</span><span class='str'>&#39;exact&#39;</span><span class='op'>,</span> <span class='str'>&#39;-exact&#39;</span><span class='op'>,</span> <span class='str'>&#39;in&#39;</span><span class='op'>,</span> <span class='str'>&#39;-in&#39;</span><span class='op'>,</span> <span class='str'>&#39;lt&#39;</span><span class='op'>,</span> <span class='str'>&#39;lte&#39;</span><span class='op'>,</span> <span class='str'>&#39;gt&#39;</span><span class='op'>,</span> <span class='str'>&#39;gte&#39;</span><span class='op'>,</span> <span class='str'>&#39;range&#39;</span><span class='op'>)</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
+<p id='t36' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;number&#39;</span><span class='op'>:</span> <span class='op'>(</span><span class='str'>&#39;exact&#39;</span><span class='op'>,</span> <span class='str'>&#39;-exact&#39;</span><span class='op'>,</span> <span class='str'>&#39;in&#39;</span><span class='op'>,</span> <span class='str'>&#39;-in&#39;</span><span class='op'>,</span> <span class='str'>&#39;lt&#39;</span><span class='op'>,</span> <span class='str'>&#39;lte&#39;</span><span class='op'>,</span> <span class='str'>&#39;gt&#39;</span><span class='op'>,</span> <span class='str'>&#39;gte&#39;</span><span class='op'>,</span> <span class='str'>&#39;range&#39;</span><span class='op'>)</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
+<p id='t37' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;string&#39;</span><span class='op'>:</span> <span class='op'>(</span><span class='str'>&#39;exact&#39;</span><span class='op'>,</span> <span class='str'>&#39;-exact&#39;</span><span class='op'>,</span> <span class='str'>&#39;iexact&#39;</span><span class='op'>,</span> <span class='str'>&#39;-iexact&#39;</span><span class='op'>,</span> <span class='str'>&#39;in&#39;</span><span class='op'>,</span> <span class='str'>&#39;-in&#39;</span><span class='op'>,</span> <span class='str'>&#39;icontains&#39;</span><span class='op'>,</span> <span class='str'>&#39;-icontains&#39;</span><span class='op'>)</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
 <p id='t38' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;datetime&#39;</span><span class='op'>:</span> <span class='op'>(</span><span class='str'>&#39;exact&#39;</span><span class='op'>,</span> <span class='str'>&#39;-exact&#39;</span><span class='op'>,</span> <span class='str'>&#39;in&#39;</span><span class='op'>,</span> <span class='str'>&#39;-in&#39;</span><span class='op'>,</span> <span class='str'>&#39;lt&#39;</span><span class='op'>,</span> <span class='str'>&#39;lte&#39;</span><span class='op'>,</span> <span class='str'>&#39;gt&#39;</span><span class='op'>,</span> <span class='str'>&#39;gte&#39;</span><span class='op'>,</span> <span class='str'>&#39;range&#39;</span><span class='op'>)</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
-<p id='t39' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;number&#39;</span><span class='op'>:</span> <span class='op'>(</span><span class='str'>&#39;exact&#39;</span><span class='op'>,</span> <span class='str'>&#39;-exact&#39;</span><span class='op'>,</span> <span class='str'>&#39;in&#39;</span><span class='op'>,</span> <span class='str'>&#39;-in&#39;</span><span class='op'>,</span> <span class='str'>&#39;lt&#39;</span><span class='op'>,</span> <span class='str'>&#39;lte&#39;</span><span class='op'>,</span> <span class='str'>&#39;gt&#39;</span><span class='op'>,</span> <span class='str'>&#39;gte&#39;</span><span class='op'>,</span> <span class='str'>&#39;range&#39;</span><span class='op'>)</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
-<p id='t40' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;string&#39;</span><span class='op'>:</span> <span class='op'>(</span><span class='str'>&#39;exact&#39;</span><span class='op'>,</span> <span class='str'>&#39;-exact&#39;</span><span class='op'>,</span> <span class='str'>&#39;iexact&#39;</span><span class='op'>,</span> <span class='str'>&#39;-iexact&#39;</span><span class='op'>,</span> <span class='str'>&#39;in&#39;</span><span class='op'>,</span> <span class='str'>&#39;-in&#39;</span><span class='op'>,</span> <span class='str'>&#39;icontains&#39;</span><span class='op'>,</span> <span class='str'>&#39;-icontains&#39;</span><span class='op'>)</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
-<p id='t41' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;time&#39;</span><span class='op'>:</span> <span class='op'>(</span><span class='str'>&#39;exact&#39;</span><span class='op'>,</span> <span class='str'>&#39;-exact&#39;</span><span class='op'>,</span> <span class='str'>&#39;in&#39;</span><span class='op'>,</span> <span class='str'>&#39;-in&#39;</span><span class='op'>,</span> <span class='str'>&#39;lt&#39;</span><span class='op'>,</span> <span class='str'>&#39;lte&#39;</span><span class='op'>,</span> <span class='str'>&#39;gt&#39;</span><span class='op'>,</span> <span class='str'>&#39;gte&#39;</span><span class='op'>,</span> <span class='str'>&#39;range&#39;</span><span class='op'>)</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
-<p id='t42' class='pln'><span class='op'>}</span><span class='strut'>&nbsp;</span></p>
-<p id='t43' class='pln'><span class='strut'>&nbsp;</span></p>
-<p id='t44' class='pln'><span class='com'># Contains a mapping from raw data values to a corresponding human</span><span class='strut'>&nbsp;</span></p>
-<p id='t45' class='pln'><span class='com'># readable representation. this will only ever be applicable when values</span><span class='strut'>&nbsp;</span></p>
-<p id='t46' class='pln'><span class='com'># are being presented to client programs as potential choices</span><span class='strut'>&nbsp;</span></p>
-<p id='t47' class='stm run hide_run'><span class='nam'>DATA_CHOICES_MAP</span> <span class='op'>=</span> <span class='op'>{</span><span class='strut'>&nbsp;</span></p>
-<p id='t48' class='pln'><span class='com'>#&nbsp; &nbsp; False: &#39;No&#39;,</span><span class='strut'>&nbsp;</span></p>
-<p id='t49' class='pln'><span class='com'>#&nbsp; &nbsp; True: &#39;Yes&#39;,</span><span class='strut'>&nbsp;</span></p>
-<p id='t50' class='pln'>&nbsp; &nbsp; <span class='nam'>None</span><span class='op'>:</span> <span class='str'>&#39;Null&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
-<p id='t51' class='pln'><span class='op'>}</span><span class='strut'>&nbsp;</span></p>
-<p id='t52' class='pln'><span class='strut'>&nbsp;</span></p>
-<p id='t53' class='pln'><span class='com'># A general mapping of formfield overrides for all subclasses. the mapping is</span><span class='strut'>&nbsp;</span></p>
-<p id='t54' class='pln'><span class='com'># similar to the INTERNAL_DATATYPE_MAP, but the values reference internal</span><span class='strut'>&nbsp;</span></p>
-<p id='t55' class='pln'><span class='com'># formfield classes, that is integer -&gt; IntegerField. in many cases, the</span><span class='strut'>&nbsp;</span></p>
-<p id='t56' class='pln'><span class='com'># validation performed may need to be a bit less restrictive than what the</span><span class='strut'>&nbsp;</span></p>
-<p id='t57' class='pln'><span class='com'># is actually necessary</span><span class='strut'>&nbsp;</span></p>
-<p id='t58' class='stm run hide_run'><span class='nam'>INTERNAL_DATATYPE_FORMFIELDS</span> <span class='op'>=</span> <span class='op'>{</span><span class='strut'>&nbsp;</span></p>
-<p id='t59' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;auto&#39;</span><span class='op'>:</span> <span class='str'>&#39;IntegerField&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
-<p id='t60' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;integer&#39;</span><span class='op'>:</span> <span class='str'>&#39;FloatField&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
-<p id='t61' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;positiveinteger&#39;</span><span class='op'>:</span> <span class='str'>&#39;FloatField&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
-<p id='t62' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;positivesmallinteger&#39;</span><span class='op'>:</span> <span class='str'>&#39;FloatField&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
-<p id='t63' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;smallinteger&#39;</span><span class='op'>:</span> <span class='str'>&#39;FloatField&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
-<p id='t64' class='pln'><span class='strut'>&nbsp;</span></p>
-<p id='t65' class='pln'>&nbsp; &nbsp; <span class='com'># Generic datatypes mapped from above</span><span class='strut'>&nbsp;</span></p>
-<p id='t66' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;number&#39;</span><span class='op'>:</span> <span class='str'>&#39;FloatField&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
-<p id='t67' class='pln'><span class='op'>}</span><span class='strut'>&nbsp;</span></p>
-<p id='t68' class='pln'><span class='strut'>&nbsp;</span></p>
-<p id='t69' class='pln'><span class='com'># The maximum number of distinct choices allowed when determining to set the</span><span class='strut'>&nbsp;</span></p>
-<p id='t70' class='pln'><span class='com'># `choices_allowed` flag on `DataField` instances during the `sync` process.</span><span class='strut'>&nbsp;</span></p>
-<p id='t71' class='stm run hide_run'><span class='nam'>CHOICES_ALLOWED_MAXIMUM</span> <span class='op'>=</span> <span class='num'>30</span><span class='strut'>&nbsp;</span></p>
+<p id='t39' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;time&#39;</span><span class='op'>:</span> <span class='op'>(</span><span class='str'>&#39;exact&#39;</span><span class='op'>,</span> <span class='str'>&#39;-exact&#39;</span><span class='op'>,</span> <span class='str'>&#39;in&#39;</span><span class='op'>,</span> <span class='str'>&#39;-in&#39;</span><span class='op'>,</span> <span class='str'>&#39;lt&#39;</span><span class='op'>,</span> <span class='str'>&#39;lte&#39;</span><span class='op'>,</span> <span class='str'>&#39;gt&#39;</span><span class='op'>,</span> <span class='str'>&#39;gte&#39;</span><span class='op'>,</span> <span class='str'>&#39;range&#39;</span><span class='op'>)</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
+<p id='t40' class='pln'><span class='op'>}</span><span class='strut'>&nbsp;</span></p>
+<p id='t41' class='pln'><span class='strut'>&nbsp;</span></p>
+<p id='t42' class='pln'><span class='com'># Contains a mapping from raw data values to a corresponding human</span><span class='strut'>&nbsp;</span></p>
+<p id='t43' class='pln'><span class='com'># readable representation. this will only ever be applicable when values</span><span class='strut'>&nbsp;</span></p>
+<p id='t44' class='pln'><span class='com'># are being presented to client programs as potential choices</span><span class='strut'>&nbsp;</span></p>
+<p id='t45' class='stm run hide_run'><span class='nam'>DATA_CHOICES_MAP</span> <span class='op'>=</span> <span class='op'>{</span><span class='strut'>&nbsp;</span></p>
+<p id='t46' class='pln'>&nbsp; &nbsp; <span class='nam'>None</span><span class='op'>:</span> <span class='str'>&#39;Null&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
+<p id='t47' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;&#39;</span><span class='op'>:</span> <span class='str'>&#39;(empty string)&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
+<p id='t48' class='pln'><span class='op'>}</span><span class='strut'>&nbsp;</span></p>
+<p id='t49' class='pln'><span class='strut'>&nbsp;</span></p>
+<p id='t50' class='pln'><span class='com'># A general mapping of formfield overrides for all subclasses. the mapping is</span><span class='strut'>&nbsp;</span></p>
+<p id='t51' class='pln'><span class='com'># similar to the INTERNAL_DATATYPE_MAP, but the values reference internal</span><span class='strut'>&nbsp;</span></p>
+<p id='t52' class='pln'><span class='com'># formfield classes, that is integer -&gt; IntegerField. in many cases, the</span><span class='strut'>&nbsp;</span></p>
+<p id='t53' class='pln'><span class='com'># validation performed may need to be a bit less restrictive than what the</span><span class='strut'>&nbsp;</span></p>
+<p id='t54' class='pln'><span class='com'># is actually necessary</span><span class='strut'>&nbsp;</span></p>
+<p id='t55' class='stm run hide_run'><span class='nam'>INTERNAL_DATATYPE_FORMFIELDS</span> <span class='op'>=</span> <span class='op'>{</span><span class='strut'>&nbsp;</span></p>
+<p id='t56' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;auto&#39;</span><span class='op'>:</span> <span class='str'>&#39;IntegerField&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
+<p id='t57' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;integer&#39;</span><span class='op'>:</span> <span class='str'>&#39;FloatField&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
+<p id='t58' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;positiveinteger&#39;</span><span class='op'>:</span> <span class='str'>&#39;FloatField&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
+<p id='t59' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;positivesmallinteger&#39;</span><span class='op'>:</span> <span class='str'>&#39;FloatField&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
+<p id='t60' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;smallinteger&#39;</span><span class='op'>:</span> <span class='str'>&#39;FloatField&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
+<p id='t61' class='pln'><span class='strut'>&nbsp;</span></p>
+<p id='t62' class='pln'>&nbsp; &nbsp; <span class='com'># Generic datatypes mapped from above</span><span class='strut'>&nbsp;</span></p>
+<p id='t63' class='pln'>&nbsp; &nbsp; <span class='str'>&#39;number&#39;</span><span class='op'>:</span> <span class='str'>&#39;FloatField&#39;</span><span class='op'>,</span><span class='strut'>&nbsp;</span></p>
+<p id='t64' class='pln'><span class='op'>}</span><span class='strut'>&nbsp;</span></p>
+<p id='t65' class='pln'><span class='strut'>&nbsp;</span></p>
+<p id='t66' class='pln'><span class='com'># The minimum number of distinct values required when determining to set the</span><span class='strut'>&nbsp;</span></p>
+<p id='t67' class='pln'><span class='com'># `searchable` flag on `DataField` instances during the `sync` process. This</span><span class='strut'>&nbsp;</span></p>
+<p id='t68' class='pln'><span class='com'># will only be applied to fields with a Avocado datatype of &#39;string&#39;</span><span class='strut'>&nbsp;</span></p>
+<p id='t69' class='stm run hide_run'><span class='nam'>SYNC_SEARCHABLE_MINIMUM</span> <span class='op'>=</span> <span class='num'>30</span><span class='strut'>&nbsp;</span></p>
                 
             </td>
         </tr>
