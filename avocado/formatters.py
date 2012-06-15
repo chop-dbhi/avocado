@@ -89,7 +89,7 @@ class Formatter(object):
             # each value is handled independently
             if getattr(method, 'process_multiple', False):
                 try:
-                    output = method(values, fields=self.fields, **self.context)
+                    output = method(values, fields=self.fields, process_multiple=True, **self.context)
                     if not isinstance(output, dict):
                         return OrderedDict([(self.concept.name, output)])
                     return output
@@ -110,7 +110,7 @@ class Formatter(object):
                 method = getattr(self, 'to_{}'.format(f))
                 try:
                     field = self.fields[key] if self.fields else None
-                    fvalue = method(value, field=field, **self.context)
+                    fvalue = method(value, field=field, process_multiple=False, **self.context)
                     if isinstance(fvalue, dict):
                         output.update(fvalue)
                     else:
