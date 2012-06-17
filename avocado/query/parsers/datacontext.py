@@ -169,10 +169,10 @@ class Branch(Node):
 
 
 def validate(attrs, **context):
-    if not attrs:
-        return
     if type(attrs) is not dict:
         raise ValidationError('Object must be of type dict')
+    if not attrs:
+        return
     if is_composite(attrs):
         from avocado.models import DataContext
         try:

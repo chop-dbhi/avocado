@@ -1,3 +1,3 @@
 from operators import *
 from translators import *
-from parser import *
+from parsers import *
