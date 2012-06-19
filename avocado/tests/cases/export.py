@@ -1,7 +1,7 @@
 import os
 import unittest
 from avocado.tests.base import BaseTestCase
-from avocado import exporters
+from avocado import export
 
 __all__ = ['ExportTestCase']
 
@@ -43,40 +43,40 @@ class ExportTestCase(BaseTestCase):
                 'is_manager', 'title__name', 'title__salary')
 
     def test_csv(self):
-        exporter = exporters.CSVExporter(self.concepts)
+        exporter = export.CSVExporter(self.concepts)
         buff = exporter.write(self.query)
         buff.seek(0)
         self.assertEqual(buff.read(), 'first_name,last_name,is_manager,name,salary\r\nEric,Smith,True,Programmer,15000\r\nErin,Jones,False,Analyst,20000\r\nErick,Smith,False,Programmer,15000\r\nAaron,Harris,False,Analyst,20000\r\nZac,Cook,False,Programmer,15000\r\nMel,Brooks,False,Analyst,20000\r\n')
 
     # Skip test if deps are not installed
-    @unittest.skipUnless(exporters.ExcelExporter, 'openpyxl must be installed to test ExcelExporter')
+    @unittest.skipUnless(export.ExcelExporter, 'openpyxl must be installed to test ExcelExporter')
     def test_excel(self):
-        exporter = exporters.ExcelExporter(self.concepts)
+        exporter = export.ExcelExporter(self.concepts)
         exporter.write(self.query, 'excel_export.xlsx')
         self.assertTrue(os.path.exists('excel_export.xlsx'))
         os.remove('excel_export.xlsx')
 
     def test_sas(self):
-        exporter = exporters.SasExporter(self.concepts)
+        exporter = export.SasExporter(self.concepts)
         exporter.write(self.query, 'sas_export.zip')
         self.assertTrue(os.path.exists('sas_export.zip'))
         os.remove('sas_export.zip')
 
     def test_r(self):
-        exporter = exporters.RExporter(self.concepts)
+        exporter = export.RExporter(self.concepts)
         exporter.write(self.query, 'r_export.zip')
         self.assertTrue(os.path.exists('r_export.zip'))
         os.remove('r_export.zip')
 
     def test_json(self):
-        exporter = exporters.JSONExporter(self.concepts)
+        exporter = export.JSONExporter(self.concepts)
         buff = exporter.write(self.query)
         buff.seek(0)
         self.assertEqual(buff.read(), '[[{"first_name": "Eric", "last_name": "Smith", "is_manager": "True", "name": "Programmer", "salary": 15000}], [{"first_name": "Erin", "last_name": "Jones", "is_manager": "False", "name": "Analyst", "salary": 20000}], [{"first_name": "Erick", "last_name": "Smith", "is_manager": "False", "name": "Programmer", "salary": 15000}], [{"first_name": "Aaron", "last_name": "Harris", "is_manager": "False", "name": "Analyst", "salary": 20000}], [{"first_name": "Zac", "last_name": "Cook", "is_manager": "False", "name": "Programmer", "salary": 15000}], [{"first_name": "Mel", "last_name": "Brooks", "is_manager": "False", "name": "Analyst", "salary": 20000}]]')
 
     def test_html(self):
         from django.template import Template
-        exporter = exporters.HTMLExporter(self.concepts)
+        exporter = export.HTMLExporter(self.concepts)
         template = Template("""<table>
 {% for row in rows %}
     <tr>
