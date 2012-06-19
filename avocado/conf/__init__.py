@@ -36,6 +36,7 @@ OPTIONAL_DEPS = {
     'scipy': False,
     'actstream': False,
     'openpyxl': False,
+    'guardian': False,
 }
 
 # Support for django sites framework
@@ -71,9 +72,17 @@ try:
 except ImportError:
     pass
 
+# Native MS Excel reading/writing support
 try:
     import openpyxl
     OPTIONAL_DEPS['openpyxl'] = True
+except ImportError:
+    pass
+
+# Generic object-level permissions
+try:
+    import guardian
+    OPTIONAL_DEPS['guardian'] = True
 except ImportError:
     pass
 

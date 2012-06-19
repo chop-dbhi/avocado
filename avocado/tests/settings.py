@@ -17,6 +17,7 @@ INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'haystack',
+    'guardian',
     'avocado',
     'avocado.coded',
     'avocado.stats',
@@ -38,3 +39,5 @@ HAYSTACK_CONNECTIONS = {
         'PATH': os.path.join(os.path.dirname(__file__), '../../../whoosh.index'),
     }
 }
+
+ANONYMOUS_USER_ID = -1

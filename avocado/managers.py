@@ -1,6 +1,7 @@
 from django.db.models import Q
 from django.db import transaction
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 from avocado.conf import OPTIONAL_DEPS, requires_dep
 from avocado.core.cache import CacheQuerySet
 from avocado.core.managers import PassThroughManager
@@ -19,7 +20,7 @@ class PublishedManager(PassThroughManager):
 
 
 class DataFieldQuerySet(PublishedQuerySet):
-    def published(self):
+    def published(self, user=None, perm='avocado.view_datafield'):
         """Fields can be restricted to one or more sites, so the published
         method is extended to support filtering by site.
         """
@@ -30,11 +31,17 @@ class DataFieldQuerySet(PublishedQuerySet):
             # (or no site)
             sites = Q(sites=None) | Q(sites__id=settings.SITE_ID)
             published = published.filter(sites)
+
+        if user:
+            if not OPTIONAL_DEPS['guardian']:
+                raise ImproperlyConfigured('django-guardian must installed for object-level permissions.')
+            from guardian.shortcuts import get_objects_for_user
+            published = get_objects_for_user(user, perm, published)
         return published.distinct()
 
 
 class DataConceptQuerySet(PublishedQuerySet):
-    def published(self):
+    def published(self, user=None, perm='avocado.view_datafield'):
         """Concepts can be restricted to one or more sites, so the published
         method is extended to support filtering by site. In addition, concepts
         should not be visible if their associated fields are not all available.
@@ -46,12 +53,23 @@ class DataConceptQuerySet(PublishedQuerySet):
             # (or no site)
             sites = Q(sites=None) | Q(sites__id=settings.SITE_ID)
             published = published.filter(sites)
-        # Concepts that contain at least one non-published datafields are
-        # removed from the set to prevent exposing non-prepared data
-        fields = Q(fields__published=False) | Q(fields__archived=True)
-        shadowed = self.filter(fields)
+        # Concepts that contain at least one unpublished or archived datafield
+        # are removed from the set to prevent exposing unprepared data
+        from avocado.models import DataField
+        fields_q = Q(archived=True) | Q(published=False)
+        if user:
+            if not OPTIONAL_DEPS['guardian']:
+                raise ImproperlyConfigured('django-guardian must installed for object-level permissions.')
+            from guardian.shortcuts import get_objects_for_user
+            # If a user is specified, they must also have a permission for
+            # accessing the data fields. All data fields that the user does
+            # NOT have access to must also be removed from the set.
+            restricted_fields = DataField.objects.exclude(pk__in=get_objects_for_user(user, perm))
+            fields_q = fields_q | Q(pk__in=restricted_fields)
 
-        return published.exclude(pk__in=shadowed).distinct()
+        shadowed = DataField.objects.filter(fields_q)
+        concepts = published.exclude(fields__in=shadowed).distinct()
+        return concepts
 
 
 class DataFieldManager(PublishedManager):

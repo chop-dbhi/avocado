@@ -92,7 +92,7 @@ class DataField(BasePlural):
     # another data source.
     data_source = models.CharField(max_length=250, null=True, blank=True)
 
-    # Certain concepts may not be relevant or appropriate for all
+    # Certain fields may not be relevant or appropriate for all
     # sites being deployed. This is primarily for preventing exposure of
     # access to private data from certain sites. For example, there may and
     # internal and external deployment of the same site. The internal site
@@ -117,7 +117,7 @@ class DataField(BasePlural):
 
     def __unicode__(self):
         if self.name:
-            return u'{0} [{1}]'.format(self.name, self.model_name)
+            return u'{} [{}]'.format(self.name, self.model_name)
         return u'.'.join([self.app_name, self.model_name, self.field_name])
 
     # The natural key should be used any time fields are being exported
