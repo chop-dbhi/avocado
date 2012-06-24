@@ -1,7 +1,6 @@
 include LICENSE
 include CHANGELOG
-include README
+include README.md
 global-exclude .DS_Store
-prune avocado/fixtures
 prune avocado/tests
 graft avocado/templates
