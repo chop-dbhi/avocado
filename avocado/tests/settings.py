@@ -41,3 +41,6 @@ HAYSTACK_CONNECTIONS = {
 }
 
 ANONYMOUS_USER_ID = -1
+
+TEST_RUNNER = 'avocado.tests.runner.ProfilingTestRunner'
+TEST_PROFILE = 'unittest.profile'

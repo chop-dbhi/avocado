@@ -21,10 +21,13 @@ kwargs = {
 
     # Test dependencies
     'tests_require': [
-        'coverage',
+        'django-guardian',
         'django-haystack>=2.0',
         'whoosh',
-        'openpyxl'
+        'openpyxl',
+        'scipy',
+        'numpy',
+        'coverage',
     ],
 
     # Optional dependencies
