@@ -120,6 +120,10 @@ class DataField(BasePlural):
             return u'{} [{}]'.format(self.name, self.model_name)
         return u'.'.join([self.app_name, self.model_name, self.field_name])
 
+    def __len__(self):
+        "Returns the total number of distinct values."
+        return self.size
+
     # The natural key should be used any time fields are being exported
     # for integration in another system. It makes it trivial to map to new
     # data models since there are discrete parts (as suppose to using the
