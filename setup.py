@@ -32,10 +32,14 @@ kwargs = {
 
     # Optional dependencies
     'extras_require': {
-        'django-guardian': [],
-        'django-haystack': [],
-        'openpyxl': [],
-        'scipy': ['numpy'],
+        # Granular permission
+        'permissions': ['django-guardian'],
+        # Search
+        'search': ['django-haystack>=2.0'],
+        # Clustering components
+        'clustering': ['numpy', 'scipy'],
+        # Includes extra exporter dependencies
+        'extras': ['openpyxl'],
     },
 
     # Resources unavailable on PyPi
