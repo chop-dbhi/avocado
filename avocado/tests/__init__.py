@@ -1,3 +1,4 @@
+from cases.subcommands import *
 from cases.core import *
 from cases.stats import *
 from cases.query import *

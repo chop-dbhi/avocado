@@ -44,3 +44,23 @@ ANONYMOUS_USER_ID = -1
 
 TEST_RUNNER = 'avocado.tests.runner.ProfilingTestRunner'
 TEST_PROFILE = 'unittest.profile'
+
+LOGGING = {
+    'version': 1,
+    'handlers': {
+        'null': {
+            'level': 'DEBUG',
+            'class': 'django.utils.log.NullHandler',
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'avocado': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        }
+    }
+}

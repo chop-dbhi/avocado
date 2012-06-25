@@ -7,6 +7,10 @@ from avocado.models import DataField, DataCategory, DataConcept, DataConceptFiel
 
 
 class ModelInstanceCacheTestCase(BaseTestCase):
+    def setUp(self):
+        super(ModelInstanceCacheTestCase, self).setUp()
+        self.is_manager = DataField.objects.get_by_natural_key('tests', 'employee', 'is_manager')
+
     def test_datafield_cache(self):
         cache.clear()
 
@@ -22,6 +26,12 @@ class ModelInstanceCacheTestCase(BaseTestCase):
 
 
 class DataFieldTestCase(BaseTestCase):
+    def setUp(self):
+        super(DataFieldTestCase, self).setUp()
+        self.is_manager = DataField.objects.get_by_natural_key('tests', 'employee', 'is_manager')
+        self.salary = DataField.objects.get_by_natural_key('tests', 'title', 'salary')
+        self.first_name = DataField.objects.get_by_natural_key('tests', 'employee', 'first_name')
+
     def test_boolean(self):
         self.assertTrue(self.is_manager.model)
         self.assertTrue(self.is_manager.field)
@@ -39,6 +49,10 @@ class DataFieldTestCase(BaseTestCase):
 
 
 class DataFieldManagerTestCase(BaseTestCase):
+    def setUp(self):
+        super(DataFieldManagerTestCase, self).setUp()
+        self.is_manager = DataField.objects.get_by_natural_key('tests', 'employee', 'is_manager')
+
     def test_published(self):
         # Published, not specific to any user
         self.assertEqual([x.pk for x in DataField.objects.published()], [])
@@ -65,6 +79,11 @@ class DataConceptTestCase(BaseTestCase):
 
 
 class DataConceptManagerTestCase(BaseTestCase):
+    def setUp(self):
+        super(DataConceptManagerTestCase, self).setUp()
+        self.is_manager = DataField.objects.get_by_natural_key('tests', 'employee', 'is_manager')
+        self.salary = DataField.objects.get_by_natural_key('tests', 'title', 'salary')
+
     def test_published(self):
         concept = DataConcept(published=True)
         concept.save()

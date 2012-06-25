@@ -1,8 +1,15 @@
 import unittest
 from avocado.tests.base import BaseTestCase
+from avocado.models import DataField
 
 
 class AggregatorTestCase(BaseTestCase):
+    def setUp(self):
+        super(AggregatorTestCase, self).setUp()
+        self.is_manager = DataField.objects.get_by_natural_key('tests', 'employee', 'is_manager')
+        self.salary = DataField.objects.get_by_natural_key('tests', 'title', 'salary')
+        self.first_name = DataField.objects.get_by_natural_key('tests', 'employee', 'first_name')
+
     def test_count(self):
         self.assertEqual(self.is_manager.count(), [{'count': 6}])
         self.assertEqual(self.salary.count(), [{'count': 7}])

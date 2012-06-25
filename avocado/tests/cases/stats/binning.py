@@ -7,6 +7,7 @@ __all__ = ['DistributionTestCase']
 
 class DistributionTestCase(BaseTestCase):
     def setUp(self):
+        super(DistributionTestCase, self).setUp()
         self.title_qs = Title.objects.all().values_list('salary')
 
     def test_distribution_empty(self):
