@@ -26,7 +26,7 @@ from avocado.queryview import registry as queryviews
 
 __all__ = ('DataCategory', 'DataConcept', 'DataField', 'DataContext')
 
-INTERNAL_DATATYPE_MAP = _settings.INTERNAL_DATATYPE_MAP
+SIMPLE_TYPE_MAP = _settings.SIMPLE_TYPE_MAP
 DATA_CHOICES_MAP = _settings.DATA_CHOICES_MAP
 
 
@@ -145,16 +145,18 @@ class DataField(BasePlural):
             pass
 
     @property
-    def datatype(self):
-        """Returns the datatype of the field this datafield represents.
+    def internal_type(self):
+        "Returns the internal type of the field this datafield represents."
+        return utils.get_internal_type(self.field)
+
+    @property
+    def simple_type(self):
+        """Returns a simple type mapped from the internal type."
 
         By default, it will use the field's internal type, but can be
-        overridden by the ``INTERNAL_DATATYPE_MAP`` setting.
+        overridden by the ``SIMPLE_TYPE_MAP`` setting.
         """
-        datatype = utils.get_internal_type(self.field)
-        # if a mapping exists, replace the datatype
-        return INTERNAL_DATATYPE_MAP.get(datatype, datatype)
-
+        return SIMPLE_TYPE_MAP.get(self.internal_type, self.internal_type)
 
     # Convenience Methods
     # Easier access to the underlying data for this data field
@@ -165,7 +167,7 @@ class DataField(BasePlural):
 
     def search_values(self, query):
         "Rudimentary search for string-based values."
-        if self.datatype == 'string':
+        if self.simple_type == 'string':
             filters = {'{}__icontains'.format(self.field_name): query}
             return self.query().filter(**filters).values_list(self.field_name,
                 flat=True).iterator()
@@ -246,17 +248,17 @@ class DataField(BasePlural):
 
     def sum(self, *args):
         "Returns the sum of values. Only applies to quantitative data."
-        if self.datatype == 'number':
+        if self.simple_type == 'number':
             return Aggregator(self.field).sum(*args)
 
     def stddev(self, *args):
         "Returns the standard deviation. Only applies to quantitative data."
-        if self.datatype == 'number':
+        if self.simple_type == 'number':
             return Aggregator(self.field).stddev(*args)
 
     def variance(self, *args):
         "Returns the variance. Only applies to quantitative data."
-        if self.datatype == 'number':
+        if self.simple_type == 'number':
             return Aggregator(self.field).variance(*args)
 
     # Translator Convenience Methods

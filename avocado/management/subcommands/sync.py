@@ -155,7 +155,7 @@ class Command(LabelCommand):
                     update_count += 1
 
                 # For string-based data, set the enumerable flag by default
-                if datafield.datatype in ('string', 'boolean'):
+                if datafield.simple_type in ('string', 'boolean'):
                     datafield.enumerable = True
                     # Determine size of distinct values
                     if datafield.size >= searchable_min:

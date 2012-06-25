@@ -3,7 +3,7 @@
 # only need to differentiate between high-level types like number, string,
 # and boolean. More granular separation be may desired to alter the
 # allowed operators or may infer a different client-side representation
-INTERNAL_DATATYPE_MAP = {
+SIMPLE_TYPE_MAP = {
     'auto': 'number',
     'biginteger': 'number',
     'decimal': 'number',
@@ -48,7 +48,7 @@ DATA_CHOICES_MAP = {
 }
 
 # A general mapping of formfield overrides for all subclasses. the mapping is
-# similar to the INTERNAL_DATATYPE_MAP, but the values reference internal
+# similar to the SIMPLE_TYPE_MAP, but the values reference internal
 # formfield classes, that is integer -> IntegerField. in many cases, the
 # validation performed may need to be a bit less restrictive than what the
 # is actually necessary

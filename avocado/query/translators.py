@@ -30,7 +30,7 @@ class Translator(object):
 
     def get_operators(self, datafield):
         # Determine list of allowed operators
-        return self.operators or DATATYPE_OPERATOR_MAP[datafield.datatype]
+        return self.operators or DATATYPE_OPERATOR_MAP[datafield.simple_type]
 
     def _validate_operator(self, datafield, uid, **kwargs):
         # Determine list of allowed operators
@@ -55,11 +55,10 @@ class Translator(object):
         # form_class specified for this datatype or if this translator has
         # one defined
         if 'form_class' not in kwargs:
-            datatype = datafield.datatype
             if self.form_class:
                 kwargs['form_class'] = self.form_class
-            elif datatype in INTERNAL_DATATYPE_FORMFIELDS:
-                name = INTERNAL_DATATYPE_FORMFIELDS[datatype]
+            elif datafield.simple_type in INTERNAL_DATATYPE_FORMFIELDS:
+                name = INTERNAL_DATATYPE_FORMFIELDS[datafield.simple_type]
                 kwargs['form_class'] = get_form_class(name)
 
         # If this datafield is flagged as enumerable, use a select multiple

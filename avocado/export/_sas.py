@@ -47,11 +47,11 @@ class SasExporter(BaseExporter):
         every variable.
         """
         # get the informat/format
-        if datafield.datatype == 'string':
+        if datafield.simple_type == 'string':
             informat = s_format = '${0}.'.format(datafield.field.max_length)
         else:
-            s_format = self.sas_format_map[datafield.datatype]
-            informat = self.sas_informat_map[datafield.datatype]
+            s_format = self.sas_format_map[datafield.simple_type]
+            informat = self.sas_informat_map[datafield.simple_type]
 
         sas_informat = '\tinformat {0:<10}{1:>10};\n'.format(sas_name, informat)
         sas_format = '\tformat {0:<10}{1:>10};\n'.format(sas_name, s_format)
@@ -102,7 +102,7 @@ class SasExporter(BaseExporter):
 
                 # add the field names to the input statement
                 inputs += '\t\t' + name
-                if field.datatype == 'string':
+                if field.simple_type == 'string':
                     inputs += ' $'
                 inputs += '\n'
 

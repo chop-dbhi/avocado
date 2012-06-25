@@ -30,7 +30,7 @@ class ExcelExporter(BaseExporter):
             cfields = c.concept_fields.select_related('field')
             for cfield in cfields:
                 datafield = cfield.field
-                ws_dict.append((datafield.field_name, datafield.datatype,
+                ws_dict.append((datafield.field_name, datafield.simple_type,
                     datafield.description, c.name, c.description))
 
         header = []
