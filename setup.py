@@ -32,7 +32,7 @@ kwargs = {
     # Test dependencies
     'tests_require': [
         'django-guardian',
-        'django-haystack>=2.0',
+        'django-haystack>=2.0b',
         'whoosh',
         'openpyxl',
         'scipy',
