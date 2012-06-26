@@ -45,7 +45,7 @@ kwargs = {
         # Granular permission
         'permissions': ['django-guardian'],
         # Search
-        'search': ['django-haystack>=2.0'],
+        'search': ['django-haystack>=2.0b'],
         # Clustering components.. unforunately SciPy must be installed separately
         # since NumPy is a dependency
         'clustering': ['numpy'],
