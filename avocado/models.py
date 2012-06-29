@@ -27,7 +27,7 @@ from avocado.queryview import registry as queryviews
 __all__ = ('DataCategory', 'DataConcept', 'DataField', 'DataContext')
 
 SIMPLE_TYPE_MAP = _settings.SIMPLE_TYPE_MAP
-DATA_CHOICES_MAP = _settings.DATA_CHOICES_MAP
+RAW_DATA_MAP = _settings.RAW_DATA_MAP
 
 
 class DataCategory(Base):
@@ -220,10 +220,10 @@ class DataField(BasePlural):
 
     @property
     def mapped_values(self):
-        "Maps the raw `values` relative to `DATA_CHOICES_MAP`."
+        "Maps the raw `values` relative to `RAW_DATA_MAP`."
         # Iterate over each value and attempt to get the mapped choice
         # other fallback to the value itself
-        return map(lambda x: smart_unicode(DATA_CHOICES_MAP.get(x, x)), self.values)
+        return map(lambda x: smart_unicode(RAW_DATA_MAP.get(x, x)), self.values)
 
     @property
     def choices(self):

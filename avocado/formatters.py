@@ -7,7 +7,7 @@ from django.utils.encoding import force_unicode
 from avocado.core import loader
 from avocado.conf import settings
 
-DATA_CHOICES_MAP = settings.DATA_CHOICES_MAP
+RAW_DATA_MAP = settings.RAW_DATA_MAP
 
 log = logging.getLogger(__file__)
 

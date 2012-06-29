@@ -30,7 +30,7 @@ SIMPLE_TYPE_MAP = {
 # that will be used to validate a query condition. In many cases, these types
 # support more operators than what are defined, but are not include because
 # they are not commonly used.
-DATATYPE_OPERATOR_MAP = {
+OPERATOR_MAP = {
     'boolean': ('exact', '-exact', 'in', '-in'),
     'date': ('exact', '-exact', 'in', '-in', 'lt', 'lte', 'gt', 'gte', 'range'),
     'number': ('exact', '-exact', 'in', '-in', 'lt', 'lte', 'gt', 'gte', 'range'),
@@ -42,7 +42,7 @@ DATATYPE_OPERATOR_MAP = {
 # Contains a mapping from raw data values to a corresponding human
 # readable representation. this will only ever be applicable when values
 # are being presented to client programs as potential choices
-DATA_CHOICES_MAP = {
+RAW_DATA_MAP = {
     None: 'Null',
     '': '(empty string)',
 }
@@ -66,4 +66,4 @@ INTERNAL_DATATYPE_FORMFIELDS = {
 # The minimum number of distinct values required when determining to set the
 # `searchable` flag on `DataField` instances during the `sync` process. This
 # will only be applied to fields with a Avocado datatype of 'string'
-SYNC_SEARCHABLE_MINIMUM = 30
+SYNC_ENUMERABLE_MAXIMUM = 30

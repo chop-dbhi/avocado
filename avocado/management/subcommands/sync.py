@@ -29,7 +29,7 @@ class Command(LabelCommand):
         model fields. Note this overwrites any descriptive metadata changes made
         to ``DataField`` such as ``name``, ``name_plural``, and ``description``.
 
-        ``--searchable-minimum=50`` - Change the threshold for ``DataField.searchable``.
+        ``--enumerable-maximum=50`` - Change the threshold for ``DataField.enumerable``.
         The default value is defined by the setting ````.
     """
 
@@ -54,9 +54,9 @@ class Command(LabelCommand):
             dest='update_existing', default=False,
             help='Updates existing metadata derived from model fields'),
 
-        make_option('-c', '--searchable-minimum', type='int',
-            dest='searchable_min', metavar='NUM', default=settings.SYNC_SEARCHABLE_MINIMUM,
-            help='Mininum required distinct values for setting `searchable`'),
+        make_option('-c', '--enumerable-maximum', type='int',
+            dest='enumerable_max', metavar='NUM', default=settings.SYNC_ENUMERABLE_MAXIMUM,
+            help='Maximum allowed distinct values for setting `enumerable`'),
     )
 
     # These are ignored since these join fields will be determined at runtime
@@ -75,7 +75,7 @@ class Command(LabelCommand):
         include_non_editable = options.get('include_non_editable')
         include_keys = options.get('include_keys')
         update_existing = options.get('update_existing')
-        searchable_min = options.get('searchable_min')
+        enumerable_max = options.get('enumerable_max')
 
         if update_existing:
             resp = raw_input('Are you sure you want to update existing metadata?\n'
@@ -90,7 +90,7 @@ class Command(LabelCommand):
             model = get_model(*labels)
 
             if model is None:
-                print 'Cannot find model "%s", skipping...' % label
+                print 'Cannot find model "{}", skipping...'.format(label)
                 return
 
             models = [model]
@@ -101,7 +101,7 @@ class Command(LabelCommand):
             models = get_models(app)
 
             if models is None:
-                print 'Cannot find app "%s", skipping...' % label
+                print 'Cannot find app "{}", skipping...'.format(label)
                 return
 
         app_name = labels[0]
@@ -148,27 +148,37 @@ class Command(LabelCommand):
 
                 if datafield.pk:
                     if not update_existing:
-                        print '(%s) %s.%s already exists. Skipping...' % (app_name, model_name, field.name)
+                        print '({}) {}.{} already exists. Skipping...'.format(app_name, model_name, field.name)
                         continue
                     # Only overwrite if the source value is not falsy
                     datafield.__dict__.update([(k, v) for k, v in kwargs.items()])
                     update_count += 1
 
-                # For string-based data, set the enumerable flag by default
-                if datafield.simple_type in ('string', 'boolean'):
-                    datafield.enumerable = True
-                    # Determine size of distinct values
-                    if datafield.size >= searchable_min:
+                # TODO add better heuristics for determining how to set the
+                # flags for most appropriate interface.
+                # - Determine length of MAX value for string-based fields to rather
+                # than relying on the `max_length`. This will enable checking TextFields
+                # - Numerical fields may be enumerable, check the size of them if an
+                # option is set?
+                # For strings and booleans, set the enumerable flag by default
+                # it below the enumerable threshold
+                # TextFields are typically used for free text
+                if datafield.internal_type == 'text':
+                    datafield.searchable = True
+                elif datafield.simple_type in ('string', 'boolean'):
+                    if datafield.size > enumerable_max:
                         datafield.searchable = True
+                    else:
+                        datafield.enumerable = True
 
                 datafield.save()
 
             if new_count == 1:
-                print '1 field added for %s' % model_name
+                print '1 field added for {}'.format(model_name)
             elif new_count > 1:
-                print '%d fields added for %s' % (new_count, model_name)
+                print '{:,} fields added for {}'.format(new_count, model_name)
 
             if update_count == 1:
-                print '1 field updated for %s' % model_name
+                print '1 field updated for {}'.format(model_name)
             elif update_count > 1:
-                print '%d fields updated for %s' % (update_count, model_name)
+                print '{:,} fields updated for {}'.format(update_count, model_name)

@@ -27,7 +27,7 @@ class BaseOperator(object):
         return u'<Operator: "%s" (%s)>' % (self.verbose_name, self.uid)
 
     def coerce_to_unicode(self, value):
-        return unicode(settings.DATA_CHOICES_MAP.get(value, value))
+        return unicode(settings.RAW_DATA_MAP.get(value, value))
 
     def is_valid(self, value):
         raise NotImplemented('Use an Operator subclass')
