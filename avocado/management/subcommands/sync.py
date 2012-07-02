@@ -3,7 +3,8 @@ from django.db.models import (get_model, get_models, get_app, AutoField,
     ForeignKey, OneToOneField, ManyToManyField)
 from django.core.management.base import LabelCommand
 from avocado.models import DataField
-from avocado.conf import settings
+from avocado.core import utils
+
 
 class Command(LabelCommand):
     """
@@ -28,9 +29,6 @@ class Command(LabelCommand):
         ``--update`` - Updates existing ``DataField`` instances with metadata from
         model fields. Note this overwrites any descriptive metadata changes made
         to ``DataField`` such as ``name``, ``name_plural``, and ``description``.
-
-        ``--enumerable-maximum=50`` - Change the threshold for ``DataField.enumerable``.
-        The default value is defined by the setting ````.
     """
 
     help = '\n'.join([
@@ -53,10 +51,6 @@ class Command(LabelCommand):
         make_option('-u', '--update', action='store_true',
             dest='update_existing', default=False,
             help='Updates existing metadata derived from model fields'),
-
-        make_option('-c', '--enumerable-maximum', type='int',
-            dest='enumerable_max', metavar='NUM', default=settings.SYNC_ENUMERABLE_MAXIMUM,
-            help='Maximum allowed distinct values for setting `enumerable`'),
     )
 
     # These are ignored since these join fields will be determined at runtime
@@ -75,7 +69,6 @@ class Command(LabelCommand):
         include_non_editable = options.get('include_non_editable')
         include_keys = options.get('include_keys')
         update_existing = options.get('update_existing')
-        enumerable_max = options.get('enumerable_max')
 
         if update_existing:
             resp = raw_input('Are you sure you want to update existing metadata?\n'
@@ -154,22 +147,8 @@ class Command(LabelCommand):
                     datafield.__dict__.update([(k, v) for k, v in kwargs.items()])
                     update_count += 1
 
-                # TODO add better heuristics for determining how to set the
-                # flags for most appropriate interface.
-                # - Determine length of MAX value for string-based fields to rather
-                # than relying on the `max_length`. This will enable checking TextFields
-                # - Numerical fields may be enumerable, check the size of them if an
-                # option is set?
-                # For strings and booleans, set the enumerable flag by default
-                # it below the enumerable threshold
-                # TextFields are typically used for free text
-                if datafield.internal_type == 'text':
-                    datafield.searchable = True
-                elif datafield.simple_type in ('string', 'boolean'):
-                    if datafield.size > enumerable_max:
-                        datafield.searchable = True
-                    else:
-                        datafield.enumerable = True
+                # Update fields with flags
+                datafield.__dict__.update(utils.get_heuristic_flags(datafield))
 
                 datafield.save()
 
