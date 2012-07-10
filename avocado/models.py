@@ -143,10 +143,11 @@ class DataField(BasePlural):
     @property
     def field(self):
         "Returns the field object this field represents."
-        try:
-            return self.model._meta.get_field_by_name(self.field_name)[0]
-        except FieldDoesNotExist:
-            pass
+        if self.model:
+            try:
+                return self.model._meta.get_field_by_name(self.field_name)[0]
+            except FieldDoesNotExist:
+                pass
 
     @property
     def internal_type(self):
