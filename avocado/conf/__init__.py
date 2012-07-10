@@ -30,7 +30,6 @@ settings = LazySettings()
 # Keep track of the officially supported apps and libraries used for various
 # features.
 OPTIONAL_DEPS = {
-    'django.contrib.sites': False,
     'haystack': False,
     'numpy': False,
     'scipy': False,
@@ -38,10 +37,6 @@ OPTIONAL_DEPS = {
     'openpyxl': False,
     'guardian': False,
 }
-
-# Support for django sites framework
-if 'django.contrib.sites' in django_settings.INSTALLED_APPS:
-    OPTIONAL_DEPS['django.contrib.sites'] = True
 
 # Full-text search engine
 try:

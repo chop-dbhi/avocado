@@ -7,7 +7,7 @@ from django.conf import settings
 from django.db import models
 from django.core.cache import cache
 from django.contrib.sites.models import Site
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.utils.encoding import smart_unicode
 from django.db.models.fields import FieldDoesNotExist
 from django.db.models.signals import post_save, pre_delete
@@ -15,7 +15,7 @@ from django.core.exceptions import ImproperlyConfigured
 from avocado.core import utils
 from avocado.core.models import Base, BasePlural
 from avocado.core.cache import instance_cache_key, post_save_cache, pre_delete_uncache, cached_property
-from avocado.conf import OPTIONAL_DEPS, settings as _settings
+from avocado.conf import settings as _settings
 from avocado.managers import DataFieldManager, DataConceptManager, DataCategoryManager
 from avocado.query import parsers
 from avocado.query.translators import registry as translators
@@ -99,9 +99,9 @@ class DataField(BasePlural):
     # has full access to all fields, while the external may have a limited set.
     # NOTE this is not reliable way to prevent exposure of sensitive data.
     # This should be used to simply hide _access_ to the concepts.
-    if OPTIONAL_DEPS['django.contrib.sites']:
-        sites = models.ManyToManyField(Site, blank=True,
-            related_name='fields+')
+    group = models.ForeignKey(Group, null=True, blank=True, related_name='fields+')
+
+    sites = models.ManyToManyField(Site, blank=True, related_name='fields+')
 
     # The order of this datafield with respect to the category (if defined).
     order = models.FloatField(null=True, blank=True, db_column='_order')
@@ -316,9 +316,9 @@ class DataConcept(BasePlural):
     # has full access to all fields, while the external may have a limited set.
     # NOTE this is not reliable way to prevent exposure of sensitive data.
     # This should be used to simply hide _access_ to the concepts.
-    if OPTIONAL_DEPS['django.contrib.sites']:
-        sites = models.ManyToManyField(Site, blank=True,
-            related_name='concepts+')
+    group = models.ForeignKey(Group, null=True, blank=True, related_name='concepts+')
+
+    sites = models.ManyToManyField(Site, blank=True, related_name='concepts+')
 
     order = models.FloatField(null=True, blank=True, db_column='_order')
 

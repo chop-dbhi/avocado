@@ -26,11 +26,10 @@ class DataFieldQuerySet(PublishedQuerySet):
         """
         published = super(DataFieldQuerySet, self).published()
 
-        if OPTIONAL_DEPS['django.contrib.sites']:
-            # All published concepts associated with the current site
-            # (or no site)
-            sites = Q(sites=None) | Q(sites__id=settings.SITE_ID)
-            published = published.filter(sites)
+        # All published concepts associated with the current site
+        # (or no site)
+        sites = Q(sites=None) | Q(sites__id=settings.SITE_ID)
+        published = published.filter(sites)
 
         if user:
             if not OPTIONAL_DEPS['guardian']:
@@ -48,11 +47,11 @@ class DataConceptQuerySet(PublishedQuerySet):
         """
         published = super(DataConceptQuerySet, self).published()
 
-        if OPTIONAL_DEPS['django.contrib.sites']:
-            # All published concepts associated with the current site
-            # (or no site)
-            sites = Q(sites=None) | Q(sites__id=settings.SITE_ID)
-            published = published.filter(sites)
+        # All published concepts associated with the current site
+        # (or no site)
+        sites = Q(sites=None) | Q(sites__id=settings.SITE_ID)
+        published = published.filter(sites)
+
         # Concepts that contain at least one unpublished or archived datafield
         # are removed from the set to prevent exposing unprepared data
         from avocado.models import DataField
