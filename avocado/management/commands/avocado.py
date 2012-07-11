@@ -7,7 +7,7 @@ from django.utils.importlib import import_module
 class Command(BaseCommand):
     help = "A wrapper for Avocado subcommands"
 
-    commands = ['sync', 'orphaned', 'data', 'cache']
+    commands = ['sync', 'orphaned', 'data', 'cache', 'legacy']
 
     def print_subcommands(self, prog_name):
         usage = ['', 'Available subcommands:']
