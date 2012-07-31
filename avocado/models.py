@@ -235,9 +235,9 @@ class DataField(BasePlural):
     def groupby(self, *args):
         return Aggregator(self.field).groupby(*args)
 
-    def count(self, *args):
+    def count(self, *args, **kwargs):
         "Returns an the aggregated counts."
-        return Aggregator(self.field).count(*args)
+        return Aggregator(self.field).count(*args, **kwargs)
 
     def max(self, *args):
         "Returns the maximum value."
