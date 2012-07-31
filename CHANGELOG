@@ -1,25 +1,3 @@
-2011-08-05  Byron Ruth  <b@devel.io>
-
-	* Implemented API to wrap the ModelTree library to be database-driven
-
-		* Defined the DataField model which represents a single unique
-		component of the data model.
-
-	* Defined the SIMPLE_TYPE_MAP which is a mapping for Django
-	model fields to a simple datatype.
-
-	* Defined the OPERATOR_MAP which is a mapping for simple
-	datatypes and QuerySet field lookups.
+2012-08-01  Byron Ruth  <b@devel.io>
 	
-	* Defined the RAW_DATA_MAP which maps raw data values to human
-	readable string representations.
-
-	* Defined the INTERNAL_DATATYPE_FORMFIELDS which is a mapping for
-	Django model fields and formfield subclasses that will be used for
-	validation.
-
-	* Defined a base Operator class which provides a mechanism for
-	defining operator classes for each the QuerySet field lookups.
-
-	* Defined a simple Registry class that enables auto-discovering of
-	registered classes.
+	* Initial release of version 2.x
