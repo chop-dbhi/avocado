@@ -170,12 +170,12 @@ class DataField(BasePlural):
         "Returns a `ValuesListQuerySet` for this data field."
         return self.model.objects.values(self.field_name)
 
-    def search_values(self, query):
+    def search(self, query):
         "Rudimentary search for string-based values."
         if self.simple_type == 'string':
-            filters = {'{}__icontains'.format(self.field_name): query}
-            return self.query().filter(**filters).values_list(self.field_name,
-                flat=True).iterator()
+            filters = {'{0}__icontains'.format(self.field_name): query}
+            return self.query().filter(**filters).distinct()\
+                .values_list(self.field_name, flat=True).iterator()
 
     def get_plural_unit(self):
         if self.unit_plural:
