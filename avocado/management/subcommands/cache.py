@@ -46,10 +46,12 @@ class Command(BaseCommand):
                 app = labels[0]
                 conditions.append(Q(app_name=app))
 
-        q = Q()
-        for x in conditions:
-            q = q | x
-        fields = DataField.objects.filter(q, enumerable=True).distinct()
+        fields = DataField.objects.filter(enumerable=True)
+        if conditions:
+            q = Q()
+            for x in conditions:
+                q = q | x
+            fields = fields.filter(q).distinct()
 
         count = 0
         for datafield in fields:
@@ -58,6 +60,7 @@ class Command(BaseCommand):
             if 'avocado.coded' in settings.INSTALLED_APPS:
                 datafield.coded_values
             sys.stdout.write('.')
+            sys.stdout.flush()
             count += 1
 
         print '\n{} DataFields have been updated'.format(count)

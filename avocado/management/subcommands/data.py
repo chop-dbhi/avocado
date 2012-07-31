@@ -64,8 +64,11 @@ class Command(BaseCommand):
                 app = labels[0]
                 conditions.append(Q(app_name=app))
 
-        q = Q()
-        for x in conditions:
-            q = q | x
-        updated = DataField.objects.filter(q).update(data_modified=datetime.now())
+        fields = DataField.objects.all()
+        if conditions:
+            q = Q()
+            for x in conditions:
+                q = q | x
+            fields = DataField.objects.filter(q)
+        updated = fields.update(data_modified=datetime.now())
         print '{} DataFields have been updated'.format(updated)
