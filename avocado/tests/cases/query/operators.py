@@ -69,16 +69,16 @@ class OperatorTestCase(BaseTestCase):
         self.assertTrue(not op.is_valid('foo'))
         self.assertTrue(not op.is_valid(3))
         self.assertTrue(not op.is_valid(True))
-        self.assertEqual(op.text([1]), 'is equal to 1')
-        self.assertEqual(op.text([1, 2]), 'is either 1 or 2')
-        self.assertEqual(op.text([1, 2, 3]), 'is either 1, 2 or 3')
-        self.assertEqual(op.text([1, 2, 3, 4, 5]), 'is either 1, 2, 3 ... (1 more) or 5')
+        self.assertEqual(op.text([1]), 'includes 1')
+        self.assertEqual(op.text([1, 2]), 'includes 1 and 2')
+        self.assertEqual(op.text([1, 2, 3]), 'includes 1, 2 and 3')
+        self.assertEqual(op.text([1, 2, 3, 4, 5]), 'includes 1, 2, 3 ... (1 more) and 5')
 
     def test_notinlist(self):
         op = operators.get('-in')
-        self.assertEqual(op.text([1]), 'is not equal to 1')
-        self.assertEqual(op.text([1, 2]), 'is neither 1 nor 2')
-        self.assertEqual(op.text([1, 2, 3]), 'is neither 1, 2 nor 3')
+        self.assertEqual(op.text([1]), 'excludes 1')
+        self.assertEqual(op.text([1, 2]), 'excludes 1 and 2')
+        self.assertEqual(op.text([1, 2, 3]), 'excludes 1, 2 and 3')
 
     def test_range(self):
         op = operators.get('range')

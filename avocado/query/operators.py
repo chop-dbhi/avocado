@@ -54,7 +54,7 @@ class StringOperator(SimpleTypeOperator):
 
 class ContainerTypeOperator(BaseOperator):
     "Operator class for container type values. Excludes strings."
-    join_operator = 'or'
+    join_operator = 'and'
     max_list_size = 3
 
     def is_valid(self, value):
@@ -64,12 +64,10 @@ class ContainerTypeOperator(BaseOperator):
         value = map(self.coerce_to_unicode, value)
 
         last = value[-1]
-        length = len(value)-1
+        length = len(value) - 1
 
         if length == 0:
-            if self.negated:
-                return u'%s %s' % (NotExact.verbose_name, last)
-            return u'%s %s' % (Exact.verbose_name, last)
+            return u'%s %s' % (self.verbose_name, last)
 
         if length > self.max_list_size:
             head = value[:self.max_list_size]
@@ -196,14 +194,13 @@ class GreaterThanOrEqual(SimpleTypeOperator):
 # Operators for container types (excluding strings)
 class InList(ContainerTypeOperator):
     operator = 'in'
-    short_name = 'is either'
-    verbose_name = 'is either'
+    short_name = 'includes'
+    verbose_name = 'includes'
 
 
 class NotInList(InList):
-    join_operator = 'nor'
-    short_name = 'is neither'
-    verbose_name = 'is neither'
+    short_name = 'excludes'
+    verbose_name = 'excludes'
     negated = True
 
 
