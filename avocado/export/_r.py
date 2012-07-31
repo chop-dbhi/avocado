@@ -31,10 +31,12 @@ class RExporter(BaseExporter):
         factor = '{0}.factor = factor({0},levels=c('.format(data_field)
         level = 'levels({0}.factor)=c('.format(data_field)
 
+        values_len = len(field.coded_values)
+
         for i, (val, code) in enumerate(field.coded_values):
             factor += str(code)
             level += '"{0}"'.format(str(val))
-            if i == len(field.coded_values) - 1:
+            if i == values_len - 1:
                 factor += '))\n'
                 level += ')\n'
                 continue
