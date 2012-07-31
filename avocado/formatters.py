@@ -36,6 +36,8 @@ class Formatter(object):
             values = ['Bob', 'Smith']
 
     """
+    default_formats = ('boolean', 'float', 'number', 'string')
+
     def __init__(self, concept=None, keys=None, **context):
         if concept:
             self.concept = concept
@@ -55,8 +57,8 @@ class Formatter(object):
         # be processed slightly differently (e.g. mixed data type in column)
         # which could cause exceptions that would not be present during
         # processing of other values
-        if not preferred_formats:
-            preferred_formats = []
+        if preferred_formats is None:
+            preferred_formats = self.default_formats
         preferred_formats = list(preferred_formats) + ['raw']
 
         # Create a OrderedDict of the values relative to the
