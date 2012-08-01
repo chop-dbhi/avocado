@@ -1,4 +1,3 @@
-from datetime import datetime
 from modeltree.tree import trees
 from django.core.exceptions import ValidationError
 
@@ -38,7 +37,7 @@ def is_condition(obj):
 def is_composite(obj):
     if has_keys(obj, keys=COMPOSITE_KEYS):
         if obj['composite'] is not True:
-            raise ValidationError('Composite key must be set to true.')
+            raise ValidationError('Composite key must be set to True.')
         return True
 
 
@@ -66,16 +65,16 @@ class Node(object):
 
 class Condition(Node):
     "Contains information for a single query condition."
-    def __init__(self, id, value, operator=None, **context):
+    def __init__(self, id, operator, value, **context):
         self.id = id
-        self.value = value
         self.operator = operator
+        self.value = value
         super(Condition, self).__init__(**context)
 
     @property
-    def _meta(self, tree=None):
+    def _meta(self):
         if not hasattr(self, '__meta'):
-            self.__meta = self.field.translate(self.operator, self.value,
+            self.__meta = self.field.translate(operator=self.operator, value=self.value,
                 tree=self.tree, **self.context)
         return self.__meta
 
@@ -207,8 +206,7 @@ def parse(attrs, **context):
             cxt = DataContext.objects.get(id=attrs['id'])
         return parse(cxt.json, **context)
     elif is_condition(attrs):
-        node = Condition(attrs['id'], attrs['value'],
-            attrs.get('operator', None), **context)
+        node = Condition(attrs['id'], attrs.get('operator', None), attrs['value'], **context)
     else:
         node = Branch(attrs['type'], **context)
         node.children = map(lambda x: parse(x, **context), attrs['children'])
