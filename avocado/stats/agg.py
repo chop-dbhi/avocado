@@ -214,7 +214,11 @@ class Aggregator(object):
     def count(self, *groupby, **kwargs):
         "Performs a COUNT aggregation."
         distinct = kwargs.get('distinct', False)
-        aggregates = {'count': Count(self.field_name, distinct=distinct)}
+        if distinct:
+            aggregates = {'distinct_count': Count(self.field_name,
+                distinct=distinct)}
+        else:
+            aggregates = {'count': Count(self.field_name)}
         return self._aggregate(*groupby, **aggregates)
 
     def sum(self, *groupby):
