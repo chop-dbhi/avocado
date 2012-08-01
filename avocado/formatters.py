@@ -36,7 +36,7 @@ class Formatter(object):
             values = ['Bob', 'Smith']
 
     """
-    default_formats = ('boolean', 'float', 'number', 'string')
+    default_formats = ('boolean', 'number', 'string')
 
     def __init__(self, concept=None, keys=None, **context):
         if concept:
