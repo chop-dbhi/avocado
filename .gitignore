@@ -8,6 +8,7 @@
 docs/build
 MANIFEST
 dist
+docs
 
 # test output
 csv_export.csv
