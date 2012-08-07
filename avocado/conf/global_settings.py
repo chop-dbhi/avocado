@@ -39,14 +39,6 @@ OPERATOR_MAP = {
     'time': ('exact', '-exact', 'in', '-in', 'lt', 'lte', 'gt', 'gte', 'range'),
 }
 
-# Contains a mapping from raw data values to a corresponding human
-# readable representation. this will only ever be applicable when values
-# are being presented to client programs as potential choices
-RAW_DATA_MAP = {
-    None: 'Null',
-    '': '(empty string)',
-}
-
 # A general mapping of formfield overrides for all subclasses. the mapping is
 # similar to the SIMPLE_TYPE_MAP, but the values reference internal
 # formfield classes, that is integer -> IntegerField. in many cases, the

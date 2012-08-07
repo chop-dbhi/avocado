@@ -1,13 +1,36 @@
 # Avocado
-#### _Metadata APIs for Django_
 
-- [Target Audience]
-- [Background]
-- [Install]
-- [Configure]
-- [Getting Started]
-- [Examples]
-- [Notes]
+#### Metadata APIs for Django
+
+- [Target Audience](#target-audience)
+- [Background](#background)
+- [Install](#install)
+- [Configure](#configure)
+- [Getting Started](#getting-started)
+    - [Bootstrap the Metadata](#bootstrap-the-metadata)
+- [DataField API](#datafield-api)
+    - [Descriptors](#descriptors)
+    - [Properties](#properties)
+    - [Aggregation](#aggregation)
+    - [Translators](#translators)
+- [DataConcept API](#dataconcept-api)
+    - [Introduction](#introduction)
+    - [Query Views](#query-views)
+    - [Formatters](#formatters)
+    - [Exporters](#exporters)
+- [DataContext API](#datacontext-api)
+    - [Condition Node](#condition-node)
+    - [Branch Node](#branch-node)
+    - [Composite Node](#composite-node)
+- [DataView API](#dataview-api)
+- [Lexicon Abstract Class](#lexicon-abstract-class)
+- [Management Commands](#management-commands)
+    - [sync](#sync)
+    - [orphaned](#orphaned)
+- [Settings](#settings)
+- [Optional App Integration](#optional-app-integration)
+- [Examples](#examples)
+- [Notes](#notes)
 
 ## Target Audience
 
@@ -39,7 +62,7 @@ Avocado was designed to support the development of accessible, transparent, and 
 - Robust API's for interrogating metadata for dynamic query generation which includes translation, validation, cleaning and execution of queries
 - Built-in extensible components for the formatting and exporting of data
 
-The power of Avocado's dynamic query generation lies in it's ability to [span relationships transparently](#transparent-relationships). This allows users (and to some extent developers) to focus on the data and not have to worry about the data model.
+The power of Avocado's dynamic query generation lies in it's ability to [span relationships transparently](#relationships-are-transparent). This allows users (and to some extent developers) to focus on the data and not have to worry about the data model.
 
 ### Target Applications
 
@@ -161,7 +184,7 @@ By default, `DataField` instances are not created for primary and foreign key fi
 
 Likewise, model fields may be marked as not being editable in the model field definitions. This flag is turned on typically for operational or bookkeeping fields such as timestamps. By default, `DataField`s are not created for these either, but can overridden by passing the `--include-non-editable`.
 
-```
+```bash
 ./manage.py avocado sync library
 1 field added for Author
 2 fields added for Book
@@ -171,23 +194,17 @@ On a side note, the `avocado` command acts as a parent for various subcommands. 
 
 ### DataField API
 
-An Avocado `DataField` instance represents a single Django model field instance. These three attributes uniquely identify a model field instance.
+An Avocado `DataField` instance represents a single Django model field instance. These three attributes uniquely identify a model field.
 
-- `f.app_name` - The name of the app this field's model is defined in
+- `f.field_name` - The name of the field on the model
 - `f.model_name` - The name of the model this field is defined for
-- `f.field_name` - The attribute name of the field on the model
+- `f.app_name` - The name of the app this field's model is defined in
 
 ```python
 >>> from avocado.models import DataField
->>> f = DataField.objects.get_by_natural_key('library', 'book', 'title')
+>>> f = DataField(field_name='title', model_name='book', app_name='library')
 >>> f
 <DataField 'library.book.title'>
->>> f.app_name
-'library'
->>> f.model_name
-'book'
->>> f.field_name
-'title'
 ```
 
 These three attributes enable referencing to the actual field instance and model class:
@@ -209,7 +226,7 @@ Additional metadata can be defined for this object to make it more useful to hum
 - `f.name` - A verbose human readable name of the field
 - `f.name_plural` - The plural form of the verbose name. If not defined, an _s_ will be appended to `f.name` when the plural form is accessed.
 - `f.description` - A long description for the field
-- `f.keywords` - Other related keywords (this is primarily applicable for search indexing by django-haystack)
+- `f.keywords` - Other related keywords (this is primarily applicable for search indexing by [django-haystack](#django-haystack))
 - `f.unit` - The unit of the data, for example _gram_
 - `f.unit_plural` - The plural form of the unit, for example _grams_. If not defined, an _s_ will be appended to `f.unit` when the plural form is accessed.
 
@@ -225,17 +242,23 @@ Additional metadata can be defined for this object to make it more useful to hum
 'dollars'
 ```
 
-#### Data Properties
+#### Properties
 
 `DataField`s also acts as an interface and exposes various properties and methods for directly accessing the underlying data or properties about the data.
 
-- `f.enumerable` - A flag denoting if the data in this field is composed of an enumerable set. During a [sync](avocado-sync), each field's data is evaluated based on the internal type and the size of the data (number of distinct values). By default, if the field is a `CharField` and is has `SYNC_ENUMERABLE_MAXIMUM`
-- `f.internal_type` - The low-level datatype of the field. This is really only used for mapping to the below `simple_type`. Read more about the [internal vs. simple types].
+##### Editable
+
+- `f.enumerable` - A flag denoting if the field's data is composed of an enumerable set. During a [sync](avocado-sync), each field's data is evaluated based on the internal type and the size of the data (number of distinct values). By default, if the field is a `CharField` and has `SYNC_ENUMERABLE_MAXIMUM` or less distinct values, this will be set to `True`. 
+- `f.searchlable` - A flag denoting if the field's data should be treated as searchable text. This applies to `TextField`s and `CharField`s which don't meet the requirements for being `enumerable`.
+
+##### Read-only
+
+- `f.internal_type` - The low-level datatype of the field. This is really only used for mapping to the below `simple_type`. Read more about the [internal vs. simple types](#internal-vs-simple-types).
 - `f.simple_type` - The high-level datatype of the field used for validation purposes and as general metadata for client applications. (These types can be overridden, [read about](SIMPLE_TYPE_MAP) the `SIMPLE_TYPE_MAP` setting)
-- `f.size` - Returns the number of _distinct_ values for this field. The `__len__` class hook uses this attribute under the hood.
-- `f.values` - Returns a tuple of distinct raw values ordered by the field
-- `f.mapped_values` - Returns a tuple of distinct values that have been mapped relative to the `DATA_CHOICES_MAP` setting and unicoded.
-- `f.choices` - A tuple of pairs zipped from `f.values` and `f.mapped_values`. This is useful for populating form fields for client applications.
+- `f.size` - Returns the number of _distinct_ values for this field
+- `f.values` - Returns a tuple of distinct raw values ordered by the field. If the corresponding model is a subclass of Avocado's `Lexicon` abstract model, the order corresponds to the `order` field on the `Lexicon` model subclass. Read more about the [`Lexicon` abstract class](#lexicon-abstract-class).
+- `f.labels` - Returns a unicoded tuple of labels. If the corresponding model is a subclass of Avocado's `Lexicon` abstract model, this corresponds to the `label` field on the `Lexicon` model subclass. Read more about the [`Lexicon` abstract class](#lexicon-abstract-class).
+- `f.choices` - A tuple of pairs zipped from `f.values` and `f.labels`. This is useful for populating form fields for client applications.
 - `f.query()` - Returns a `ValuesQuerySet` for this field. This is equivalent to `f.model.objects.values(f.field_name)`.
 
 ```python
@@ -243,23 +266,25 @@ Additional metadata can be defined for this object to make it more useful to hum
 'char'
 >>> f.simple_type
 'string'
->>> f.size # len(f) also works..
+>>> f.size
 33
 >>> f.values
 ('A Christmas Carol', 'A Tale of Two Cities', 'The Adventures of Oliver Twist', ...)
->>> f.mapped_values
-(same as above...)
+>>> f.labels
+(u'A Christmas Carol', u'A Tale of Two Cities', u'The Adventures of Oliver Twist', ...)
 >>> f.choices
-(('A Christmas Carol', 'A Christmas Carol'), ...)
+(('A Christmas Carol', u'A Christmas Carol'), ...)
 >>> f.query()
 [{'title': 'A Christmas Carol'}, ...]
 ```
 
-#### Data Aggregations
+#### Aggregation
 
 A simple, yet powerful set of methods are available for performing aggregations. Each method below returns an `Aggregator` object which enables chaining aggregations together as well as adding conditions to filter or exclude results.
 
-- `f.count([*groupby])` - Returns a count of all values for the field
+By default, aggregations are table-wide. Zero or more lookups can be supplied to perform the aggregation relative to the fields in the `GROUP BY`.
+
+- `f.count([*groupby], distinct=False)` - Returns a count of all values for the field. If `distinct` is `True`, a `COUNT(DISTINCT foo)` will be performed.
 - `f.max([*groupby])` - Returns the max value
 - `f.min([*groupby])` - Returns the min value
 - `f.avg([*groupby])` - Returns the average of all values
@@ -267,7 +292,7 @@ A simple, yet powerful set of methods are available for performing aggregations.
 - `f.stddev([*groupby])` - Returns the standard deviation of all values. _This is not supported in SQLite by default._
 - `f.variance([*groupby])` - Returns the variance of all values. _This is not supported in SQLite by default._
 
-Standalone evaluations:
+Table-wide aggregations:
 
 ```python
 >>> price = DataField.objects.get_by_natural_key('library', 'book', 'price')
@@ -301,74 +326,11 @@ The methods are chainable, the only caveat is that the `*groupby` arguments must
 [{'author': 'Charles Dickens', 'count': 4, 'avg': 50.45, 'sum': 201.80}, ...]
 ```
 
-Additional methods are available for filtering, excluding and ordering the data.
+Additional methods are available for filtering, excluding and ordering the data. Each aggregation that is chained is named after the aggregation applied. As shown below, the count aggregation can be used in the subsequent `filter` and `order_by` methods.
 
 ```python
 >>> price.count('book__author').filter(count__gt=50).order_by('count')
 ```
-
----
-
-## The DataContext
-
-Avocado defines a simple structure for representing query conditions. A query condition boils down to three components:
-
-- the `datafield` to which the condition applies
-- the `operator` which defines how the condition is being applied
-- the `value` which defines which value(s) are affected by the condition
-
-Just as in a SQL statement, applying conditions to query enables constraining the data to some subset. Conditions can of course be combined using conditional AND or OR operators (not the same operators mentioned above). These conditional _branches_ join together two or more conditions or other branches resulting in a _tree_ of conditions.
-
-```
-     AND
-    /   \
-  OR     A
- /  \
-B    C
-```
-
-Using `datafield`s as the condition's reference point enables applying the tree of conditions to any query.
-
-The `DataContext` model provides a simple API for storing, persisting and applying the condition tree. In it's raw state, the condition tree is simply a combination of _condition_ and _branch_ nodes. Following this example, the schema of both node types are described.
-
-```python
->>> from avocado.models import DataContext
->>> cxt = DataContext()
-# This will be serialized (and validated) to JSON when saved
->>> cxt.json = {'id': 'library.book.price', 'operator': 'gt', 'value': 10.00}
->>> queryset = cxt.apply()
->>> print str(queryset.query)
-'SELECT "book"."id", "book"."title", "book"."author_id", "book"."price" FROM "book" WHERE "book"."price" > 10.00 '
-```
-
-#### Condition Node
-
-##### `id`
-The value can be:
-
-- An `int` representing the primary key identifer for a `DataField` instance, e.g. `1`
-- Period-delimited `string` representing a natural key for a `DataField` instance, e.g. `'app.model.field'`
-- An `array` of strings representing a natural key for a `DataField` instance, e.g. `["app", "model", "field"]`
-
-##### `operator`
-A `string` representing a valid `DataField` operator. Valid operators vary depending on the implementation and are validated downstream. If not specified, the operator defaults to `exact`.
-
-##### `value`
-Any valid JSON data type.
-
-#### Branch Node
-
-##### `type`
-A `string` that is `"and"` or `"or"` representing the type of branch or logical operation between child nodes defined in the `children` property.
-
-##### `children`
-An `array` of _two_ or more nodes.
-
-_See example [DataContext Condition Trees]_
-
----
-
-## APIs
 
 ### Translators
 
@@ -413,18 +375,7 @@ The primary method to call is `translate` which calls `clean_value` and `clean_o
 }
 ```
 
-### Coded Values
-
-Some consumers of data require (or prefer) string values to be represented, or _coded_, as a numerical value. A runtime enumerated mapping of values (e.g. 'foo' → 1, 'bar' → 2) would typically suffice for one-off data exports, but for managing data exports over time as new data is loaded, keeping the mappings fixed improves cross-export compatibility.
-
-Avocado provides a simple extension is this behavior is desired.
-
-1. Add `'avocado.coded'` to `INSTALLED_APPS`
-2. Build the index of coded values `./bin/manage.py avocodo coded`
-
----
-
-## DataConcepts
+## DataConcept API
 
 ### Introduction
 
@@ -484,36 +435,173 @@ class ConcatFormatter(Formatter):
 
 ---
 
+## DataContext API
+
+Avocado defines a simple structure for representing query conditions. A query condition boils down to three components:
+
+- the `datafield` to which the condition applies
+- the `operator` which defines how the condition is being applied
+- the `value` which defines which value(s) are affected by the condition
+
+Just as in a SQL statement, applying conditions to query enables constraining the data to some subset. Conditions can of course be combined using conditional AND or OR operators (not the same operators mentioned above). These conditional _branches_ join together two or more conditions or other branches resulting in a _tree_ of conditions.
+
+```
+     AND
+    /   \
+  OR     A
+ /  \
+B    C
+```
+
+Using `datafield`s as the condition's reference point enables applying the tree of conditions to any query.
+
+The `DataContext` model provides a simple API for storing, persisting and applying the condition tree. In it's raw state, the condition tree is simply a combination of _condition_ and _branch_ nodes. Following this example, the schema of both node types are described.
+
+```python
+>>> from avocado.models import DataContext
+>>> cxt = DataContext()
+# This will be serialized (and validated) to JSON when saved
+>>> cxt.json = {'id': 'library.book.price', 'operator': 'gt', 'value': 10.00}
+>>> queryset = cxt.apply()
+>>> print str(queryset.query)
+'SELECT "book"."id", "book"."title", "book"."author_id", "book"."price" FROM "book" WHERE "book"."price" > 10.00 '
+```
+
+#### Condition Node
+
+- `id` - The value can be:
+    - An `int` representing the primary key identifer for a `DataField` instance, e.g. `1`
+    - Period-delimited `string` representing a natural key for a `DataField` instance, e.g. `'app.model.field'`
+    - An `array` of strings representing a natural key for a `DataField` instance, e.g. `["app", "model", "field"]`
+- `operator` - A `string` representing a valid `DataField` operator. Valid operators vary depending on the implementation and are validated downstream. If not specified, the operator defaults to `exact`.
+- `value` - Any valid JSON data type.
+
+#### Branch Node
+
+- `type` - A `string` that is `"and"` or `"or"` representing the type of branch or logical operation between child nodes defined in the `children` property.
+- `children` - An `array` of _two_ or more nodes.
+    - _See example [DataContext Condition Trees]_
+
+---
+
+## DataView API
+
+---
+
+## Lexicon Abstract Class
+
+Avocado defines an abstract class named `Lexicon`. It is a common practice
+when normalizing a data model to _break out_ repeated finite sets of terms
+within a column into their own table. This is quite obvious for entities such
+as _books_ and _authors_, but less so for commonly used or enumerable
+terms.
+
+```
+id | name | birth_month
+---+------+------------
+ 1   Sue    May
+ 2   Joe    June
+ 3   Bo     Jan
+ 4   Jane   Apr
+...
+```
+
+The above shows a table with three columns `id`, `name` and `birth_month`.
+There are some inherent issues with `birth_month`:
+
+1. Months have an arbitrary order which makes it very difficult to order the
+rows by `birth_month` since they are ordered lexicographically
+2. As the table grows (think millions) the few bytes of disk space each
+repeated string takes up starts having a significant impact
+3. The cost of querying for the distinct months within the population gets
+increasingly more expensive as the table grows
+4. As the table grows, the cost of table scans increases since queries are
+acting on strings rather than an integer (via a foreign key)
+
+Although the above example is somewhat contrived, the reasons behind this
+type of normalization are apparent.
+
+To implement, subclass and define the `value` and `label` fields.
+
+```python
+from avocado.lexicon.models import Lexicon
+
+class Month(Lexicon):
+    label = models.CharField(max_length=20)
+    value = models.CharField(max_length=20)
+```
+
+A few of the advantages include:
+
+- define an arbitrary `order` of the items in the lexicon
+- define a integer `code` which is useful for downstream clients that
+prefer working with a enumerable set of values such as SAS or R
+- define a verbose/more readable label for each item
+    - For example map _Jan_ to _January_
+
+In addition, Avocado treats Lexicon subclasses specially since it is such a
+common practice to use them. They are used in the following ways:
+
+- performing a `sync` will ignore the `label`, `code`, and `order`
+fields since they are supplementary to the `value` (you can of course add them
+manually later)
+- the `DataField` that represents the `value` field on a Lexicon subclass will
+    - use the `order` field whenever accessing values or when applied to a query
+    - use the `label` field when accessing `f.labels`
+    - use the `code` field when accessing `f.codes`
+
+---
+
 ## Management Commands
 
-Avocado technically has a single command `./bin/manage.py avocado`. The commands listed below are subcommands of the `avocado` command.
+Avocado commands are namespaced under `avocado`. Execute `./bin/manage.py avocado` to view a list of available subcommands.
 
 ### sync
 
 The sync command creates DataField instances from Djang model fields. This will be used whenever new models or new fields are added to your data model.
 
 ```bash
-./bin/manage.py avocado sync labels [--update] [--include-keys] [--include-non-editable]
+./manage.py avocado sync labels [--update] [--include-keys] [--include-non-editable]
 ```
 
 #### Parameters
 
-- `labels` - refers to one or more space-separated app or model labels, for example library.book refers the the model Book in the app library.
+- `labels` - refers to one or more space-separated app, model or field labels, for example library.book refers the the model Book in the app library.
 - `--update` - updates existing field instances (relative to the apps or models defined and overwrites any existing descriptive values such as name, name_plural, and description.
 - `--include-non-editable` - creates field instance for model fields with editable=False (by default these are ignored).
 - `--include-keys` - creates fields instances for primary and foreign key fields (by default these are ignored).
 
 ### orphaned
 
-Checks for DataField instances that no longer map to Django model field (like a dead hyperlink).
+Checks for DataField instances that no longer map to Django model fields (like a dead hyperlink).
 
 ```bash
-./bin/manage.py avocado orphaned [--unpublish]
+./manage.py avocado orphaned [--unpublish]
 ```
 
 #### Parameters
 
 `--unpublish` - unpublishes all fields found to be orphaned.
+
+
+### data
+
+Finds all models referenced by the app or model ``labels`` and updates data-related properties such as caches and pre-calculated values.
+
+```bash
+./manage.py avocado data labels [--modified]
+```
+
+#### Parameters
+
+- `labels` - refers to one or more space-separated app, model, or field labels, for example library.book refers the the model Book in the app library.
+- `--modified` - Updates the `data_modified` on `DataField` instances corresponding the labels. This is primarily used for cache invalidation.
+
+**Note, currently `--modified` is the only flag that does anything**
+
+### cache
+
+Finds all models referenced by the app, model or field `labels` and explicitly updates various cached properties relative to the `data_modified` on `DataField` instances.
 
 ## Settings
 
@@ -521,9 +609,9 @@ Avocado settings are defined as a dictionary, named `AVOCADO`, with each key cor
 
 ```python
 AVOCADO = {
-	'SIMPLE_TYPE_MAP': { ... },
-	'SYNC_ENUMERABLE_MAXIMUM': 50,
-	...
+    'SIMPLE_TYPE_MAP': { ... },
+    'SYNC_ENUMERABLE_MAXIMUM': 50,
+    ...
 }
 ```
 
@@ -586,18 +674,6 @@ OPERATOR_MAP = {
 }
 ```
 
-### RAW_DATA_MAP
-
-```
-# Contains a mapping from raw data values to a corresponding human
-# readable representation. this will only ever be applicable when values
-# are being presented to client programs as potential choices
-RAW_DATA_MAP = {
-    None: 'Null',
-    '': '(empty string)',
-}
-```
-
 ### INTERNAL_TYPE_FORMFIELDS
 
 ```
@@ -643,20 +719,22 @@ Avocado is about supporing data discovery and iteration by providing APIs for ra
 If this app is installed, changes to `DataContext` and `Query` objects will trigger actions to be sent to the respective user's stream.
 
 ## [Numpy](http://numpy.scipy.org/) & [SciPy](http://www.scipy.org/)
+
 Avocado has support for clustering continuous numeric values when generating distribution queries.
+
 ---
 
-# Examples
+## Examples
 
-## DataContext Condition Trees
+### DataContext Condition Trees
 
 #### Single Condition
 
 ```javascript
 {
-	"id": 2,
-	"operator": "iexact",
-	"value": 50
+    "id": 2,
+    "operator": "iexact",
+    "value": 50
 }
 ```
 
@@ -664,16 +742,16 @@ Avocado has support for clustering continuous numeric values when generating dis
 
 ```javascript
 {
-	"type": "and",
-	"children": [{
-		"id": 2,
-		"operator": "iexact",
-		"value": 50
-	}, {
-		"id": 1,
-		"operator": "in",
-		"value": ["foo", "bar"]
-	}
+    "type": "and",
+    "children": [{
+        "id": 2,
+        "operator": "iexact",
+        "value": 50
+    }, {
+        "id": 1,
+        "operator": "in",
+        "value": ["foo", "bar"]
+    }
 }
 ```
 
@@ -681,23 +759,23 @@ Avocado has support for clustering continuous numeric values when generating dis
 
 ```javascript
 {
-	"type": "or",
-	"children": [{
-		"id": 2,
-		"operator": "iexact",
-		"value": 50
-	}, {
-		"type": "and",
-		"children": [{
-			"id": 1,
-			"operator": "in",
-			"value": ["foo", "bar"]
-		}, {
-			"id": 1,
-			"operator": "in",
-			"value": ["baz", "qux"]
-		}]
-	}]
+    "type": "or",
+    "children": [{
+        "id": 2,
+        "operator": "iexact",
+        "value": 50
+    }, {
+        "type": "and",
+        "children": [{
+            "id": 1,
+            "operator": "in",
+            "value": ["foo", "bar"]
+        }, {
+            "id": 1,
+            "operator": "in",
+            "value": ["baz", "qux"]
+        }]
+    }]
 }
 ```
 
@@ -707,7 +785,7 @@ Avocado has support for clustering continuous numeric values when generating dis
 
 Internal types correspond to the model field's class and are necessary when performing write operations for data intregrity. For query purposes, internal types tend to be too _low-level_ and restrictive during query validation. To provide a less restrictive interface for query validation, Avocado introduces a _simple_ type which merely maps internal types to a higher-level type such as _string_ or _number_.
 
-### Relationships Are Transparent [transparent-relationships]
+### Relationships Are Transparent
 
 Avocado uses the [ModelTree](https://github.com/cbmi/modeltree) API to build in-memory indexes for each model accessed by the application. To build an index, all possible paths from the given _root_ model are traversed and metadata about each relationship is captured. When a query needs to be generated, the lookup string can be generated for a model field relative to the root model.
 

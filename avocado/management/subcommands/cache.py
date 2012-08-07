@@ -1,5 +1,4 @@
 import sys
-from django.conf import settings
 from django.db.models import Q
 from django.core.management.base import BaseCommand
 from avocado.models import DataField
@@ -13,18 +12,22 @@ class Command(BaseCommand):
 
     DESCRIPTION:
 
-        Finds all models referenced by the app or model ``labels`` and
+        Finds all models referenced by the app, model or field `labels` and
         explicitly updates various cached properties relative to the
-        `data_modified` on ``DataField`` instances.
+        `data_modified` on `DataField` instances.
     """
 
     help = '\n'.join([
-        'Finds all models referenced by the app or model ``labels`` and',
+        'Finds all models referenced by the app, model or field `labels` and',
         'explicitly updates various cached properties relative to the',
-        '`data_modified` on ``DataField`` instances.',
+        '`data_modified` on `DataField` instances.',
     ])
 
     args = 'app [app.model, [app.model.field, [...]]]'
+
+    def _progress(self):
+        sys.stdout.write('.')
+        sys.stdout.flush()
 
     def handle(self, *args, **options):
         "Handles app_label or app_label.model_label formats."
@@ -55,12 +58,15 @@ class Command(BaseCommand):
 
         count = 0
         for datafield in fields:
-            datafield.values
             datafield.size
-            if 'avocado.coded' in settings.INSTALLED_APPS:
-                datafield.coded_values
-            sys.stdout.write('.')
-            sys.stdout.flush()
+            self._progress()
+            datafield.labels
+            self._progress()
+            datafield.values
+            self._progress()
+            if datafield.lexicon:
+                datafield.coded
+                self._progress()
             count += 1
 
-        print '\n{} DataFields have been updated'.format(count)
+        print('{0} DataFields have been updated'.format(count))

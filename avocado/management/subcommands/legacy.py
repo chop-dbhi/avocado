@@ -39,33 +39,19 @@ class Command(BaseCommand):
         make_option('-u', '--update', action='store_true',
             dest='update_existing', default=False,
             help='During a migration, update existing fields'),
-
-        make_option('-n', '--no-input', action='store_true',
-            dest='no_input', default=False,
-            help='During a migration, do not prompt for user input, ' \
-                    'e.g. assume the defaults.'),
     )
 
+
     def handle(self, *args, **options):
-        migrate = options.get('migrate')
-        exclude_orphans = options.get('exclude_orphans')
-        update_existing = options.get('update_existing')
-        no_input = options.get('no_input')
+        migrate = options.get('migrate', False)
+        exclude_orphans = options.get('exclude_orphans', False)
+        update_existing = options.get('update_existing', False)
 
         field_cache = {}
         total_migrated = 0
 
-        current_label = None
-
-        for lfield in legacy.Field.objects.order_by('app_name', 'model_name').iterator():
-            orphan = False
+        for lfield in legacy.Field.objects.iterator():
             already_exists = False
-
-            label = '{}.{}'.format(lfield.app_name, lfield.model_name)
-            if current_label != label:
-                current_label = label
-                print '\n{}'.format(current_label)
-                print '-' * 5
 
             try:
                 f = DataField.objects.get_by_natural_key(lfield.app_name,
@@ -76,50 +62,36 @@ class Command(BaseCommand):
                     field_name=lfield.field_name)
 
             if already_exists and not update_existing:
-                print u'{} already exists. Skipping...'.format(f)
+                print '({}) {}.{} already exists. Skipping...'.format(f.app_name, f.model_name, f.name)
                 continue
 
-            if f.model is None:
-                orphan = True
-                if exclude_orphans:
-                    print u'Model "{}" does not exist. Skipping...'.format(f.model)
-                    continue
-
-            if f.field is None:
-                orphan = True
-                if exclude_orphans:
-                    print u'Model field "{}.{}" does not exist. Skipping...'.format(f.model_name, f.field_name)
-                    continue
-
             # Map various fields
-            f.name = lfield.name
+            f.name = lfield.name,
             f.description = lfield.description
             f.keywords = lfield.keywords
             f.published = lfield.is_public
             f.translator = lfield.translator
             f.group_id = lfield.group_id
 
-            print u'Migrating: {} [{}]'.format(f.name, f.field_name)
+            # Check if this is an orphan
+            if exclude_orphans and not f.field:
+                print '({}) {}.{} is orphaned. Skipping...'.format(f.app_name, f.model_name, f.name)
+                continue
 
-            if not orphan:
-                flags = utils.get_heuristic_flags(f)
-                f.__dict__.update(flags)
+            print 'Migrating...\t({}) {}.{}'.format(f.app_name, f.model_name, f.name)
 
-                # Disagreement with enumerable status
-                if f.enumerable != lfield.enable_choices:
-                    if no_input:
-                        f.enumerable = lfield.enable_choices
-                        print u'- Setting "enumerable" to {}'.format(f.enumerable)
-                    else:
-                        if lfield.enable_choices:
-                            override = raw_input('\n{} [{}] is marked as enumerable, but does not qualify to be enumerable. Override? [y/n] '.format(f.name, f.field_name))
-                        else:
-                            override = raw_input('\n{} [{}] {} is not marked as enumerable, but qualifies to be enumerable. Override? [y/n] '.format(f.name, f.field_name))
-                        print
+            flags = utils.get_heuristic_flags(f)
+            f.__dict__.update(flags)
 
-                        if override.lower() == 'y':
-                            f.enumerable = lfield.enable_choices
-                            print u'- Setting "enumerable" to {}'.format(f.enumerable)
+            # Disagreement with enumerable status
+            if f.enumerable != lfield.enable_choices:
+                if lfield.enable_choices:
+                    override = raw_input('"{}" is marked as enumerable, but does not qualify to be enumerable. Override? [y/n] ')
+                else:
+                    override = raw_input('"{}" is not marked as enumerable, but qualifies to be enumerable. Override? [y/n] ')
+
+                if override.lower() == 'y':
+                    f.enumerable = lfield.enable_choices
 
             if migrate:
                 f.save()
@@ -130,4 +102,4 @@ class Command(BaseCommand):
                 f.sites = lfield.sites.all()
             total_migrated += 1
 
-        print '{:,} fields migrated'.format(total_migrated)
+        print 'Fields migrated:\t{:,}'.format(total_migrated)

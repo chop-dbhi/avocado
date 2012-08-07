@@ -13,18 +13,19 @@ class Command(BaseCommand):
 
     DESCRIPTION:
 
-        Finds all models referenced by the app or model ``labels`` and
+        Finds all models referenced by the app, model or field `labels` and
         updates data-related properties such as caches and pre-calculated
         values.
 
     OPTIONS:
 
-        ``--modified`` - Updates the ``data_modified`` on ``DataField`` instances
-        corresponding the labels. This is primarily used for cache invalidation.
+        `--modified` - Updates the `data_modified` on `DataField` instances
+        corresponding the labels. This is primarily used for cache
+        invalidation.
     """
 
     help = '\n'.join([
-        'Finds all models referenced by the app or model ``labels`` and',
+        'Finds all models referenced by the app, model or field `labels` and',
         'updates data-related properties such as caches and pre-calculated',
         'values.',
     ])
@@ -34,7 +35,7 @@ class Command(BaseCommand):
     option_list = BaseCommand.option_list + (
         make_option('-m', '--modified', action='store_true',
             dest='update_data_modified', default=False,
-            help='Update ``data_modified`` timestamp on ``DataField`` instances'),
+            help='Update `data_modified` timestamp on `DataField` instances'),
     )
 
     def handle(self, *args, **options):

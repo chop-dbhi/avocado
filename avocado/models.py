@@ -1,33 +1,28 @@
 import jsonfield
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
-from django.conf import settings
 from django.db import models
-from django.core.cache import cache
 from django.contrib.sites.models import Site
 from django.contrib.auth.models import User, Group
 from django.utils.encoding import smart_unicode
 from django.db.models.fields import FieldDoesNotExist
 from django.db.models.signals import post_save, pre_delete
-from django.core.exceptions import ImproperlyConfigured
 from avocado.core import utils
 from avocado.core.models import Base, BasePlural
-from avocado.core.cache import instance_cache_key, post_save_cache, pre_delete_uncache, cached_property
-from avocado.conf import settings as _settings
-from avocado.managers import DataFieldManager, DataConceptManager, DataCategoryManager
+from avocado.core.cache import (post_save_cache, pre_delete_uncache, cached_property)
+from avocado.conf import settings
+from avocado.managers import (DataFieldManager, DataConceptManager,
+        DataCategoryManager)
 from avocado.query import parsers
 from avocado.query.translators import registry as translators
 from avocado.query.operators import registry as operators
+from avocado.lexicon.models import Lexicon
 from avocado.stats.agg import Aggregator
 from avocado.formatters import registry as formatters
 from avocado.queryview import registry as queryviews
 
 __all__ = ('DataCategory', 'DataConcept', 'DataField', 'DataContext')
 
-SIMPLE_TYPE_MAP = _settings.SIMPLE_TYPE_MAP
-RAW_DATA_MAP = _settings.RAW_DATA_MAP
+
+SIMPLE_TYPE_MAP = settings.SIMPLE_TYPE_MAP
 
 
 class DataCategory(Base):
@@ -157,6 +152,15 @@ class DataField(BasePlural):
         """
         return SIMPLE_TYPE_MAP.get(self.internal_type, self.internal_type)
 
+    @property
+    def lexicon(self):
+        """Returns true if the model is a subclass of Lexicon and this
+        is the 'value' field. All other fields on the lexicon treated as
+        normal datafields.
+        """
+        return self.model and issubclass(self.model, Lexicon) \
+            and self.field_name == 'value'
+
     # Convenience Methods
     # Easier access to the underlying data for this data field
 
@@ -182,48 +186,46 @@ class DataField(BasePlural):
 
     # Data-related Cached Properties
     # These may be cached until the underlying data changes
-    # TODO add maximum data size restriction
-    def in_cache(self, prop, timestamp='data_modified'):
-        _timestamp = getattr(self, timestamp) if timestamp else None
-        key = instance_cache_key(self, prop, _timestamp)
-        return key in cache, key
 
     @cached_property('size', timestamp='data_modified')
     def size(self):
-        "Returns the size of distinct values."
-        cached, key = self.in_cache('values')
-        if cached:
-            return len(cache.get(key))
-        else:
-            return self.query().distinct().count()
+        "Returns the count of distinct values."
+        return self.query().distinct().count()
 
     @cached_property('values', timestamp='data_modified')
     def values(self):
         "Introspects the data and returns a distinct list of the values."
-        return tuple(self.query().order_by(self.field_name)\
-                .values_list(self.field_name, flat=True)\
-                .order_by(self.field_name).distinct())
+        query = self.query().order_by(self.field_name)\
+            .values_list(self.field_name, flat=True).distinct()
+        if self.lexicon:
+            query = query.order_by('order')
+        else:
+            query = query.order_by(self.field_name)
+        return tuple(query)
 
-    @cached_property('coded_values', timestamp='data_modified')
-    def coded_values(self):
+    @cached_property('labels', timestamp='data_modified')
+    def labels(self):
+        """Returns an ordered set of labels corresponding to the values.
+        If this field represents to a Lexicon subclass, the `label` field
+        will be used, otherwise the values will simply be unicoded.
+        """
+        if self.lexicon:
+            return tuple(self.model.objects.values_list('label', flat=True)\
+                .order_by('order'))
+        # Unicode each value
+        return map(smart_unicode, self.values)
+
+    @cached_property('codes', timestamp='data_modified')
+    def codes(self):
         "Returns a distinct set of coded values for this field"
-        if 'avocado.coded' not in settings.INSTALLED_APPS:
-            raise ImproperlyConfigured('For this feature, avocado.coded app '
-                    'must be added to INSTALLED_APPS')
-        from avocado.coded.models import CodedValue
-        return zip(CodedValue.objects.filter(field=self).values_list('value', 'coded'))
-
-    @property
-    def mapped_values(self):
-        "Maps the raw `values` relative to `RAW_DATA_MAP`."
-        # Iterate over each value and attempt to get the mapped choice
-        # other fallback to the value itself
-        return map(lambda x: smart_unicode(RAW_DATA_MAP.get(x, x)), self.values)
+        if self.lexicon:
+            return tuple(self.model.objects.values_list('code', flat=True)\
+                .order_by('order'))
 
     @property
     def choices(self):
         "Returns a distinct set of choices for this field."
-        return zip(self.values, self.mapped_values)
+        return zip(self.values, self.labels)
 
     # Data Aggregation Properties
     def groupby(self, *args):
@@ -243,7 +245,8 @@ class DataField(BasePlural):
 
     def avg(self, *args):
         "Returns the average value. Only applies to quantitative data."
-        return Aggregator(self.field).avg(*args)
+        if self.simple_type == 'number':
+            return Aggregator(self.field).avg(*args)
 
     def sum(self, *args):
         "Returns the sum of values. Only applies to quantitative data."
@@ -287,7 +290,8 @@ class DataConcept(BasePlural):
     """Our acceptance of an ontology is, I think, similar in principle to our
     acceptance of a scientific theory, say a system of physics; we adopt, at
     least insofar as we are reasonable, the simplest conceptual scheme into
-    which the disordered fragments of raw experience can be fitted and arranged.
+    which the disordered fragments of raw experience can be fitted and
+    arranged.
 
         -- Willard Van Orman Quine
     """
@@ -301,7 +305,7 @@ class DataConcept(BasePlural):
     # The associated fields for this concept. fields can be
     # associated with multiple concepts, thus the M2M
     fields = models.ManyToManyField(DataField, through='DataConceptField',
-            related_name='concepts')
+        related_name='concepts')
 
     # Certain concepts may not be relevant or appropriate for all
     # sites being deployed. This is primarily for preventing exposure of
@@ -310,7 +314,8 @@ class DataConcept(BasePlural):
     # has full access to all fields, while the external may have a limited set.
     # NOTE this is not reliable way to prevent exposure of sensitive data.
     # This should be used to simply hide _access_ to the concepts.
-    group = models.ForeignKey(Group, null=True, blank=True, related_name='concepts+')
+    group = models.ForeignKey(Group, null=True, blank=True,
+        related_name='concepts+')
 
     sites = models.ManyToManyField(Site, blank=True, related_name='concepts+')
 

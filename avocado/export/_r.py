@@ -24,16 +24,16 @@ class RExporter(BaseExporter):
 
         return name
 
-    def _code_value(self, name, field):
+    def _code_values(self, name, field):
         "If the field can be coded return the r factor and level for it."
         data_field = 'data${0}'.format(name)
 
         factor = '{0}.factor = factor({0},levels=c('.format(data_field)
         level = 'levels({0}.factor)=c('.format(data_field)
 
-        values_len = len(field.coded_values)
+        values_len = len(field.codes)
 
-        for i, (val, code) in enumerate(field.coded_values):
+        for i, (val, code) in enumerate(field.codes):
             factor += str(code)
             level += '"{0}"'.format(str(val))
             if i == values_len - 1:
@@ -62,8 +62,8 @@ class RExporter(BaseExporter):
                 name = self._format_name(field.field_name)
                 labels.append('attr(data${0}, "label") = "{1}"'.format(name, field.description))
 
-                if field.coded_values:
-                    codes = self._code_value(name, field)
+                if field.lexicon:
+                    codes = self._code_values(name, field)
                     factors.append(codes[0])
                     levels.append(codes[1])
 

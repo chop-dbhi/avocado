@@ -1,0 +1,122 @@
+[
+    {
+        "pk": 1, 
+        "model": "lexicon.month", 
+        "fields": {
+            "label": "January",
+            "value": "jan",
+            "order": 0,
+            "code": 0
+        }
+    },
+    {
+        "pk": 2, 
+        "model": "lexicon.month", 
+        "fields": {
+            "label": "February",
+            "value": "feb",
+            "order": 1,
+            "code": 1
+        }
+    },
+    {
+        "pk": 3, 
+        "model": "lexicon.month", 
+        "fields": {
+            "label": "March",
+            "value": "mar",
+            "order": 2,
+            "code": 2
+        }
+    },
+    {
+        "pk": 4, 
+        "model": "lexicon.month", 
+        "fields": {
+            "label": "April",
+            "value": "apr",
+            "order": 3,
+            "code": 3
+        }
+    },
+    {
+        "pk": 5, 
+        "model": "lexicon.month", 
+        "fields": {
+            "label": "May",
+            "value": "may",
+            "order": 4,
+            "code": 4
+        }
+    },
+    {
+        "pk": 6, 
+        "model": "lexicon.month", 
+        "fields": {
+            "label": "June",
+            "value": "jun",
+            "order": 5,
+            "code": 5
+        }
+    },
+    {
+        "pk": 7, 
+        "model": "lexicon.month", 
+        "fields": {
+            "label": "July",
+            "value": "jul",
+            "order": 6,
+            "code": 6
+        }
+    },
+    {
+        "pk": 8, 
+        "model": "lexicon.month", 
+        "fields": {
+            "label": "August",
+            "value": "aug",
+            "order": 7,
+            "code": 7
+        }
+    },
+    {
+        "pk": 9, 
+        "model": "lexicon.month", 
+        "fields": {
+            "label": "September",
+            "value": "sep",
+            "order": 8,
+            "code": 8
+        }
+    },
+    {
+        "pk": 10, 
+        "model": "lexicon.month", 
+        "fields": {
+            "label": "October",
+            "value": "oct",
+            "order": 9,
+            "code": 9
+        }
+    },
+    {
+        "pk": 11, 
+        "model": "lexicon.month", 
+        "fields": {
+            "label": "November",
+            "value": "nov",
+            "order": 10,
+            "code": 10
+        }
+    },
+    {
+        "pk": 12, 
+        "model": "lexicon.month", 
+        "fields": {
+            "label": "December",
+            "value": "dec",
+            "order": 11,
+            "code": 11
+        }
+    }
+]

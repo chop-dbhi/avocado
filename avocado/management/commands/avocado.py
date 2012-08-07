@@ -7,11 +7,18 @@ from django.utils.importlib import import_module
 class Command(BaseCommand):
     help = "A wrapper for Avocado subcommands"
 
-    commands = ['sync', 'orphaned', 'data', 'cache', 'legacy']
+    commands = {
+        'sync': 'sync',
+        'orphaned': 'orphaned',
+        'data': 'data',
+        'cache': 'cache',
+        'legacy': 'legacy',
+        'lexicon': 'lexicon',
+    }
 
     def print_subcommands(self, prog_name):
         usage = ['', 'Available subcommands:']
-        for name in sorted(self.commands):
+        for name in sorted(self.commands.keys()):
             usage.append('  {0}'.format(name))
         return '\n'.join(usage)
 
@@ -36,8 +43,8 @@ class Command(BaseCommand):
         """Set up any environment changes requested (e.g., Python path
         and Django settings), then run this command.
         """
-        if len(argv) > 2 and not argv[2].startswith('-') and argv[2] in self.commands:
-            subcommand = argv[2]
+        if len(argv) > 2 and not argv[2].startswith('-') and argv[2] in self.commands.keys():
+            subcommand = self.commands[argv[2]]
             klass = self.get_subcommand(subcommand)
             parser = OptionParser(prog=argv[0], usage=klass.usage('{0} {1}'.format(argv[1], subcommand)),
                 version=klass.get_version(), option_list=klass.option_list)
@@ -51,7 +58,7 @@ class Command(BaseCommand):
         self.execute(*args, **options.__dict__)
 
     def handle(self, *args, **options):
-        if not args or args[0] not in self.commands:
+        if not args or args[0] not in self.commands.keys():
             return self.print_help('./manage.py', 'avocado')
         subcommand, args = args[0], args[1:]
 

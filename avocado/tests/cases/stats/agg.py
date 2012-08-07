@@ -26,9 +26,9 @@ class AggregatorTestCase(BaseTestCase):
         self.assertEqual(self.first_name.min(), [{'min': 'Aaron'}])
 
     def test_avg(self):
-        self.assertEqual(self.is_manager.avg(), [{'avg': 0.16666666666666666}])
+        self.assertEqual(self.is_manager.avg(), None)
         self.assertEqual(self.salary.avg(), [{'avg': 53571.42857142857}])
-        self.assertEqual(self.first_name.avg(), [{'avg': 0.0}])
+        self.assertEqual(self.first_name.avg(), None)
 
     def test_sum(self):
         self.assertEqual(self.is_manager.sum(), None)

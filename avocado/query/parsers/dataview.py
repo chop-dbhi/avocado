@@ -62,7 +62,12 @@ class Node(object):
 
             for i, direction in enumerate(directions):
                 for f in fields[i]:
-                    qstr = tree.query_string_for_field(f.field)
+                    # Special case for Lexicon-based models, order by their
+                    # corresponding `order` field.
+                    if f.lexicon:
+                        qstr = tree.query_string_for_field(f.model._meta.get_field_by_name('order')[0])
+                    else:
+                        qstr = tree.query_string_for_field(f.field)
                     if direction == 'desc':
                         qstr = '-' + qstr
                     order_by.append(qstr)

@@ -57,15 +57,15 @@ class SasExporter(BaseExporter):
         sas_format = '\tformat {0:<10}{1:>10};\n'.format(sas_name, s_format)
         return sas_format, sas_informat
 
-    def _code_value(self, name, field):
+    def _code_values(self, name, field):
         """If field can be coded return the value dictionary
         and the format name for the dictionary
         """
         value_format = '\tformat {0} {0}_f.;\n'.format(name)
         value = '\tvalue {0}_f '.format(name)
-        values_len = len(field.coded_values)
+        values_len = len(field.codes)
 
-        for i, (val, code) in enumerate(field.coded_values):
+        for i, (val, code) in enumerate(field.codes):
             value += '{0}="{1}" '.format(code, val)
             if (i != values_len - 1 and (i % 2) == 1 and i != 0):
                 value += '\n\t\t'
@@ -108,8 +108,8 @@ class SasExporter(BaseExporter):
 
                 # if a field can be coded create a SAS PROC Format statement
                 # that creates a value dictionary
-                if field.coded_values:
-                    codes = self._code_value(name, field)
+                if field.lexicon:
+                    codes = self._code_values(name, field)
                     value_formats += codes[0]
                     values += codes[1]
 

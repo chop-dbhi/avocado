@@ -1,4 +1,3 @@
-from avocado.conf import settings
 from avocado.core import loader
 
 
@@ -27,7 +26,7 @@ class BaseOperator(object):
         return u'<Operator: "%s" (%s)>' % (self.verbose_name, self.uid)
 
     def coerce_to_unicode(self, value):
-        return unicode(settings.RAW_DATA_MAP.get(value, value))
+        return unicode(value)
 
     def is_valid(self, value):
         raise NotImplemented('Use an Operator subclass')

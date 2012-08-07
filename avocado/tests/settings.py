@@ -19,9 +19,8 @@ INSTALLED_APPS = (
     'haystack',
     'guardian',
     'avocado',
-    'avocado.coded',
-    'avocado.stats',
     'avocado.tests',
+    'avocado.tests.cases.lexicon',
 )
 
 CACHES = {
