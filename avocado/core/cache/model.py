@@ -22,6 +22,10 @@ def cached_property(label, timestamp=None, check=lambda x: True, timeout=NEVER_E
     "Wraps a function and caches the output indefinitely."
     def decorator(func):
         def wrapped(self):
+            # Do not cache non-persisted objects
+            if not self.pk:
+                return func(self)
+
             _timestamp = getattr(self, timestamp) if timestamp else None
             key = instance_cache_key(self, label=label, timestamp=_timestamp)
             data = cache.get(key)
