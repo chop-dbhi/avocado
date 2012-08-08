@@ -1,6 +1,4 @@
 import sys
-import distribute_setup
-distribute_setup.use_setuptools()
 from setuptools import setup, find_packages
 from setuptools.command import install as _install
 
@@ -26,8 +24,10 @@ kwargs = {
     'install_requires': [
         'django>=1.4',
         'modeltree',
-        'django-jsonfield>=0.9',
+        'jsonfield>=0.9',
     ],
+
+    'test_suite': 'test_suite',
 
     # Test dependencies
     'tests_require': [
@@ -38,6 +38,7 @@ kwargs = {
         'scipy',
         'numpy',
         'coverage',
+        'python-memcached',
     ],
 
     # Optional dependencies
@@ -55,7 +56,6 @@ kwargs = {
 
     # Resources unavailable on PyPi
     'dependency_links': [
-        'https://github.com/bradjasper/django-jsonfield/tarball/master#egg=django-jsonfield-0.9',
         'https://github.com/toastdriven/django-haystack/tarball/master#egg=django-haystack-2.0',
     ],
 

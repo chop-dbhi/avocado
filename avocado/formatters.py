@@ -95,7 +95,7 @@ class Formatter(object):
                 # Remove from the preferred formats list since it failed
                 except Exception, e:
                     if not isinstance(e, FormatterException):
-                        log.error('{}: {}\nFormatter:\t{}.{}\nMultiple:\ntrue\nType:\t{}'.format(e.__class__.__name__,
+                        log.debug('{}: {}\nFormatter:\t{}.{}\nMultiple:\ntrue\nType:\t{}'.format(e.__class__.__name__,
                             e.message, str(self), method, [type(value) for value in values]))
                     preferred_formats.pop(0)
 
@@ -117,7 +117,7 @@ class Formatter(object):
                     break
                 except Exception, e:
                     if not isinstance(e, FormatterException):
-                        log.error('{}: {}\nFormatter:\t{}.{}\nMultiple:\nfalse\nType:\t{}'.format(e.__class__.__name__,
+                        log.debug('{}: {}\nFormatter:\t{}.{}\nMultiple:\nfalse\nType:\t{}'.format(e.__class__.__name__,
                             e.message, str(self), method, type(value)))
         return output
 

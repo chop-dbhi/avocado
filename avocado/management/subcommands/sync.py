@@ -1,3 +1,5 @@
+import os
+import sys
 try:
     from collections import OrderedDict
 except ImportError:
@@ -56,6 +58,9 @@ class Command(BaseCommand):
         make_option('-u', '--update', action='store_true',
             dest='update_existing', default=False,
             help='Updates existing metadata derived from model fields'),
+        make_option('-q', '--quiet', action='store_true',
+            dest='quiet', default=False,
+            help='Do not print any output')
     )
 
     # These are ignored since these join fields will be determined at runtime
@@ -72,11 +77,14 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         "Handles app_label or app_label.model_label formats."
 
+        if options.get('quiet'):
+            sys.stdout = open(os.devnull, 'w')
+
         if options.get('update_existing'):
             resp = raw_input('Are you sure you want to update existing metadata?\n'
                 'This will overwrite any previous changes made. Type "yes" to continue: ')
             if resp.lower() != 'yes':
-                print 'Sync operation cancelled'
+                print('Sync operation cancelled')
                 return
 
         for label in args:

@@ -3,9 +3,9 @@
 ARGS="$@"
 
 if [ ! $ARGS ]; then
-    ARGS="avocado lexicon"
+    ARGS="avocado core export formatters lexicon models query stats subcommands"
 fi
 
-DJANGO_SETTINGS_MODULE='avocado.tests.settings' PYTHONPATH=. coverage run ../bin/django-admin.py test $ARGS
+DJANGO_SETTINGS_MODULE='tests.settings' PYTHONPATH=. coverage run ../bin/django-admin.py test $ARGS
 rm -rf docs/coverage
 coverage html

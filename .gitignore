@@ -16,3 +16,6 @@ json_export.json
 r_export.zip
 sas_export.zip
 profiled_tests.txt
+tests.db
+whoosh.index
+avocado.egg-info
