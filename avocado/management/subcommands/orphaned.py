@@ -63,6 +63,8 @@ class Command(NoArgsCommand):
             if not unknown_models and not unknown_fields:
                 print '0 fields orphaned'
             else:
+                print '\nKey:\n'
+                print '\t[P] - field is published\n'
                 if unknown_models:
                     self._print(unknown_models, 'The following Fields have an unknown model', unpublish)
                 if unknown_fields:
