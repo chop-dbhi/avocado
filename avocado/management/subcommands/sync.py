@@ -133,8 +133,12 @@ class Command(BaseCommand):
                     lexicon = issubclass(model, Lexicon)
                     model_name = model._meta.object_name.lower()
                     for field in model._meta.fields:
-                        if lexicon and field.name in self.ignored_lexicon_fields:
-                            continue
+                        if lexicon:
+                            if field.name in self.ignored_lexicon_fields:
+                                continue
+                            if field.name == 'value':
+                                # Name the `value` field after the model for lexicon
+                                field.verbose_name = model._meta.verbose_name
                         fields.append((field, model_name, app_name))
 
             added = 0
@@ -147,14 +151,14 @@ class Command(BaseCommand):
                     updated += 1
 
             if added == 1:
-                print('1 field added for {0}'.format(model_name))
+                print('1 field added for {0}'.format(label))
             elif added > 1:
-                print('{0:,} fields added for {1}'.format(added, model_name))
+                print('{0:,} fields added for {1}'.format(added, label))
 
             if updated == 1:
-                print('1 field updated for {0}'.format(model_name))
+                print('1 field updated for {0}'.format(label))
             elif updated > 1:
-                print('{0:,} fields updated for {1}'.format(updated, model_name))
+                print('{0:,} fields updated for {1}'.format(updated, label))
 
     def handle_field(self, field, model_name, app_name, **options):
         include_non_editable = options.get('include_non_editable')
