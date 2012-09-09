@@ -185,8 +185,8 @@ class Command(BaseCommand):
             'field_name': field.name,
         }
 
+        # Note, `name` is set below
         kwargs = {
-            'name': field.verbose_name.title(),
             'description': field.help_text or None,
             'app_name': app_name.lower(),
             'model_name': model_name.lower(),
@@ -207,6 +207,10 @@ class Command(BaseCommand):
             datafield.__dict__.update([(k, v) for k, v in kwargs.items()])
         else:
             created = True
+
+        if not datafield.name:
+            # Use the default unicode representation of the datafield
+            datafield.name = unicode(datafield)
 
         # Update fields with flags
         datafield.__dict__.update(utils.get_heuristic_flags(datafield))

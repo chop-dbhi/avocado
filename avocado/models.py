@@ -111,7 +111,9 @@ class DataField(BasePlural):
         )
 
     def __unicode__(self):
-        return u'[{0}] {1}'.format('.'.join(self.natural_key()), self.name or self.field_name)
+        if self.name:
+            return self.name
+        return '{} {}'.format(self.model._meta.verbose_name, self.field.verbose_name).title()
 
     # The natural key should be used any time fields are being exported
     # for integration in another system. It makes it trivial to map to new
