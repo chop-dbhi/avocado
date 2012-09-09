@@ -2,36 +2,6 @@
 
 #### Metadata APIs for Django
 
-- [Target Audience](#target-audience)
-- [Background](#background)
-- [Install](#install)
-- [Configure](#configure)
-- [Getting Started](#getting-started)
-    - [Bootstrap the Metadata](#bootstrap-the-metadata)
-- [DataField API](#datafield-api)
-    - [Descriptors](#descriptors)
-    - [Properties](#properties)
-    - [Aggregation](#aggregation)
-    - [Translators](#translators)
-- [DataConcept API](#dataconcept-api)
-    - [Introduction](#introduction)
-    - [Query Views](#query-views)
-    - [Formatters](#formatters)
-    - [Exporters](#exporters)
-- [DataContext API](#datacontext-api)
-    - [Condition Node](#condition-node)
-    - [Branch Node](#branch-node)
-    - [Composite Node](#composite-node)
-- [DataView API](#dataview-api)
-- [Lexicon Abstract Class](#lexicon-abstract-class)
-- [Management Commands](#management-commands)
-    - [sync](#sync)
-    - [orphaned](#orphaned)
-- [Settings](#settings)
-- [Optional App Integration](#optional-app-integration)
-- [Examples](#examples)
-- [Notes](#notes)
-
 ## Target Audience
 
 **Developers who are interested in letting their data do the work for them.**
@@ -552,6 +522,48 @@ manually later)
 
 ---
 
+## Template Tags
+
+Avocado provides single base templatetag (similar to the management commands). The syntax is as follows:
+
+```django
+{% avocado [command] [arguments] %}
+```
+
+### Load
+Currently, the only _sub-tag_ implemented is the `load` command for loading `DataField and `DataConcept` instances on demand:
+
+**DataField with primary key**
+```django
+{% avocado load field 10 as foo %}
+```
+
+**DataField using a natural key**
+```django
+{% avocado load field "app.model.field" as foo %}
+```
+
+**DataConcept with a primary key**
+```django
+{% avocado load concept 20 as foo %}
+```
+
+#### Example
+
+This enables using all the wonderful metadata API documented above dynamically:
+
+```django
+{% avocado load field "library.author.name" as author %}
+
+<select name="authors">
+{% for value, label for author.choices %}
+    <option value="{{ value }}">{{ label }}</option>
+{% endfor %}
+</select>
+```
+
+---
+
 ## Management Commands
 
 Avocado commands are namespaced under `avocado`. Execute `./bin/manage.py avocado` to view a list of available subcommands.
@@ -564,7 +576,7 @@ The sync command creates DataField instances from Djang model fields. This will 
 ./manage.py avocado sync labels [--update] [--include-keys] [--include-non-editable]
 ```
 
-#### Parameters
+**Parameters**
 
 - `labels` - refers to one or more space-separated app, model or field labels, for example library.book refers the the model Book in the app library.
 - `--update` - updates existing field instances (relative to the apps or models defined and overwrites any existing descriptive values such as name, name_plural, and description.
@@ -579,7 +591,7 @@ Checks for DataField instances that no longer map to Django model fields (like a
 ./manage.py avocado orphaned [--unpublish]
 ```
 
-#### Parameters
+**Parameters**
 
 `--unpublish` - unpublishes all fields found to be orphaned.
 
@@ -592,7 +604,7 @@ Finds all models referenced by the app or model ``labels`` and updates data-rela
 ./manage.py avocado data labels [--modified]
 ```
 
-#### Parameters
+**Parameters**
 
 - `labels` - refers to one or more space-separated app, model, or field labels, for example library.book refers the the model Book in the app library.
 - `--modified` - Updates the `data_modified` on `DataField` instances corresponding the labels. This is primarily used for cache invalidation.
