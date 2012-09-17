@@ -92,7 +92,7 @@ class DataContextParserTestCase(TestCase):
         }, tree=Employee)
 
         self.assertEqual(str(node.apply().values('id').query), 'SELECT "query_employee"."id" FROM "query_employee" INNER JOIN "query_title" ON ("query_employee"."title_id" = "query_title"."id") WHERE ("query_title"."boss" = True  AND "query_title"."id" IS NOT NULL)')
-        self.assertEqual(node.language, {'operator': 'exact', 'language': u'Boss is True', 'id': 4, 'value': True})
+        self.assertEqual(node.language, {'operator': 'exact', 'language': u'Title Boss is True', 'id': 4, 'value': True})
 
         # Branch node
         node = parsers.datacontext.parse({
@@ -115,12 +115,12 @@ class DataContextParserTestCase(TestCase):
                 'id': 4,
                 'operator': 'exact',
                 'value': True,
-                'language': 'Boss is True',
+                'language': 'Title Boss is True',
             }, {
                 'id': 5,
                 'operator': 'exact',
                 'value': 'John',
-                'language': 'First Name is equal to John',
+                'language': 'Employee First Name is equal to John',
             }]
         })
 
