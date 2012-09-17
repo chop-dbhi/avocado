@@ -189,12 +189,12 @@ class DataField(BasePlural):
     # Data-related Cached Properties
     # These may be cached until the underlying data changes
 
-    @cached_property('size', timestamp='data_modified')
+    @cached_property('size', version='data_modified')
     def size(self):
         "Returns the count of distinct values."
         return self.query().distinct().count()
 
-    @cached_property('values', timestamp='data_modified')
+    @cached_property('values', version='data_modified')
     def values(self):
         "Introspects the data and returns a distinct list of the values."
         query = self.query().order_by(self.field_name)\
@@ -205,7 +205,7 @@ class DataField(BasePlural):
             query = query.order_by(self.field_name)
         return tuple(query)
 
-    @cached_property('labels', timestamp='data_modified')
+    @cached_property('labels', version='data_modified')
     def labels(self):
         """Returns an ordered set of labels corresponding to the values.
         If this field represents to a Lexicon subclass, the `label` field
@@ -217,7 +217,7 @@ class DataField(BasePlural):
         # Unicode each value
         return map(smart_unicode, self.values)
 
-    @cached_property('codes', timestamp='data_modified')
+    @cached_property('codes', version='data_modified')
     def codes(self):
         "Returns a distinct set of coded values for this field"
         if self.lexicon:

@@ -3,22 +3,21 @@ from django.core.cache import cache
 from django.db.models.query import QuerySet
 
 NEVER_EXPIRE = 60 * 60 * 24 * 30 # 30 days
-DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'
 INSTANCE_CACHE_KEY = '{0}.{1}:{2}'
 
 
-def instance_cache_key(instance, label=None, timestamp=None):
-    "Creates a cache key for the instance with an option label and timestamp."
+def instance_cache_key(instance, label=None, version=None):
+    "Creates a cache key for the instance with an optional label and token."
     opts = instance._meta
     key = INSTANCE_CACHE_KEY.format(opts.app_label, opts.module_name, instance.pk)
     if label:
         key = '{0}-{1}'.format(key, label)
-    if timestamp:
-        key = '{0}-{1}'.format(key, timestamp.strftime(DATETIME_FORMAT))
+    if version:
+        key = '{0}-{1}'.format(key, version)
     return key
 
 
-def cached_property(label, timestamp=None, check=lambda x: True, timeout=NEVER_EXPIRE):
+def cached_property(label, version=None, timeout=NEVER_EXPIRE):
     "Wraps a function and caches the output indefinitely."
     def decorator(func):
         def wrapped(self):
@@ -26,14 +25,25 @@ def cached_property(label, timestamp=None, check=lambda x: True, timeout=NEVER_E
             if not self.pk:
                 return func(self)
 
-            _timestamp = getattr(self, timestamp) if timestamp else None
-            key = instance_cache_key(self, label=label, timestamp=_timestamp)
-            data = cache.get(key)
-            if data is None:
+            # If this is a function, pass `label' and `self` in as arguments
+            if callable(version):
+                _version = version(self, label=label)
+            else:
+                _version = getattr(self, version)
+                # Call if a method
+                if callable(_version):
+                    _version = _version()
+            # If no version is defined, the cache cannot be reliably stored
+            if _version is None:
                 data = func(self)
-                # Don't bother caching if the data is None
-                if data is not None and check(self):
-                    cache.set(key, data, timeout=timeout)
+            else:
+                key = instance_cache_key(self, label=label, version=_version)
+                data = cache.get(key)
+                if data is None:
+                    data = func(self)
+                    # Don't bother caching if the data is None
+                    if data is not None:
+                        cache.set(key, data, timeout=timeout)
             return data
         return property(wrapped)
     return decorator
