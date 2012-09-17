@@ -197,11 +197,8 @@ class DataField(BasePlural):
     @cached_property('values', version='data_modified')
     def values(self):
         "Introspects the data and returns a distinct list of the values."
-        query = self.query().order_by(self.field_name)\
-            .values_list(self.field_name, flat=True).distinct()
-        if self.lexicon:
-            query = query.order_by('order')
-        else:
+        query = self.query().values_list(self.field_name, flat=True).distinct()
+        if not self.lexicon:
             query = query.order_by(self.field_name)
         return tuple(query)
 
@@ -212,8 +209,7 @@ class DataField(BasePlural):
         will be used, otherwise the values will simply be unicoded.
         """
         if self.lexicon:
-            return tuple(self.model.objects.values_list('label', flat=True)\
-                .order_by('order'))
+            return tuple(self.model.objects.values_list('label', flat=True))
         # Unicode each value
         return map(smart_unicode, self.values)
 
@@ -221,8 +217,7 @@ class DataField(BasePlural):
     def codes(self):
         "Returns a distinct set of coded values for this field"
         if self.lexicon:
-            return tuple(self.model.objects.values_list('code', flat=True)\
-                .order_by('order'))
+            return tuple(self.model.objects.values_list('code', flat=True))
 
     @property
     def choices(self):
