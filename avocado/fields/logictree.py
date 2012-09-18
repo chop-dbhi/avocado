@@ -118,7 +118,7 @@ class Condition(Node):
         # value from what the client had submitted. this text has no impact
         # on the stored 'cleaned' data structure
         value = self._meta['raw_data']['value']
-        return {'conditions': [self.criterionfield.text(operator, value)]}
+        return self.criterionfield.text(operator, value)
 
     def get_field_ids(self):
         return [self.id]
@@ -181,15 +181,15 @@ class LogicalOperator(Node):
     @property
     def text(self, flatten=True):
         if not hasattr(self, '_text'):
-            text = {'type': self.type.lower(), 'conditions': []}
+            children = []
             for node in self.children:
                 t = node.text
                 # flatten if nested conditions are also AND's
-                if not t.has_key('type') or t['type'] == self.type.lower():
-                    text['conditions'].extend(t['conditions'])
+                if not hasattr(node, 'type') or node.type.lower() == self.type.lower():
+                    children.append(t)
                 else:
-                    text['conditions'].append(t['conditions'])
-            self._text = text
+                    children.append('(%s)' % t)
+            self._text = (' %s ' % self.type.lower()).join(children)
         return self._text
 
     def get_field_ids(self):
