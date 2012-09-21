@@ -24,7 +24,8 @@ class Node(object):
             queryset = tree.get_queryset()
         queryset = ModelTreeQuerySet(tree, query=queryset.query)
         if self.concept_ids:
-            queryset = queryset.select(*[f.field for f in self.fields], include_pk=include_pk)
+            queryset = queryset.select(*[f.field for f in self.fields],
+                include_pk=include_pk)
         if self.ordering:
             queryset = queryset.order_by(*self.order_by)
         return queryset
@@ -65,7 +66,8 @@ class Node(object):
                     # Special case for Lexicon-based models, order by their
                     # corresponding `order` field.
                     if f.lexicon:
-                        qstr = tree.query_string_for_field(f.model._meta.get_field_by_name('order')[0])
+                        field = f.model._meta.get_field_by_name('order')[0]
+                        qstr = tree.query_string_for_field(field)
                     else:
                         qstr = tree.query_string_for_field(f.field)
                     if direction == 'desc':

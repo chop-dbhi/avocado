@@ -21,6 +21,7 @@ INSTALLED_APPS = (
     'tests.cases.formatters',
     'tests.cases.models',
     'tests.cases.query',
+    'tests.cases.sets',
     'tests.cases.stats',
     'tests.cases.subcommands',
 )

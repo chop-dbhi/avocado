@@ -1,0 +1,52 @@
+[
+    {
+        "model": "sets.record",
+        "pk": 1,
+        "fields": {}
+    },
+    {
+        "model": "sets.record",
+        "pk": 2,
+        "fields": {}
+    },
+    {
+        "model": "sets.record",
+        "pk": 3,
+        "fields": {}
+    },
+    {
+        "model": "sets.record",
+        "pk": 4,
+        "fields": {}
+    },
+    {
+        "model": "sets.record",
+        "pk": 5,
+        "fields": {}
+    },
+    {
+        "model": "sets.record",
+        "pk": 6,
+        "fields": {}
+    },
+    {
+        "model": "sets.record",
+        "pk": 7,
+        "fields": {}
+    },
+    {
+        "model": "sets.record",
+        "pk": 8,
+        "fields": {}
+    },
+    {
+        "model": "sets.record",
+        "pk": 9,
+        "fields": {}
+    },
+    {
+        "model": "sets.record",
+        "pk": 10,
+        "fields": {}
+    }
+]

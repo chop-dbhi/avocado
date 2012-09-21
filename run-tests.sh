@@ -3,7 +3,7 @@
 ARGS="$@"
 
 if [ ! $ARGS ]; then
-    ARGS="avocado core export formatters lexicon models query stats subcommands"
+    ARGS="avocado core export formatters lexicon models query sets stats subcommands"
 fi
 
 DJANGO_SETTINGS_MODULE='tests.settings' PYTHONPATH=. coverage run ../bin/django-admin.py test $ARGS

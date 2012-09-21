@@ -10,6 +10,7 @@ from django.db.models import (get_model, get_models, get_app, AutoField,
 from django.core.management.base import BaseCommand
 from avocado.models import DataField
 from avocado.lexicon.models import Lexicon
+from avocado.sets.models import ObjectSet
 from avocado.core import utils
 
 
@@ -72,7 +73,7 @@ class Command(BaseCommand):
         OneToOneField,
     )
 
-    ignored_lexicon_fields = ('order', 'label', 'code')
+    ignored_lexicon_fields = ('value', 'order', 'label', 'code')
 
     def handle(self, *args, **options):
         "Handles app_label or app_label.model_label formats."
@@ -81,14 +82,16 @@ class Command(BaseCommand):
             sys.stdout = open(os.devnull, 'w')
 
         if options.get('update_existing'):
-            resp = raw_input('Are you sure you want to update existing metadata?\n'
-                'This will overwrite any previous changes made. Type "yes" to continue: ')
+            resp = raw_input('Are you sure you want to update existing '
+                'metadata?\nThis will overwrite any previous changes made. '
+                'Type "yes" to continue: ')
             if resp.lower() != 'yes':
                 print('Sync operation cancelled')
                 return
 
         for label in args:
-            fields = []
+            pending_fields = []
+            pending_models = []
 
             toks = label.split('.')
             app_name = model_name = field_name = None
@@ -110,40 +113,43 @@ class Command(BaseCommand):
                     print('Cannot find model "{0}", skipping...'.format(label))
                     continue
 
+                # Specific field
                 if field_name:
                     try:
                         field = model._meta.get_field_by_name(field_name)[0]
                     except FieldDoesNotExist:
                         print('Cannot find field "{0}", skipping...'.format(label))
                         continue
-                    fields = [(field, model_name, app_name)]
+                    pending_fields = [(field, model_name, app_name)]
+
+                # No specific field, queue up the model
                 else:
-                    lexicon = issubclass(model, Lexicon)
-                    for field in model._meta.fields:
-                        if lexicon and field.name in self.ignored_lexicon_fields:
-                            continue
-                        fields.append((field, model_name, app_name))
+                    pending_models.append(model)
             else:
                 app = get_app(app_name)
                 if app is None:
                     print('Cannot find app "{0}", skipping...'.format(label))
                     continue
+                pending_models.extend(get_models(app))
 
-                for model in get_models(app):
-                    lexicon = issubclass(model, Lexicon)
-                    model_name = model._meta.object_name.lower()
+            for model in pending_models:
+                lexicon = issubclass(model, Lexicon)
+                objectset = issubclass(model, ObjectSet)
+
+                model_name = model._meta.object_name.lower()
+
+                if lexicon or objectset:
+                    pk = model._meta.pk
+                    pk.verbose_name = model._meta.verbose_name
+                    pending_fields.append((pk, model_name, app_name))
+                else:
                     for field in model._meta.fields:
-                        if lexicon:
-                            if field.name in self.ignored_lexicon_fields:
-                                continue
-                            if field.name == 'value':
-                                # Name the `value` field after the model for lexicon
-                                field.verbose_name = model._meta.verbose_name
-                        fields.append((field, model_name, app_name))
+                        pending_fields.append((field, model_name, app_name))
 
             added = 0
             updated = 0
-            for field_args in fields:
+
+            for field_args in pending_fields:
                 status = self.handle_field(*field_args, **options)
                 if status is True:
                     added += 1
@@ -161,21 +167,25 @@ class Command(BaseCommand):
                 print('{0:,} fields updated for {1}'.format(updated, label))
 
     def handle_field(self, field, model_name, app_name, **options):
-        include_non_editable = options.get('include_non_editable')
         include_keys = options.get('include_keys')
         update_existing = options.get('update_existing')
+        include_non_editable = options.get('include_non_editable')
 
+        # M2Ms do not make any sense here..
         if isinstance(field, ManyToManyField):
             return
 
-        # Check for primary key, and foreign key fields
-        if isinstance(field, self.key_field_types) and not include_keys:
-            return
+        # Lexicons and ObjectSets are represented via their primary key, so
+        # these may pass
+        if not isinstance(field.model, (Lexicon, ObjectSet)):
+            # Check for primary key, and foreign key fields
+            if isinstance(field, self.key_field_types) and not include_keys:
+                return
 
-        # Ignore non-editable fields since in most cases they are for
-        # managment purposes
-        if not field.editable and not include_non_editable:
-            return
+            # Ignore non-editable fields since in most cases they are for
+            # managment purposes
+            if not field.editable and not include_non_editable:
+                return
 
         # All but the field name is case-insensitive, do initial lookup
         # to see if it already exists, skip if it does
@@ -201,7 +211,8 @@ class Command(BaseCommand):
         if datafield.pk:
             created = False
             if not update_existing:
-                print('({}) {}.{} already exists. Skipping...'.format(app_name, model_name, field.name))
+                print('({}) {}.{} already exists. Skipping...'.format(app_name,
+                    model_name, field.name))
                 return
             # Only overwrite if the source value is not falsy
             datafield.__dict__.update([(k, v) for k, v in kwargs.items()])

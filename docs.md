@@ -522,6 +522,71 @@ manually later)
 
 ---
 
+## Object Sets
+
+It is common for saving off sets of objects (e.g. patients) for later reference. This enables performing actions to the set without the constraints of the query conditions as well as performing basic set operations such as union and intersection between sets of the same type.
+
+The main benefits include:
+
+- API for creating persistant, on-the-fly sets of objects (effectively materialized views)
+- Performance benefits of joining on a fixed set of a objects without the encumbrance of query conditions
+- Using sets as building blocks for creating more complicated queries that may be virtually impossible for end users to construct manually otherwise
+
+For models that need to be _set-enabled_, the model should subclass `ObjectSet` which will make it easier elsewhere to make use of such models. The subclass must implement a `ManyToManyField` pointing to the model of interest.
+
+The usage should look like this:
+
+```python
+from avocado.sets import ObjectSet, SetObject
+
+class PatientSet(ObjectSet):
+    patients = models.ManyToManyField(Patient, through='PatientSetObject')
+
+
+class PatientSetObject(SetObject):
+    # The db_column overrides are certainly not necessary, but makes the
+    # column names a bit more readable when writing raw queries..
+    object_set = models.ForeignKey(PatientSet, db_column='set_id')
+    set_object = models.ForeignKey(Patient, db_column='object_id')
+```
+
+The main integration point is exposing sets as a means of filtering the object of interest. 
+
+- female patients
+- less than 5 years of age
+- who are in my "african americans with conductive hearing loss" set
+
+This translates to a `DataContext` that looks like this:
+
+```javascript
+{
+    "type": "and",
+    "children": [{
+        "id": 1, // sex datafield
+        "operator": "exact",
+        "value": "female"
+    }, {
+        "id": 2, // age datafield
+        "operator": "lt"
+        "value": 5
+    }, {
+        "id": 3, // patientset datafield
+        "operator": "exact",
+        "value": 30 // patientset id
+    }]
+}
+```
+
+Although it may be queried and exposed as querying on the set itself, the actually query being executed must join from `Patient` &rarr; `PatientSetObject` where `set_id = 30`. The translator must map from an `ObjectSet` subclass to it's respective M2M through model. The output SQL would look something like:
+
+```sql
+SELECT ... some columns ...
+FROM "patient" INNER JOIN "patientsetobject" ON ("patient"."id" = "patientsetobject"."object_id")
+WHERE "patient"."sex" = 'female' AND "patient"."age" < 5 AND "patientsetobject"."set_id" = 30
+```
+
+---
+
 ## Template Tags
 
 Avocado provides single base templatetag (similar to the management commands). The syntax is as follows:

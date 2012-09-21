@@ -15,6 +15,7 @@ from avocado.query import parsers
 from avocado.query.translators import registry as translators
 from avocado.query.operators import registry as operators
 from avocado.lexicon.models import Lexicon
+from avocado.sets.models import ObjectSet
 from avocado.stats.agg import Aggregator
 from avocado.formatters import registry as formatters
 from avocado.queryview import registry as queryviews
@@ -62,8 +63,8 @@ class DataField(BasePlural):
     # should be linked to initially.
     category = models.ForeignKey(DataCategory, null=True, blank=True)
 
-    # Set this field to true to make this field's values enumerable. This should
-    # only be enabled for data that contains a discrete vocabulary, i.e.
+    # Set this field to true to make this field's values enumerable. This
+    # should only be enabled for data that contains a discrete vocabulary, i.e.
     # no full text data, most numerical data nor date or time data.
     enumerable = models.BooleanField(default=False)
 
@@ -80,7 +81,7 @@ class DataField(BasePlural):
     # has been modified. This is used for the cache key and for general
     # reference. The underlying table may not have a timestamp nor is it
     # optimal to have to query the data for the max `modified` time.
-    data_modified = models.DateTimeField(null=True, help_text='The last time ' \
+    data_modified = models.DateTimeField(null=True, help_text='The last time '\
         ' the underlying data for this field was modified.')
 
     # Enables recording where this particular data comes if derived from
@@ -113,7 +114,15 @@ class DataField(BasePlural):
     def __unicode__(self):
         if self.name:
             return self.name
-        return '{} {}'.format(self.model._meta.verbose_name, self.field.verbose_name).title()
+        return '{} {}'.format(self.model._meta.verbose_name,
+            self.field.verbose_name).title()
+
+    def __len__(self):
+        return self.size
+
+    def __nonzero__(self):
+        "Takes precedence over __len__, so it is always truthy."
+        return True
 
     # The natural key should be used any time fields are being exported
     # for integration in another system. It makes it trivial to map to new
@@ -157,25 +166,36 @@ class DataField(BasePlural):
     @property
     def lexicon(self):
         """Returns true if the model is a subclass of Lexicon and this
-        is the 'value' field. All other fields on the lexicon treated as
+        is the pk field. All other fields on the class are treated as
         normal datafields.
         """
         return self.model and issubclass(self.model, Lexicon) \
-            and self.field_name == 'value'
+            and self.field_name == self.model._meta.pk.name
+
+    @property
+    def objectset(self):
+        """Returns true if the model is a subclass of ObjectSet and this
+        is the pk field. All other fields on the class are treated as
+        normal datafields.
+        """
+        return self.model and issubclass(self.model, ObjectSet) \
+            and self.field_name == self.model._meta.pk.name
 
     # Convenience Methods
     # Easier access to the underlying data for this data field
 
     def query(self):
-        "Returns a `ValuesListQuerySet` for this data field."
-        return self.model.objects.values(self.field_name)
+        "Returns a `ValuesListQuerySet` of values for this field."
+        if self.lexicon or self.objectset:
+            return self.model.objects.values_list('pk', flat=True)
+        return self.model.objects.values_list(self.field_name, flat=True)\
+            .order_by(self.field_name).distinct()
 
     def search(self, query):
         "Rudimentary search for string-based values."
-        if self.simple_type == 'string':
+        if self.simple_type == 'string' or self.lexicon:
             filters = {'{0}__icontains'.format(self.field_name): query}
-            return self.query().filter(**filters).distinct()\
-                .values_list(self.field_name, flat=True).iterator()
+            return self.query().filter(**filters).iterator()
 
     def get_plural_unit(self):
         if self.unit_plural:
@@ -192,15 +212,12 @@ class DataField(BasePlural):
     @cached_property('size', version='data_modified')
     def size(self):
         "Returns the count of distinct values."
-        return self.query().distinct().count()
+        return self.query().count()
 
     @cached_property('values', version='data_modified')
     def values(self):
-        "Introspects the data and returns a distinct list of the values."
-        query = self.query().values_list(self.field_name, flat=True).distinct()
-        if not self.lexicon:
-            query = query.order_by(self.field_name)
-        return tuple(query)
+        "Returns a distinct list of the values."
+        return tuple(self.query())
 
     @cached_property('labels', version='data_modified')
     def labels(self):
@@ -210,8 +227,11 @@ class DataField(BasePlural):
         """
         if self.lexicon:
             return tuple(self.model.objects.values_list('label', flat=True))
-        # Unicode each value
-        return map(smart_unicode, self.values)
+        if self.objectset:
+            return tuple(self.model.objects.values_list('name', flat=True))
+        # Unicode each value, use an iterator here to prevent loading the
+        # raw values in memory
+        return map(smart_unicode, iter(self.query()))
 
     @cached_property('codes', version='data_modified')
     def codes(self):

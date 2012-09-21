@@ -7,13 +7,15 @@ class LexiconTestCase(TestCase):
     fixtures = ['lexicon.json']
 
     def test_datafield_properties(self):
-        f = DataField(app_name='lexicon', model_name='month', field_name='value')
-        self.assertEqual(f.values, (u'jan', u'feb', u'mar', u'apr', u'may', u'jun', u'jul', u'aug', u'sep', u'oct', u'nov', u'dec'))
-        self.assertEqual(f.labels, (u'January', u'February', u'March', u'April', u'May', u'June', u'July', u'August', u'September', u'October', u'November', u'December'))
+        f = DataField(app_name='lexicon', model_name='month', field_name='id')
+        self.assertEqual(f.values, (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12))
+        self.assertEqual(f.labels, (u'January', u'February', u'March',
+            u'April', u'May', u'June', u'July', u'August', u'September',
+            u'October', u'November', u'December'))
         self.assertEqual(f.codes, (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11))
 
     def test_dataview_order_by(self):
-        f = DataField(app_name='lexicon', model_name='month', field_name='value')
+        f = DataField(app_name='lexicon', model_name='month', field_name='id')
         f.save()
 
         c = DataConcept()
