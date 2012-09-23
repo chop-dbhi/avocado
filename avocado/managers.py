@@ -1,6 +1,7 @@
 from django.db.models import Q
 from django.db import transaction
 from django.conf import settings
+from django.db.models.manager import ManagerDescriptor
 from django.core.exceptions import ImproperlyConfigured
 from avocado.conf import OPTIONAL_DEPS, requires_dep
 from avocado.core.cache import CacheQuerySet
@@ -71,8 +72,27 @@ class DataConceptQuerySet(PublishedQuerySet):
         return concepts
 
 
+class DataFieldManagerDescriptor(ManagerDescriptor):
+    """Manager descriptor customized to allow for `f.objects` which returns
+    a QuerySet of the underlying model objects which DataField represents.
+    """
+    def __init__(self, manager):
+        self.manager = manager
+
+    def __get__(self, instance, type=None):
+        if instance and (instance.lexicon or instance.objectset):
+            return instance.model.objects.all()
+        return super(DataFieldManagerDescriptor, self).__get__(instance, type)
+
+
 class DataFieldManager(PublishedManager):
     "Manager for the `DataField` model."
+
+    def contribute_to_class(self, model, name):
+        "Override to use custom manager descriptor."
+        super(DataFieldManager, self).contribute_to_class(model, name)
+        setattr(model, name, DataFieldManagerDescriptor(self))
+
     def get_query_set(self):
         return DataFieldQuerySet(self.model, using=self._db)
 

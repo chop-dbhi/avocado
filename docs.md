@@ -226,10 +226,12 @@ Additional metadata can be defined for this object to make it more useful to hum
 - `f.internal_type` - The low-level datatype of the field. This is really only used for mapping to the below `simple_type`. Read more about the [internal vs. simple types](#internal-vs-simple-types).
 - `f.simple_type` - The high-level datatype of the field used for validation purposes and as general metadata for client applications. (These types can be overridden, [read about](SIMPLE_TYPE_MAP) the `SIMPLE_TYPE_MAP` setting)
 - `f.size` - Returns the number of _distinct_ values for this field
+- `f.values_list` - Returns a `ValuesQuerySet` of distinct values for the field.
+This is primarily used by the below functions. Useful applying additional QuerySet
+operations.
 - `f.values` - Returns a tuple of distinct raw values ordered by the field. If the corresponding model is a subclass of Avocado's `Lexicon` abstract model, the order corresponds to the `order` field on the `Lexicon` model subclass. Read more about the [`Lexicon` abstract class](#lexicon-abstract-class).
 - `f.labels` - Returns a unicoded tuple of labels. If the corresponding model is a subclass of Avocado's `Lexicon` abstract model, this corresponds to the `label` field on the `Lexicon` model subclass. Read more about the [`Lexicon` abstract class](#lexicon-abstract-class).
 - `f.choices` - A tuple of pairs zipped from `f.values` and `f.labels`. This is useful for populating form fields for client applications.
-- `f.query()` - Returns a `ValuesQuerySet` for this field. This is equivalent to `f.model.objects.values(f.field_name)`.
 
 ```python
 >>> f.internal_type
@@ -244,9 +246,24 @@ Additional metadata can be defined for this object to make it more useful to hum
 (u'A Christmas Carol', u'A Tale of Two Cities', u'The Adventures of Oliver Twist', ...)
 >>> f.choices
 (('A Christmas Carol', u'A Christmas Carol'), ...)
->>> f.query()
-[{'title': 'A Christmas Carol'}, ...]
+>>> f.values_list
+['A Christmas Carol', 'A Tale of Two Cities', 'The Adventures of Oliver Twist', ...]
 ```
+
+##### Lexicon &amp; ObjectSet
+
+In addition to the above `DataField` API, instances that represent a 
+`Lexicon` or `ObjectSet` class can utilize the `f.objects` property, normally
+only available to `Model` classes. It will return a `QuerySet` of the model
+it represents:
+
+```python
+>>> f = DataField(app_name='dates', model_name='month', field_name='id')
+>>> f.objects
+[<Month: 'January'>, <Month: 'February'>, ...]
+```
+
+Read more about Lexicons and ObjectSets below.
 
 #### Aggregation
 

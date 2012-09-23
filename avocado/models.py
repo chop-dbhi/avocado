@@ -186,7 +186,8 @@ class DataField(BasePlural):
     # Convenience Methods
     # Easier access to the underlying data for this data field
 
-    def query(self):
+    @property
+    def values_list(self):
         "Returns a `ValuesListQuerySet` of values for this field."
         if self.lexicon or self.objectset:
             return self.model.objects.values_list('pk', flat=True)
@@ -196,8 +197,12 @@ class DataField(BasePlural):
     def search(self, query):
         "Rudimentary search for string-based values."
         if self.simple_type == 'string' or self.lexicon:
-            filters = {'{0}__icontains'.format(self.field_name): query}
-            return self.query().filter(**filters).iterator()
+            if self.lexicon:
+                field_name = 'value'
+            else:
+                field_name = self.field_name
+            filters = {'{0}__icontains'.format(field_name): query}
+            return self.values_list.filter(**filters).iterator()
 
     def get_plural_unit(self):
         if self.unit_plural:
@@ -214,12 +219,12 @@ class DataField(BasePlural):
     @cached_property('size', version='data_modified')
     def size(self):
         "Returns the count of distinct values."
-        return self.query().count()
+        return self.values_list.count()
 
     @cached_property('values', version='data_modified')
     def values(self):
         "Returns a distinct list of the values."
-        return tuple(self.query())
+        return tuple(self.values_list)
 
     @cached_property('labels', version='data_modified')
     def labels(self):
@@ -233,7 +238,7 @@ class DataField(BasePlural):
             return tuple(self.model.objects.values_list('name', flat=True))
         # Unicode each value, use an iterator here to prevent loading the
         # raw values in memory
-        return map(smart_unicode, iter(self.query()))
+        return map(smart_unicode, iter(self.values_list))
 
     @cached_property('codes', version='data_modified')
     def codes(self):
