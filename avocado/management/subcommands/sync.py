@@ -177,7 +177,7 @@ class Command(BaseCommand):
 
         # Lexicons and ObjectSets are represented via their primary key, so
         # these may pass
-        if not isinstance(field.model, (Lexicon, ObjectSet)):
+        if not issubclass(field.model, (Lexicon, ObjectSet)):
             # Check for primary key, and foreign key fields
             if isinstance(field, self.key_field_types) and not include_keys:
                 return
