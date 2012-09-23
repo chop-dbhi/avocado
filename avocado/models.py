@@ -114,6 +114,8 @@ class DataField(BasePlural):
     def __unicode__(self):
         if self.name:
             return self.name
+        if self.lexicon or self.objectset:
+            return self.model._meta.verbose_name
         return '{} {}'.format(self.model._meta.verbose_name,
             self.field.verbose_name).title()
 
