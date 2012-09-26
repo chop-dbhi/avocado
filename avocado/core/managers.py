@@ -1,4 +1,6 @@
 from django.db import models
+from .cache import CacheQuerySet
+
 
 # Taken from Carl Meyer's django-model-utils
 class PassThroughManager(models.Manager):
@@ -40,3 +42,13 @@ class PassThroughManager(models.Manager):
         return super(PassThroughManager, self).get_query_set()
 
 
+class PublishedQuerySet(CacheQuerySet):
+    "Adds additional helper methods focused around access and permissions."
+    def published(self):
+        "Returns all published non-archived objects."
+        return self.filter(published=True, archived=False)
+
+
+class PublishedManager(PassThroughManager):
+    def get_query_set(self):
+        return PublishedQuerySet(self.model, using=self._db)

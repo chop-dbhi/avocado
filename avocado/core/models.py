@@ -1,5 +1,6 @@
 import logging
 from django.db import models
+from .managers import PublishedManager
 
 log = logging.getLogger(__file__)
 
@@ -33,6 +34,8 @@ class Base(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
 
+    objects = PublishedManager()
+
     class Meta(object):
         abstract = True
 
@@ -50,7 +53,8 @@ class Base(models.Model):
     def save(self, *args, **kwargs):
         if self.archived and self.published:
             self.published = False
-            log.debug('{0} is published, but is being archived. It has been unpublished'.format(self))
+            log.debug('{0} is published, but is being archived. It has ' \
+                'been unpublished'.format(self))
         super(Base, self).save(*args, **kwargs)
 
 

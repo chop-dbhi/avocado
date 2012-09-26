@@ -1,23 +1,11 @@
+from django.db import models
 from django.db.models import Q
 from django.db import transaction
 from django.conf import settings
 from django.db.models.manager import ManagerDescriptor
 from django.core.exceptions import ImproperlyConfigured
 from avocado.conf import OPTIONAL_DEPS, requires_dep
-from avocado.core.cache import CacheQuerySet
-from avocado.core.managers import PassThroughManager
-
-
-class PublishedQuerySet(CacheQuerySet):
-    "Adds additional helper methods focused around access and permissions."
-    def published(self):
-        "Returns all published non-archived objects."
-        return self.filter(published=True, archived=False)
-
-
-class PublishedManager(PassThroughManager):
-    def get_query_set(self):
-        return PublishedQuerySet(self.model, using=self._db)
+from avocado.core.managers import PublishedManager, PublishedQuerySet
 
 
 class DataFieldQuerySet(PublishedQuerySet):
@@ -34,7 +22,8 @@ class DataFieldQuerySet(PublishedQuerySet):
 
         if user:
             if not OPTIONAL_DEPS['guardian']:
-                raise ImproperlyConfigured('django-guardian must installed for object-level permissions.')
+                raise ImproperlyConfigured('django-guardian must installed ' \
+                    'for object-level permissions.')
             from guardian.shortcuts import get_objects_for_user
             published = get_objects_for_user(user, perm, published)
         return published.distinct()
@@ -59,12 +48,14 @@ class DataConceptQuerySet(PublishedQuerySet):
         fields_q = Q(archived=True) | Q(published=False)
         if user:
             if not OPTIONAL_DEPS['guardian']:
-                raise ImproperlyConfigured('django-guardian must installed for object-level permissions.')
+                raise ImproperlyConfigured('django-guardian must installed ' \
+                    'for object-level permissions.')
             from guardian.shortcuts import get_objects_for_user
             # If a user is specified, they must also have a permission for
             # accessing the data fields. All data fields that the user does
             # NOT have access to must also be removed from the set.
-            restricted_fields = DataField.objects.exclude(pk__in=get_objects_for_user(user, perm))
+            restricted_fields = DataField.objects\
+                .exclude(pk__in=get_objects_for_user(user, perm))
             fields_q = fields_q | Q(pk__in=restricted_fields)
 
         shadowed = DataField.objects.filter(fields_q)
@@ -114,7 +105,8 @@ class DataFieldManager(PublishedManager):
     @requires_dep('haystack')
     def search(self, content, queryset=None, max_results=10):
         from haystack.query import RelatedSearchQuerySet
-        sqs = RelatedSearchQuerySet().models(self.model).load_all().auto_query(content)
+        sqs = RelatedSearchQuerySet().models(self.model).load_all()\
+            .auto_query(content)
         if queryset is not None:
             sqs = sqs.load_all_queryset(self.model, queryset)
         if max_results:
@@ -122,7 +114,7 @@ class DataFieldManager(PublishedManager):
         return sqs
 
 
-class DataConceptManager(PassThroughManager):
+class DataConceptManager(PublishedManager):
     "Manager for the `DataConcept` model."
     def get_query_set(self):
         return DataConceptQuerySet(self.model, using=self._db)
@@ -130,7 +122,8 @@ class DataConceptManager(PassThroughManager):
     @requires_dep('haystack')
     def search(self, content, queryset=None, max_results=10):
         from haystack.query import RelatedSearchQuerySet
-        sqs = RelatedSearchQuerySet().models(self.model).load_all().auto_query(content)
+        sqs = RelatedSearchQuerySet().models(self.model).load_all()\
+            .auto_query(content)
         if queryset is not None:
             sqs = sqs.load_all_queryset(self.model, queryset)
         if max_results:
