@@ -1,5 +1,6 @@
 from django import forms
 from django.db import models
+from django.db.models.query import QuerySet
 from django.db.models import Q
 from django.core.exceptions import ValidationError
 from modeltree.tree import trees
@@ -48,7 +49,8 @@ class Translator(object):
 
         # Ensure the operator is allowed
         if operator.uid not in allowed_operators:
-            raise OperatorNotPermitted('Operator "{0}" cannot be used for this translator'.format(operator))
+            raise OperatorNotPermitted('Operator "{0}" cannot be used for ' \
+                'this translator'.format(operator))
         return operator
 
     def _validate_value(self, datafield, value, **kwargs):
@@ -62,11 +64,6 @@ class Translator(object):
                 name = INTERNAL_DATATYPE_FORMFIELDS[datafield.simple_type]
                 kwargs['form_class'] = get_form_class(name)
 
-        # If this datafield is flagged as enumerable, use a select multiple
-        # by default.
-        if datafield.enumerable and 'widget' not in kwargs:
-            kwargs['widget'] = forms.SelectMultiple(choices=datafield.choices)
-
         # Since None is considered an empty value by the django validators
         # ``required`` has to be set to False to not raise a ValidationError
         # saying the field is required. There may be a need to more explicitly
@@ -75,31 +72,40 @@ class Translator(object):
         if datafield.field.null:
             kwargs['required'] = False
 
-        # Get the default formfield for the model field. Django has no
-        # default formfield for AutoField, so a an explicit formfield must
-        # be defined.
-        if datafield.lexicon or datafield.objectset:
+        # Special handling for primary keys
+        if isinstance(datafield.field, models.AutoField):
             kwargs.pop('form_class', None)
-            formfield = forms.ModelChoiceField(queryset=datafield.objects,
-                **kwargs)
-        else:
-            formfield = datafield.field.formfield(**kwargs)
+            queryset = datafield.objects
+            if hasattr(value, '__iter__'):
+                formfield = forms.ModelMultipleChoiceField(queryset, **kwargs)
+                cleaned_value = [x.pk for x in formfield.clean(value)]
+            else:
+                formfield = forms.ModelChoiceField(queryset, **kwargs)
+                cleaned_value = formfield.clean(value).pk
+            return cleaned_value
+
+        # If this datafield is flagged as enumerable, use a select multiple
+        # by default.
+        if datafield.enumerable and 'widget' not in kwargs:
+            kwargs['widget'] = forms.SelectMultiple(choices=datafield.choices)
+
+        formfield = datafield.field.formfield(**kwargs)
 
         # special case for ``None`` values since all form fields seem to handle
         # the conversion differently. simply ignore the cleaning if ``None``,
         # this scenario occurs when a list of values are being queried and one
         # of them is to lookup NULL values
         if hasattr(value, '__iter__'):
-            new_value = []
+            cleaned_value = []
             for x in value:
                 if x is not None:
-                    new_value.append(formfield.clean(x))
+                    cleaned_value.append(formfield.clean(x))
                 # Django assumes an empty string when given a ``NoneType``
                 # for char-based form fields, this is to ensure ``NoneType``
                 # are passed through unmodified
                 else:
-                    new_value.append(None)
-            return new_value
+                    cleaned_value.append(None)
+            return cleaned_value
         return formfield.clean(value)
 
     def _get_not_null_pk(self, field, tree):
@@ -187,9 +193,6 @@ class Translator(object):
     def validate(self, datafield, operator, value, tree, **kwargs):
         operator = self._validate_operator(datafield, operator, **kwargs)
         value = self._validate_value(datafield, value, **kwargs)
-
-        if isinstance(value, models.Model):
-            value = value.pk
 
         if not operator.is_valid(value):
             raise ValidationError('"{0}" is not valid for the operator "{1}"'.format(value, operator))

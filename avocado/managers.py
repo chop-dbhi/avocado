@@ -71,7 +71,7 @@ class DataFieldManagerDescriptor(ManagerDescriptor):
         self.manager = manager
 
     def __get__(self, instance, type=None):
-        if instance and (instance.lexicon or instance.objectset):
+        if instance and isinstance(instance.field, models.AutoField):
             return instance.model.objects.all()
         return super(DataFieldManagerDescriptor, self).__get__(instance, type)
 
