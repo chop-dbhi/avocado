@@ -15,6 +15,7 @@ INSTALLED_APPS = (
     'guardian',
 
     'avocado',
+    'tests',
     'tests.cases.core',
     'tests.cases.lexicon',
     'tests.cases.export',
@@ -35,12 +36,11 @@ CACHES = {
 
 SITE_ID = 1
 
-HAYSTACK_CONNECTIONS = {
-    'default': {
-        'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
-        'PATH': os.path.join(os.path.dirname(__file__), 'whoosh.index'),
-    }
-}
+
+HAYSTACK_SITECONF = 'tests.search_sites'
+HAYSTACK_SEARCH_ENGINE = 'whoosh'
+HAYSTACK_WHOOSH_PATH = os.path.join(os.path.dirname(__file__), 'whoosh.index')
+
 
 ANONYMOUS_USER_ID = -1
 

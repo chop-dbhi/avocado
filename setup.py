@@ -32,7 +32,7 @@ kwargs = {
     # Test dependencies
     'tests_require': [
         'django-guardian',
-        'django-haystack>=2.0b',
+        'django-haystack',
         'whoosh',
         'openpyxl',
         'scipy',
@@ -46,18 +46,13 @@ kwargs = {
         # Granular permission
         'permissions': ['django-guardian'],
         # Search
-        'search': ['django-haystack>=2.0b'],
-        # Clustering components.. unforunately SciPy must be installed separately
-        # since NumPy is a dependency
+        'search': ['django-haystack'],
+        # Clustering components.. unforunately SciPy must be installed
+        # separately since NumPy is a dependency
         'clustering': ['numpy'],
         # Includes extra exporter dependencies
         'extras': ['openpyxl'],
     },
-
-    # Resources unavailable on PyPi
-    'dependency_links': [
-        'https://github.com/toastdriven/django-haystack/tarball/master#egg=django-haystack-2.0',
-    ],
 
     # Metadata
     'name': 'avocado',
