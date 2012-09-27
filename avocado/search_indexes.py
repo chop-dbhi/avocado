@@ -1,16 +1,17 @@
-from haystack import site, indexes
+from haystack import site
+from haystack.indexes import *
 from avocado.models import DataConcept, DataField
 
 
-class DataConceptIndex(indexes.SearchIndex):
-    text = indexes.CharField(document=True, use_template=True)
+class DataConceptIndex(SearchIndex):
+    text = CharField(document=True, use_template=True)
 
     def get_model(self):
         return DataConcept
 
 
-class DataFieldIndex(indexes.SearchIndex):
-    text = indexes.CharField(document=True, use_template=True)
+class DataFieldIndex(SearchIndex):
+    text = CharField(document=True, use_template=True)
 
     def get_model(self):
         return DataField
