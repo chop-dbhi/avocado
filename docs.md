@@ -1,4 +1,4 @@
-# Avocado
+# avocado
 
 #### Metadata APIs for Django
 
@@ -368,7 +368,7 @@ The primary method to call is `translate` which calls `clean_value` and `clean_o
 
 As much as Avocado is a metadata management tool, a prime consumer of this metadata are humans. More specifically, the metadata can be used to provide more context and meaning to the data and the data model.
 
-The notion of a `DataConcept` came from the need to represent discrete data in a human-readable domain-specific way. Data is typically stored in a normalized, discrete and efficient way, thus rendering it a bit obscure in it's raw state. Sometimes a single _column_ of data in database table is meaningless without another column, for example a column of `weight` without the column of `unit`.
+The notion of a `DataConcept` came from the need to represent discrete data in a human-readable domain-specific way. Data is typically stored in a normalized, discrete and efficient way, thus rendering is a bit obscure in it's raw state. Sometimes a single _column_ of data in database table is meaningless without another column, for example a column of `weight` without the column of `unit`.
 
 Of course, data must be stored in this discrete way to ensure the database can treat it properly and perform the correct operations on that data. Unfortunately, humans don't care about how data is stored, nor should they. **They simply want the data to be accessible so they can consume it in a way that makes sense to them.**
 
@@ -389,8 +389,6 @@ Datatypes, in the context of Avocado, are used for representation of the data fo
 
 The most common utility of the DataConcept abstraction is formatting the fields' data in a usable format for the consumer. The consumer may be a human, a Web browser, an R interpreter or anything else. Regardless of the consume, formatters provide an API for taking in raw data and outputting a representation of that data.
 
-The most common utility of the `DataConcept` abstraction is formatting the fields' data in a usable format for the consumer. The consumer may be a human, a Web browser, an R interpreter or anything else. Regardless of the consume, formatters provide an API for taking in raw data and outputting a representation of that data.
-
 ```python
 from avocado.formatters import Formatter
 # Get the 'Dosage' concept which combines the 'dose'
@@ -403,7 +401,11 @@ values = [60, 'mg', 'as needed']
 formatter(values, preferred_formats=['string'])
 ```
 
-A formatter attempts to solve two problems. First, **coerce the various values into the preferred format** and secondly, perform an operation on each or all of the values. As shown above, the `formatter` instance is callable and takes a sequence of `values` and a `preferred_formats` argument. Since this is the base formatter class, aside from being good at coercing datatypes, it is not terribly useful.
+A formatter attempts to solve two problems: 
+- Coerce the various values into the preferred format 
+- Perform an operation on each or all of the values. 
+
+As shown above, the `formatter` instance is callable and takes a sequence of `values` and a `preferred_formats` argument. Since this is the base formatter class, it is only useful for coercing datatypes.
 
 Formatters can be easily created by subclassing the base `Formatter` class and adding, overriding, or augmenting the methods. As stated above, a formatter can be applied each raw value or all values together. As an example of this, we can create a simple `ConcatFormatter`.
 
@@ -613,7 +615,7 @@ Avocado provides single base templatetag (similar to the management commands). T
 ```
 
 ### Load
-Currently, the only _sub-tag_ implemented is the `load` command for loading `DataField and `DataConcept` instances on demand:
+Currently, the only avocado template tag command implemented is the `load` command for loading `DataField` and `DataConcept` instances on demand:
 
 **DataField with primary key**
 ```django
@@ -632,7 +634,7 @@ Currently, the only _sub-tag_ implemented is the `load` command for loading `Dat
 
 #### Example
 
-This enables using all the wonderful metadata API documented above dynamically:
+This enables using the metadata dynamically in templates through the API, which is documented above.
 
 ```django
 {% avocado load field "library.author.name" as author %}
@@ -652,7 +654,7 @@ Avocado commands are namespaced under `avocado`. Execute `./bin/manage.py avocad
 
 ### sync
 
-The sync command creates DataField instances from Djang model fields. This will be used whenever new models or new fields are added to your data model.
+The sync command creates `DataField` instances from Django model fields. This will be used whenever new models or new fields are added to your data model.
 
 ```bash
 ./manage.py avocado sync labels [--update] [--include-keys] [--include-non-editable]
@@ -667,7 +669,7 @@ The sync command creates DataField instances from Djang model fields. This will 
 
 ### orphaned
 
-Checks for DataField instances that no longer map to Django model fields (like a dead hyperlink).
+Checks for `DataField` instances that no longer map to Django model fields (like a dead hyperlink).
 
 ```bash
 ./manage.py avocado orphaned [--unpublish]
