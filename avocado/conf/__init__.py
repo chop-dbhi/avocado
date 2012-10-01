@@ -42,7 +42,7 @@ OPTIONAL_DEPS = {
 try:
     import haystack
     OPTIONAL_DEPS['haystack'] = True
-except ImportError:
+except (ImportError, ImproperlyConfigured):
     pass
 
 # High performance data structures
