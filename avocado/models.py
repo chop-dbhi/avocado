@@ -438,11 +438,14 @@ class DataContext(Base):
     def __or__(self, other):
         return self._combine(other, 'or')
 
+    def node(self, tree=None):
+        return parsers.datacontext.parse(self.json, tree=tree)
+
     def apply(self, queryset=None, tree=None):
         "Applies this context to a QuerySet."
         if tree is None and queryset is not None:
             tree = queryset.model
-        return parsers.datacontext.parse(self.json, tree=tree).apply(queryset=queryset)
+        return self.node(tree=tree).apply(queryset=queryset)
 
     def language(self, tree=None):
         return parsers.datacontext.parse(self.json, tree=tree).language
@@ -480,7 +483,7 @@ class DataView(Base):
         "Applies this context to a QuerySet."
         if tree is None and queryset is not None:
             tree = queryset.model
-        return parsers.dataview.parse(self.json, tree=tree).apply(queryset=queryset, include_pk=include_pk)
+        return self.node(tree=tree).apply(queryset=queryset, include_pk=include_pk)
 
 
 # Register instance-level cache invalidation handlers

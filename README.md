@@ -657,13 +657,13 @@ Avocado commands are namespaced under `avocado`. Execute `./bin/manage.py avocad
 The sync command creates `DataField` instances from Django model fields. This will be used whenever new models or new fields are added to your data model.
 
 ```bash
-./manage.py avocado sync labels [--update] [--include-keys] [--include-non-editable]
+./manage.py avocado sync labels [--force] [--include-keys] [--include-non-editable]
 ```
 
 **Parameters**
 
 - `labels` - refers to one or more space-separated app, model or field labels, for example library.book refers the the model Book in the app library.
-- `--update` - updates existing field instances (relative to the apps or models defined and overwrites any existing descriptive values such as name, name_plural, and description.
+- `--force` - forces an update to existing field instances (relative to the apps or models defined and overwrites any existing descriptive values such as name, name_plural, and description.
 - `--include-non-editable` - creates field instance for model fields with editable=False (by default these are ignored).
 - `--include-keys` - creates fields instances for primary and foreign key fields (by default these are ignored).
 

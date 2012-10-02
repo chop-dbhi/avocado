@@ -37,6 +37,8 @@ class Command(BaseCommand):
         `--update` - Updates existing `DataField` instances with metadata from
         model fields. Note this overwrites any descriptive metadata changes made
         to `DataField` such as `name`, `name_plural`, and `description`.
+
+        `--force` - Synonym to `--update`
     """
 
     help = '\n'.join([
@@ -56,9 +58,10 @@ class Command(BaseCommand):
             dest='include_keys', default=False,
             help='Create fields for primary and foreign key fields'),
 
-        make_option('-u', '--update', action='store_true',
-            dest='update_existing', default=False,
-            help='Updates existing metadata derived from model fields'),
+        make_option('-f', '--force', action='store_true',
+            dest='force', default=False,
+            help='Forces an update on existing field metadata'),
+
         make_option('-q', '--quiet', action='store_true',
             dest='quiet', default=False,
             help='Do not print any output')
@@ -81,10 +84,11 @@ class Command(BaseCommand):
         if options.get('quiet'):
             sys.stdout = open(os.devnull, 'w')
 
-        if options.get('update_existing'):
-            resp = raw_input('Are you sure you want to update existing '
-                'metadata?\nThis will overwrite any previous changes made. '
-                'Type "yes" to continue: ')
+        if options.get('force'):
+            resp = raw_input('Forcing a sync will update metadata for '
+                'existing fields. Are you sure you want to do this?\n'
+                'This will overwrite any previous changes made. Type "yes" '
+                'to continue: ')
             if resp.lower() != 'yes':
                 print('Sync operation cancelled')
                 return
@@ -168,7 +172,7 @@ class Command(BaseCommand):
 
     def handle_field(self, field, model_name, app_name, **options):
         include_keys = options.get('include_keys')
-        update_existing = options.get('update_existing')
+        force = options.get('force')
         include_non_editable = options.get('include_non_editable')
 
         # M2Ms do not make any sense here..
@@ -210,7 +214,7 @@ class Command(BaseCommand):
 
         if datafield.pk:
             created = False
-            if not update_existing:
+            if not force:
                 print('({}) {}.{} already exists. Skipping...'.format(app_name,
                     model_name, field.name))
                 return
