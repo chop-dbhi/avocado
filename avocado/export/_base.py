@@ -18,7 +18,7 @@ class BaseExporter(object):
         for concept in concepts:
             cfields = concept.concept_fields.select_related('field')
             fields = [c.field for c in cfields]
-            formatter = formatters[concept.formatter](concept)
+            formatter = formatters[concept.formatter_name](concept)
             self.params.append((self._get_keys(fields), len(cfields), formatter))
 
     def get_file_obj(self, name):
