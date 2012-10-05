@@ -35,7 +35,7 @@ class Formatter(object):
     """
     default_formats = ('boolean', 'number', 'string')
 
-    def __init__(self, concept=None, keys=None, **context):
+    def __init__(self, concept=None, keys=None):
         if concept:
             self.concept = concept
             self.fields = OrderedDict((f.field_name, f) \
@@ -47,9 +47,7 @@ class Formatter(object):
         else:
             raise Exception('A concept or list of keys must be supplied.')
 
-        self.context = context
-
-    def __call__(self, values, preferred_formats=None):
+    def __call__(self, values, preferred_formats=None, **context):
         # Create a copy of the preferred formats since each set values may
         # be processed slightly differently (e.g. mixed data type in column)
         # which could cause exceptions that would not be present during
@@ -88,7 +86,8 @@ class Formatter(object):
             # each value is handled independently
             if getattr(method, 'process_multiple', False):
                 try:
-                    output = method(values, fields=self.fields, process_multiple=True, **self.context)
+                    output = method(values, fields=self.fields,
+                        concept=self.concept, process_multiple=True, **context)
                     if not isinstance(output, dict):
                         return OrderedDict([(self.concept.name, output)])
                     return output
@@ -109,7 +108,8 @@ class Formatter(object):
                 method = getattr(self, 'to_{}'.format(f))
                 try:
                     field = self.fields[key] if self.fields else None
-                    fvalue = method(value, field=field, process_multiple=False, **self.context)
+                    fvalue = method(value, field=field, concept=self.concept,
+                        process_multiple=False, **context)
                     if isinstance(fvalue, dict):
                         output.update(fvalue)
                     else:
@@ -127,7 +127,7 @@ class Formatter(object):
     def __unicode__(self):
         return u'{}'.format(self.name or self.__class__.__name__)
 
-    def to_string(self, value, field=None, **context):
+    def to_string(self, value, **context):
         # Attempt to coerce non-strings to strings. Depending on the data
         # types that are being passed into this, this may not be good
         # enough for certain datatypes or complext data structures
@@ -135,13 +135,13 @@ class Formatter(object):
             return u''
         return force_unicode(value, strings_only=False)
 
-    def to_boolean(self, value, field=None, **context):
+    def to_boolean(self, value, **context):
         # If value is native True or False value, return it
         if type(value) is bool:
             return value
         raise FormatterException('Cannot convert {} to boolean'.format(value))
 
-    def to_number(self, value, field=None, **context):
+    def to_number(self, value, **context):
         # Attempts to convert a number. Starting with ints and floats
         # Eventually create to_decimal using the decimal library.
         if type(value) is int or type(value) is float:
@@ -154,15 +154,15 @@ class Formatter(object):
             return value
         raise FormatterException('Cannot convert {} to number'.format(value))
 
-    def to_coded(self, value, field=None, **context):
+    def to_coded(self, value, **context):
         # Attempts to convert value to its coded representation
-        if field:
-            for key, coded in field.coded_values:
+        if 'field' in context:
+            for key, coded in context['field'].coded_values:
                 if key == value:
                     return coded
         raise FormatterException('No coded value for {}'.format(value))
 
-    def to_raw(self, value, field=None, **context):
+    def to_raw(self, value, **context):
         return value
 
 
