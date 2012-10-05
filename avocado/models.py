@@ -358,8 +358,19 @@ class DataConcept(BasePlural):
     objects = DataConceptManager()
 
     def format(self, *args, **kwargs):
-        klass = formatters.get(self.formatter_name)
-        return klass(self)(*args, **kwargs)
+        """Convenience method for formatting data relative to this concept's
+        associated formatter. To prevent redundant initializations (say, in
+        a tight loop) the formatter instance is cached until the formatter
+        name changes.
+        """
+        name = self.formatter_name
+        cache = getattr(self, '_formatter_cache', None)
+        if not cache or name != cache[0]:
+            formatter = formatters.get(name)(self)
+            self._formatter_cache = (name, formatter)
+        else:
+            formatter = cache[1]
+        return formatter(*args, **kwargs)
 
     class Meta(object):
         app_label = 'avocado'

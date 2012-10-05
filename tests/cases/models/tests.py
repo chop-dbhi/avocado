@@ -1,7 +1,7 @@
+from collections import OrderedDict
 from django.test import TestCase
 from django.core import management
 from django.core.cache import cache
-from django.core import management
 from django.contrib.auth.models import User
 from guardian.shortcuts import assign
 from avocado.models import DataField, DataCategory, DataConcept, DataConceptField
@@ -88,6 +88,47 @@ class DataConceptTestCase(TestCase):
 
     def test_search(self):
         management.call_command('rebuild_index', interactive=False)
+
+    def test_format(self):
+        name_field = DataField.objects.get_by_natural_key('models', 'title', 'name')
+        salary_field = DataField.objects.get_by_natural_key('models', 'title', 'salary')
+        boss_field = DataField.objects.get_by_natural_key('models', 'title', 'boss')
+
+        concept = DataConcept(name='Title')
+        concept.save()
+
+        DataConceptField(concept=concept, field=name_field, order=1).save()
+        DataConceptField(concept=concept, field=salary_field, order=2).save()
+        DataConceptField(concept=concept, field=boss_field, order=3).save()
+
+        values = ['CEO', 100000, True]
+
+        self.assertEqual(concept.format(values),
+            OrderedDict([
+                (u'name', u'CEO'),
+                (u'salary', 100000),
+                (u'boss', True)
+            ]))
+
+        self.assertEqual(concept._formatter_cache[0], None)
+
+        from avocado.formatters import Formatter, registry as formatters
+
+        class HtmlFormatter(Formatter):
+            def to_html(self, values, **context):
+                fvalues = self(values, preferred_formats=['string'])
+                return OrderedDict({
+                    'profile': '<span>' + '</span><span>'.join(fvalues.values()) + '</span>'
+                })
+            to_html.process_multiple = True
+
+        formatters.register(HtmlFormatter, 'HTML')
+        concept.formatter_name = 'HTML'
+
+        self.assertEqual(concept.format(values, preferred_formats=['html']),
+            OrderedDict([
+                ('profile', u'<span>CEO</span><span>100000</span><span>True</span>')
+            ]))
 
 
 class DataConceptManagerTestCase(TestCase):
