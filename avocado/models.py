@@ -349,13 +349,17 @@ class DataConcept(BasePlural):
     # concept relative to the associated fields. If a formatter is not
     # defined, this DataConcept is not intended to be exposed since the
     # underlying data may not be appropriate for client consumption.
-    formatter = models.CharField(max_length=100, blank=True, null=True,
-        choices=formatters.choices)
+    formatter_name = models.CharField('formatter', max_length=100, blank=True,
+        null=True, choices=formatters.choices)
 
     queryview = models.CharField(max_length=100, blank=True, null=True,
         choices=queryviews.choices)
 
     objects = DataConceptManager()
+
+    def format(self, *args, **kwargs):
+        klass = formatters.get(self.formatter_name)
+        return klass(self)(*args, **kwargs)
 
     class Meta(object):
         app_label = 'avocado'
