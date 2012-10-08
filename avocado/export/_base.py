@@ -12,7 +12,7 @@ class BaseExporter(object):
 
         for concept in concepts:
             length = concept.concept_fields.count()
-            self.params.append((concept, length))
+            self.params.append((concept.format, length))
 
     def get_file_obj(self, name):
         if name is None:
@@ -22,9 +22,9 @@ class BaseExporter(object):
         return name
 
     def _format_row(self, row):
-        for concept, length in self.params:
+        for formatter, length in self.params:
             values, row = row[:length], row[length:]
-            yield concept.format(values, self.preferred_formats)
+            yield formatter(values, self.preferred_formats)
 
     def read(self, iterable):
         "Takes an iterable that produces rows to be formatted."
