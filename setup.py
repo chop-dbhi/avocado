@@ -54,6 +54,10 @@ kwargs = {
         'extras': ['openpyxl'],
     },
 
+    'dependency_links': [
+        'https://github.com/bradjasper/django-jsonfield/zipball/3bccdc47#egg=jsonfield',
+    ],
+
     # Metadata
     'name': 'avocado',
     'version': __import__('avocado').get_version(),
