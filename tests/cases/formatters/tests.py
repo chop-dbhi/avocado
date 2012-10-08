@@ -66,13 +66,28 @@ class FormatterTestCase(TestCase):
         class HtmlFormatter(Formatter):
             def to_html(self, values, **context):
                 fvalues = self(values, preferred_formats=['string'])
-                return OrderedDict({
-                    'profile': '<span>' + '</span><span>'.join(fvalues.values()) + '</span>'
-                })
+                return '<span>{}</span>'.format('</span><span>'.join(fvalues.values()))
             to_html.process_multiple = True
 
         f = HtmlFormatter(self.concept)
         fvalues = f(self.values, preferred_formats=['html'])
         self.assertEqual(OrderedDict({
-            'profile': u'<span>CEO</span><span>100000</span><span>True</span>'
+            'Title': u'<span>CEO</span><span>100000</span><span>True</span>'
         }), fvalues)
+
+    def test_unique_keys(self):
+        title_name = DataField.objects.get_by_natural_key('formatters', 'title', 'name')
+        project_name = DataField.objects.get_by_natural_key('formatters', 'project', 'name')
+
+        concept = DataConcept()
+        concept.save()
+
+        DataConceptField(concept=concept, field=title_name, order=1).save()
+        DataConceptField(concept=concept, field=project_name, order=2).save()
+
+        f = Formatter(concept)
+
+        self.assertEqual(OrderedDict([
+            ('title__name', 'one'),
+            ('project__name', 'two'),
+        ]), f(['one', 'two']))

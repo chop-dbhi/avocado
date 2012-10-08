@@ -1,8 +1,5 @@
 import logging
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
+from collections import OrderedDict, defaultdict
 from django.utils.encoding import force_unicode
 from avocado.core import loader
 
@@ -11,6 +8,55 @@ log = logging.getLogger(__file__)
 
 class FormatterException(Exception):
     pass
+
+
+def unique_keys(fields):
+    """Takes a list of fields and generated a unique list of keys based
+    based on the field's natural_key.
+    """
+    def model_prefix(field, key):
+        return '{}__{}'.format(field.model_name, key)
+
+    def app_prefix(field, key):
+        return '{}__{}'.format(field.app_name, model_prefix(field, key))
+
+    # Evaluate in case this is QuerySet..
+    fields = list(fields)
+
+    keys = []
+    names = []
+    models = defaultdict(int)
+
+    # Starting set of field names
+    for f in fields:
+        names.append(f.field_name)
+        models[f.model] += 1
+
+    # For consistency, any keys that do conflict, all occurences will
+    # be prefixed the same way either with the 'app' or 'model' level
+    prefixed = {}
+
+    for i, name in enumerate(names):
+        field = fields[i]
+
+        # Check is the prefix is pending
+        if name in prefixed:
+            key = prefixed[name](field, name)
+        elif names.count(name) == 1:
+            key = name
+        else:
+            if models[field.model] == 1:
+                key = model_prefix(field, name)
+                method = model_prefix
+            else:
+                key = app_prefix(field, name)
+                method = app_prefix
+
+            # Mark this field name to prefixed from now on
+            prefixed[name] = method
+        keys.append(key)
+
+    return keys
 
 
 class Formatter(object):
@@ -36,16 +82,19 @@ class Formatter(object):
     default_formats = ('boolean', 'number', 'string')
 
     def __init__(self, concept=None, keys=None):
+        "Passing in a concept takes precedence over `keys`."
+        if not keys and not concept:
+            raise ValueError('A concept or list of keys must be supplied.')
+
+        self.concept = concept
+        self.fields = None
+
         if concept:
-            self.concept = concept
-            self.fields = OrderedDict((f.field_name, f) \
-                for f in concept.fields.order_by('concept_fields__order'))
-            self.keys = self.fields.keys()
-        elif keys:
-            self.keys = keys
-            self.fields = None
+            fields = list(concept.fields.order_by('concept_fields__order'))
+            self.keys = unique_keys(fields)
+            self.fields = OrderedDict(zip(self.keys, fields))
         else:
-            raise Exception('A concept or list of keys must be supplied.')
+            self.keys = keys
 
     def __call__(self, values, preferred_formats=None, **context):
         # Create a copy of the preferred formats since each set values may
@@ -77,13 +126,14 @@ class Formatter(object):
                 continue
 
             # The implicit behavior when handling multiple values is to process
-            # them independently since, in most cases, they are not dependent on
-            # on one another, but rather should be represented together since the
-            # data is related. A formatter method can be flagged to process all values
-            # together by setting the attribute ``process_multiple=True``. we must
-            # check to if that flag has been set and simply pass through the values
-            # and context to the method as is. if ``process_multiple`` is not set,
-            # each value is handled independently
+            # them independently since, in most cases, they are not dependent
+            # on one another, but rather should be represented together since
+            # the data is related. A formatter method can be flagged to process
+            # all values together by setting the attribute
+            # `process_multiple=True`. we must # check to if that flag has been
+            # set and simply pass through the values and context to the method
+            # as is. if ``process_multiple`` is not set, each value is handled
+            # independently
             if getattr(method, 'process_multiple', False):
                 try:
                     output = method(values, fields=self.fields,
