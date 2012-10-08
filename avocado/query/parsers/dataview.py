@@ -12,8 +12,8 @@ def has_keys(obj, keys):
 
 
 class Node(object):
-    def __init__(self, concepts=None, ordering=None, **context):
-        self.concept_ids = concepts or []
+    def __init__(self, columns=None, ordering=None, **context):
+        self.concept_ids = columns or []
         self.ordering = ordering or []
         self.tree = context.pop('tree', None)
         self.context = context
@@ -31,16 +31,16 @@ class Node(object):
         return queryset
 
     @property
-    def concepts(self):
+    def columns(self):
         from avocado.models import DataConcept
-        concepts = list(DataConcept.objects.filter(pk__in=self.concept_ids))
-        concepts.sort(key=lambda o: self.concept_ids.index(o.pk))
-        return concepts
+        columns = list(DataConcept.objects.filter(pk__in=self.concept_ids))
+        columns.sort(key=lambda o: self.concept_ids.index(o.pk))
+        return columns
 
     @property
     def fields(self):
         fields = []
-        for concept in self.concepts:
+        for concept in self.columns:
             fields.extend(list(concept.fields.select_related('concept_fields')\
                 .order_by('concept_fields__order')))
         return fields
@@ -53,15 +53,16 @@ class Node(object):
             tree = trees[self.tree]
             ids, directions = zip(*self.ordering)
 
-            concepts = list(DataConcept.objects.filter(pk__in=ids))
-            concepts.sort(key=lambda o: ids.index(o.pk))
+            columns = list(DataConcept.objects.filter(pk__in=ids))
+            columns.sort(key=lambda o: ids.index(o.pk))
 
             fields = []
-            for concept in concepts:
+            for concept in columns:
                 fields.append(list(concept.fields.select_related('concept_fields')\
                     .order_by('concept_fields__order')))
 
             for i, direction in enumerate(directions):
+                direction = direction.lower()
                 for f in fields[i]:
                     # Special case for Lexicon-based models, order by their
                     # corresponding `order` field.
@@ -79,23 +80,23 @@ class Node(object):
 def validate(attrs, **context):
     if not attrs:
         return
-    concepts = attrs.get('concepts', [])
+    columns = attrs.get('columns', [])
     ordering = attrs.get('ordering', [])
 
-    node = Node(concepts, ordering, **context)
+    node = Node(columns, ordering, **context)
 
-    if concepts and len(node.concepts) != len(concepts):
-        raise ValidationError('One or more concepts do not exist')
+    if columns and len(node.columns) != len(columns):
+        raise ValidationError('One or more columns do not exist')
     if ordering:
         for pk, direction in ordering:
-            if direction not in ('asc', 'desc') or (type(pk) is not int and str(pk).isdigit()):
-                raise ValidationError('One or more concepts do not exist')
+            if direction.lower() not in ('asc', 'desc') or (type(pk) is not int and str(pk).isdigit()):
+                raise ValidationError('One or more columns do not exist')
 
 
 def parse(attrs, **context):
     if not attrs:
         return Node(**context)
 
-    concepts = attrs.get('concepts', None)
+    columns = attrs.get('columns', None)
     ordering = attrs.get('ordering', None)
-    return Node(concepts, ordering, **context)
+    return Node(columns, ordering, **context)
