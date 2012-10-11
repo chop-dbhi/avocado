@@ -1,8 +1,5 @@
 import logging
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
+from collections import OrderedDict, defaultdict
 from django.utils.encoding import force_unicode
 from avocado.core import loader
 
@@ -11,6 +8,55 @@ log = logging.getLogger(__file__)
 
 class FormatterException(Exception):
     pass
+
+
+def unique_keys(fields):
+    """Takes a list of fields and generated a unique list of keys based
+    based on the field's natural_key.
+    """
+    def model_prefix(field, key):
+        return '{}__{}'.format(field.model_name, key)
+
+    def app_prefix(field, key):
+        return '{}__{}'.format(field.app_name, model_prefix(field, key))
+
+    # Evaluate in case this is QuerySet..
+    fields = list(fields)
+
+    keys = []
+    names = []
+    models = defaultdict(int)
+
+    # Starting set of field names
+    for f in fields:
+        names.append(f.field_name)
+        models[f.model] += 1
+
+    # For consistency, any keys that do conflict, all occurences will
+    # be prefixed the same way either with the 'app' or 'model' level
+    prefixed = {}
+
+    for i, name in enumerate(names):
+        field = fields[i]
+
+        # Check is the prefix is pending
+        if name in prefixed:
+            key = prefixed[name](field, name)
+        elif names.count(name) == 1:
+            key = name
+        else:
+            if models[field.model] == 1:
+                key = model_prefix(field, name)
+                method = model_prefix
+            else:
+                key = app_prefix(field, name)
+                method = app_prefix
+
+            # Mark this field name to prefixed from now on
+            prefixed[name] = method
+        keys.append(key)
+
+    return keys
 
 
 class Formatter(object):
@@ -35,21 +81,22 @@ class Formatter(object):
     """
     default_formats = ('boolean', 'number', 'string')
 
-    def __init__(self, concept=None, keys=None, **context):
+    def __init__(self, concept=None, keys=None):
+        "Passing in a concept takes precedence over `keys`."
+        if not keys and not concept:
+            raise ValueError('A concept or list of keys must be supplied.')
+
+        self.concept = concept
+        self.fields = None
+
         if concept:
-            self.concept = concept
-            self.fields = OrderedDict((f.field_name, f) \
-                for f in concept.fields.order_by('concept_fields__order'))
-            self.keys = self.fields.keys()
-        elif keys:
-            self.keys = keys
-            self.fields = None
+            fields = list(concept.fields.order_by('concept_fields__order'))
+            self.keys = unique_keys(fields)
+            self.fields = OrderedDict(zip(self.keys, fields))
         else:
-            raise Exception('A concept or list of keys must be supplied.')
+            self.keys = keys
 
-        self.context = context
-
-    def __call__(self, values, preferred_formats=None):
+    def __call__(self, values, preferred_formats=None, **context):
         # Create a copy of the preferred formats since each set values may
         # be processed slightly differently (e.g. mixed data type in column)
         # which could cause exceptions that would not be present during
@@ -79,16 +126,18 @@ class Formatter(object):
                 continue
 
             # The implicit behavior when handling multiple values is to process
-            # them independently since, in most cases, they are not dependent on
-            # on one another, but rather should be represented together since the
-            # data is related. A formatter method can be flagged to process all values
-            # together by setting the attribute ``process_multiple=True``. we must
-            # check to if that flag has been set and simply pass through the values
-            # and context to the method as is. if ``process_multiple`` is not set,
-            # each value is handled independently
+            # them independently since, in most cases, they are not dependent
+            # on one another, but rather should be represented together since
+            # the data is related. A formatter method can be flagged to process
+            # all values together by setting the attribute
+            # `process_multiple=True`. we must # check to if that flag has been
+            # set and simply pass through the values and context to the method
+            # as is. if ``process_multiple`` is not set, each value is handled
+            # independently
             if getattr(method, 'process_multiple', False):
                 try:
-                    output = method(values, fields=self.fields, process_multiple=True, **self.context)
+                    output = method(values, fields=self.fields,
+                        concept=self.concept, process_multiple=True, **context)
                     if not isinstance(output, dict):
                         return OrderedDict([(self.concept.name, output)])
                     return output
@@ -109,7 +158,8 @@ class Formatter(object):
                 method = getattr(self, 'to_{}'.format(f))
                 try:
                     field = self.fields[key] if self.fields else None
-                    fvalue = method(value, field=field, process_multiple=False, **self.context)
+                    fvalue = method(value, field=field, concept=self.concept,
+                        process_multiple=False, **context)
                     if isinstance(fvalue, dict):
                         output.update(fvalue)
                     else:
@@ -127,7 +177,7 @@ class Formatter(object):
     def __unicode__(self):
         return u'{}'.format(self.name or self.__class__.__name__)
 
-    def to_string(self, value, field=None, **context):
+    def to_string(self, value, **context):
         # Attempt to coerce non-strings to strings. Depending on the data
         # types that are being passed into this, this may not be good
         # enough for certain datatypes or complext data structures
@@ -135,13 +185,13 @@ class Formatter(object):
             return u''
         return force_unicode(value, strings_only=False)
 
-    def to_boolean(self, value, field=None, **context):
+    def to_boolean(self, value, **context):
         # If value is native True or False value, return it
         if type(value) is bool:
             return value
         raise FormatterException('Cannot convert {} to boolean'.format(value))
 
-    def to_number(self, value, field=None, **context):
+    def to_number(self, value, **context):
         # Attempts to convert a number. Starting with ints and floats
         # Eventually create to_decimal using the decimal library.
         if type(value) is int or type(value) is float:
@@ -154,15 +204,15 @@ class Formatter(object):
             return value
         raise FormatterException('Cannot convert {} to number'.format(value))
 
-    def to_coded(self, value, field=None, **context):
+    def to_coded(self, value, **context):
         # Attempts to convert value to its coded representation
-        if field:
-            for key, coded in field.coded_values:
+        if 'field' in context:
+            for key, coded in context['field'].coded_values:
                 if key == value:
                     return coded
         raise FormatterException('No coded value for {}'.format(value))
 
-    def to_raw(self, value, field=None, **context):
+    def to_raw(self, value, **context):
         return value
 
 

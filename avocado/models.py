@@ -30,7 +30,8 @@ class DataCategory(Base):
     "A high-level organization for data concepts."
     # A reference to a parent for hierarchical categories
     parent = models.ForeignKey('self', null=True, blank=True,
-        related_name='children')
+        related_name='children', limit_choices_to={'parent__isnull': True},
+        help_text='Sub-categories are limited to one-level deep')
     order = models.FloatField(null=True, blank=True, db_column='_order')
 
     objects = DataCategoryManager()
