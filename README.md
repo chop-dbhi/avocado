@@ -6,19 +6,21 @@
 
 **Developers who are interested in letting their data do the work for them.**
 
-Some experience with Django is necessary, run through the [model docs](https://docs.djangoproject.com/en/1.4/topics/db/models/) (and possibly the [tutorial](https://docs.djangoproject.com/en/1.4/intro/tutorial01/)) if you are unfamiliar with Django. Some general Python experience is necessary.
+#### Before you begin:
+- Some general Python experience is necessary.
+- Some experience with Django is necessary. If you are unfamiliar with Django, the [tutorial](https://docs.djangoproject.com/en/1.4/intro/tutorial01/) is an excellent place to start, or you can look into the [model docs](https://docs.djangoproject.com/en/1.4/topics/db/models/). 
 
 ## Background
 
-Django models provides the **structural** metadata necessary for interfacing with the supported database backends. However, in general, there is no formal mechanism to supply **descriptive** or **administrative** metadata about your data model. Avocado is a Django app which provides metadata management for your models.
+Django models provides the **structural** metadata necessary for interfacing with the supported database backends. However, in general, there is no formal mechanism to supply **descriptive** or **administrative** metadata about your data model. Avocado is a Django app which provides easy metadata management for your models.
 
-Avocado grew out of projects being developed in a clinical research environment where data models can often be large and complex. Additionally, there are frequently data fields that contain related, but decoupled data which typically results in a large hierarchical data model.
+Avocado grew out of projects developed in a clinical research environment, where data models are frequently very large and complex. Additionally in this setting, there are data fields that contain related but decoupled data. This typically results in a large hierarchical data model, which can get pretty messy pretty quickly.
 
-When developing applications that make use of such data, developers need to be able to provide end-users with appropriate context and representation of the data elements to avoid confusion and errors of omission.
+When developing applications that make use of this type of data, developers need to be able to provide end-users with appropriate context and representation of the data elements to avoid confusion and errors of omission.
 
 ### A Real Example
 
-All this abstract talk can be a bit confusing, so here is an example. In medicine, it's typical that results from a diagnostic test like a blood test might be broken into several columns in a relational database: a numerical value, units of measure, and an assessment as to whether it is normal, high, or low. As a developer you'd like to be able to bundle these conveniently in your application.
+All this abstract talk can be a bit confusing, so lets jump into an example. In medicine, it's typical that results from a diagnostic test like a blood test might be broken into several columns in a relational database: a numerical value, units of measure, and an assessment as to whether it is normal, high, or low. As a developer you'd like to be able to bundle these conveniently in your application.
 
 While you could just store them all as one text field in your database, that sacrifices the ability to query and perform mathematical calculations on the numerical field. On the other hand, splitting them apart means a user who does not know your data model very well needs to know upfront to hunt down the various elements on their own, or they risk getting an incomplete picture of the retrieved data.
 
@@ -26,17 +28,17 @@ In many cases, these kinds of complexities result in a research workflow where t
 
 ### The Solution
 
-Avocado was designed to support the development of accessible, transparent, and data-rich applications by providing several major capabilities:
+Avocado was designed to support the development of accessible, transparent, and data-rich applications by providing several capabilities:
 
-- A formal means of storing additional metadata for your data model
-- Robust API's for interrogating metadata for dynamic query generation which includes translation, validation, cleaning and execution of queries
+- A formal way to store additional metadata for your data model
+- Robust API's for interrogating metadata for dynamic query generation which includes translation, validation, cleaning, and execution of queries
 - Built-in extensible components for the formatting and exporting of data
 
 The power of Avocado's dynamic query generation lies in it's ability to [span relationships transparently](#relationships-are-transparent). This allows users (and to some extent developers) to focus on the data and not have to worry about the data model.
 
 ### Target Applications
 
-While Avocado can be useful for any project, it is likely to be most applicable to projects with a heavy focus on data, especially ones with query, reporting, and export requirements and/or with medium to large data models. As a developer, it can be very useful as a tool for _accessing_ some data for the first time. For users, it is most intended for applications focused on domain-specific data discovery.
+While Avocado can be useful for any project, it is most likely applicable to projects with a heavy focus on data. As a developer, it can be very useful as a tool for _accessing_ some data for the first time. For users, it is most useful for applications focused on domain-specific data discovery.
 
 ### Types of Metadata
 
@@ -47,6 +49,8 @@ Django's model field reference describes the options available for defining mode
 A simple example of how this is useful is to look at how Django's field validation works. If one attempts to save an integer field with a string value, a `ValidationError` will be thrown complaining about the type. This prevents a downstream database type error.
 
 These constraints facilitate better representation of data fields by providing more context to users. This utlimately reduces the number of assumptions and guesswork required to understand what operations can be performed on the data.
+
+Structural metadata tells the user what type of data should be stored in a model field, along with what types of operations can be performed on the data. Structural metadata only changes when the structure of the database itself is changed.
 
 #### Descriptive
 
@@ -131,7 +135,7 @@ INSTALLED_APPS = (
 
 ## Getting Started
 
-To introduce the API gradually and coherently, we are going to start with two example models, `Author` and `Book` in an app named `library`.
+To introduce the API, we are going to get started with two example models, `Author` and `Book` in an app named `library`.
 
 ```python
 # library/models.py
@@ -142,17 +146,18 @@ class Book(models.Model):
     title = models.CharField(max_length=100)
     author = models.ForeignKey(Author)
     pub_date = models.DateField('publication date', null=True)
+    price = models.DecimalField('Book prce', decimal_places=2)
 ```
 
 ### Bootstrap the Metadata
 
-To reiterate the introduction above, Avocado is about putting in place ways to define and make use of metadata surrounding your data model.
+To reiterate the introduction above, Avocado is about defining metadata and making use of existing metadata surrounding your data model.
 
 Avocado comes with a `sync` subcommand which introspects Django models and creates `DataField` instances representing the model fields. At least one app label (`library`) or model label (`library.book`) must be specified.
 
 By default, `DataField` instances are not created for primary and foreign key fields. In practice, surrogate key fields are used infrequently as is, thus they are not created by default. To override this behavior and include key fields, add the flag `--include-keys`.
 
-Likewise, model fields may be marked as not being editable in the model field definitions. This flag is turned on typically for operational or bookkeeping fields such as timestamps. By default, `DataField`s are not created for these either, but can overridden by passing the `--include-non-editable`.
+Likewise, model fields may be marked as not being editable in the model field definitions. This flag is turned on typically for operational or bookkeeping fields such as timestamps. By default, `DataField` instances are not created for these either, but can be overridden by passing the `--include-non-editable`.
 
 ```bash
 ./manage.py avocado sync library
@@ -160,7 +165,7 @@ Likewise, model fields may be marked as not being editable in the model field de
 2 fields added for Book
 ```
 
-On a side note, the `avocado` command acts as a parent for various subcommands. Simply type `./manage.py avocado` to show a list of available subcommands.
+**Note:** The `avocado` command acts as a parent for various subcommands. Simply type `./manage.py avocado` to show a list of available subcommands.
 
 ### DataField API
 
@@ -177,7 +182,7 @@ An Avocado `DataField` instance represents a single Django model field instance.
 <DataField 'library.book.title'>
 ```
 
-These three attributes enable referencing to the actual field instance and model class:
+These three attributes allow you to access the actual field instance and model class:
 
 - `f.field` - The model DataField instance this field represents
 - `f.model` - The model class this field is associated with
@@ -191,14 +196,14 @@ These three attributes enable referencing to the actual field instance and model
 
 #### Descriptors
 
-Additional metadata can be defined for this object to make it more useful to humans. Define various _descriptors_ to enhance the meaning of a data field.
+Additional metadata can be defined for this object to make it more useful to users. Define various _descriptors_ to enhance meaning of a data field.
 
-- `f.name` - A verbose human readable name of the field
-- `f.name_plural` - The plural form of the verbose name. If not defined, an _s_ will be appended to `f.name` when the plural form is accessed.
+- `f.name` - A verbose human-readable name of the field
+- `f.name_plural` - The plural form of the verbose name. If not defined, an _s_ will be appended to `f.name` when the plural form is accessed provided `f.name` does not already end with _s_.
 - `f.description` - A long description for the field
 - `f.keywords` - Other related keywords (this is primarily applicable for search indexing by [django-haystack](#django-haystack))
 - `f.unit` - The unit of the data, for example _gram_
-- `f.unit_plural` - The plural form of the unit, for example _grams_. If not defined, an _s_ will be appended to `f.unit` when the plural form is accessed.
+- `f.unit_plural` - The plural form of the unit, for example _grams_. If not defined, an _s_ will be appended to `f.unit` when the plural form is accessed, provided `f.unit` does not already end with _s_.
 
 ```python
 >>> f.name = 'Price'
@@ -223,12 +228,11 @@ Additional metadata can be defined for this object to make it more useful to hum
 
 ##### Read-only
 
-- `f.internal_type` - The low-level datatype of the field. This is really only used for mapping to the below `simple_type`. Read more about the [internal vs. simple types](#internal-vs-simple-types).
+- `f.internal_type` - The low-level datatype of the field. This is really only used for mapping to the `simple_type`, displayed below. Read more about the [internal vs. simple types](#internal-vs-simple-types).
 - `f.simple_type` - The high-level datatype of the field used for validation purposes and as general metadata for client applications. (These types can be overridden, [read about](SIMPLE_TYPE_MAP) the `SIMPLE_TYPE_MAP` setting)
 - `f.size` - Returns the number of _distinct_ values for this field
 - `f.values_list` - Returns a `ValuesQuerySet` of distinct values for the field.
-This is primarily used by the below functions. Useful applying additional QuerySet
-operations.
+This is primarily used by the functions below. Useful when you want to apply additional QuerySet operations.
 - `f.values` - Returns a tuple of distinct raw values ordered by the field. If the corresponding model is a subclass of Avocado's `Lexicon` abstract model, the order corresponds to the `order` field on the `Lexicon` model subclass. Read more about the [`Lexicon` abstract class](#lexicon-abstract-class).
 - `f.labels` - Returns a unicoded tuple of labels. If the corresponding model is a subclass of Avocado's `Lexicon` abstract model, this corresponds to the `label` field on the `Lexicon` model subclass. Read more about the [`Lexicon` abstract class](#lexicon-abstract-class).
 - `f.choices` - A tuple of pairs zipped from `f.values` and `f.labels`. This is useful for populating form fields for client applications.
@@ -263,7 +267,7 @@ it represents:
 [<Month: 'January'>, <Month: 'February'>, ...]
 ```
 
-Read more about Lexicons and ObjectSets below.
+Read more about Lexicons and ObjectSets in the DataView API section below.
 
 #### Aggregation
 
@@ -320,9 +324,9 @@ Additional methods are available for filtering, excluding and ordering the data.
 ```
 
 ### Translators
+Translators are useful for converting values before querying the database. Say for instance that we want to be able to query our database based on a patient age, but we are only storing the patients date of birth. We can write a translator to convert the patient age to the appropriate birthdate to get the correct results from the query.
 
 Translators are used to modify query conditions prior to being executed. Depending on the quality or variability of your data, the query interface for a field may not represent the data 1:1 with the underlying data. Thus the incoming query condition may need to be translated in some way to work with the underlying database.
-
 
 
 These operator classes perform only light validation of the value to prevent being too restrictive.
@@ -346,19 +350,27 @@ The base `Translator` class uses [Django's Form API](https://docs.djangoproject.
 The primary method to call is `translate` which calls `clean_value` and `clean_operator`.
 
 ```python
+>>> from avocado.query.translators import Translate
+>>> from avocado.models import DataField
+
+>>> f = DataField.objects.get('library', 'book', 'title')
+
 >>> t = Translator()
 >>> t.translate(f, 'icontains', 'Python')
 {
-    'condition': <django.db.query_utils.Q at 0x1027b78d0>,
-    'annotations': {},
-    'cleaned_data': {
-        'operator': 'icontains',
+    'id': 2,
+    'operator': 'icontains',
+    'value': 'Python',
+    'cleaned_data':{
+        'operator': <Operator: "contains the text" (icontains)>,
         'value': u'Python',
-    },
-    'raw_data': {
-        'operator': 'icontains',
-        'value': 'Python',
-    },
+        'language': u'Book title contains the text Python',
+    }
+    'query_modifiers':{
+        'condition': <django.db.query_utils.Q at 0x1027b78d0>,
+        'annotations': None,
+        'extra': None 
+    }
 }
 ```
 
@@ -366,15 +378,38 @@ The primary method to call is `translate` which calls `clean_value` and `clean_o
 
 ### Introduction
 
-As much as Avocado is a metadata management tool, a prime consumer of this metadata are humans. More specifically, the metadata can be used to provide more context and meaning to the data and the data model.
+As Avocado is a metadata management tool, it is important to note that metadata is most useful to end-users who can readily access it. More specifically, the metadata can be used to provide more context and meaning to the data and the data model, enabling end-users to get the most out of their data.
 
-The notion of a `DataConcept` came from the need to represent discrete data in a human-readable domain-specific way. Data is typically stored in a normalized, discrete and efficient way, thus rendering is a bit obscure in it's raw state. Sometimes a single _column_ of data in database table is meaningless without another column, for example a column of `weight` without the column of `unit`.
+The notion of a `DataConcept` came from the need to represent discrete data in a readable, domain-specific way. Data, however, is typically stored in a normalized, discrete and efficient way, making it a bit difficult for users to fully understand. For example, sometimes a single _column_ of data in a database table is meaningless without another column, such as a database storing medicine prescriptions with a column of `dose` without the columns of `unit` and `interval`. 
 
-Of course, data must be stored in this discrete way to ensure the database can treat it properly and perform the correct operations on that data. Unfortunately, humans don't care about how data is stored, nor should they. **They simply want the data to be accessible so they can consume it in a way that makes sense to them.**
+Data must be stored in a discrete way to ensure the database can treat it properly and perform the correct operations on the data. Unfortunately, most users don't always know how their data is stored in the database; they are only interested in accessing their data in a way that makes sense to them and allows them to use their data in a meaningful way. `DataConcept`s help solve this problem.
 
-Concepts encapsulate one or more fields intended to be represented together in some way. This sounds very abstract and is intentionally so. This lightweight abstract encourages being creative in how fields are represented together.
+`DataConcept`s encapsulate one or more fields intended to be represented together in some way. This allows users to combine their fields in a way that makes the most sense for how they want to use their data given their current context. For example, we could create a `DataConcept` for dosage that would represent `dose`, `unit`, and `interval` together.
+
+Here is an example showing how we would create a `DataConcept` called `Dosage` for our prescriptions database.
+ ```python
+from avocado.models import DataConcept, DataField, DataConceptField
+# Create the 'Dosage' DataConcept which combines the 'dose'
+# 'unit', and 'interval' fields
+concept = DataConcept(name='Dosage')
+concept.save()
+
+# Get the DataFields for the 'dose', 'unit', and 'interval'
+# fields
+dose = DataField.objects.get_by_natural_key('models', 'prescriptions', 'dose')
+unit = DataField.objects.get_by_natural_key('models', 'prescriptions', 'unit')
+interval = DataField.objects.get_by_natural_key('models', 'prescriptions', 'interval')
+# Recall, the DataFields are populated when you call 
+# './manage.py avocado sync'
+
+# Add the DataFields to the DataConcept
+DataConceptField(concept=concept, field=dose).save()
+DataConceptField(concept=concept, field=unit).save()
+DataConceptField(concept=concept, field=interval).save()
+```
 
 ### Query Views
+
 
 #### Datatypes
 
@@ -387,27 +422,29 @@ Datatypes, in the context of Avocado, are used for representation of the data fo
 
 ### Formatters
 
-The most common utility of the DataConcept abstraction is formatting the fields' data in a usable format for the consumer. The consumer may be a human, a Web browser, an R interpreter or anything else. Regardless of the consume, formatters provide an API for taking in raw data and outputting a representation of that data.
+The most common utility of the `DataConcept` abstraction is formatting the fields' data in a usable format for the consumer. The consumer may be a human, a Web browser, an R interpreter or anything else. Regardless of the consumer of the data, formatters provide an API for taking in raw data and outputting a representation of that data.
 
 ```python
 from avocado.formatters import Formatter
 # Get the 'Dosage' concept which combines the 'dose'
-# and 'unit' fields
+# 'unit', and 'interval' fields
 dosage = DataConcept.objects.get(name='Dosage')
 # Prepare a formatter for the dosage concept
 formatter = Formatter(dosage)
 values = [60, 'mg', 'as needed']
 # Returns ['60', 'mg', 'as needed']
 formatter(values, preferred_formats=['string'])
+
+# The formatter can also be assigned
 ```
 
 A formatter attempts to solve two problems: 
 - Coerce the various values into the preferred format 
-- Perform an operation on each or all of the values. 
+- Perform an operation on each or all of the values 
 
 As shown above, the `formatter` instance is callable and takes a sequence of `values` and a `preferred_formats` argument. Since this is the base formatter class, it is only useful for coercing datatypes.
 
-Formatters can be easily created by subclassing the base `Formatter` class and adding, overriding, or augmenting the methods. As stated above, a formatter can be applied each raw value or all values together. As an example of this, we can create a simple `ConcatFormatter`.
+Formatters can be easily created by subclassing the base `Formatter` class and adding, overriding, or augmenting the methods. As stated above, a formatter can be applied to each raw value or all values together. As an example of this, we can create a simple `ConcatFormatter`.
 
 ```python
 class ConcatFormatter(Formatter):
@@ -433,7 +470,7 @@ Avocado defines a simple structure for representing query conditions. A query co
 - the `value` which defines which value(s) are affected by the condition
 
 Just as in a SQL statement, applying conditions to query enables constraining the data to some subset. Conditions can of course be combined using conditional AND or OR operators (not the same operators mentioned above). These conditional _branches_ join together two or more conditions or other branches resulting in a _tree_ of conditions.
-
+DataContext
 ```
      AND
     /   \
@@ -444,7 +481,7 @@ B    C
 
 Using `datafield`s as the condition's reference point enables applying the tree of conditions to any query.
 
-The `DataContext` model provides a simple API for storing, persisting and applying the condition tree. In it's raw state, the condition tree is simply a combination of _condition_ and _branch_ nodes. Following this example, the schema of both node types are described.
+The `` model provides a simple API for storing, persisting and applying the condition tree. In it's raw state, the condition tree is simply a combination of _condition_ and _branch_ nodes. Following this example, the schema of both node types are described.
 
 ```python
 >>> from avocado.models import DataContext
