@@ -15,6 +15,9 @@ class DataFieldQuerySet(PublishedQuerySet):
         """
         published = super(DataFieldQuerySet, self).published()
 
+        # Remove internal
+        published = published.exclude(internal=True)
+
         # All published concepts associated with the current site
         # (or no site)
         sites = Q(sites=None) | Q(sites__id=settings.SITE_ID)
@@ -36,6 +39,9 @@ class DataConceptQuerySet(PublishedQuerySet):
         should not be visible if their associated fields are not all available.
         """
         published = super(DataConceptQuerySet, self).published()
+
+        # Remove internal
+        published = published.exclude(internal=True)
 
         # All published concepts associated with the current site
         # (or no site)

@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
 from django.core.urlresolvers import reverse
@@ -102,17 +103,19 @@ class ObjectSetListFilter(SimpleListFilter):
 class DataFieldAdmin(PublishedAdmin):
     form = DataFieldAdminForm
 
-    list_display = ('name', 'published', 'archived', 'orphan_status',
-        'model_name', 'enumerable', 'searchable', 'is_lexicon',
-        'is_objectset', 'related_dataconcepts')
-    list_filter = ('published', 'archived', 'model_name', 'enumerable',
-        'searchable', LexiconListFilter, ObjectSetListFilter)
-    list_editable = ('published', 'archived', 'enumerable', 'searchable')
+    list_display = ('name', 'published', 'archived', 'internal',
+        'orphan_status', 'model_name', 'enumerable', 'searchable',
+        'is_lexicon', 'is_objectset', 'related_dataconcepts')
+    list_filter = ('published', 'archived', 'internal', 'model_name',
+        'enumerable', 'searchable', LexiconListFilter, ObjectSetListFilter)
+    list_editable = ('published', 'archived', 'internal', 'enumerable',
+        'searchable')
 
     search_fields = ('name', 'description', 'keywords')
     readonly_fields = ('created', 'modified', 'data_modified')
     actions = ('mark_published', 'mark_unpublished', 'mark_archived',
-        'mark_unarchived', 'create_dataconcept')
+        'mark_unarchived', 'create_dataconcept_multi',
+        'create_dataconcept_single')
 
     fieldsets = (
         (None, {
@@ -126,6 +129,12 @@ class DataFieldAdmin(PublishedAdmin):
                 'published',
                 'archived',
             ),
+        }),
+
+        ('Internal Use', {
+            'fields': ('internal',),
+            'description': 'Flag as internal if this concept is is intended '\
+                'for programmatic access only.',
         }),
 
         ('Query Modifiers', {
@@ -169,10 +178,21 @@ class DataFieldAdmin(PublishedAdmin):
     related_dataconcepts.short_description = 'Related Data Concepts'
     related_dataconcepts.allow_tags = True
 
-    def create_dataconcept(self, request, queryset):
+    def create_dataconcept_multi(self, request, queryset):
         for datafield in queryset:
             DataConcept.objects.create_from_field(datafield)
-    create_dataconcept.short_description = 'Create Data Concept'
+    create_dataconcept_multi.short_description = 'Create Data Concept for Each'
+
+    @transaction.commit_on_success
+    def create_dataconcept_single(self, request, queryset):
+        fields = list(queryset)
+        max_length = DataConcept._meta.get_field_by_name('name')[0].max_length
+        name = ', '.join([f.name for f in fields])[:max_length - 5] + '...'
+        concept = DataConcept(name='"{}"'.format(name))
+        concept.save()
+        for i, datafield in enumerate(queryset):
+            DataConceptField(concept=concept, field=datafield, order=i).save()
+    create_dataconcept_single.short_description = 'Create Data Concept for Selected'
 
 
 class DataConceptFieldInlineAdmin(admin.TabularInline):
@@ -180,10 +200,10 @@ class DataConceptFieldInlineAdmin(admin.TabularInline):
 
 
 class DataConceptAdmin(PublishedAdmin):
-    list_display = ('name', 'published', 'archived', 'category',
+    list_display = ('name', 'published', 'archived', 'internal', 'category',
         'queryview', 'formatter_name', 'related_datafields')
-    list_editable = ('published', 'archived', 'category', 'queryview',
-        'formatter_name')
+    list_editable = ('published', 'archived', 'internal', 'category',
+        'queryview', 'formatter_name')
     inlines = [DataConceptFieldInlineAdmin]
 
     fieldsets = (
@@ -197,6 +217,12 @@ class DataConceptAdmin(PublishedAdmin):
                 'published',
                 'archived',
             ),
+        }),
+
+        ('Internal Use', {
+            'fields': ('internal', 'ident'),
+            'description': 'Flag as internal if this concept is is intended '\
+                'for programmatic access only.',
         }),
 
         ('Modifiers', {
@@ -217,6 +243,12 @@ class DataConceptAdmin(PublishedAdmin):
     related_datafields.allow_tags = True
 
 
+class DataCategoryAdmin(admin.ModelAdmin):
+    model = DataCategory
+
+    list_display = ('name', 'parent', 'order')
+
+
 admin.site.register(DataField, DataFieldAdmin)
 admin.site.register(DataConcept, DataConceptAdmin)
-admin.site.register(DataCategory)
+admin.site.register(DataCategory, DataCategoryAdmin)

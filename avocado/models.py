@@ -1,16 +1,20 @@
+import re
 import jsonfield
 from django.db import models
 from django.contrib.sites.models import Site
 from django.contrib.auth.models import User, Group
 from django.utils.encoding import smart_unicode
+from django.utils.translation import ugettext_lazy as _
 from django.db.models.fields import FieldDoesNotExist
 from django.db.models.signals import post_save, pre_delete
+from django.core.validators import RegexValidator
 from avocado.core import utils
 from avocado.core.models import Base, BasePlural
-from avocado.core.cache import (post_save_cache, pre_delete_uncache, cached_property)
+from avocado.core.cache import (post_save_cache, pre_delete_uncache,
+    cached_property)
 from avocado.conf import settings
 from avocado.managers import (DataFieldManager, DataConceptManager,
-        DataCategoryManager)
+    DataCategoryManager)
 from avocado.query import parsers
 from avocado.query.translators import registry as translators
 from avocado.query.operators import registry as operators
@@ -26,6 +30,11 @@ __all__ = ('DataCategory', 'DataConcept', 'DataField', 'DataContext')
 SIMPLE_TYPE_MAP = settings.SIMPLE_TYPE_MAP
 
 
+ident_re = re.compile(r'^[a-zA-Z][a-zA-Z0-9_]*$')
+validate_ident = RegexValidator(ident_re, _("Enter a valid 'identifier' " \
+    "that is a valid Python variable name."), 'invalid')
+
+
 class DataCategory(Base):
     "A high-level organization for data concepts."
     # A reference to a parent for hierarchical categories
@@ -37,7 +46,7 @@ class DataCategory(Base):
     objects = DataCategoryManager()
 
     class Meta(object):
-        ordering = ('order', 'name')
+        ordering = ('-parent__id', 'order', 'name')
         verbose_name_plural = 'data categories'
 
 
@@ -49,6 +58,10 @@ class DataField(BasePlural):
     app_name = models.CharField(max_length=50)
     model_name = models.CharField(max_length=50)
     field_name = models.CharField(max_length=50)
+
+    internal = models.BooleanField(default=False,
+        help_text='Flag for internal use and does not abide by the published' \
+            'and archived rules.')
 
     # An optional unit for this field's data. In some cases databases may have
     # a separate column which denotes the unit for another column, but this is
@@ -320,6 +333,15 @@ class DataConcept(BasePlural):
 
         -- Willard Van Orman Quine
     """
+
+    ident = models.CharField(max_length=100, null=True,
+        blank=True, validators=[validate_ident],
+        help_text='Unique identifier that can be used for programmatic access')
+
+    internal = models.BooleanField(default=False,
+        help_text='Flag for internal use and does not abide by the published' \
+            'and archived rules.')
+
     # Although a category does not technically need to be defined, this more
     # for workflow reasons than for when the concept is published. Automated
     # prcesses may create concepts on the fly, but not know which category they
