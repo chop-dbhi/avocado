@@ -388,24 +388,24 @@ Data must be stored in a discrete way to ensure the database can treat it proper
 
 Here is an example showing how we would create a `DataConcept` called `Dosage` for our prescriptions database.
  ```python
-from avocado.models import DataConcept, DataField, DataConceptField
+>>> from avocado.models import DataConcept, DataField, DataConceptField
 # Create the 'Dosage' DataConcept which combines the 'dose'
 # 'unit', and 'interval' fields
-concept = DataConcept(name='Dosage')
-concept.save()
+>>> concept = DataConcept(name='Dosage')
+>>> concept.save()
 
 # Get the DataFields for the 'dose', 'unit', and 'interval'
 # fields
-dose = DataField.objects.get_by_natural_key('models', 'prescriptions', 'dose')
-unit = DataField.objects.get_by_natural_key('models', 'prescriptions', 'unit')
-interval = DataField.objects.get_by_natural_key('models', 'prescriptions', 'interval')
+>>> dose = DataField.objects.get_by_natural_key('models', 'prescriptions', 'dose')
+>>> unit = DataField.objects.get_by_natural_key('models', 'prescriptions', 'unit')
+>>> interval = DataField.objects.get_by_natural_key('models', 'prescriptions', 'interval')
 # Recall, the DataFields are populated when you call 
 # './manage.py avocado sync'
 
 # Add the DataFields to the DataConcept
-DataConceptField(concept=concept, field=dose).save()
-DataConceptField(concept=concept, field=unit).save()
-DataConceptField(concept=concept, field=interval).save()
+>>> DataConceptField(concept=concept, field=dose).save()
+>>> DataConceptField(concept=concept, field=unit).save()
+>>> DataConceptField(concept=concept, field=interval).save()
 ```
 
 ### Query Views
@@ -425,15 +425,15 @@ Datatypes, in the context of Avocado, are used for representation of the data fo
 The most common utility of the `DataConcept` abstraction is formatting the fields' data in a usable format for the consumer. The consumer may be a human, a Web browser, an R interpreter or anything else. Regardless of the consumer of the data, formatters provide an API for taking in raw data and outputting a representation of that data.
 
 ```python
-from avocado.formatters import Formatter
+>>> from avocado.formatters import Formatter
 # Get the 'Dosage' concept which combines the 'dose'
 # 'unit', and 'interval' fields
-dosage = DataConcept.objects.get(name='Dosage')
+>>> dosage = DataConcept.objects.get(name='Dosage')
 # Prepare a formatter for the dosage concept
-formatter = Formatter(dosage)
-values = [60, 'mg', 'as needed']
+>>> formatter = Formatter(dosage)
+>>> values = [60, 'mg', 'as needed']
 # Returns ['60', 'mg', 'as needed']
-formatter(values, preferred_formats=['string'])
+>>> formatter(values, preferred_formats=['string'])
 
 # The formatter can also be assigned
 ```
