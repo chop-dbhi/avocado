@@ -146,7 +146,7 @@ class Book(models.Model):
     title = models.CharField(max_length=100)
     author = models.ForeignKey(Author)
     pub_date = models.DateField('publication date', null=True)
-    price = models.DecimalField('Book prce', decimal_places=2)
+    price = models.DecimalField('Book price', decimal_places=2)
 ```
 
 ### Bootstrap the Metadata
@@ -219,7 +219,7 @@ Additional metadata can be defined for this object to make it more useful to use
 
 #### Properties
 
-`DataField`s also acts as an interface and exposes various properties and methods for directly accessing the underlying data or properties about the data.
+A `DataField` also acts as an interface that exposes various properties and methods for directly accessing the underlying data or properties about the data.
 
 ##### Editable
 
