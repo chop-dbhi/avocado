@@ -82,6 +82,7 @@ class Command(BaseCommand):
         "Handles app_label or app_label.model_label formats."
 
         if options.get('quiet'):
+            self.stdout = sys.stdout
             sys.stdout = open(os.devnull, 'w')
 
         if options.get('force'):
@@ -169,6 +170,9 @@ class Command(BaseCommand):
                 print('1 field updated for {0}'.format(label))
             elif updated > 1:
                 print('{0:,} fields updated for {1}'.format(updated, label))
+
+        if options.get('quiet'):
+            sys.stdout = self.stdout
 
     def handle_field(self, field, model_name, app_name, **options):
         include_keys = options.get('include_keys')
