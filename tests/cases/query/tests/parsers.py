@@ -92,7 +92,7 @@ class DataContextParserTestCase(TestCase):
             'value': True
         }, tree=Employee)
 
-        self.assertEqual(str(node.apply().values('id').query), 'SELECT "query_employee"."id" FROM "query_employee" INNER JOIN "query_title" ON ("query_employee"."title_id" = "query_title"."id") WHERE ("query_title"."boss" = True  AND "query_title"."id" IS NOT NULL)')
+        self.assertEqual(str(node.apply().values('id').query), 'SELECT "query_employee"."id" FROM "query_employee" INNER JOIN "query_title" ON ("query_employee"."title_id" = "query_title"."id") WHERE "query_title"."boss" = True ')
         self.assertEqual(node.language, {'operator': 'exact', 'language': u'Title Boss is True', 'id': 4, 'value': True})
 
         # Branch node
@@ -109,7 +109,7 @@ class DataContextParserTestCase(TestCase):
             }]
         }, tree=Employee)
 
-        self.assertEqual(str(node.apply().values('id').query), 'SELECT "query_employee"."id" FROM "query_employee" INNER JOIN "query_title" ON ("query_employee"."title_id" = "query_title"."id") WHERE ("query_employee"."first_name" = John  AND "query_title"."boss" = True  AND "query_title"."id" IS NOT NULL)')
+        self.assertEqual(str(node.apply().values('id').query), 'SELECT "query_employee"."id" FROM "query_employee" INNER JOIN "query_title" ON ("query_employee"."title_id" = "query_title"."id") WHERE ("query_employee"."first_name" = John  AND "query_title"."boss" = True )')
         self.assertEqual(node.language, {
             'type': 'and',
             'children': [{

@@ -1,6 +1,5 @@
 from django import forms
 from django.db import models
-from django.db.models.query import QuerySet
 from django.db.models import Q
 from django.core.exceptions import ValidationError
 from modeltree.tree import trees
@@ -9,7 +8,7 @@ from avocado.conf import settings
 from avocado.core.utils import get_form_class
 from .operators import registry as operators
 
-DEFAULT_OPERATOR = 'exact'
+
 OPERATOR_MAP = settings.OPERATOR_MAP
 INTERNAL_DATATYPE_FORMFIELDS = settings.INTERNAL_DATATYPE_FORMFIELDS
 
@@ -19,63 +18,83 @@ class OperatorNotPermitted(Exception):
 
 
 class Translator(object):
-    "The base translator class that all translators must subclass."
+    """Given a `DataField` instance, a raw value and operator, a
+    translator validates, cleans and constructs Django compatible
+    lookups contained in the `query_modifiers` key in the output.
+
+    The query modifiers are used to modify a `QuerySet` to filter
+    the set down based on the raw input condition.
+    """
 
     # An override of the list of supported operators for this particular
     # translator. This may be necessary for client programs which have
     # custom representations for certain fields.
     operators = None
 
-    # Override of the field's field's default formfield class to be
-    # used for validation. this is usually never necessary to override
+    # Override of the field's default formfield class to be
+    # used for validation. This is usually never necessary to override
     form_class = None
 
-    def get_operators(self, datafield):
-        # Determine list of allowed operators
-        return self.operators or OPERATOR_MAP[datafield.simple_type]
+    def _parse_value(self, obj, key):
+        """Handles parsing a value. This can be either a dict with a
+        `value` and `label` key, some non-string iterable or the value
+        itself.
+        """
+        if isinstance(obj, dict):
+            return obj[key]
+        if hasattr(obj, '__iter__'):
+            return map(lambda x: self._parse_value(x, key), obj)
+        return obj
 
-    def _validate_operator(self, datafield, uid, **kwargs):
+    def _get_value(self, obj):
+        return self._parse_value(obj, 'value')
+
+    def _get_label(self, obj):
+        return self._parse_value(obj, 'label')
+
+    def get_operators(self, field):
         # Determine list of allowed operators
-        allowed_operators = self.get_operators(datafield)
+        return self.operators or OPERATOR_MAP[field.simple_type]
+
+    def _validate_operator(self, field, uid, **kwargs):
+        # Determine list of allowed operators
+        allowed_operators = self.get_operators(field)
+        # If uid is None, the default operator will be used
         uid = uid or allowed_operators[0]
 
-        # Attempt to retrieve the operator. no exception handling for
-        # this step exists since this should never fail
+        # Attempt to retrieve the operator.
         operator = operators.get(uid)
 
         # No operator is registered
         if operator is None:
-            raise ValueError('"{0}" is not a valid operator'.format(uid))
+            raise ValueError('"{}" is not a valid operator'.format(uid))
 
         # Ensure the operator is allowed
         if operator.uid not in allowed_operators:
-            raise OperatorNotPermitted('Operator "{0}" cannot be used for ' \
+            raise OperatorNotPermitted('Operator "{}" cannot be used for ' \
                 'this translator'.format(operator))
+
         return operator
 
-    def _validate_value(self, datafield, value, **kwargs):
+    def _validate_value(self, field, value, **kwargs):
         # If a form class is not specified, check to see if there is a custom
         # form_class specified for this datatype or if this translator has
         # one defined
         if 'form_class' not in kwargs:
             if self.form_class:
                 kwargs['form_class'] = self.form_class
-            elif datafield.simple_type in INTERNAL_DATATYPE_FORMFIELDS:
-                name = INTERNAL_DATATYPE_FORMFIELDS[datafield.simple_type]
+            elif field.simple_type in INTERNAL_DATATYPE_FORMFIELDS:
+                name = INTERNAL_DATATYPE_FORMFIELDS[field.simple_type]
                 kwargs['form_class'] = get_form_class(name)
 
-        # Since None is considered an empty value by the django validators
-        # ``required`` has to be set to False to not raise a ValidationError
-        # saying the field is required. There may be a need to more explicitly
-        # check to see if the value be passed is only None and not any of the
-        # other empty values in ``django.core.validators.EMPTY_VALUES``
-        if datafield.field.null:
-            kwargs['required'] = False
+        # The formfield is being used to clean the value, thus no
+        # validation errors should be raised.
+        kwargs['required'] = False
 
         # Special handling for primary keys
-        if isinstance(datafield.field, models.AutoField):
+        if isinstance(field.field, models.AutoField):
             kwargs.pop('form_class', None)
-            queryset = datafield.objects
+            queryset = field.objects
             if hasattr(value, '__iter__'):
                 formfield = forms.ModelMultipleChoiceField(queryset, **kwargs)
                 cleaned_value = [x.pk for x in formfield.clean(value)]
@@ -84,17 +103,20 @@ class Translator(object):
                 cleaned_value = formfield.clean(value).pk
             return cleaned_value
 
-        # If this datafield is flagged as enumerable, use a select multiple
+        # If this field is flagged as enumerable, use a select multiple
         # by default.
-        if datafield.enumerable and 'widget' not in kwargs:
-            kwargs['widget'] = forms.SelectMultiple(choices=datafield.choices)
+        if field.enumerable and 'widget' not in kwargs:
+            kwargs['widget'] = forms.SelectMultiple(choices=field.choices)
 
-        formfield = datafield.field.formfield(**kwargs)
+        # The model field instance has a convenience method called `formfield`
+        # that is suited for the field type
+        formfield = field.field.formfield(**kwargs)
 
-        # special case for ``None`` values since all form fields seem to handle
-        # the conversion differently. simply ignore the cleaning if ``None``,
+        # Special case for ``None`` values since all form fields seem to handle
+        # the conversion differently. Simply ignore the cleaning if ``None``,
         # this scenario occurs when a list of values are being queried and one
-        # of them is to lookup NULL values
+        # of them is to lookup NULL values. Note, the None is handled
+        # downstream and is contained with the query directly.
         if hasattr(value, '__iter__'):
             cleaned_value = []
             for x in value:
@@ -109,104 +131,88 @@ class Translator(object):
         return formfield.clean(value)
 
     def _get_not_null_pk(self, field, tree):
-        # XXX The below logic is required to get the expected results back
-        # when querying for NULL values. Since NULL can be a value and a
-        # placeholder for non-existent values, then a condition to ensure
-        # the row's primary key is also NOT NULL must be added. Django
-        # assumes in all cases when querying on a NULL value all joins in
-        # the chain up to that point must be promoted to LEFT OUTER JOINs,
-        # which could be a reasonable assumption for some cases, but for
-        # getting the existent rows of data back for our purposes, the
-        # assumption is wrong. The conditions defined for the query are not
-        # necessarily going to also be the data selected
+        """The below logic is required to get the expected results back
+        when querying for NULL values. Performing a LEFT OUTER JOIN will
+        cause non-existent rows on the right-hand side to be 'filled' in
+        with NULL values. If the condition is explicitly querying for NULL
+        values, this condition ensures this row actually exists.
 
-        # If this field is already the primary key, then don't bother
-        # adding this condition, since it would be redundant
-        if field.primary_key:
-            return Q()
+        Django assumes in all cases when querying on a NULL value all joins
+        in the chain up to that point must be promoted to LEFT OUTER JOINs,
+        which could be a reasonable assumption for some cases, but for
+        getting the existent rows of data back for our purposes, the
+        assumption is wrong.
+        """
 
-        pk_field = field.model._meta.pk
-        key = trees[tree].query_string_for_field(pk_field, 'isnull')
+        return tree.query_condition(field.model._meta.pk, 'isnull', False)
 
-        return Q(**{key: False})
+    def _condition(self, field, operator, value, tree):
+        """Builds a `Q` object for `field` relative to `tree`.
+        This handles a few edge cases such as passing a `None` in the list
+        of values for an 'in' lookup and ensuring lookups for NULL values do
+        not include filled in rows. Read more in `_get_not_null_pk`.
+        """
 
-    def _condition(self, datafield, operator, value, tree):
+        # Ensure this is a ModelTree instance
         tree = trees[tree]
-        field = datafield.field
-        same_model = tree.root_model is field.model
+
+        # Define condition
+        condition = None
+
+        # Flag for adding a condition with includes querying for a NULL value
+        add_null = False
 
         # Assuming the operator and value validate, check for a NoneType value
         # if the operator is 'in'. This condition will be broken out into a
         # separate Q object
-        if operator.operator == 'in' and None in value:
-            value = value[:]
-            value.remove(None)
+        if operator.lookup == 'in':
+            if None in value:
+                add_null = True
+                value.remove(None)
+        elif operator.lookup == 'exact' and value is None:
+            add_null = True
+        elif operator.lookup == 'isnull':
+            add_null = True
+            value = None
 
-            key = trees[tree].query_string_for_field(field, 'isnull')
+        if value is not None:
+            condition = tree.query_condition(field, operator.lookup, value)
 
-            # simplifies the logic here for a cleaner query. the latter
-            # condition allows for null values for the specified column, so
-            # we must enforce the additional condition of not letting the
-            # primary keys be null. this mimics an INNER JOINs behavior. see
-            # ``_get_not_null_pk`` above
-            if operator.negated:
-                condition = Q(**{key: False}) & self._get_not_null_pk(field, tree)
+        # The logical OR here is harmless since the only time where a previous
+        # condition is defined is for an 'in' lookup.
+        if add_null:
+            # Read the _get_not_null_pk docs for more info
+            null_condition = tree.query_condition(field, 'isnull', True) \
+                & self._get_not_null_pk(field, tree)
+            # Tack on to the existing condition if one is defined
+            if condition is not None:
+                condition = condition | null_condition
             else:
-                condition = Q(**{key: True})
+                condition = null_condition
 
-            # finally, if there are any more values in the list, we include
-            # them here
-            if value:
-                key = trees[tree].query_string_for_field(field, operator.operator)
-                condition = Q(**{key: value}) | condition
-
-        else:
-            # The statement 'foo=None' is equivalent to 'foo__isnull=True'
-            if (operator.operator == 'isnull' or (operator.operator == 'exact' and value is None)):
-                key = trees[tree].query_string_for_field(field, 'isnull')
-
-                # Now that isnull is being used instead, set the value to True
-                if value is None:
-                    value = True
-
-                # If this is -isnull, we need to switch the value
-                if operator.negated:
-                    value = not value
-
-                condition = Q(**{key: value})
-
-                # again, we need to account for the LOJ assumption
-                if value is False and not same_model:
-                    condition = condition & self._get_not_null_pk(field, tree)
-
-            # handle all other conditions
-            else:
-                key = trees[tree].query_string_for_field(field, operator.operator)
-                condition = Q(**{key: value})
-                if not same_model:
-                    condition = condition & self._get_not_null_pk(field, tree)
-
-                condition = ~condition if operator.negated else condition
-
+        if operator.negated:
+            return ~condition
         return condition
 
-    def validate(self, datafield, operator, value, tree, **kwargs):
-        operator = self._validate_operator(datafield, operator, **kwargs)
-        value = self._validate_value(datafield, value, **kwargs)
+    def validate(self, field, operator, value, tree, **kwargs):
+        value = self._get_value(value)
+        operator = self._validate_operator(field, operator, **kwargs)
+        value = self._validate_value(field, value, **kwargs)
 
         if not operator.is_valid(value):
-            raise ValidationError('"{0}" is not valid for the operator "{1}"'.format(value, operator))
+            raise ValidationError('"{}" is not valid for the operator '
+                '"{}"'.format(value, operator))
 
         return operator, value
 
-    def language(self, datafield, roperator, rvalue, tree, **kwargs):
-        operator, value = self.validate(datafield, roperator, rvalue, tree, **kwargs)
+    def language(self, field, operator, rvalue, **kwargs):
+        label = self._get_label(rvalue)
         # The original value is used here to prevent representing a different
         # value from what the client had submitted. This text has no impact
         # on the stored 'cleaned' data structure
-        return u'{} {}'.format(datafield.name, operator.text(rvalue))
+        return u'{} {}'.format(field.name, operator.text(label))
 
-    def translate(self, datafield, roperator, rvalue, tree, **kwargs):
+    def translate(self, field, roperator, rvalue, tree, **kwargs):
         """Returns two types of queryset modifiers including:
             - the raw operator and value supplied
             - the validated and cleaned data
@@ -216,12 +222,12 @@ class Translator(object):
         It should be noted that no checks are performed to prevent the same
         name being used for annotations.
         """
-        operator, value = self.validate(datafield, roperator, rvalue, tree, **kwargs)
-        condition = self._condition(datafield, operator, value, tree)
-        language = self.language(datafield, roperator, rvalue, tree, **kwargs)
+        operator, value = self.validate(field, roperator, rvalue, tree, **kwargs)
+        condition = self._condition(field.field, operator, value, tree)
+        language = self.language(field, operator, rvalue, **kwargs)
 
         return {
-            'id': datafield.pk,
+            'id': field.pk,
             'operator': roperator,
             'value': rvalue,
             'cleaned_data': {
