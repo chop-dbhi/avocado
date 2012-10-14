@@ -4,7 +4,9 @@
 # and boolean. More granular separation be may desired to alter the
 # allowed operators or may infer a different client-side representation
 SIMPLE_TYPE_MAP = {
-    'auto': 'number',
+    'auto': 'key',
+    'foreignkey': 'key',
+
     'biginteger': 'number',
     'decimal': 'number',
     'float': 'number',
@@ -31,6 +33,7 @@ SIMPLE_TYPE_MAP = {
 # support more operators than what are defined, but are not include because
 # they are not commonly used.
 OPERATOR_MAP = {
+    'key': ('exact', '-exact', 'in', '-in'),
     'boolean': ('exact', '-exact', 'in', '-in'),
     'date': ('exact', '-exact', 'in', '-in', 'lt', 'lte', 'gt', 'gte', 'range'),
     'number': ('exact', '-exact', 'in', '-in', 'lt', 'lte', 'gt', 'gte', 'range'),
@@ -45,7 +48,6 @@ OPERATOR_MAP = {
 # validation performed may need to be a bit less restrictive than what the
 # is actually necessary
 INTERNAL_DATATYPE_FORMFIELDS = {
-    'auto': 'IntegerField',
     'integer': 'FloatField',
     'positiveinteger': 'FloatField',
     'positivesmallinteger': 'FloatField',
