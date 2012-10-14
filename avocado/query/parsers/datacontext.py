@@ -21,10 +21,10 @@ def is_branch(obj):
     "Validates required structure for a branch node"
     if has_keys(obj, keys=BRANCH_KEYS):
         if obj['type'] not in LOGICAL_OPERATORS:
-            raise ValidationError('Invalid logical operator between conditions')
+            raise ValidationError('Invalid branch operator')
         length = len(obj['children'])
         if length < 2:
-            raise ValidationError('Invalid format. Branch node must contain two or more conditions')
+            raise ValidationError('Branch must contain two or more children')
         return True
 
 
@@ -74,8 +74,8 @@ class Condition(Node):
     @property
     def _meta(self):
         if not hasattr(self, '__meta'):
-            self.__meta = self.field.translate(operator=self.operator, value=self.value,
-                tree=self.tree, **self.context)
+            self.__meta = self.field.translate(operator=self.operator,
+                value=self.value, tree=self.tree, **self.context)
         return self.__meta
 
     @property
