@@ -23,8 +23,8 @@ kwargs = {
     # Dependencies
     'install_requires': [
         'django>=1.4',
-        'modeltree',
-        'jsonfield>=0.9',
+        'modeltree==1.1',
+        'jsonfield',
     ],
 
     'test_suite': 'test_suite',
