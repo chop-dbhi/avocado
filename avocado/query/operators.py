@@ -1,17 +1,18 @@
+from warnings import warn
 from avocado.core import loader
 
 
 class BaseOperatorMetaclass(type):
     def __new__(cls, name, bases, attrs):
         new_cls = type.__new__(cls, name, bases, attrs)
-        new_cls.uid = ('-' if new_cls.negated else '') + new_cls.operator
+        new_cls.uid = ('-' if new_cls.negated else '') + new_cls.lookup
         return new_cls
 
 
 class BaseOperator(object):
     __metaclass__ = BaseOperatorMetaclass
 
-    operator = ''
+    lookup = ''
     short_name = ''
     verbose_name = ''
     negated = False
@@ -24,6 +25,12 @@ class BaseOperator(object):
 
     def __repr__(self):
         return u'<Operator: "%s" (%s)>' % (self.verbose_name, self.uid)
+
+    @property
+    def operator(self):
+        warn('self.operator is deprecated, use self.lookup instead',
+            DeprecationWarning)
+        return self.lookup
 
     def coerce_to_unicode(self, value):
         return unicode(value)
@@ -46,14 +53,14 @@ class SimpleTypeOperator(BaseOperator):
 
 
 class StringOperator(SimpleTypeOperator):
-    "Operator class for string-only operators."
+    "Operator class for string-only lookups."
     def is_valid(self, value):
         return isinstance(value, basestring)
 
 
 class ContainerTypeOperator(BaseOperator):
     "Operator class for container type values. Excludes strings."
-    join_operator = 'and'
+    join_string = 'and'
     max_list_size = 3
 
     def is_valid(self, value):
@@ -79,11 +86,11 @@ class ContainerTypeOperator(BaseOperator):
         if tail > 0:
             text += ' ... (%s more)' % tail
 
-        return text + (' %s ' % self.join_operator) + last
+        return text + (' %s ' % self.join_string) + last
 
 
 class Null(BaseOperator):
-    operator = 'isnull'
+    lookup = 'isnull'
     short_name = 'is null'
     verbose_name = 'is null'
 
@@ -106,7 +113,7 @@ class NotNull(Null):
 
 
 class Exact(SimpleTypeOperator):
-    operator = 'exact'
+    lookup = 'exact'
     short_name = '='
     verbose_name = 'is equal to'
 
@@ -128,9 +135,9 @@ class NotExact(Exact):
         return super(NotExact, self).text(value)
 
 
-# String-specific operators
+# String-specific lookups
 class InsensitiveExact(StringOperator):
-    operator = 'iexact'
+    lookup = 'iexact'
     short_name = '='
     verbose_name = 'is equal to'
 
@@ -142,13 +149,13 @@ class InsensitiveNotExact(InsensitiveExact):
 
 
 class Contains(StringOperator):
-    operator = 'contains'
+    lookup = 'contains'
     short_name = 'contains'
     verbose_name = 'contains the text'
 
 
 class InsensitiveContains(Contains):
-    operator = 'icontains'
+    lookup = 'icontains'
     short_name = 'contains'
     verbose_name = 'contains the text'
 
@@ -165,34 +172,34 @@ class NotInsensitiveContains(InsensitiveContains):
     negated = True
 
 
-# Numerical and lexicographical operators
+# Numerical and lexicographical lookups
 class LessThan(SimpleTypeOperator):
-    operator = 'lt'
+    lookup = 'lt'
     short_name = '<'
     verbose_name = 'is less than'
 
 
 class GreaterThan(SimpleTypeOperator):
-    operator = 'gt'
+    lookup = 'gt'
     short_name = '>'
     verbose_name = 'is greater than'
 
 
 class LessThanOrEqual(SimpleTypeOperator):
-    operator = 'lte'
+    lookup = 'lte'
     short_name = '<='
     verbose_name = 'is less than or equal to'
 
 
 class GreaterThanOrEqual(SimpleTypeOperator):
-    operator = 'gte'
+    lookup = 'gte'
     short_name = '>='
     verbose_name = 'is greater than or equal to'
 
 
 # Operators for container types (excluding strings)
 class InList(ContainerTypeOperator):
-    operator = 'in'
+    lookup = 'in'
     short_name = 'includes'
     verbose_name = 'includes'
 
@@ -204,8 +211,8 @@ class NotInList(InList):
 
 
 class Range(ContainerTypeOperator):
-    join_operator = 'and'
-    operator = 'range'
+    join_string = 'and'
+    lookup = 'range'
     short_name = 'between'
     verbose_name = 'is between'
 
