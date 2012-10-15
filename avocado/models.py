@@ -166,6 +166,11 @@ class DataField(BasePlural):
                 pass
 
     @property
+    def nullable(self):
+        "Returns whether this field can contain NULL values."
+        return self.field.null
+
+    @property
     def internal_type(self):
         "Returns the internal type of the field this datafield represents."
         return utils.get_internal_type(self.field)

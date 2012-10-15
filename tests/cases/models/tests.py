@@ -41,16 +41,19 @@ class DataFieldTestCase(TestCase):
         self.assertTrue(self.is_manager.model)
         self.assertTrue(self.is_manager.field)
         self.assertEqual(self.is_manager.simple_type, 'boolean')
+        self.assertEqual(self.is_manager.nullable, True)
 
     def test_integer(self):
         self.assertTrue(self.salary.model)
         self.assertTrue(self.salary.field)
         self.assertEqual(self.salary.simple_type, 'number')
+        self.assertEqual(self.salary.nullable, True)
 
     def test_string(self):
         self.assertTrue(self.first_name.model)
         self.assertTrue(self.first_name.field)
         self.assertEqual(self.first_name.simple_type, 'string')
+        self.assertEqual(self.first_name.nullable, False)
 
 
 class DataFieldManagerTestCase(TestCase):
