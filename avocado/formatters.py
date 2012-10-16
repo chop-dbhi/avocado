@@ -3,7 +3,7 @@ from collections import OrderedDict, defaultdict
 from django.utils.encoding import force_unicode
 from avocado.core import loader
 
-log = logging.getLogger(__file__)
+log = logging.getLogger(__name__)
 
 
 class FormatterException(Exception):
@@ -145,10 +145,8 @@ class Formatter(object):
                         return OrderedDict([(self.concept.name, output)])
                     return output
                 # Remove from the preferred formats list since it failed
-                except Exception, e:
-                    if not isinstance(e, FormatterException):
-                        log.debug('{}: {}\nFormatter:\t{}.{}\nMultiple:\ntrue\nType:\t{}'.format(e.__class__.__name__,
-                            e.message, str(self), method, [type(value) for value in values]))
+                except Exception:
+                    log.exception('Multi-value formatter error')
                     preferred_formats.pop(0)
 
         # The output is independent of the input. Formatters may output more
@@ -168,10 +166,8 @@ class Formatter(object):
                     else:
                         output[key] = fvalue
                     break
-                except Exception, e:
-                    if not isinstance(e, FormatterException):
-                        log.debug('{}: {}\nFormatter:\t{}.{}\nMultiple:\nfalse\nType:\t{}'.format(e.__class__.__name__,
-                            e.message, str(self), method, type(value)))
+                except Exception:
+                    log.exception('Single-value formatter error')
         return output
 
     def __contains__(self, choice):
