@@ -110,6 +110,9 @@ class Formatter(object):
         # enables key-based access to the values rather than
         # relying on position.
         if not isinstance(values, OrderedDict):
+            # Wrap single values
+            if not isinstance(values, (list, tuple)):
+                values = [values]
             values = OrderedDict(zip(self.keys, values))
 
         # Iterate over all preferred formats and attempt to process the values.
