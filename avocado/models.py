@@ -232,6 +232,21 @@ class DataField(BasePlural):
             plural = self.unit
         return plural
 
+    def get_label(self, value):
+        """Gets the label for a particular raw data value.
+        If this is classified as `searchable`, a database hit will occur.
+        """
+        if self.searchable:
+            kwargs = {self.field_name: value}
+            if self.lexicon:
+                return self.model.objects.filter(**kwargs)\
+                    .values_list('label', flat=True)[0]
+            if self.objectset:
+                return self.model.objects.filter(**kwargs)\
+                    .values_list('name', flat=True)[0]
+            return smart_unicode(value)
+        return dict(self.choices)[value]
+
     # Data-related Cached Properties
     # These may be cached until the underlying data changes
 
