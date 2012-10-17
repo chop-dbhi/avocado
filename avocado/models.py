@@ -8,6 +8,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.db.models.fields import FieldDoesNotExist
 from django.db.models.signals import post_save, pre_delete
 from django.core.validators import RegexValidator
+from modeltree.tree import trees
 from avocado.core import utils
 from avocado.core.models import Base, BasePlural
 from avocado.core.cache import (post_save_cache, pre_delete_uncache,
@@ -495,6 +496,12 @@ class DataContext(Base):
 
     def __or__(self, other):
         return self._combine(other, 'or')
+
+    @property
+    def model(self):
+        "The model this context represents with respect to the count."
+        if self.count is not None:
+            return trees.default.root_model
 
     def node(self, tree=None):
         return parsers.datacontext.parse(self.json, tree=tree)
