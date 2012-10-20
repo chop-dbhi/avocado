@@ -61,10 +61,10 @@ kwargs = {
     'author_email': 'b@devel.io',
     'description': 'Metadata APIs for Django',
     'license': 'BSD',
-    'keywords': 'query metadata',
+    'keywords': 'query metadata harvest orm',
     'url': 'http://cbmi.github.com/avocado/',
     'classifiers': [
-        'Development Status :: 5 - Production',
+        'Development Status :: 5 - Production/Stable',
         'License :: OSI Approved :: BSD License',
         'Programming Language :: Python :: 2.7'
         'Framework :: Django',
