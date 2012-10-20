@@ -2,10 +2,6 @@ import sys
 from setuptools import setup, find_packages
 from setuptools.command import install as _install
 
-if sys.version_info < (2, 7):
-    sys.stdout.write('Python versions < 2.7 are not supported\n')
-    sys.exit(1)
-
 
 class install(_install.install):
     def run(self):
@@ -22,7 +18,7 @@ kwargs = {
 
     # Dependencies
     'install_requires': [
-        'django>=1.4',
+        'django>=1.4,<1.5',
         'modeltree==1.1',
         'jsonfield',
     ],
@@ -66,9 +62,9 @@ kwargs = {
     'description': 'Metadata APIs for Django',
     'license': 'BSD',
     'keywords': 'query metadata',
-    'url': 'https://github.com/cbmi/avocado/',
+    'url': 'http://cbmi.github.com/avocado/',
     'classifiers': [
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production',
         'License :: OSI Approved :: BSD License',
         'Programming Language :: Python :: 2.7'
         'Framework :: Django',
