@@ -22,7 +22,7 @@ kwargs = {
         'modeltree==1.1',
 
         # Uses a dependency link below
-        'jsonfield>=1.0',
+        'jsonfield>=1.0b',
     ],
 
     'test_suite': 'test_suite',
@@ -53,7 +53,7 @@ kwargs = {
     },
 
     'dependency_links': [
-        'https://github.com/bradjasper/django-jsonfield/zipball/3bccdc47#egg=jsonfield-1.0',
+        'https://github.com/cbmi/django-jsonfield/zipball/601872f#egg=jsonfield-1.0b',
     ],
 
     # Metadata
