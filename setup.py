@@ -20,7 +20,9 @@ kwargs = {
     'install_requires': [
         'django>=1.4,<1.5',
         'modeltree==1.1',
-        'jsonfield',
+
+        # Uses a dependency link below
+        'jsonfield>=1.0',
     ],
 
     'test_suite': 'test_suite',
@@ -51,7 +53,7 @@ kwargs = {
     },
 
     'dependency_links': [
-        'https://github.com/bradjasper/django-jsonfield/zipball/3bccdc47#egg=jsonfield',
+        'https://github.com/bradjasper/django-jsonfield/zipball/3bccdc47#egg=jsonfield-1.0',
     ],
 
     # Metadata
