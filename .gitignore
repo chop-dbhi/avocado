@@ -3,8 +3,8 @@
 .watch-pid
 .sass-cache
 *.ipynb
-*.sw[po]
-*.py[co]
+*.sw?
+*.py?
 docs/build
 MANIFEST
 dist
