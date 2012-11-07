@@ -11,7 +11,7 @@ install_requires = [
     'jsonfield>=1.0b',
 ]
 
-if sys.version < (2, 7):
+if sys.version_info < (2, 7):
     install_requires.append('ordereddict>=1.1')
 
 
