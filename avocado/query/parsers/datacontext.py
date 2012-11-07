@@ -180,7 +180,7 @@ def validate(attrs, **context):
             else:
                 cxt = DataContext.objects.get(id=attrs['id'])
         except DataContext.DoesNotExist:
-            raise ValidationError('DataContext "{}" does not exist.'.format(attrs['id']))
+            raise ValidationError('DataContext "{0}" does not exist.'.format(attrs['id']))
         validate(cxt.json, **context)
     elif is_condition(attrs):
         from avocado.models import DataField
@@ -192,7 +192,7 @@ def validate(attrs, **context):
     elif is_branch(attrs):
         map(lambda x: validate(x), attrs['children'])
     else:
-        raise ValidationError('Object neither a branch nor condition: {}'.format(attrs))
+        raise ValidationError('Object neither a branch nor condition: {0}'.format(attrs))
 
 
 def parse(attrs, **context):

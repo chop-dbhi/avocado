@@ -91,7 +91,7 @@ class Command(BaseCommand):
                 'This will overwrite any previous changes made. Type "yes" '
                 'to continue: ')
             if resp.lower() != 'yes':
-                print('Sync operation cancelled')
+                print 'Sync operation cancelled'
                 return
 
         for label in args:
@@ -115,7 +115,7 @@ class Command(BaseCommand):
                 model = get_model(app_name, model_name)
 
                 if model is None:
-                    print('Cannot find model "{0}", skipping...'.format(label))
+                    print 'Cannot find model "{0}", skipping...'.format(label)
                     continue
 
                 # Specific field
@@ -123,7 +123,7 @@ class Command(BaseCommand):
                     try:
                         field = model._meta.get_field_by_name(field_name)[0]
                     except FieldDoesNotExist:
-                        print('Cannot find field "{0}", skipping...'.format(label))
+                        print 'Cannot find field "{0}", skipping...'.format(label)
                         continue
                     pending_fields = [(field, model_name, app_name)]
 
@@ -133,7 +133,7 @@ class Command(BaseCommand):
             else:
                 app = get_app(app_name)
                 if app is None:
-                    print('Cannot find app "{0}", skipping...'.format(label))
+                    print 'Cannot find app "{0}", skipping...'.format(label)
                     continue
                 pending_models.extend(get_models(app))
 
@@ -162,14 +162,14 @@ class Command(BaseCommand):
                     updated += 1
 
             if added == 1:
-                print('1 field added for {0}'.format(label))
+                print '1 field added for {0}'.format(label)
             elif added > 1:
-                print('{0:,} fields added for {1}'.format(added, label))
+                print '{0} fields added for {1}'.format(added, label)
 
             if updated == 1:
-                print('1 field updated for {0}'.format(label))
+                print '1 field updated for {0}'.format(label)
             elif updated > 1:
-                print('{0:,} fields updated for {1}'.format(updated, label))
+                print '{0} fields updated for {1}'.format(updated, label)
 
         if options.get('quiet'):
             sys.stdout = self.stdout
@@ -219,8 +219,8 @@ class Command(BaseCommand):
         if datafield.pk:
             created = False
             if not force:
-                print('({}) {}.{} already exists. Skipping...'.format(app_name,
-                    model_name, field.name))
+                print '({0}) {1}.{2} already exists. Skipping...'.format(app_name,
+                    model_name, field.name)
                 return
             # Only overwrite if the source value is not falsy
             datafield.__dict__.update([(k, v) for k, v in kwargs.items()])

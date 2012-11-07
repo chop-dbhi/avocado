@@ -32,17 +32,17 @@ class Command(BaseCommand):
         model = get_model(*model_label.split('.'))
 
         if model is None:
-            raise CommandError('Not model named {} was found'.format(model_label))
+            raise CommandError('Not model named {0} was found'.format(model_label))
 
         toks = field_label.split('.')
         if len(toks) != 3:
-            raise CommandError('{} is not a valid field identifier. Use a ' \
+            raise CommandError('{0} is not a valid field identifier. Use a ' \
                 '"." delimited notation, e.g. "app.model.field"'.format(field_label))
         datafield = DataField(app_name=toks[0], model_name=toks[1],
             field_name=toks[2])
 
         if not datafield.field:
-            raise CommandError('The field {} could not be found.'.format(field_label))
+            raise CommandError('The field {0} could not be found.'.format(field_label))
 
         count = 0
         values = list(datafield.values)
@@ -56,4 +56,4 @@ class Command(BaseCommand):
             obj.save()
             count += 1
 
-        print('{} distinct values loaded'.format(count))
+        print '{0} distinct values loaded'.format(count)

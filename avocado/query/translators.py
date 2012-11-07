@@ -67,11 +67,11 @@ class Translator(object):
 
         # No operator is registered
         if operator is None:
-            raise ValueError('"{}" is not a valid operator'.format(uid))
+            raise ValueError('"{0}" is not a valid operator'.format(uid))
 
         # Ensure the operator is allowed
         if operator.uid not in allowed_operators:
-            raise OperatorNotPermitted('Operator "{}" cannot be used for ' \
+            raise OperatorNotPermitted('Operator "{0}" cannot be used for ' \
                 'this translator'.format(operator))
 
         return operator
@@ -200,8 +200,8 @@ class Translator(object):
         value = self._validate_value(field, value, **kwargs)
 
         if not operator.is_valid(value):
-            raise ValidationError('"{}" is not valid for the operator '
-                '"{}"'.format(value, operator))
+            raise ValidationError('"{0}" is not valid for the operator '
+                '"{1}"'.format(value, operator))
 
         return operator, value
 
@@ -210,7 +210,7 @@ class Translator(object):
         # The original value is used here to prevent representing a different
         # value from what the client had submitted. This text has no impact
         # on the stored 'cleaned' data structure
-        return u'{} {}'.format(field.name, operator.text(label))
+        return u'{0} {1}'.format(field.name, operator.text(label))
 
     def translate(self, field, roperator, rvalue, tree, **kwargs):
         """Returns two types of queryset modifiers including:

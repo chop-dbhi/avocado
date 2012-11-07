@@ -72,4 +72,4 @@ class Command(BaseCommand):
                 q = q | x
             fields = DataField.objects.filter(q)
         updated = fields.update(data_modified=datetime.now())
-        print '{} DataFields have been updated'.format(updated)
+        print '{0} DataFields have been updated'.format(updated)

@@ -62,7 +62,7 @@ class Command(BaseCommand):
                     field_name=lfield.field_name)
 
             if already_exists and not update_existing:
-                print '({}) {}.{} already exists. Skipping...'.format(f.app_name, f.model_name, f.name)
+                print '({0}) {1}.{2} already exists. Skipping...'.format(f.app_name, f.model_name, f.name)
                 continue
 
             # Map various fields
@@ -75,10 +75,10 @@ class Command(BaseCommand):
 
             # Check if this is an orphan
             if exclude_orphans and not f.field:
-                print '({}) {}.{} is orphaned. Skipping...'.format(f.app_name, f.model_name, f.name)
+                print '({0}) {1}.{2} is orphaned. Skipping...'.format(f.app_name, f.model_name, f.name)
                 continue
 
-            print 'Migrating...\t({}) {}.{}'.format(f.app_name, f.model_name, f.name)
+            print 'Migrating...\t({0}) {1}.{2}'.format(f.app_name, f.model_name, f.name)
 
             flags = utils.get_heuristic_flags(f)
             f.__dict__.update(flags)
@@ -86,9 +86,9 @@ class Command(BaseCommand):
             # Disagreement with enumerable status
             if f.enumerable != lfield.enable_choices:
                 if lfield.enable_choices:
-                    override = raw_input('"{}" is marked as enumerable, but does not qualify to be enumerable. Override? [y/n] ')
+                    override = raw_input('"{0}" is marked as enumerable, but does not qualify to be enumerable. Override? [y/n] ')
                 else:
-                    override = raw_input('"{}" is not marked as enumerable, but qualifies to be enumerable. Override? [y/n] ')
+                    override = raw_input('"{0}" is not marked as enumerable, but qualifies to be enumerable. Override? [y/n] ')
 
                 if override.lower() == 'y':
                     f.enumerable = lfield.enable_choices
@@ -102,4 +102,4 @@ class Command(BaseCommand):
                 f.sites = lfield.sites.all()
             total_migrated += 1
 
-        print 'Fields migrated:\t{:,}'.format(total_migrated)
+        print 'Fields migrated:\t{0}'.format(total_migrated)

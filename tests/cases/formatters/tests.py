@@ -66,7 +66,7 @@ class FormatterTestCase(TestCase):
         class HtmlFormatter(Formatter):
             def to_html(self, values, **context):
                 fvalues = self(values, preferred_formats=['string'])
-                return '<span>{}</span>'.format('</span><span>'.join(fvalues.values()))
+                return '<span>{0}</span>'.format('</span><span>'.join(fvalues.values()))
             to_html.process_multiple = True
 
         f = HtmlFormatter(self.concept)

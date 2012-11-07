@@ -42,7 +42,7 @@ class Registry(object):
             name = name or obj.__class__.__name__
 
         if name in self._registry:
-            raise AlreadyRegistered('The class {} is already registered'.format(name))
+            raise AlreadyRegistered('The class {0} is already registered'.format(name))
 
         # Check to see if this class should be used as the default for this
         # registry
@@ -55,14 +55,14 @@ class Registry(object):
                 else:
                     name = self.default.__name__
                 objtype = 'class' if self.register_instance else 'instance'
-                raise ImproperlyConfigured('The default {} cannot be set '
-                    'more than once for this registry ({} is the default).'.format(objtype, name))
+                raise ImproperlyConfigured('The default {0} cannot be set '
+                    'more than once for this registry ({1} is the default).'.format(objtype, name))
 
             self.default = obj
         else:
             if name in self._registry:
                 raise AlreadyRegistered('Another class is registered with the '
-                    'name "{}"'.format(name))
+                    'name "{0}"'.format(name))
 
             self._registry[name] = obj
 
@@ -78,7 +78,7 @@ class Registry(object):
             name = name.__class__.__name__
         if name not in self._registry:
             objtype = 'class' if self.register_instance else 'instance'
-            raise NotRegistered('No {} is registered under the name "{}"'.format(objtype, name))
+            raise NotRegistered('No {0} is registered under the name "{1}"'.format(objtype, name))
         self._registry.pop(name)
 
     @property
@@ -95,6 +95,6 @@ def autodiscover(module_name):
     for app in settings.INSTALLED_APPS:
         # Attempt to import the app's ``module_name``.
         try:
-            import_module('{}.{}'.format(app, module_name))
+            import_module('{0}.{1}'.format(app, module_name))
         except:
             pass

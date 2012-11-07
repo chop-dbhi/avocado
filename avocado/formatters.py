@@ -1,5 +1,9 @@
 import logging
-from collections import OrderedDict, defaultdict
+from collections import defaultdict
+try:
+    from collections import OrderedDict
+except ImportError:
+    from ordereddict import OrderedDict
 from django.utils.encoding import force_unicode
 from avocado.core import loader
 
@@ -15,10 +19,10 @@ def unique_keys(fields):
     based on the field's natural_key.
     """
     def model_prefix(field, key):
-        return '{}__{}'.format(field.model_name, key)
+        return '{0}__{1}'.format(field.model_name, key)
 
     def app_prefix(field, key):
-        return '{}__{}'.format(field.app_name, model_prefix(field, key))
+        return '{0}__{1}'.format(field.app_name, model_prefix(field, key))
 
     # Evaluate in case this is QuerySet..
     fields = list(fields)
@@ -121,7 +125,7 @@ class Formatter(object):
         # If no preferred multi-value methods succeed, each value is processed
         # independently with the remaining formats
         for f in iter(preferred_formats):
-            method = getattr(self, 'to_{}'.format(f), None)
+            method = getattr(self, 'to_{0}'.format(f), None)
             # This formatter does not support this format, remove it
             # from the available list
             if not method:
@@ -156,7 +160,7 @@ class Formatter(object):
         # Attempt to process each
         for i, (key, value) in enumerate(values.iteritems()):
             for f in preferred_formats:
-                method = getattr(self, 'to_{}'.format(f))
+                method = getattr(self, 'to_{0}'.format(f))
                 try:
                     field = self.fields[key] if self.fields else None
                     fvalue = method(value, field=field, concept=self.concept,
@@ -171,10 +175,10 @@ class Formatter(object):
         return output
 
     def __contains__(self, choice):
-        return hasattr(self, 'to_{}'.format(choice))
+        return hasattr(self, 'to_{0}'.format(choice))
 
     def __unicode__(self):
-        return u'{}'.format(self.name or self.__class__.__name__)
+        return u'{0}'.format(self.name or self.__class__.__name__)
 
     def to_string(self, value, **context):
         # Attempt to coerce non-strings to strings. Depending on the data
@@ -188,7 +192,7 @@ class Formatter(object):
         # If value is native True or False value, return it
         if type(value) is bool:
             return value
-        raise FormatterException('Cannot convert {} to boolean'.format(value))
+        raise FormatterException('Cannot convert {0} to boolean'.format(value))
 
     def to_number(self, value, **context):
         # Attempts to convert a number. Starting with ints and floats
@@ -201,7 +205,7 @@ class Formatter(object):
             except (ValueError, TypeError):
                 value = float(value)
             return value
-        raise FormatterException('Cannot convert {} to number'.format(value))
+        raise FormatterException('Cannot convert {0} to number'.format(value))
 
     def to_coded(self, value, **context):
         # Attempts to convert value to its coded representation
@@ -209,7 +213,7 @@ class Formatter(object):
             for key, coded in context['field'].coded_values:
                 if key == value:
                     return coded
-        raise FormatterException('No coded value for {}'.format(value))
+        raise FormatterException('No coded value for {0}'.format(value))
 
     def to_raw(self, value, **context):
         return value

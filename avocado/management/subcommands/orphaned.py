@@ -33,7 +33,7 @@ class Command(NoArgsCommand):
 
     def _print(self, objs, msg, unpublish=False):
         print
-        print '{}:\n'.format(msg)
+        print '{0}:\n'.format(msg)
         for o in objs:
             print '\t',
             if o.published:

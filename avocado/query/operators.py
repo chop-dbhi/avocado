@@ -119,7 +119,7 @@ class Exact(SimpleTypeOperator):
 
     def text(self, value):
         if isinstance(value, bool):
-            return u'is {}'.format(value)
+            return u'is {0}'.format(value)
         return super(Exact, self).text(value)
 
 
@@ -131,7 +131,7 @@ class NotExact(Exact):
     def text(self, value):
         # Easier to read 'is False', rather than 'is not True'
         if isinstance(value, bool):
-            return u'is {}'.format(not value)
+            return u'is {0}'.format(not value)
         return super(NotExact, self).text(value)
 
 

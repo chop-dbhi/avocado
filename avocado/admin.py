@@ -188,7 +188,7 @@ class DataFieldAdmin(PublishedAdmin):
         fields = list(queryset)
         max_length = DataConcept._meta.get_field_by_name('name')[0].max_length
         name = ', '.join([f.name for f in fields])[:max_length - 5] + '...'
-        concept = DataConcept(name='"{}"'.format(name))
+        concept = DataConcept(name='"{0}"'.format(name))
         concept.save()
         for i, datafield in enumerate(queryset):
             DataConceptField(concept=concept, field=datafield, order=i).save()

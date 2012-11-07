@@ -131,7 +131,7 @@ class DataField(BasePlural):
             return self.name
         if self.lexicon or self.objectset:
             return self.model._meta.verbose_name
-        return '{} {}'.format(self.model._meta.verbose_name,
+        return '{0} {1}'.format(self.model._meta.verbose_name,
             self.field.verbose_name).title()
 
     def __len__(self):

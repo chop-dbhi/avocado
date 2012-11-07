@@ -3,6 +3,18 @@ from setuptools import setup, find_packages
 from setuptools.command import install as _install
 
 
+install_requires = [
+    'django>=1.4,<1.5',
+    'modeltree==1.1',
+
+    # Uses a dependency link below
+    'jsonfield>=1.0b',
+]
+
+if sys.version < (2, 7):
+    install_requires.append('ordereddict>=1.1')
+
+
 class install(_install.install):
     def run(self):
         _install.install.run(self)
@@ -17,13 +29,7 @@ kwargs = {
     'include_package_data': True,
 
     # Dependencies
-    'install_requires': [
-        'django>=1.4,<1.5',
-        'modeltree==1.1',
-
-        # Uses a dependency link below
-        'jsonfield>=1.0b',
-    ],
+    'install_requires': install_requires,
 
     'test_suite': 'test_suite',
 
