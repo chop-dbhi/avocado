@@ -51,7 +51,7 @@ class Node(object):
         self.tree = context.pop('tree', None)
         self.context = context
 
-    def apply(self, queryset=None):
+    def apply(self, queryset=None, distinct=True):
         if queryset is None:
             queryset = trees[self.tree].get_queryset()
         if self.annotations:
@@ -60,6 +60,8 @@ class Node(object):
             queryset = queryset.filter(self.condition)
         if self.extra:
             queryset = queryset.extra(**self.extra)
+        if distinct:
+            queryset = queryset.distinct()
         return queryset
 
 
