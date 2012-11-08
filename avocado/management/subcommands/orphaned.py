@@ -1,7 +1,8 @@
 from optparse import make_option
 from django.core.management.base import NoArgsCommand
-
+from django.db import transaction
 from avocado.models import DataField
+
 
 class Command(NoArgsCommand):
     """
@@ -31,21 +32,22 @@ class Command(NoArgsCommand):
             help='Unpublishes orphaned Fields'),
     )
 
-    def _print(self, objs, msg, unpublish=False):
+    def _print(self, fields, msg, unpublish=False):
         print
         print '{0}:\n'.format(msg)
-        for o in objs:
+        for f in fields:
             print '\t',
-            if o.published:
+            if f.published:
                 if unpublish:
-                    o.published = False
-                    o.save()
+                    f.published = False
+                    f.save()
                 print '[P]',
             else:
                 print '   ',
-            print o
+            print f
         print
 
+    @transaction.commit_on_success
     def handle_noargs(self, **options):
         unpublish = options.get('unpublish')
         verbosity = options.get('verbosity')
@@ -53,11 +55,11 @@ class Command(NoArgsCommand):
         unknown_models = []
         unknown_fields = []
 
-        for datafield in DataField.objects.iterator():
-            if datafield.model is None:
-                unknown_models.append(datafield)
-            elif datafield.field is None:
-                unknown_fields.append(datafield)
+        for f in DataField.objects.iterator():
+            if f.model is None:
+                unknown_models.append(f)
+            elif f.field is None:
+                unknown_fields.append(f)
 
         if verbosity:
             if not unknown_models and not unknown_fields:
