@@ -15,6 +15,8 @@ INSTALLED_APPS = (
     'guardian',
 
     'avocado',
+    'avocado.legacy',
+
     'tests',
     'tests.cases.core',
     'tests.cases.lexicon',
