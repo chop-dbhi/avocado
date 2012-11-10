@@ -13,10 +13,6 @@ OPERATOR_MAP = settings.OPERATOR_MAP
 INTERNAL_DATATYPE_FORMFIELDS = settings.INTERNAL_DATATYPE_FORMFIELDS
 
 
-class OperatorNotPermitted(Exception):
-    pass
-
-
 class Translator(object):
     """Given a `DataField` instance, a raw value and operator, a
     translator validates, cleans and constructs Django compatible
@@ -59,6 +55,11 @@ class Translator(object):
     def _validate_operator(self, field, uid, **kwargs):
         # Determine list of allowed operators
         allowed_operators = self.get_operators(field)
+
+        # Special case for fields that are nullable
+        if field.field.null:
+            allowed_operators += ('isnull', '-isnull')
+
         # If uid is None, the default operator will be used
         uid = uid or allowed_operators[0]
 
@@ -67,11 +68,11 @@ class Translator(object):
 
         # No operator is registered
         if operator is None:
-            raise ValueError('"{0}" is not a valid operator'.format(uid))
+            raise ValidationError('"{0}" is not a valid operator'.format(uid))
 
         # Ensure the operator is allowed
         if operator.uid not in allowed_operators:
-            raise OperatorNotPermitted('Operator "{0}" cannot be used for ' \
+            raise ValidationError('Operator "{0}" cannot be used for ' \
                 'this translator'.format(operator))
 
         return operator
@@ -88,7 +89,7 @@ class Translator(object):
                 kwargs['form_class'] = get_form_class(name)
 
         # The formfield is being used to clean the value, thus no
-        # validation errors should be raised.
+        # 'required' validation errors should be raised.
         kwargs['required'] = False
 
         # Special handling for primary keys
@@ -165,25 +166,37 @@ class Translator(object):
         # Assuming the operator and value validate, check for a NoneType value
         # if the operator is 'in'. This condition will be broken out into a
         # separate Q object
-        if operator.lookup == 'in':
-            if None in value:
-                add_null = True
-                value.remove(None)
-        elif operator.lookup == 'exact' and value is None:
+        if operator.lookup == 'exact' and value is None:
             add_null = True
         elif operator.lookup == 'isnull':
             add_null = True
-            value = None
+        else:
+            # Remove the None value from the list to process separately
+            if operator.lookup == 'in':
+                if None in value:
+                    add_null = True
+                    value.remove(None)
 
-        if value is not None:
-            condition = tree.query_condition(field, operator.lookup, value)
+            # Process a normal value
+            if value is not None:
+                condition = tree.query_condition(field, operator.lookup, value)
+
+            # Reset value to None for `null` processing
+            value = None
 
         # The logical OR here is harmless since the only time where a previous
         # condition is defined is for an 'in' lookup.
         if add_null:
+            # If value is None, this defaults to isnull=True
+            if value is None:
+                value = True
             # Read the _get_not_null_pk docs for more info
-            null_condition = tree.query_condition(field, 'isnull', True) \
-                & self._get_not_null_pk(field, tree)
+            null_condition = tree.query_condition(field, 'isnull', value)
+
+            if field.model is not tree.root_model:
+                null_condition = null_condition & \
+                    self._get_not_null_pk(field, tree)
+
             # Tack on to the existing condition if one is defined
             if condition is not None:
                 condition = condition | null_condition
@@ -192,12 +205,18 @@ class Translator(object):
 
         if operator.negated:
             return ~condition
+
         return condition
 
     def validate(self, field, operator, value, tree, **kwargs):
         value = self._get_value(value)
         operator = self._validate_operator(field, operator, **kwargs)
-        value = self._validate_value(field, value, **kwargs)
+
+        # This is unique case since the operator is driving the required
+        # type rather than using the datatype of the field. There is likely
+        # a more elegant way to do this.
+        if operator.lookup != 'isnull':
+            value = self._validate_value(field, value, **kwargs)
 
         if not operator.is_valid(value):
             raise ValidationError('"{0}" is not valid for the operator '
