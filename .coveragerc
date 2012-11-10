@@ -7,7 +7,7 @@ omit =
     avocado/admin.py
     avocado/forms.py
     avocado/core/decorators.py
-    avocado/tests/*
+    avocado/migrations/*
     avocado/__init__.py
     avocado/*/__init__.py
     avocado/*/*/__init__.py
