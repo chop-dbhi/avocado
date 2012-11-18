@@ -1,5 +1,4 @@
 import re
-import jsonfield
 from django.db import models
 from django.contrib.sites.models import Site
 from django.contrib.auth.models import User, Group
@@ -8,7 +7,6 @@ from django.utils.translation import ugettext_lazy as _
 from django.db.models.fields import FieldDoesNotExist
 from django.db.models.signals import post_save, pre_delete
 from django.core.validators import RegexValidator
-from modeltree.tree import trees
 from avocado.core import utils
 from avocado.core.models import Base, BasePlural
 from avocado.core.cache import (post_save_cache, pre_delete_uncache,
@@ -16,7 +14,7 @@ from avocado.core.cache import (post_save_cache, pre_delete_uncache,
 from avocado.conf import settings
 from avocado.managers import (DataFieldManager, DataConceptManager,
     DataCategoryManager)
-from avocado.query import parsers
+from avocado.query.models import AbstractDataView, AbstractDataContext
 from avocado.query.translators import registry as translators
 from avocado.query.operators import registry as operators
 from avocado.lexicon.models import Lexicon
@@ -25,7 +23,9 @@ from avocado.stats.agg import Aggregator
 from avocado.formatters import registry as formatters
 from avocado.queryview import registry as queryviews
 
-__all__ = ('DataCategory', 'DataConcept', 'DataField', 'DataContext')
+
+__all__ = ('DataCategory', 'DataConcept', 'DataField',
+    'DataContext', 'DataView')
 
 
 SIMPLE_TYPE_MAP = settings.SIMPLE_TYPE_MAP
@@ -446,17 +446,13 @@ class DataConceptField(models.Model):
         return self.name_plural or self.field.get_plural_name()
 
 
-class DataContext(Base):
+class DataContext(AbstractDataContext, Base):
     """JSON object representing one or more data field conditions. The data may
     be a single condition, an array of conditions or a tree stucture.
 
     This corresponds to the `WHERE` statements in a SQL query.
     """
-    json = jsonfield.JSONField(null=True, blank=True, default=dict,
-        validators=[parsers.datacontext.validate])
     session = models.BooleanField(default=False)
-    composite = models.BooleanField(default=False)
-    count = models.IntegerField(null=True, db_column='_count')
 
     # For authenticated users the `user` can be directly referenced,
     # otherwise the session key can be used.
@@ -472,60 +468,14 @@ class DataContext(Base):
         self.pk, self.session, self.archived = backup
         return True
 
-    def _combine(self, other, operator):
-        if not isinstance(other, self.__class__):
-            raise TypeError('Other object must be a DataContext instance')
-        cxt = self.__class__(composite=True)
-        cxt.user_id = self.user_id or other.user_id
-        if self.json and other.json:
-            cxt.json = {
-                'type': operator,
-                'children': [
-                    {'id': self.pk, 'composite': True},
-                    {'id': other.pk, 'composite': True}
-                ]
-            }
-        elif self.json:
-            cxt.json = {'id': self.pk, 'composite': True}
-        elif other.json:
-            cxt.json = {'id': other.pk, 'composite': True}
-        return cxt
 
-    def __and__(self, other):
-        return self._combine(other, 'and')
-
-    def __or__(self, other):
-        return self._combine(other, 'or')
-
-    @property
-    def model(self):
-        "The model this context represents with respect to the count."
-        if self.count is not None:
-            return trees.default.root_model
-
-    def node(self, tree=None):
-        return parsers.datacontext.parse(self.json, tree=tree)
-
-    def apply(self, queryset=None, tree=None):
-        "Applies this context to a QuerySet."
-        if tree is None and queryset is not None:
-            tree = queryset.model
-        return self.node(tree=tree).apply(queryset=queryset)
-
-    def language(self, tree=None):
-        return parsers.datacontext.parse(self.json, tree=tree).language
-
-
-class DataView(Base):
+class DataView(AbstractDataView, Base):
     """JSON object representing one or more data field conditions. The data may
     be a single condition, an array of conditions or a tree stucture.
 
     This corresponds to the `SELECT` and `ORDER BY` statements in a SQL query.
     """
-    json = jsonfield.JSONField(null=True, blank=True, default=dict,
-        validators=[parsers.dataview.validate])
     session = models.BooleanField(default=False)
-    count = models.IntegerField(null=True, db_column='_count')
 
     # For authenticated users the `user` can be directly referenced,
     # otherwise the session key can be used.
@@ -540,15 +490,6 @@ class DataView(Base):
         self.save()
         self.pk, self.session, self.archived = backup
         return True
-
-    def node(self, tree=None):
-        return parsers.dataview.parse(self.json, tree=tree)
-
-    def apply(self, queryset=None, tree=None, include_pk=True):
-        "Applies this context to a QuerySet."
-        if tree is None and queryset is not None:
-            tree = queryset.model
-        return self.node(tree=tree).apply(queryset=queryset, include_pk=include_pk)
 
 
 # Register instance-level cache invalidation handlers
