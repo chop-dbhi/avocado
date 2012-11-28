@@ -69,7 +69,7 @@ class Command(BaseCommand):
                 continue
 
             # Map various fields
-            f.name = lf.name,
+            f.name = lf.name
             f.description = lf.description
             f.keywords = lf.keywords
             f.translator = lf.translator
