@@ -69,3 +69,8 @@ LOGGING = {
         }
     }
 }
+
+AVOCADO = {
+    'HISTORY_ENABLED': True,
+    'HISTORY_MAX_SIZE': 50,
+}

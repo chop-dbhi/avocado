@@ -14,6 +14,7 @@ class Command(BaseCommand):
         'cache': 'cache',
         'legacy': 'legacy',
         'lexicon': 'lexicon',
+        'history': 'history',
     }
 
     def print_subcommands(self, prog_name):

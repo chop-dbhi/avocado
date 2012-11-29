@@ -61,3 +61,13 @@ INTERNAL_DATATYPE_FORMFIELDS = {
 # `searchable` flag on `DataField` instances during the `sync` process. This
 # will only be applied to fields with a Avocado datatype of 'string'
 SYNC_ENUMERABLE_MAXIMUM = 30
+
+# Flag for enabling the history API
+HISTORY_ENABLED = False
+
+# The maximum size of a user's history. If the value is an integer, this
+# is the maximum number of allowed items in the user's history. Set to
+# `None` (or 0) to enable unlimited history. Note, in order to enforce this
+# limit, the `avocado history --prune` command must be executed to remove
+# the oldest history from each user based on this value.
+HISTORY_MAX_SIZE = None
