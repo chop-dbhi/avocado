@@ -855,6 +855,7 @@ SYNC_ENUMERABLE_MAXIMUM = 30
 # Flag for enabling the history API
 HISTORY_ENABLED = False
 ```
+
 ### HISTORY_MAX_SIZE
 
 # The maximum size of a user's history. If the value is an integer, this
@@ -868,9 +869,6 @@ HISTORY_MAX_SIZE = None
 ---
 
 # Optional App Integration
-
-## [South](http://south.aeracode.org/)
-Django's de facto app for creating and managing database migrations. 'nuff said.
 
 ## [django-haystack](http://haystacksearch.org/)
 Avocado utilizes Haystack for building search indexes for `DataField` and `DataConcept` objects and their underlying data. In practice, this is primarily used for clients exposing a search feature for finding the `DataField` or `DataConcept` representations for some data.
