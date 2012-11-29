@@ -736,6 +736,19 @@ Finds all models referenced by the app or model ``labels`` and updates data-rela
 
 Finds all models referenced by the app, model or field `labels` and explicitly updates various cached properties relative to the `data_modified` on `DataField` instances.
 
+### history
+
+Tools for managing Avocado's exposed history API.
+
+```bash
+./manage.py avocado history [--prune]
+```
+
+**Parameters**
+
+- `--prune` - Prunes the oldest archived objects based on the
+`HISTORY_ENABLED` and `HISTORY_MAX_SIZE` settings.
+
 ## Settings
 
 Avocado settings are defined as a dictionary, named `AVOCADO`, with each key corresponding to a setting listed below:
@@ -752,7 +765,7 @@ AVOCADO = {
 
 `DataField` datatypes from Avocado's perspective are used purely as metadata for the purposes of making the underlying data accessible.
 
-This setting is used to customize what is returned by the `f.datatype` property. The default datatype comes from the internal datatype of a the model field's `get_internal_type()` method. Any of these default datatypes can be mapped to some other datatype.
+This setting is used to customize what is returned by the `f.simple_type` property. The default datatype comes from the internal datatype of a the model field's `get_internal_type()` method. Any of these default datatypes can be mapped to some other datatype.
 
 Datatypes in this context should be simple, for example not differentiating between `int`, `float`, or `Decimal`. They are all just numbers, to that is the datatype.
 
@@ -834,6 +847,22 @@ INTERNAL_TYPE_FORMFIELDS = {
 # `enumerable` flag on `DataField` instances during the `sync` process. This
 # will only be applied to fields with non-text strings types and booleans
 SYNC_ENUMERABLE_MAXIMUM = 30
+```
+
+### HISTORY_ENABLED
+
+```
+# Flag for enabling the history API
+HISTORY_ENABLED = False
+```
+### HISTORY_MAX_SIZE
+
+# The maximum size of a user's history. If the value is an integer, this
+# is the maximum number of allowed items in the user's history. Set to
+# `None` (or 0) to enable unlimited history. Note, in order to enforce this
+# limit, the `avocado history --prune` command must be executed to remove
+# the oldest history from each user based on this value.
+HISTORY_MAX_SIZE = None
 ```
 
 ---
