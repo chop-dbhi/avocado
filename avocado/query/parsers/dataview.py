@@ -3,6 +3,9 @@ from modeltree.query import ModelTreeQuerySet
 from django.core.exceptions import ValidationError
 
 
+SORT_DIRECTIONS = ('asc', 'desc')
+
+
 def has_keys(obj, keys):
     "Check the required keys are present in `obj`"
     for key in keys:
@@ -80,17 +83,25 @@ class Node(object):
 def validate(attrs, **context):
     if not attrs:
         return
+
+    from avocado.models import DataConcept
+
     columns = attrs.get('columns', [])
     ordering = attrs.get('ordering', [])
 
-    node = Node(columns, ordering, **context)
+    if columns:
+        if len(set(columns)) != DataConcept.objects.filter(pk__in=columns).count():
+            raise ValidationError('One or more concepts do not exist')
 
-    if columns and len(node.columns) != len(columns):
-        raise ValidationError('One or more columns do not exist')
     if ordering:
-        for pk, direction in ordering:
-            if direction.lower() not in ('asc', 'desc') or (type(pk) is not int and str(pk).isdigit()):
-                raise ValidationError('One or more columns do not exist')
+        ids, directions = zip(*ordering)
+
+        for _dir in directions:
+            if _dir.lower() not in SORT_DIRECTIONS:
+                raise ValidationError('Invalid sort direction')
+
+        if len(set(ids)) != DataConcept.objects.filter(pk__in=ids).count():
+            raise ValidationError('One or more concepts do not exist')
 
 
 def parse(attrs, **context):

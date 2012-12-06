@@ -399,6 +399,12 @@ class DataConcept(BasePlural):
     queryview = models.CharField(max_length=100, blank=True, null=True,
         choices=queryviews.choices)
 
+    # A flag that denotes when this concept can be applied to an ORDER BY
+    # Certain concepts are not appropriate because they are too complicated,
+    # or a very specific abstraction that does not order by what it actually
+    # represents.
+    sortable = models.BooleanField(default=True)
+
     objects = DataConceptManager()
 
     def format(self, *args, **kwargs):

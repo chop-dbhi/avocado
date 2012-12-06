@@ -201,9 +201,9 @@ class DataConceptFieldInlineAdmin(admin.TabularInline):
 
 class DataConceptAdmin(PublishedAdmin):
     list_display = ('name', 'published', 'archived', 'internal', 'category',
-        'queryview', 'formatter_name', 'related_datafields')
+        'queryview', 'formatter_name', 'sortable', 'related_datafields')
     list_editable = ('published', 'archived', 'internal', 'category',
-        'queryview', 'formatter_name')
+        'queryview', 'formatter_name', 'sortable')
     inlines = [DataConceptFieldInlineAdmin]
 
     fieldsets = (
@@ -226,7 +226,7 @@ class DataConceptAdmin(PublishedAdmin):
         }),
 
         ('Modifiers', {
-            'fields': ('queryview', 'formatter_name'),
+            'fields': ('queryview', 'formatter_name', 'sortable'),
         }),
 
         ('Times of Interest', {
