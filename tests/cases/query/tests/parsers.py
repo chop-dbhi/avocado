@@ -13,9 +13,11 @@ class DataContextParserTestCase(TestCase):
         management.call_command('avocado', 'init', 'query', quiet=True)
 
     def test_valid(self):
+        title = DataField.objects.get_by_natural_key('query.title.name')
+
         # Single by id
         self.assertEqual(parsers.datacontext.validate({
-            'id': 4,
+            'id': title.pk,
             'operator': 'exact',
             'value': 'CEO'
         }, tree=Employee), None)
@@ -45,11 +47,11 @@ class DataContextParserTestCase(TestCase):
         self.assertEqual(parsers.datacontext.validate({
             'type': 'and',
             'children': [{
-                'id': 4,
+                'id': 'query.title.name',
                 'operator': 'exact',
                 'value': 'CEO',
             }, {
-                'id': 5,
+                'id': 'query.employee.first_name',
                 'operator': 'exact',
                 'value': 'John',
             }]
@@ -74,28 +76,28 @@ class DataContextParserTestCase(TestCase):
     def test_invalid(self):
         # Non-existent data field
         self.assertRaises(ValidationError, parsers.datacontext.validate, {
-            'id': 99,
+            'id': 999,
             'operator': 'exact',
             'value': 'CEO'
         }, tree=Employee)
-
-        # Invalid structures
-        # Object must be a dict
-        self.assertRaises(ValidationError, parsers.datacontext.validate, [])
 
         # Object must be a dict
         self.assertRaises(ValidationError, parsers.datacontext.validate, None)
 
         # Invalid logical operator
-        self.assertRaises(ValidationError, parsers.datacontext.validate, {'type': 'foo', 'children': []})
+        self.assertRaises(ValidationError, parsers.datacontext.validate,
+            {'type': 'foo', 'children': []})
 
         # Missing 'value' key in first condition
         self.assertRaises(ValidationError, parsers.datacontext.validate, {
             'type': 'and',
             'children': [{
-                'id': 4, 'operator': 'exact'
+                'id': 'query.title.name',
+                'operator': 'exact'
             }, {
-                'id': 4, 'operator': 'exact', 'value': 'CEO'
+                'id': 'query.title.name',
+                'operator': 'exact',
+                'value': 'CEO'
             }]
         })
 
@@ -129,22 +131,24 @@ class DataContextParserTestCase(TestCase):
             'children': [],
         }, tree=Employee)
 
+        # No condition has been defined..
         self.assertEqual(node.condition, None)
 
         node = parsers.datacontext.parse({
             'type': 'and',
             'children': [{
-                'id': 4,
+                'id': 'query.title.name',
                 'operator': 'exact',
-                'value': True
-            }],
+                'value': 'CEO',
+            }]
         }, tree=Employee)
 
-        self.assertEqual(str(node.condition), "(AND: ('title__boss__exact', True))")
+        # Only the one condition is represented
+        self.assertEqual(str(node.condition), "(AND: ('title__name__exact', u'CEO'))")
 
     def test_apply(self):
         node = parsers.datacontext.parse({
-            'id': 4,
+            'id': 'query.title.boss',
             'operator': 'exact',
             'value': True
         }, tree=Employee)
@@ -156,17 +160,18 @@ class DataContextParserTestCase(TestCase):
         node = parsers.datacontext.parse({
             'type': 'and',
             'children': [{
-                'id': 4,
+                'id': 'query.title.boss',
                 'operator': 'exact',
                 'value': True,
             }, {
-                'id': 5,
+                'id': 'query.employee.first_name',
                 'operator': 'exact',
                 'value': 'John',
             }]
         }, tree=Employee)
 
         self.assertEqual(unicode(node.apply().values('id').query), 'SELECT DISTINCT "query_employee"."id" FROM "query_employee" INNER JOIN "query_title" ON ("query_employee"."title_id" = "query_title"."id") WHERE ("query_employee"."first_name" = John  AND "query_title"."boss" = True )')
+
         self.assertEqual(node.language, {
             'type': 'and',
             'children': [{
