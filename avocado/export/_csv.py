@@ -4,6 +4,7 @@ from _base import BaseExporter
 
 class CSVExporter(BaseExporter):
     file_extension = 'csv'
+    content_type = 'text/csv'
     preferred_formats = ('number', 'string')
 
     def write(self, iterable, buff=None):

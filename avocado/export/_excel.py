@@ -10,6 +10,7 @@ from _base import BaseExporter
 
 class ExcelExporter(BaseExporter):
     file_extension = 'xlsx'
+    content_type = 'application/vnd.ms-excel'
     preferred_formats = ('boolean', 'number', 'string')
 
     def write(self, iterable, buff=None):

@@ -7,6 +7,7 @@ from _csv import CSVExporter
 
 class SasExporter(BaseExporter):
     file_extension = 'zip'
+    content_type = 'application/zip'
     preferred_formats = ('coded', 'number', 'string')
 
     num_lg_names = 0

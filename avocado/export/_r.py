@@ -7,6 +7,7 @@ from _csv import CSVExporter
 
 class RExporter(BaseExporter):
     file_extension = 'zip'
+    content_type = 'application/zip'
     preferred_formats = ('coded', 'number', 'string')
 
     def _format_name(self, name):

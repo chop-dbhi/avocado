@@ -3,7 +3,8 @@ from cStringIO import StringIO
 
 class BaseExporter(object):
     "Base class for all exporters"
-
+    file_extension = 'txt'
+    content_type = 'text/plain'
     preferred_formats = []
 
     def __init__(self, concepts):

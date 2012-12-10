@@ -13,6 +13,7 @@ class JSONGeneratorEncoder(json.JSONEncoder):
 
 class JSONExporter(BaseExporter):
     file_extension = 'json'
+    content_type = 'application/json'
     preferred_formats = ('number', 'string')
 
     def write(self, iterable, buff=None):
