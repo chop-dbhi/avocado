@@ -27,8 +27,8 @@ class Node(object):
             queryset = tree.get_queryset()
         queryset = ModelTreeQuerySet(tree, query=queryset.query)
         if self.concept_ids:
-            queryset = queryset.select(*[f.field for f in self.fields],
-                include_pk=include_pk)
+            model_fields = [f.field for f in self.fields]
+            queryset = queryset.select(*model_fields, include_pk=include_pk)
         if self.ordering:
             queryset = queryset.order_by(*self.order_by)
         return queryset

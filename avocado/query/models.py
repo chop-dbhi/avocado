@@ -21,9 +21,8 @@ class AbstractDataContext(models.Model):
     def _combine(self, other, operator):
         if not isinstance(other, self.__class__):
             raise TypeError('Other object must be a DataContext instance')
-
         cxt = self.__class__(composite=True)
-
+        cxt.user_id = self.user_id or other.user_id
         if self.json and other.json:
             cxt.json = {
                 'type': operator,
@@ -50,17 +49,23 @@ class AbstractDataContext(models.Model):
         if self.count is not None:
             return trees.default.root_model
 
-    def node(self, tree=None):
-        return parsers.datacontext.parse(self.json, tree=tree)
+    @classmethod
+    def validate(cls, attrs, **context):
+        "Validate `attrs` as a context."
+        parsers.datacontext.validate(attrs, **context)
 
-    def apply(self, queryset=None, tree=None):
+    def parse(self, tree=None, **context):
+        "Returns a parsed node for this context."
+        return parsers.datacontext.parse(self.json, tree=tree, **context)
+
+    def apply(self, queryset=None, tree=None, **context):
         "Applies this context to a QuerySet."
         if tree is None and queryset is not None:
             tree = queryset.model
-        return self.node(tree=tree).apply(queryset=queryset)
+        return self.parse(tree=tree, **context).apply(queryset=queryset)
 
-    def language(self, tree=None):
-        return parsers.datacontext.parse(self.json, tree=tree).language
+    def language(self, tree=None, **context):
+        return self.parse(tree=tree, **context).language
 
 
 class AbstractDataView(models.Model):
@@ -76,11 +81,18 @@ class AbstractDataView(models.Model):
     class Meta(object):
         abstract = True
 
-    def node(self, tree=None):
-        return parsers.dataview.parse(self.json, tree=tree)
+    @classmethod
+    def validate(cls, attrs, **context):
+        "Validates `attrs` as a view."
+        parsers.dataview.validate(attrs, **context)
 
-    def apply(self, queryset=None, tree=None, include_pk=True):
+    def parse(self, tree=None, **context):
+        "Returns a parsed node for this view."
+        return parsers.dataview.parse(self.json, tree=tree, **context)
+
+    def apply(self, queryset=None, tree=None, include_pk=True, **context):
         "Applies this context to a QuerySet."
         if tree is None and queryset is not None:
             tree = queryset.model
-        return self.node(tree=tree).apply(queryset=queryset, include_pk=include_pk)
+        return self.parse(tree=tree, **context).apply(queryset=queryset,
+            include_pk=include_pk)
