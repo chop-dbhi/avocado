@@ -14,6 +14,7 @@ class SasExporter(BaseExporter):
 
     # informat/format mapping for all datatypes except strings
     sas_informat_map = {
+        'key': 'best32.',
         'number': 'best32.',
         'date': 'MMDDYYw.',
         'boolean': 'best32.',
@@ -22,6 +23,7 @@ class SasExporter(BaseExporter):
     }
 
     sas_format_map = {
+        'key': 'best12.',
         'number': 'best12.',
         'date': 'MMDDYYw.',
         'boolean': 'best12.',
