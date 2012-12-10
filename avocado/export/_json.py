@@ -1,9 +1,9 @@
-import json
 import inspect
+from django.core.serializers.json import DjangoJSONEncoder
 from _base import BaseExporter
 
 
-class JSONGeneratorEncoder(json.JSONEncoder):
+class JSONGeneratorEncoder(DjangoJSONEncoder):
     "Handle generator objects and expressions."
     def default(self, obj):
         if inspect.isgenerator(obj):
