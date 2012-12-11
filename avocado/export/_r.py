@@ -1,6 +1,8 @@
 from zipfile import ZipFile
 from cStringIO import StringIO
 from string import punctuation
+from django.template import Context
+from django.template.loader import get_template
 from _base import BaseExporter
 from _csv import CSVExporter
 
@@ -45,13 +47,9 @@ class RExporter(BaseExporter):
             level += ' ,'
         return factor, level
 
-    def write(self, iterable, buff=None):
-        buff = self.get_file_obj(buff)
+    def write(self, iterable, buff=None, template_name='export/script.R'):
+        zip_file = ZipFile(self.get_file_obj(buff), 'w')
 
-        zip_file = ZipFile(buff, 'w')
-        script = StringIO()
-
-        script.write('# Read Data\ndata=read.csv("data.csv")\n\n')
         factors = []      # field names
         levels = []       # value dictionaries
         labels = []       # data labels
@@ -61,32 +59,36 @@ class RExporter(BaseExporter):
             for cfield in cfields:
                 field = cfield.field
                 name = self._format_name(field.field_name)
-                labels.append('attr(data${0}, "label") = "{1}"'.format(name, field.description))
+                labels.append('attr(data${0}, "label") = "{1}"'.format(name, str(cfield)))
 
                 if field.lexicon:
                     codes = self._code_values(name, field)
                     factors.append(codes[0])
                     levels.append(codes[1])
 
-        # Write out the r file to the given scripter
-        script.write('# Setting Labels\n')
-        script.write('\n'.join(labels) + '\n\n')
+        data_filename = 'data.csv'
+        script_filename = 'script.R'
 
-        script.write('# Setting Factors\n')
-        script.write(''.join(factors) + '\n')
+        # File buffers
+        data_buff = StringIO()
+        # Create the data file
+        data_exporter = CSVExporter(self.concepts)
+        # Overwrite preferred formats for data file
+        data_exporter.preferred_formats = self.preferred_formats
+        data_exporter.write(iterable, data_buff)
 
-        script.write('# Setting Levels\n')
-        script.write(''.join(levels) + '\n')
+        zip_file.writestr(data_filename, data_buff.getvalue())
 
-        zip_file.writestr('export.R', script.getvalue())
-        script.close()
+        template = get_template(template_name)
+        context = Context({
+            'data_filename': data_filename,
+            'labels': labels,
+            'factors': factors,
+            'levels': levels,
+        })
 
-        # WRITE CSV
-        csv_file = StringIO()
-        csv_export = CSVExporter(self.concepts)
-        csv_export.preferred_formats = self.preferred_formats
-        zip_file.writestr('data.csv', csv_export.write(iterable, csv_file).getvalue())
-        csv_file.close()
-
+        # Write script from template
+        zip_file.writestr(script_filename, template.render(context))
         zip_file.close()
+
         return zip_file

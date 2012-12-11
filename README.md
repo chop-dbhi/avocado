@@ -459,6 +459,29 @@ class ConcatFormatter(Formatter):
 
 ### Exporters
 
+For data export support add `avocado.export` to `INSTALLED_APPS`.
+
+Here is an example of the API:
+
+```python
+from avocado.export import CSVExporter
+
+exporter = CSVExporter(concepts)
+output = exporter.write(rows)
+```
+
+`rows` is an iterable of iterables (e.g. rows from a database query) that will
+be chunked up and formatted by the `concepts`. Here is a ASCII visual:
+
+```
+chunks:         |    c1   |      c2      | c3 |
+row values:     | v1 | v2 | v3 | v4 | v5 | v6 |
+```
+
+The length of a chunk corresponds to the number of fields associated with a
+concept. `c1` (the first two values) will be formatted by `concept1`'s
+formatter, `c2` (next three values) with `concept2`, etc.
+
 ---
 
 ## DataContext API

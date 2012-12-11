@@ -15,6 +15,7 @@ INSTALLED_APPS = (
     'guardian',
 
     'avocado',
+    'avocado.export',
     'avocado.legacy',
 
     'tests',

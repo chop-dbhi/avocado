@@ -1,6 +1,8 @@
 from zipfile import ZipFile
 from cStringIO import StringIO
 from string import punctuation
+from django.template import Context
+from django.template.loader import get_template
 from _base import BaseExporter
 from _csv import CSVExporter
 
@@ -39,11 +41,10 @@ class SasExporter(BaseExporter):
             name = '_' + name
         if len(name) < 30:
             return name
-        else:
-            self.num_lg_names += 1
-            sas_name = name[:20]
-            sas_name += '_lg_{0}'.format(self.num_lg_names)
-            return sas_name
+        self.num_lg_names += 1
+        sas_name = name[:20]
+        sas_name += '_lg_{0}'.format(self.num_lg_names)
+        return sas_name
 
     def _get_formats(self, sas_name, datafield):
         """This method creates the sas format and informat lists for
@@ -56,41 +57,31 @@ class SasExporter(BaseExporter):
             s_format = self.sas_format_map[datafield.simple_type]
             informat = self.sas_informat_map[datafield.simple_type]
 
-        sas_informat = '\tinformat {0:<10}{1:>10};\n'.format(sas_name, informat)
-        sas_format = '\tformat {0:<10}{1:>10};\n'.format(sas_name, s_format)
+        sas_informat = '{0:<10}{1:>10}'.format(sas_name, informat)
+        sas_format = '{0:<10}{1:>10}'.format(sas_name, s_format)
         return sas_format, sas_informat
 
     def _code_values(self, name, field):
         """If field can be coded return the value dictionary
         and the format name for the dictionary
         """
-        value_format = '\tformat {0} {0}_f.;\n'.format(name)
-        value = '\tvalue {0}_f '.format(name)
-        values_len = len(field.codes)
+        value_format = '{0} {0}_f.'.format(name)
+        value = '{0}_f'.format(name)
 
         for i, (val, code) in enumerate(field.codes):
-            value += '{0}="{1}" '.format(code, val)
-            if (i != values_len - 1 and (i % 2) == 1 and i != 0):
-                value += '\n\t\t'
-        value += ';\n'
+            value += ' {0}="{1}" '.format(code, val)
 
         return value_format, value
 
-    def write(self, iterable, buff=None):
-        buff = self.get_file_obj(buff)
+    def write(self, iterable, buff=None, template_name='export/script.sas'):
+        zip_file = ZipFile(self.get_file_obj(buff), 'w')
 
-        zip_file = ZipFile(buff, 'w')
-        script = StringIO()
-
-        script.write('data SAS_EXPORT;\n')
-        script.write('INFILE "data.csv" TRUNCOVER DSD firstobs=2;\n')
-
-        inputs = ''          # field names in sas format
-        values = ''          # sas value dictionaries
-        value_formats = ''   # labels for value dictionary
-        labels = ''          # labels the field names
-        informats = ''      # sas informats for all fields
-        formats = ''        # sas formats for all fields
+        formats = []            # sas formats for all fields
+        informats = []          # sas informats for all fields
+        inputs = []             # field names in sas format
+        values = []             # sas value dictionaries
+        value_formats = []      # labels for value dictionary
+        labels = []             # labels the field names
 
         for c in self.concepts:
             cfields = c.concept_fields.select_related('datafield')
@@ -98,51 +89,53 @@ class SasExporter(BaseExporter):
                 field = cfield.field
                 name = self._format_name(field.field_name)
 
-                # setting up formats/informats
-                sas_form = self._get_formats(name, field)
-                formats += sas_form[0]
-                informats += sas_form[1]
+                # Setting up formats/informats
+                format, informat = self._get_formats(name, field)
+                formats.append(format)
+                informats.append(informat)
 
-                # add the field names to the input statement
-                inputs += '\t\t' + name
+                # Add the field names to the input statement
                 if field.simple_type == 'string':
-                    inputs += ' $'
-                inputs += '\n'
+                    inputs.append('{0} $'.format(name))
+                else:
+                    inputs.append(name)
 
-                # if a field can be coded create a SAS PROC Format statement
+                # If a field can be coded create a SAS PROC Format statement
                 # that creates a value dictionary
                 if field.lexicon:
-                    codes = self._code_values(name, field)
-                    value_formats += codes[0]
-                    values += codes[1]
+                    value_format, value = self._code_values(name, field)
+                    value_formats.append(value_format)
+                    values.append(value)
 
                 # construct labels
-                labels += '\tlabel {0}="{1}";\n'.format(name, field.description)
+                labels.append('{0}="{1}"'.format(name, str(cfield)))
 
-        # Write the SAS File
-        script.write(informats + '\n')
-        script.write(formats + '\n')
-        script.write('input\n' + inputs + ';\n\nrun;\n')
-        script.write('proc contents;run;\n\ndata SAS_EXPORT;\n')
-        script.write('\tset SAS_EXPORT;\n')
-        script.write(labels + '\trun;\n\n')
-        script.write('proc format;\n')
-        script.write(values + '\nrun;\n\n')
-        script.write('data SAS_EXPORT;\n\tset SAS_EXPORT;\n\n')
-        script.write(value_formats + 'run;\n\n')
-        script.write('/*proc contents data=SAS_EXPORT;*/\n')
-        script.write('/*proc print data=SAS_EXPORT;*/\n')
-        script.write('run;\nquit;\n')
+        data_filename = 'data.csv'
+        script_filename = 'script.sas'
 
-        zip_file.writestr('export.sas', script.getvalue())
-        script.close()
+        # File buffers
+        data_buff = StringIO()
+        # Create the data file
+        data_exporter = CSVExporter(self.concepts)
+        # Overwrite preferred formats for data file
+        data_exporter.preferred_formats = self.preferred_formats
+        data_exporter.write(iterable, data_buff)
 
-        # Write data CSV
-        csv_file = StringIO()
-        csv_export = CSVExporter(self.concepts)
-        csv_export.preferred_formats = self.preferred_formats
-        zip_file.writestr('data.csv', csv_export.write(iterable, csv_file).getvalue())
-        csv_file.close()
+        zip_file.writestr(data_filename, data_buff.getvalue())
 
+        template = get_template(template_name)
+        context = Context({
+            'data_filename': data_filename,
+            'informats': informats,
+            'formats': formats,
+            'inputs': inputs,
+            'labels': labels,
+            'values': values,
+            'value_formats': value_formats,
+        })
+
+        # Write script from template
+        zip_file.writestr(script_filename, template.render(context))
         zip_file.close()
+
         return zip_file
