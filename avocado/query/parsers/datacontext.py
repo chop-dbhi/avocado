@@ -84,7 +84,7 @@ class Condition(Node):
     def field(self):
         if not hasattr(self, '_field'):
             from avocado.models import DataField
-            self._field = DataField.objects.get(pk=self.id)
+            self._field = DataField.objects.get_by_natural_key(self.id)
         return self._field
 
     @property
@@ -187,10 +187,10 @@ def validate(attrs, **context):
     elif is_condition(attrs):
         from avocado.models import DataField
         try:
-            datafield = DataField.objects.get_by_natural_key(attrs['id'])
+            field = DataField.objects.get_by_natural_key(attrs['id'])
         except DataField.DoesNotExist, e:
             raise ValidationError(e.message)
-        datafield.validate(operator=attrs['operator'], value=attrs['value'])
+        field.validate(operator=attrs['operator'], value=attrs['value'])
     elif is_branch(attrs):
         map(lambda x: validate(x), attrs['children'])
     else:
