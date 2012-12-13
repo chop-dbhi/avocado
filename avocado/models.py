@@ -328,11 +328,7 @@ class DataField(BasePlural):
     def operators(self):
         "Returns the valid operators for this datafield."
         trans = translators[self.translator]
-        return tuple(trans.get_operators(self))
-
-    @property
-    def operator_choices(self):
-        return [(x, operators[x].verbose_name) for x in self.operators]
+        return [(x, operators[x].verbose_name) for x in trans.get_operators(self)]
 
     def translate(self, operator=None, value=None, tree=None, **context):
         "Convenince method for performing a translation on a query condition."
