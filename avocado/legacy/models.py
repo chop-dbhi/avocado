@@ -33,7 +33,7 @@ class Field(models.Model):
         db_table = 'avocado_field'
 
     def __unicode__(self):
-        return u'%s' % self.name
+        return unicode(self.name)
 
     def natural_key(self):
         return (self.app_name, self.model_name, self.field_name)
@@ -50,7 +50,7 @@ class Category(models.Model):
         db_table = 'avocado_category'
 
     def __unicode__(self):
-        return u'%s' % self.name
+        return unicode(self.name)
 
 
 # Concepts...
@@ -67,7 +67,7 @@ class Concept(models.Model):
         abstract = True
 
     def __unicode__(self):
-        return u'%s' % self.name
+        return unicode(self.name)
 
 
 class ConceptField(models.Model):
@@ -79,7 +79,7 @@ class ConceptField(models.Model):
         ordering = ('order',)
 
     def __unicode__(self):
-        return u'%s' % self.field
+        return unicode(self.field)
 
 
 class Criterion(Concept):

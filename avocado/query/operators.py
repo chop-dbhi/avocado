@@ -18,13 +18,13 @@ class BaseOperator(object):
     negated = False
 
     def __str__(self):
-        return '%s (%s)' % (self.verbose_name, self.uid)
+        return '{0} ({1})'.format(self.verbose_name, self.uid)
 
     def __unicode__(self):
-        return u'%s' % str(self)
+        return unicode(str(self))
 
     def __repr__(self):
-        return u'<Operator: "%s" (%s)>' % (self.verbose_name, self.uid)
+        return u'<Operator: "{0}" ({1})>'.format(self.verbose_name, self.uid)
 
     @property
     def operator(self):
@@ -49,7 +49,7 @@ class SimpleTypeOperator(BaseOperator):
 
     def text(self, value):
         value = self.coerce_to_unicode(value)
-        return u'%s %s' % (self.verbose_name, value)
+        return u'{0} {1}'.format(self.verbose_name, value)
 
 
 class StringOperator(SimpleTypeOperator):
@@ -73,7 +73,7 @@ class ContainerTypeOperator(BaseOperator):
         length = len(value) - 1
 
         if length == 0:
-            return u'%s %s' % (self.verbose_name, last)
+            return u'{0} {1}'.format(self.verbose_name, last)
 
         if length > self.max_list_size:
             head = value[:self.max_list_size]
@@ -84,9 +84,9 @@ class ContainerTypeOperator(BaseOperator):
         # Add the leftover item count for the tail of the list
         tail = length - self.max_list_size
         if tail > 0:
-            text += ' ... (%s more)' % tail
+            text += ' ... ({0} more)'.format(tail)
 
-        return text + (' %s ' % self.join_string) + last
+        return text + ' {0} '.format(self.join_string) + last
 
 
 class Null(BaseOperator):
@@ -221,8 +221,7 @@ class Range(ContainerTypeOperator):
 
     def text(self, value):
         value = map(self.coerce_to_unicode, value)
-        return '%s %s' % (self.verbose_name,
-            ' and '.join(value))
+        return '{0} {1}'.format(self.verbose_name, ' and '.join(value))
 
 
 class NotRange(Range):
