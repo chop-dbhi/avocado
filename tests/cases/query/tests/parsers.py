@@ -121,7 +121,7 @@ class DataContextParserTestCase(TestCase):
                 'id': 5,
                 'operator': 'exact',
                 'value': 'John',
-                'language': 'Employee First Name is equal to John',
+                'language': 'Employee First Name is John',
             }]
         })
 

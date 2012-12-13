@@ -25,8 +25,8 @@ class OperatorTestCase(TestCase):
         self.assertTrue(op.is_valid(3))
         self.assertTrue(op.is_valid(True))
         self.assertTrue(not op.is_valid([]))
-        self.assertEqual(op.text('foo'), 'is equal to foo')
-        self.assertEqual(op.text(3), 'is equal to 3')
+        self.assertEqual(op.text('foo'), 'is foo')
+        self.assertEqual(op.text(3), 'is 3')
         self.assertEqual(op.text(True), 'is True')
         self.assertEqual(op.text(False), 'is False')
 
@@ -35,7 +35,7 @@ class OperatorTestCase(TestCase):
         op = operators.get('-exact')
         self.assertEqual(op.text(True), 'is False')
         self.assertEqual(op.text(False), 'is True')
-        self.assertEqual(op.text('foo'), 'is not equal to foo')
+        self.assertEqual(op.text('foo'), 'is not foo')
 
     def test_iexact(self):
         # String operator..

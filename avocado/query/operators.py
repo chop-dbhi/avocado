@@ -115,17 +115,12 @@ class NotNull(Null):
 class Exact(SimpleTypeOperator):
     lookup = 'exact'
     short_name = '='
-    verbose_name = 'is equal to'
-
-    def text(self, value):
-        if isinstance(value, bool):
-            return u'is {0}'.format(value)
-        return super(Exact, self).text(value)
+    verbose_name = 'is'
 
 
 class NotExact(Exact):
     short_name = '!='
-    verbose_name = 'is not equal to'
+    verbose_name = 'is not'
     negated = True
 
     def text(self, value):
@@ -139,25 +134,25 @@ class NotExact(Exact):
 class InsensitiveExact(StringOperator):
     lookup = 'iexact'
     short_name = '='
-    verbose_name = 'is equal to'
+    verbose_name = 'is'
 
 
 class InsensitiveNotExact(InsensitiveExact):
     short_name = '!='
-    verbose_name = 'is not equal to'
+    verbose_name = 'is not'
     negated = True
 
 
 class Contains(StringOperator):
     lookup = 'contains'
     short_name = 'contains'
-    verbose_name = 'contains the text'
+    verbose_name = short_name
 
 
 class InsensitiveContains(Contains):
     lookup = 'icontains'
     short_name = 'contains'
-    verbose_name = 'contains the text'
+    verbose_name = short_name
 
 
 class NotContains(Contains):
