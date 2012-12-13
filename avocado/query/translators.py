@@ -1,6 +1,6 @@
 from django import forms
 from django.db import models
-from django.db.models import Q
+from django.db.models.query import QuerySet
 from django.core.exceptions import ValidationError
 from modeltree.tree import trees
 from avocado.core import loader
@@ -98,10 +98,9 @@ class Translator(object):
             queryset = field.objects
             if hasattr(value, '__iter__'):
                 formfield = forms.ModelMultipleChoiceField(queryset, **kwargs)
-                cleaned_value = [x.pk for x in formfield.clean(value)]
             else:
                 formfield = forms.ModelChoiceField(queryset, **kwargs)
-                cleaned_value = formfield.clean(value).pk
+            cleaned_value = formfield.clean(value)
             return cleaned_value
 
         # If this field is flagged as enumerable, use a select multiple
@@ -163,6 +162,8 @@ class Translator(object):
         # Flag for adding a condition with includes querying for a NULL value
         add_null = False
 
+        value = self._normalize_value(field, value)
+
         # Assuming the operator and value validate, check for a NoneType value
         # if the operator is 'in'. This condition will be broken out into a
         # separate Q object
@@ -179,7 +180,7 @@ class Translator(object):
 
             # Process a normal value
             if value is not None:
-                condition = tree.query_condition(field, operator.lookup, value)
+                condition = tree.query_condition(field.field, operator.lookup, value)
 
             # Reset value to None for `null` processing
             value = None
@@ -191,7 +192,7 @@ class Translator(object):
             if value is None:
                 value = True
             # Read the _get_not_null_pk docs for more info
-            null_condition = tree.query_condition(field, 'isnull', value)
+            null_condition = tree.query_condition(field.field, 'isnull', value)
 
             if field.model is not tree.root_model:
                 null_condition = null_condition & \
@@ -205,8 +206,21 @@ class Translator(object):
 
         if operator.negated:
             return ~condition
-
         return condition
+
+    def _normalize_value(self, field, value):
+        """Normalizes a cleaned value from some non-primitive type
+        such as a model or queryset instance.
+        """
+        if field.simple_type == 'key':
+            if isinstance(value, (list, tuple, QuerySet)):
+                return [x.pk for x in value]
+            return value.pk
+        if isinstance(value, QuerySet):
+            return [x.pk for x in value]
+        if isinstance(value, models.Model):
+            return value.pk
+        return value
 
     def validate(self, field, operator, value, tree, **kwargs):
         value = self._get_value(value)
@@ -218,18 +232,15 @@ class Translator(object):
         if operator.lookup != 'isnull':
             value = self._validate_value(field, value, **kwargs)
 
-        if not operator.is_valid(value):
+        _value = self._normalize_value(field, value)
+        if not operator.is_valid(_value):
             raise ValidationError('"{0}" is not valid for the operator '
                 '"{1}"'.format(value, operator))
 
         return operator, value
 
-    def language(self, field, operator, rvalue, **kwargs):
-        label = self._get_label(rvalue)
-        # The original value is used here to prevent representing a different
-        # value from what the client had submitted. This text has no impact
-        # on the stored 'cleaned' data structure
-        return u'{0} {1}'.format(field.name, operator.text(label))
+    def language(self, field, operator, value, **kwargs):
+        return u'{0} {1}'.format(field.name, operator.text(value))
 
     def translate(self, field, roperator, rvalue, tree, **kwargs):
         """Returns two types of queryset modifiers including:
@@ -242,8 +253,8 @@ class Translator(object):
         name being used for annotations.
         """
         operator, value = self.validate(field, roperator, rvalue, tree, **kwargs)
-        condition = self._condition(field.field, operator, value, tree)
-        language = self.language(field, operator, rvalue, **kwargs)
+        condition = self._condition(field, operator, value, tree)
+        language = self.language(field, operator, value, **kwargs)
 
         return {
             'id': field.pk,
