@@ -769,8 +769,7 @@ Tools for managing Avocado's exposed history API.
 
 **Parameters**
 
-- `--prune` - Prunes the oldest archived objects based on the
-`HISTORY_ENABLED` and `HISTORY_MAX_SIZE` settings.
+- `--prune` - Prunes the oldest archived objects based on the `HISTORY_ENABLED` and `HISTORY_MAX_SIZE` settings.
 
 ## Settings
 
@@ -881,6 +880,7 @@ HISTORY_ENABLED = False
 
 ### HISTORY_MAX_SIZE
 
+```
 # The maximum size of a user's history. If the value is an integer, this
 # is the maximum number of allowed items in the user's history. Set to
 # `None` (or 0) to enable unlimited history. Note, in order to enforce this
