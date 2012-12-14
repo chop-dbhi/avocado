@@ -896,11 +896,6 @@ HISTORY_MAX_SIZE = None
 ## [django-haystack](http://haystacksearch.org/)
 Avocado utilizes Haystack for building search indexes for `DataField` and `DataConcept` objects and their underlying data. In practice, this is primarily used for clients exposing a search feature for finding the `DataField` or `DataConcept` representations for some data.
 
-## [django-activity-stream](http://justquick.github.com/django-activity-stream/)
-Avocado is about supporing data discovery and iteration by providing APIs for rapidly implementing interfaces, enabling this workflow. Many of our in-house applications have made good use of tracking users' own discovery and iteration progress. In practice, this acts as a history/log of a user's discovery workflow. This can be useful for users and developers alike.
-
-If this app is installed, changes to `DataContext` and `Query` objects will trigger actions to be sent to the respective user's stream.
-
 ## [Numpy](http://numpy.scipy.org/) & [SciPy](http://www.scipy.org/)
 
 Avocado has support for clustering continuous numeric values when generating distribution queries.
