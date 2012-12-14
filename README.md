@@ -1,4 +1,4 @@
-# avocado
+# Avocado
 
 #### Metadata APIs for Django
 
@@ -387,6 +387,7 @@ Data must be stored in a discrete way to ensure the database can treat it proper
 `DataConcept`s encapsulate one or more fields intended to be represented together in some way. This allows users to combine their fields in a way that makes the most sense for how they want to use their data given their current context. For example, we could create a `DataConcept` for dosage that would represent `dose`, `unit`, and `interval` together.
 
 Here is an example showing how we would create a `DataConcept` called `Dosage` for our prescriptions database.
+
  ```python
 >>> from avocado.models import DataConcept, DataField, DataConceptField
 # Create the 'Dosage' DataConcept which combines the 'dose'
@@ -409,7 +410,6 @@ Here is an example showing how we would create a `DataConcept` called `Dosage` f
 ```
 
 ### Query Views
-
 
 #### Datatypes
 
@@ -982,3 +982,69 @@ Avocado uses the [ModelTree](https://github.com/cbmi/modeltree) API to build in-
 This looks a bit clumsy in practice which is why Avocado uses the `DataField` class to manage all this field-specific _stuff_.
 
 Having these indexes enables generating queries regardless of the entry point and which fields are being queried or retrieved. This perceivably _flattens_ out the data model from the client's perspective which increases it's accessiblity.
+
+## CHANGELOG
+
+2.0.10 [diff](https://github.com/cbmi/avocado/compare/2.0.9...2.0.10)
+
+- String formatting cleanup
+- Add missing avocado/export/models.py file form 2.0.9
+- Replace `DataField.operators` with `DataField.operator_choices`
+    - There is no need for two properties where one is a subset of the other
+- Fix `Translator.language` to use the cleaned value for model-based values
+- Simplify exact-based `Operator.verbose_name` strings
+- Add CHANGELOG to this README :)
+
+2.0.9 [diff](https://github.com/cbmi/avocado/compare/2.0.8...2.0.9)
+
+- Add appropriate `content_type` and `file_extension` to Exporter classes
+- Subclass `DjangoJSONDecoder` for use in the `JSONExporter`
+- Add `validate` convenience method to `DataContext` and `DataView`
+- Rename `node` to `parse` on `DataContext` and `DataView`
+- Add support for [handling redundant rows via the exporter API](https://github.com/cbmi/avocado/issues/43)
+    - The `BaseExporter.read` now has a `force_distinct` argument that can be set to `False` to prevent removing redundant rows
+- Add (fix) support for using `key`-based `DataField`s
+- Refacor R and SAS exporter classes to use templates when generating the script
+- Fix `Condition.field` property to use `get_by_natural_key`
+
+2.0.8 [diff](https://github.com/cbmi/avocado/compare/2.0.7...2.0.8)
+
+- [Add `DataConcept.sortable` field](https://github.com/cbmi/avocado/commit/a7d6e7ca44bb408021c478484721741dbe5351ae)
+    - This is purely for informational purposes and does not add a hard constraint when performing ordering by the `DataView`. Clients can use this field to prevent sorting by unsortable concepts.
+
+2.0.7 [diff](https://github.com/cbmi/avocado/compare/2.0.6...2.0.7)
+
+- Implement settings and management command and [history API (#41)](https://github.com/cbmi/avocado/issues/41)
+- Update ModelTree to 1.1.1, make South a hard dependency
+
+2.0.6 [diff](https://github.com/cbmi/avocado/compare/2.0.5...2.0.6)
+
+- [Abstract out core functionality of DataContext and DataView models](https://github.com/cbmi/avocado/commit/eed56830fd2c1639bf2743da29a2dad2eaaadeb4)
+- Fix bug in `legacy` command where a trailing comma caused legacy fields names to be set as a tuple
+
+2.0.5 [diff](https://github.com/cbmi/avocado/compare/2.0.4...2.0.5)
+
+- Enforce a `SELECT DISTINCT` by default when calling `DataContext.apply`
+    - A new keyword argument `default` [has been added](https://github.com/cbmi/avocado/commit/f3b7de08ecd94c36bcefaf7cc3b30cefcc09d44b) to override this behavior
+- Wrap `orphaned` command in transaction in case `--unpublish` is used to prevent inconsistent unpublishing
+- [Add support for `isnull` lookups](https://github.com/cbmi/avocado/commit/e7686081537f44631703c7638ab06ca1bf401719)
+
+2.0.4 [diff](https://github.com/cbmi/avocado/compare/2.0.3...2.0.4)
+
+- Add Python 2.6 classifier
+- Fix incorrect use of `sys.version_info`
+
+2.0.3 [diff](https://github.com/cbmi/avocado/compare/2.0.2...2.0.3)
+
+- Add Python 2.6 support
+
+2.0.2 [diff](https://github.com/cbmi/avocado/compare/2.0.1...2.0.2)
+
+- Change django-jsonfield dependency link to cbmi fork
+
+2.0.1 [diff](https://github.com/cbmi/avocado/compare/2.0.0...2.0.1)
+
+- Fix setup.py classifiers
+- Fix django-jsonfield dependency link
+
+2.0.0 - Initial release
