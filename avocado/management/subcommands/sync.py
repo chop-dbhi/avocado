@@ -206,7 +206,7 @@ class Command(BaseCommand):
         # Note, `name` is set below
         kwargs = {
             'description': field.help_text or None,
-            'app_name': app_name.lower(),
+            'app_name': app_name,
             'model_name': model_name.lower(),
             'field_name': field.name,
         }

@@ -980,6 +980,10 @@ Having these indexes enables generating queries regardless of the entry point an
 
 ## CHANGELOG
 
+2.0.11 [diff](https://github.com/cbmi/avocado/compare/2.0.10...2.0.11)
+
+- Remove assumption of lowercasing the `app_name` during a sync
+
 2.0.10 [diff](https://github.com/cbmi/avocado/compare/2.0.9...2.0.10)
 
 - String formatting cleanup
