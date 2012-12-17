@@ -7,7 +7,7 @@ from _base import BaseExporter
 from _csv import CSVExporter
 
 
-class SasExporter(BaseExporter):
+class SASExporter(BaseExporter):
     file_extension = 'zip'
     content_type = 'application/zip'
     preferred_formats = ('coded', 'number', 'string')

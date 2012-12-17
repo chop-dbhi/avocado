@@ -17,7 +17,7 @@ class BaseExporter(object):
             self.row_length += length
             self.params.append((concept.format, length))
 
-    def get_file_obj(self, name):
+    def get_file_obj(self, name=None):
         if name is None:
             return StringIO()
         if isinstance(name, basestring):
