@@ -29,7 +29,7 @@ class BaseExporter(object):
             values, row = row[:length], row[length:]
             yield formatter(values, self.preferred_formats)
 
-    def read(self, iterable, force_distinct=True):
+    def read(self, iterable, force_distinct=True, *args, **kwargs):
         """Takes an iterable that produces rows to be formatted.
 
         If `force_distinct` is true, rows will be filtered based on the slice

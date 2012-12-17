@@ -8,17 +8,12 @@ class HTMLExporter(BaseExporter):
     content_type = 'text/html'
     preferred_formats = ('html', 'string')
 
-    def write(self, iterable, buff=None, template=None):
+    def write(self, iterable, template, buff=None, *args, **kwargs):
         buff = self.get_file_obj(buff)
-        generator = self.read(iterable)
 
-        if template:
-            context = Context({'rows': generator})
-            if isinstance(template, basestring):
-                template = get_template(template)
-            buff.write(template.render(context))
-        else:
-            for row in generator:
-                for item in row:
-                    buff.write(item)
+        if isinstance(template, basestring):
+            template = get_template(template)
+
+        context = Context({'rows': self.read(iterable, *args, **kwargs)})
+        buff.write(template.render(context))
         return buff

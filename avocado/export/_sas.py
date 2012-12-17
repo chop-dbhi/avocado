@@ -73,7 +73,7 @@ class SASExporter(BaseExporter):
 
         return value_format, value
 
-    def write(self, iterable, buff=None, template_name='export/script.sas'):
+    def write(self, iterable, buff=None, template_name='export/script.sas', *args, **kwargs):
         zip_file = ZipFile(self.get_file_obj(buff), 'w')
 
         formats = []            # sas formats for all fields
@@ -119,7 +119,7 @@ class SASExporter(BaseExporter):
         data_exporter = CSVExporter(self.concepts)
         # Overwrite preferred formats for data file
         data_exporter.preferred_formats = self.preferred_formats
-        data_exporter.write(iterable, data_buff)
+        data_exporter.write(iterable, data_buff, *args, **kwargs)
 
         zip_file.writestr(data_filename, data_buff.getvalue())
 

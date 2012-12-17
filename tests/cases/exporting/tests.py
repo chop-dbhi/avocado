@@ -144,5 +144,5 @@ class ResponseExportTestCase(FileExportTestCase):
     </tr>
 {% endfor %}
 </table>""")
-        exporter.write(self.query, response, template=template)
+        exporter.write(self.query, template=template, buff=response)
         self.assertEqual(len(response.content), 494)

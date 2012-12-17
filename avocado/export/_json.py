@@ -16,10 +16,10 @@ class JSONExporter(BaseExporter):
     content_type = 'application/json'
     preferred_formats = ('number', 'string')
 
-    def write(self, iterable, buff=None):
+    def write(self, iterable, buff=None, *args, **kwargs):
         buff = self.get_file_obj(buff)
 
         encoder = JSONGeneratorEncoder()
-        for chunk in encoder.iterencode(self.read(iterable)):
+        for chunk in encoder.iterencode(self.read(iterable, *args, **kwargs)):
             buff.write(chunk)
         return buff

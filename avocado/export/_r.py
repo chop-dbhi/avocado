@@ -47,7 +47,7 @@ class RExporter(BaseExporter):
             level += ' ,'
         return factor, level
 
-    def write(self, iterable, buff=None, template_name='export/script.R'):
+    def write(self, iterable, buff=None, template_name='export/script.R', *args, **kwargs):
         zip_file = ZipFile(self.get_file_obj(buff), 'w')
 
         factors = []      # field names
@@ -75,7 +75,7 @@ class RExporter(BaseExporter):
         data_exporter = CSVExporter(self.concepts)
         # Overwrite preferred formats for data file
         data_exporter.preferred_formats = self.preferred_formats
-        data_exporter.write(iterable, data_buff)
+        data_exporter.write(iterable, data_buff, *args, **kwargs)
 
         zip_file.writestr(data_filename, data_buff.getvalue())
 

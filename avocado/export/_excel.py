@@ -13,7 +13,7 @@ class ExcelExporter(BaseExporter):
     content_type = 'application/vnd.ms-excel'
     preferred_formats = ('boolean', 'number', 'string')
 
-    def write(self, iterable, buff=None):
+    def write(self, iterable, buff=None, *args, **kwargs):
         buff = self.get_file_obj(buff)
 
         wb = Workbook(optimized_write=True)
@@ -23,7 +23,7 @@ class ExcelExporter(BaseExporter):
 
         header = []
         # Create the data worksheet
-        for i, row_gen in enumerate(self.read(iterable)):
+        for i, row_gen in enumerate(self.read(iterable, *args, **kwargs)):
             row = []
             for data in row_gen:
                 if i == 0:
