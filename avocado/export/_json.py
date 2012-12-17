@@ -12,8 +12,12 @@ class JSONGeneratorEncoder(DjangoJSONEncoder):
 
 
 class JSONExporter(BaseExporter):
+    short_name = 'JSON'
+    long_name = 'JavaScript Object Notation (JSON)'
+
     file_extension = 'json'
     content_type = 'application/json'
+
     preferred_formats = ('number', 'string')
 
     def write(self, iterable, buff=None, *args, **kwargs):

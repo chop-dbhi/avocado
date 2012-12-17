@@ -4,8 +4,12 @@ from _base import BaseExporter
 
 
 class HTMLExporter(BaseExporter):
+    short_name = 'HTML'
+    long_name = 'HyperText Markup Language (HTML)'
+
     file_extension = 'html'
     content_type = 'text/html'
+
     preferred_formats = ('html', 'string')
 
     def write(self, iterable, template, buff=None, *args, **kwargs):

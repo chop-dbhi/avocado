@@ -8,8 +8,12 @@ from _csv import CSVExporter
 
 
 class SASExporter(BaseExporter):
+    short_name = 'SAS'
+    long_name = 'Statistical Analysis System (SAS)'
+
     file_extension = 'zip'
     content_type = 'application/zip'
+
     preferred_formats = ('coded', 'number', 'string')
 
     num_lg_names = 0

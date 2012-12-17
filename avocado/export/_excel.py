@@ -9,8 +9,12 @@ from _base import BaseExporter
 
 
 class ExcelExporter(BaseExporter):
+    short_name = 'Excel'
+    long_name = 'Microsoft Excel 2007 Format'
+
     file_extension = 'xlsx'
     content_type = 'application/vnd.ms-excel'
+
     preferred_formats = ('boolean', 'number', 'string')
 
     def write(self, iterable, buff=None, *args, **kwargs):

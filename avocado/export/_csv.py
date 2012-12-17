@@ -3,8 +3,12 @@ from _base import BaseExporter
 
 
 class CSVExporter(BaseExporter):
+    short_name = 'CSV'
+    long_name = 'Comma-Separated Values (CSV)'
+
     file_extension = 'csv'
     content_type = 'text/csv'
+
     preferred_formats = ('number', 'string')
 
     def write(self, iterable, buff=None, *args, **kwargs):

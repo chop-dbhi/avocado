@@ -8,8 +8,12 @@ from _csv import CSVExporter
 
 
 class RExporter(BaseExporter):
+    short_name = 'R'
+    long_name = 'R Programming Language'
+
     file_extension = 'zip'
     content_type = 'application/zip'
+
     preferred_formats = ('coded', 'number', 'string')
 
     def _format_name(self, name):
