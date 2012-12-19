@@ -15,7 +15,7 @@ class ExcelExporter(BaseExporter):
     file_extension = 'xlsx'
     content_type = 'application/vnd.ms-excel'
 
-    preferred_formats = ('boolean', 'number', 'string')
+    preferred_formats = ('excel', 'boolean', 'number', 'string')
 
     def write(self, iterable, buff=None, *args, **kwargs):
         buff = self.get_file_obj(buff)

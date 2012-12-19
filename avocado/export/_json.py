@@ -18,7 +18,7 @@ class JSONExporter(BaseExporter):
     file_extension = 'json'
     content_type = 'application/json'
 
-    preferred_formats = ('number', 'string')
+    preferred_formats = ('json', 'number', 'string')
 
     def write(self, iterable, buff=None, *args, **kwargs):
         buff = self.get_file_obj(buff)

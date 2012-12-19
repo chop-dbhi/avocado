@@ -14,7 +14,7 @@ class RExporter(BaseExporter):
     file_extension = 'zip'
     content_type = 'application/zip'
 
-    preferred_formats = ('coded', 'number', 'string')
+    preferred_formats = ('r', 'coded', 'number', 'string')
 
     def _format_name(self, name):
         punc = punctuation.replace('_', '')

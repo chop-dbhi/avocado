@@ -9,7 +9,7 @@ class CSVExporter(BaseExporter):
     file_extension = 'csv'
     content_type = 'text/csv'
 
-    preferred_formats = ('number', 'string')
+    preferred_formats = ('csv', 'number', 'string')
 
     def write(self, iterable, buff=None, *args, **kwargs):
         header = []
