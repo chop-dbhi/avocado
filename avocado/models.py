@@ -151,20 +151,38 @@ class DataField(BasePlural):
     # Django Model Field-related Properties and Methods
 
     @property
+    def real_model(self):
+        "Returns the model class this datafield is associated with."
+        if not hasattr(self, '_real_model'):
+            self._real_model = models.get_model(self.app_name, self.model_name)
+        return self._real_model
+
+    @property
+    def real_field(self):
+        "Returns the field object this datafield is associated with."
+        if self.real_model:
+            try:
+                return self.real_model._meta.get_field(self.field_name)
+            except FieldDoesNotExist:
+                pass
+
+    @property
     def model(self):
-        "Returns the model class this field is associated with."
-        if not hasattr(self, '_model'):
-            self._model = models.get_model(self.app_name, self.model_name)
-        return self._model
+        "Returns the model class this datafield represents."
+        real_field = self.real_field
+        # Handle foreign key fields to a Lexicon model
+        if real_field and isinstance(real_field, models.ForeignKey) \
+                and issubclass(real_field.rel.to, Lexicon):
+            return real_field.rel.to
+        return self.real_model
 
     @property
     def field(self):
-        "Returns the field object this field represents."
-        if self.model:
-            try:
-                return self.model._meta.get_field_by_name(self.field_name)[0]
-            except FieldDoesNotExist:
-                pass
+        "Returns the field object this datafield represents."
+        model = self.model
+        if model and issubclass(model, (Lexicon, ObjectSet)):
+            return model._meta.pk
+        return self.real_field
 
     @property
     def nullable(self):
