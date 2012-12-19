@@ -192,7 +192,7 @@ class DataField(BasePlural):
         normal datafields.
         """
         return self.model and issubclass(self.model, Lexicon) \
-            and self.field_name == self.model._meta.pk.name
+            and self.field == self.model._meta.pk
 
     @property
     def objectset(self):
@@ -201,7 +201,7 @@ class DataField(BasePlural):
         normal datafields.
         """
         return self.model and issubclass(self.model, ObjectSet) \
-            and self.field_name == self.model._meta.pk.name
+            and self.field == self.model._meta.pk
 
     # Convenience Methods
     # Easier access to the underlying data for this data field
