@@ -58,9 +58,9 @@ INTERNAL_DATATYPE_FORMFIELDS = {
 }
 
 # The minimum number of distinct values required when determining to set the
-# `searchable` flag on `DataField` instances during the `sync` process. This
+# `searchable` flag on `DataField` instances during the `init` process. This
 # will only be applied to fields with a Avocado datatype of 'string'
-SYNC_ENUMERABLE_MAXIMUM = 30
+ENUMERABLE_MAXIMUM = 30
 
 # Flag for enabling the history API
 HISTORY_ENABLED = False

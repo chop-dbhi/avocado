@@ -16,7 +16,7 @@ class CommandsTestCase(TestCase):
         sys.stdout = self.stdout
 
     def test_subcommands(self):
-        management.call_command('avocado', 'sync', 'subcommands')
+        management.call_command('avocado', 'init', 'subcommands')
         management.call_command('avocado', 'cache', 'subcommands')
         management.call_command('avocado', 'orphaned')
         management.call_command('avocado', 'data', 'subcommands', update_data_modified=True)

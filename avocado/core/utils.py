@@ -40,7 +40,7 @@ def get_heuristic_flags(field):
     if field.internal_type == 'text':
         searchable = True
     elif field.simple_type in ('string', 'boolean'):
-        if field.size > settings.SYNC_ENUMERABLE_MAXIMUM:
+        if field.size > settings.ENUMERABLE_MAXIMUM:
             searchable = True
         else:
             enumerable = True

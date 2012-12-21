@@ -14,7 +14,7 @@ class ModelInstanceCacheTestCase(TestCase):
     fixtures = ['models.json']
 
     def setUp(self):
-        management.call_command('avocado', 'sync', 'models', quiet=True)
+        management.call_command('avocado', 'init', 'models', quiet=True)
         self.is_manager = DataField.objects.get_by_natural_key('models', 'employee', 'is_manager')
 
     def test_datafield_cache(self):
@@ -35,7 +35,7 @@ class DataFieldTestCase(TestCase):
     fixtures = ['models.json']
 
     def setUp(self):
-        management.call_command('avocado', 'sync', 'models', quiet=True)
+        management.call_command('avocado', 'init', 'models', quiet=True)
         self.is_manager = DataField.objects.get_by_natural_key('models', 'employee', 'is_manager')
         self.salary = DataField.objects.get_by_natural_key('models', 'title', 'salary')
         self.first_name = DataField.objects.get_by_natural_key('models', 'employee', 'first_name')
@@ -63,7 +63,7 @@ class DataFieldManagerTestCase(TestCase):
     fixtures = ['models.json']
 
     def setUp(self):
-        management.call_command('avocado', 'sync', 'models', quiet=True)
+        management.call_command('avocado', 'init', 'models', quiet=True)
         self.is_manager = DataField.objects.get_by_natural_key('models', 'employee', 'is_manager')
 
     def test_published(self):
@@ -90,7 +90,7 @@ class DataConceptTestCase(TestCase):
     fixtures = ['models.json']
 
     def setUp(self):
-        management.call_command('avocado', 'sync', 'models', quiet=True)
+        management.call_command('avocado', 'init', 'models', quiet=True)
 
     def test_search(self):
         management.call_command('rebuild_index', interactive=False)
@@ -141,7 +141,7 @@ class DataConceptManagerTestCase(TestCase):
     fixtures = ['models.json']
 
     def setUp(self):
-        management.call_command('avocado', 'sync', 'models', quiet=True)
+        management.call_command('avocado', 'init', 'models', quiet=True)
         self.is_manager = DataField.objects.get_by_natural_key('models', 'employee', 'is_manager')
         self.salary = DataField.objects.get_by_natural_key('models', 'title', 'salary')
 

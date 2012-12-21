@@ -153,14 +153,14 @@ class Book(models.Model):
 
 To reiterate the introduction above, Avocado is about defining metadata and making use of existing metadata surrounding your data model.
 
-Avocado comes with a `sync` subcommand which introspects Django models and creates `DataField` instances representing the model fields. At least one app label (`library`) or model label (`library.book`) must be specified.
+Avocado comes with a `init` subcommand which introspects Django models and creates `DataField` instances representing the model fields. At least one app label (`library`) or model label (`library.book`) must be specified.
 
 By default, `DataField` instances are not created for primary and foreign key fields. In practice, surrogate key fields are used infrequently as is, thus they are not created by default. To override this behavior and include key fields, add the flag `--include-keys`.
 
 Likewise, model fields may be marked as not being editable in the model field definitions. This flag is turned on typically for operational or bookkeeping fields such as timestamps. By default, `DataField` instances are not created for these either, but can be overridden by passing the `--include-non-editable`.
 
 ```bash
-./manage.py avocado sync library
+./manage.py avocado init library
 1 field added for Author
 2 fields added for Book
 ```
@@ -223,7 +223,7 @@ A `DataField` also acts as an interface that exposes various properties and meth
 
 ##### Editable
 
-- `f.enumerable` - A flag denoting if the field's data is composed of an enumerable set. During a [sync](avocado-sync), each field's data is evaluated based on the internal type and the size of the data (number of distinct values). By default, if the field is a `CharField` and has `SYNC_ENUMERABLE_MAXIMUM` or less distinct values, this will be set to `True`. 
+- `f.enumerable` - A flag denoting if the field's data is composed of an enumerable set. During a [init](avocado-init), each field's data is evaluated based on the internal type and the size of the data (number of distinct values). By default, if the field is a `CharField` and has `SYNC_ENUMERABLE_MAXIMUM` or less distinct values, this will be set to `True`. 
 - `f.searchlable` - A flag denoting if the field's data should be treated as searchable text. This applies to `TextField`s and `CharField`s which don't meet the requirements for being `enumerable`.
 
 ##### Read-only
@@ -401,7 +401,7 @@ Here is an example showing how we would create a `DataConcept` called `Dosage` f
 >>> unit = DataField.objects.get_by_natural_key('models', 'prescriptions', 'unit')
 >>> interval = DataField.objects.get_by_natural_key('models', 'prescriptions', 'interval')
 # Recall, the DataFields are populated when you call 
-# './manage.py avocado sync'
+# './manage.py avocado init'
 
 # Add the DataFields to the DataConcept
 >>> DataConceptField(concept=concept, field=dose).save()
@@ -591,7 +591,7 @@ prefer working with a enumerable set of values such as SAS or R
 In addition, Avocado treats Lexicon subclasses specially since it is such a
 common practice to use them. They are used in the following ways:
 
-- performing a `sync` will ignore the `label`, `code`, and `order`
+- performing a `init` will ignore the `label`, `code`, and `order`
 fields since they are supplementary to the `value` (you can of course add them
 manually later)
 - the `DataField` that represents the `value` field on a Lexicon subclass will
@@ -712,12 +712,12 @@ This enables using the metadata dynamically in templates through the API, which 
 
 Avocado commands are namespaced under `avocado`. Execute `./bin/manage.py avocado` to view a list of available subcommands.
 
-### sync
+### init
 
-The sync command creates `DataField` instances from Django model fields. This will be used whenever new models or new fields are added to your data model.
+The init command creates `DataField` instances from Django model fields. This will be used whenever new models or new fields are added to your data model.
 
 ```bash
-./manage.py avocado sync labels [--force] [--include-keys] [--include-non-editable]
+./manage.py avocado init labels [--force] [--include-keys] [--include-non-editable]
 ```
 
 **Parameters**
@@ -866,9 +866,9 @@ INTERNAL_TYPE_FORMFIELDS = {
 
 ```
 # The maximum number of distinct values allowed for setting the
-# `enumerable` flag on `DataField` instances during the `sync` process. This
+# `enumerable` flag on `DataField` instances during the `init` process. This
 # will only be applied to fields with non-text strings types and booleans
-SYNC_ENUMERABLE_MAXIMUM = 30
+ENUMERABLE_MAXIMUM = 30
 ```
 
 ### HISTORY_ENABLED
@@ -986,7 +986,7 @@ Having these indexes enables generating queries regardless of the entry point an
 
 2.0.11 [diff](https://github.com/cbmi/avocado/compare/2.0.10...2.0.11)
 
-- Remove assumption of lowercasing the `app_name` during a sync
+- Remove assumption of lowercasing the `app_name` during an init call
 
 2.0.10 [diff](https://github.com/cbmi/avocado/compare/2.0.9...2.0.10)
 

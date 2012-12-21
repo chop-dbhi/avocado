@@ -14,7 +14,7 @@ class FileExportTestCase(TestCase):
     fixtures = ['export.json']
 
     def setUp(self):
-        management.call_command('avocado', 'sync', 'exporting', quiet=True)
+        management.call_command('avocado', 'init', 'exporting', quiet=True)
         first_name_field = DataField.objects.get_by_natural_key('exporting', 'employee', 'first_name')
         first_name_field.description = 'First Name'
         last_name_field = DataField.objects.get_by_natural_key('exporting', 'employee', 'last_name')

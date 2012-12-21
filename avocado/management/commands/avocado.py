@@ -8,7 +8,7 @@ class Command(BaseCommand):
     help = "A wrapper for Avocado subcommands"
 
     commands = {
-        'sync': 'sync',
+        'init': 'init',
         'orphaned': 'orphaned',
         'data': 'data',
         'cache': 'cache',

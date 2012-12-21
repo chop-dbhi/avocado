@@ -20,7 +20,7 @@ class Command(BaseCommand):
     OPTIONS:
 
         ``--force`` - Forces legacy description data to override existing
-            fields that have been synced.
+            fields.
 
         ``--no-input`` - Prevent user prompts and assumes the default behavior
             during migration.

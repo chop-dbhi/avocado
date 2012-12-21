@@ -18,7 +18,7 @@ class Lexicon(models.Model):
 
     Avocado integrates Lexicon subclasses by using them in the following ways:
 
-        - performing a `sync` will ignore the `label`, `code`, and `order`
+        - performing an `init` will ignore the `label`, `code`, and `order`
         fields since they are supplementary to the `value`
         - using a DataField that represents a field on a Lexicon subclass will
         use the `order` field whenever accessing values or applying it to

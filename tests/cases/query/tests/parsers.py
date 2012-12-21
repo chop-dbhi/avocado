@@ -10,7 +10,7 @@ class DataContextParserTestCase(TestCase):
     fixtures = ['query.json']
 
     def setUp(self):
-        management.call_command('avocado', 'sync', 'query', quiet=True)
+        management.call_command('avocado', 'init', 'query', quiet=True)
 
     def test_valid(self):
         # Single by id
@@ -130,7 +130,7 @@ class DataViewParserTestCase(TestCase):
     fixtures = ['query.json']
 
     def setUp(self):
-        management.call_command('avocado', 'sync', 'query', quiet=True)
+        management.call_command('avocado', 'init', 'query', quiet=True)
         f1 = DataField.objects.get(pk=1)
         f2 = DataField.objects.get(pk=2)
 

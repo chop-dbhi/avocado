@@ -9,7 +9,7 @@ class TranslatorTestCase(TestCase):
     fixtures = ['query.json']
 
     def setUp(self):
-        management.call_command('avocado', 'sync', 'query', quiet=True)
+        management.call_command('avocado', 'init', 'query', quiet=True)
         self.is_manager = DataField.objects.get_by_natural_key('query', 'employee', 'is_manager')
         self.salary = DataField.objects.get_by_natural_key('query', 'title', 'salary')
         self.first_name = DataField.objects.get_by_natural_key('query', 'employee', 'first_name')

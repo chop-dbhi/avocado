@@ -15,7 +15,7 @@ class FormatterTestCase(TestCase):
     fixtures = ['formatters.json']
 
     def setUp(self):
-        management.call_command('avocado', 'sync', 'formatters', quiet=True)
+        management.call_command('avocado', 'init', 'formatters', quiet=True)
         name_field = DataField.objects.get_by_natural_key('formatters', 'title', 'name')
         salary_field = DataField.objects.get_by_natural_key('formatters', 'title', 'salary')
         boss_field = DataField.objects.get_by_natural_key('formatters', 'title', 'boss')
