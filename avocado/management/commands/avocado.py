@@ -9,7 +9,7 @@ class Command(BaseCommand):
 
     commands = {
         'init': 'init',
-        'orphaned': 'orphaned',
+        'check': 'check',
         'data': 'data',
         'cache': 'cache',
         'legacy': 'legacy',

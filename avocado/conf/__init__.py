@@ -1,3 +1,4 @@
+import re
 import functools
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.functional import LazyObject
@@ -27,59 +28,148 @@ class LazySettings(LazyObject):
 settings = LazySettings()
 
 
+class Dependency(object):
+    name = ''
+
+    def __nonzero__(self):
+        return self.installed and self.setup
+
+    def __unicode__(self):
+        return self.name
+
+    @property
+    def doc(self):
+        return re.sub('\n( )+', '\n', self.__doc__ or '').strip('\n')
+
+    @property
+    def marked_doc(self):
+        try:
+            import markdown
+        except ImportError:
+            return self.doc
+        return markdown.markdown(self.doc)
+
+    def test_install(self):
+        raise NotImplemented
+
+    def test_setup(self):
+        return self.test_install()
+
+    @property
+    def installed(self):
+        return self.test_install() is not False
+
+    @property
+    def setup(self):
+        return self.test_setup() is not False
+
+
+class Haystack(Dependency):
+    """What's having all this great descriptive data if no one can find it?
+    Haystack provides search engine facilities for the metadata.
+
+    Install by doing `pip install django-haystack` and installing one of the
+    supported search engine backends. The easiest to setup is Whoosh which is
+    implemented in pure Python. Install it by doing `pip install whoosh`. Add
+    haystack to `INSTALLED_APPS`.
+    """
+
+    name = 'haystack'
+
+    # An import may cause an improperly configured error, so this catches
+    # and returns the error for downstream use.
+    def _test(self):
+        try:
+            import haystack
+        except (ImportError, ImproperlyConfigured), e:
+            return e
+
+    def test_install(self):
+        error = self._test()
+        if isinstance(error, ImportError):
+            return False
+
+    def test_setup(self):
+        error = self._test()
+        if isinstance(error, ImproperlyConfigured):
+            return False
+
+
+#class Numpy(Dependency):
+#    name = 'numpy'
+#
+#    def test_install(self):
+#        try:
+#            import numpy
+#        except ImportError:
+#            return False
+
+
+class Scipy(Dependency):
+    """Avocado comes with a stats package for performing some rudimentary
+    statistical, aggregation and clustering operations on the data. This is not
+    always required or necessary for all data, but if there is a heavy emphasis
+    on numerical data or the amount of data is quite large, the stats may come
+    in handy.
+
+    Install by doing `pip install numpy` first (a dependency of SciPy), followed
+    by `pip install scipy`. Note, there are a few dependencies for compilation,
+    so review SciPy's [installation instructions](http://www.scipy.org/Installing_SciPy)
+    for more details.
+    """
+
+    name = 'scipy'
+
+    def test_install(self):
+        try:
+            import numpy
+        except ImportError:
+            return False
+
+
+class Openpyxl(Dependency):
+    """Avocado comes with an export package for supporting various means of
+    exporting data into different formats. One of those formats is the native
+    Microsoft Excel .xlsx format. To support that, the openpyxl library is used.
+
+    Install by doing `pip install openpyxl`.
+    """
+
+    name = 'openpyxl'
+
+    def test_install(self):
+        try:
+            import openpyxl
+        except ImportError:
+            return False
+
+
+class Guardian(Dependency):
+    """This enables fine-grain control over who has permissions for various
+    DataFields. Permissions can be defined at a user or group level.
+
+    Install by doing `pip install django-guardian` and adding guardian to
+    `INSTALLED_APPS`.
+    """
+
+    name = 'guardian'
+
+    def test_install(self):
+        try:
+            import guardian
+        except ImportError:
+            return False
+
+
 # Keep track of the officially supported apps and libraries used for various
 # features.
 OPTIONAL_DEPS = {
-    'haystack': False,
-    'numpy': False,
-    'scipy': False,
-    'actstream': False,
-    'openpyxl': False,
-    'guardian': False,
+    'haystack': Haystack(),
+#    'numpy': Numpy(),
+    'scipy': Scipy(),
+    'openpyxl': Openpyxl(),
+    'guardian': Guardian(),
 }
-
-# Full-text search engine
-try:
-    import haystack
-    OPTIONAL_DEPS['haystack'] = True
-except (ImportError, ImproperlyConfigured):
-    pass
-
-# High performance data structures
-try:
-    import numpy
-    OPTIONAL_DEPS['numpy'] = True
-except ImportError:
-    pass
-
-# Statistical functions
-try:
-    import scipy
-    OPTIONAL_DEPS['scipy'] = True
-except ImportError:
-    pass
-
-# Activity streams
-try:
-    import actstream
-    if 'actstream' in django_settings.INSTALLED_APPS:
-        OPTIONAL_DEPS['acstream'] = True
-except ImportError:
-    pass
-
-# Native MS Excel reading/writing support
-try:
-    import openpyxl
-    OPTIONAL_DEPS['openpyxl'] = True
-except ImportError:
-    pass
-
-# Generic object-level permissions
-try:
-    import guardian
-    OPTIONAL_DEPS['guardian'] = True
-except ImportError:
-    pass
 
 
 def requires_dep(lib):
@@ -87,8 +177,9 @@ def requires_dep(lib):
     def decorator(f):
         @functools.wraps(f)
         def wrapper(*args, **kwargs):
-            if not OPTIONAL_DEPS[lib]:
-                raise ImproperlyConfigured('{0} must be installed to use this feature.'.format(lib))
+            dep = OPTIONAL_DEPS[lib]
+            if not dep:
+                raise ImproperlyConfigured('{0} must be installed to use this feature.\n\n{1}'.format(lib, dep.__doc__))
             return f(*args, **kwargs)
         return wrapper
     return decorator

@@ -1,0 +1,39 @@
+{% load colorize %}---
+{% colorize "Export Package" "bold" %}          {% if export_package_installed %}{% colorize "Installed" fg="green" %}{% else %}{% colorize "Not installed" fg="yellow" %}{% endif %}
+---
+{% colorize "Default ModelTree" "bold" %}       {% if default_modeltree %}{% colorize default_modeltree fg="green" %}{% else %}{% colorize "Not defined" fg="red" %}
+
+Harvest projects installed using the harvest command have the MODELTREES
+setting commented out in the global_settings.py file. Uncommend it and
+specifiy the default model.
+
+If you have your own project, add the following to your settings.py file
+and replace `app.Model` which a real app and model name.
+
+MODELTREES = {
+    'default': {
+        'model': 'app.Model',
+    }
+}
+{% endif %}
+---
+{% colorize "DataField Validation" "bold" %}    {% if not unknown_models and not unknown_fields %} {% colorize "OK" fg="green" %}{% else %}
+{% if unknown_models %}{% colorize "The following fields have an unknown model:" fg="red" %}{% for field in unknown_models %}- {{ field }}
+{% endfor %}{% else %}{% colorize "OK" fg="green" %}
+{% endif %}
+{% if unknown_fields %}{% colorize "The following fields have an unknown field:" fg="red" %}{% for field in unknown_fields %}- {{ field }}
+{% endfor %}{% else %}{% colorize "OK" fg="green" %}
+{% endif %}
+{% endif %}
+---
+{% colorize "Optional Dependencies" "bold" %}
+{% for label, dep in optional_deps.items %}
+> {% if dep %}{{ label }}       {% colorize "Installed" fg="green" %}{% else %}{{ dep }}       {% colorize "Not Installed" fg="yellow" %}
+
+{{ dep.doc }}{% endif %}
+{% endfor %}---
+{% colorize "Custom Settings" "bold" %}
+
+{% for key, value in settings.items %}{{ key }}       {{ value|pprint|safe }}
+{% empty %}All the default settings are being used. {% colorize "Nicely done!" fg="green" %}{% endfor %}
+

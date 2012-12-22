@@ -727,17 +727,20 @@ The init command creates `DataField` instances from Django model fields. This wi
 - `--include-non-editable` - creates field instance for model fields with editable=False (by default these are ignored).
 - `--include-keys` - creates fields instances for primary and foreign key fields (by default these are ignored).
 
-### orphaned
+### check
 
-Checks for `DataField` instances that no longer map to Django model fields (like a dead hyperlink).
+Performs Avocado setup and optional dependency checks. It also checks for
+`DataField` instances that no longer map to Django model fields
+(like a dead hyperlink).
 
 ```bash
-./manage.py avocado orphaned [--unpublish]
+./manage.py avocado check [--output=html]
 ```
 
 **Parameters**
 
-`--unpublish` - unpublishes all fields found to be orphaned.
+`--output` - Specify the output type of the report. Options are `html` or `stdout`.
+Default is `stdout`.
 
 
 ### data

@@ -18,7 +18,7 @@ class CommandsTestCase(TestCase):
     def test_subcommands(self):
         management.call_command('avocado', 'init', 'subcommands')
         management.call_command('avocado', 'cache', 'subcommands')
-        management.call_command('avocado', 'orphaned')
+        management.call_command('avocado', 'check')
         management.call_command('avocado', 'data', 'subcommands', update_data_modified=True)
 
     def test_legacy(self):
