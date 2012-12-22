@@ -104,12 +104,11 @@ class DataFieldAdmin(PublishedAdmin):
     form = DataFieldAdminForm
 
     list_display = ('name', 'published', 'archived', 'internal',
-        'orphan_status', 'model_name', 'enumerable', 'searchable',
+        'orphan_status', 'model_name', 'enumerable',
         'is_lexicon', 'is_objectset', 'related_dataconcepts')
     list_filter = ('published', 'archived', 'internal', 'model_name',
-        'enumerable', 'searchable', LexiconListFilter, ObjectSetListFilter)
-    list_editable = ('published', 'archived', 'internal', 'enumerable',
-        'searchable')
+        'enumerable', LexiconListFilter, ObjectSetListFilter)
+    list_editable = ('published', 'archived', 'internal', 'enumerable')
 
     search_fields = ('name', 'description', 'keywords')
     readonly_fields = ('created', 'modified', 'data_modified')
@@ -138,7 +137,7 @@ class DataFieldAdmin(PublishedAdmin):
         }),
 
         ('Query Modifiers', {
-            'fields': ('translator', 'enumerable', 'searchable')
+            'fields': ('translator', 'enumerable')
         }),
 
         ('Data Source', {

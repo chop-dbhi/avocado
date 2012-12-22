@@ -34,18 +34,12 @@ def get_heuristic_flags(field):
     # For strings and booleans, set the enumerable flag by default
     # it below the enumerable threshold
     # TextFields are typically used for free text
-    searchable = False
     enumerable = False
 
-    if field.internal_type == 'text':
-        searchable = True
-    elif field.simple_type in ('string', 'boolean'):
-        if field.size > settings.ENUMERABLE_MAXIMUM:
-            searchable = True
-        else:
-            enumerable = True
+    if field.internal_type != 'text' and field.simple_type in ('string', 'boolean') \
+            and field.size <= settings.ENUMERABLE_MAXIMUM:
+        enumerable = True
 
     return {
-        'searchable': searchable,
         'enumerable': enumerable,
     }

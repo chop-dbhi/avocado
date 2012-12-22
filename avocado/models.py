@@ -80,12 +80,8 @@ class DataField(BasePlural):
 
     # Set this field to true to make this field's values enumerable. This
     # should only be enabled for data that contains a discrete vocabulary, i.e.
-    # no full text data, most numerical data nor date or time data.
+    # no full text data.
     enumerable = models.BooleanField(default=False)
-
-    # Set his field to true to denote this field may be searched via some means
-    # of free-text input.
-    searchable = models.BooleanField(default=False)
 
     # An optional translator which customizes input query conditions
     # to a format which is suitable for the database.
@@ -220,6 +216,12 @@ class DataField(BasePlural):
         """
         return self.model and issubclass(self.model, ObjectSet) \
             and self.field == self.model._meta.pk
+
+    @property
+    def searchable(self):
+        "Returns true if a text-field and is not an enumerable field."
+        return self.simple_type == 'string' and not self.enumerable
+
 
     # Convenience Methods
     # Easier access to the underlying data for this data field
