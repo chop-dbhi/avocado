@@ -1,3 +1,3 @@
 #!/bin/sh
 
-DJANGO_SETTINGS_MODULE='tests.settings' PYTHONPATH=. ../bin/django-admin.py shell --verbosity=3
+DJANGO_SETTINGS_MODULE='tests.settings' PYTHONPATH=. `which django-admin.py` shell --verbosity=3
