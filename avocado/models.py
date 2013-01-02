@@ -95,10 +95,6 @@ class DataField(BasePlural):
     data_modified = models.DateTimeField(null=True, help_text='The last time '\
         ' the underlying data for this field was modified.')
 
-    # Enables recording where this particular data comes if derived from
-    # another data source.
-    data_source = models.CharField(max_length=250, null=True, blank=True)
-
     # Certain fields may not be relevant or appropriate for all
     # sites being deployed. This is primarily for preventing exposure of
     # access to private data from certain sites. For example, there may and

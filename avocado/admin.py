@@ -145,7 +145,7 @@ class DataFieldAdmin(PublishedAdmin):
                 'If where this field is located has changed, change these '
                 ' values and create a new field by using "Save as new".'),
             'classes': ('collapse',),
-            'fields': ('app_name', 'model_name', 'field_name', 'data_source'),
+            'fields': ('app_name', 'model_name', 'field_name'),
         }),
 
         ('Times of Interest', {
