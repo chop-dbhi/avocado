@@ -223,8 +223,7 @@ A `DataField` also acts as an interface that exposes various properties and meth
 
 ##### Editable
 
-- `f.enumerable` - A flag denoting if the field's data is composed of an enumerable set. During a [init](avocado-init), each field's data is evaluated based on the internal type and the size of the data (number of distinct values). By default, if the field is a `CharField` and has `SYNC_ENUMERABLE_MAXIMUM` or less distinct values, this will be set to `True`. 
-- `f.searchlable` - A flag denoting if the field's data should be treated as searchable text. This applies to `TextField`s and `CharField`s which don't meet the requirements for being `enumerable`.
+- `f.enumerable` - A flag denoting if the field's data is composed of an enumerable set. During a [init](avocado-init), each field's data is evaluated based on the internal type and the size of the data (number of distinct values). By default, if the field is a `CharField` and has `ENUMERABLE_MAXIMUM` or less distinct values, this will be set to `True`. 
 
 ##### Read-only
 
@@ -236,6 +235,7 @@ This is primarily used by the functions below. Useful when you want to apply add
 - `f.values` - Returns a tuple of distinct raw values ordered by the field. If the corresponding model is a subclass of Avocado's `Lexicon` abstract model, the order corresponds to the `order` field on the `Lexicon` model subclass. Read more about the [`Lexicon` abstract class](#lexicon-abstract-class).
 - `f.labels` - Returns a unicoded tuple of labels. If the corresponding model is a subclass of Avocado's `Lexicon` abstract model, this corresponds to the `label` field on the `Lexicon` model subclass. Read more about the [`Lexicon` abstract class](#lexicon-abstract-class).
 - `f.choices` - A tuple of pairs zipped from `f.values` and `f.labels`. This is useful for populating form fields for client applications.
+- `f.searchable` (DEPRECATED) - A flag denoting if the field's data should be treated as searchable text. This applies to `TextField`s and `CharField`s which are not marked as `enumerable`.
 
 ```python
 >>> f.internal_type
@@ -781,7 +781,7 @@ Avocado settings are defined as a dictionary, named `AVOCADO`, with each key cor
 ```python
 AVOCADO = {
     'SIMPLE_TYPE_MAP': { ... },
-    'SYNC_ENUMERABLE_MAXIMUM': 50,
+    'ENUMERABLE_MAXIMUM': 50,
     ...
 }
 ```
@@ -796,112 +796,38 @@ Datatypes in this context should be simple, for example not differentiating betw
 
 These datatypes help define how input is validated and which operators are allowed.
 
-The default map:
-
-```
-# A mapping between model field internal datatypes and sensible
-# client-friendly datatypes. In virtually all cases, client programs
-# only need to differentiate between high-level types like number, string,
-# and boolean. More granular separation be may desired to alter the
-# allowed operators or may infer a different client-side representation
-SIMPLE_TYPE_MAP = {
-    'auto': 'number',
-    'biginteger': 'number',
-    'decimal': 'number',
-    'float': 'number',
-    'integer': 'number',
-    'positiveinteger': 'number',
-    'positivesmallinteger': 'number',
-    'smallinteger': 'number',
-
-    'nullboolean': 'boolean',
-
-    'char': 'string',
-    'email': 'string',
-    'file': 'string',
-    'filepath': 'string',
-    'image': 'string',
-    'ipaddress': 'string',
-    'slug': 'string',
-    'text': 'string',
-    'url': 'string',
-}
-```
-
 ### OPERATOR_MAP
 
-```
-# A mapping between the client-friendly datatypes and sensible operators
-# that will be used to validate a query condition. In many cases, these types
-# support more operators than what are defined, but are not include because
-# they are not commonly used.
-OPERATOR_MAP = {
-    'boolean': ('exact', '-exact', 'in', '-in'),
-    'date': ('exact', '-exact', 'in', '-in', 'lt', 'lte', 'gt', 'gte', 'range'),
-    'number': ('exact', '-exact', 'in', '-in', 'lt', 'lte', 'gt', 'gte', 'range'),
-    'string': ('exact', '-exact', 'iexact', '-iexact', 'in', '-in', 'icontains', '-icontains'),
-    'datetime': ('exact', '-exact', 'in', '-in', 'lt', 'lte', 'gt', 'gte', 'range'),
-    'time': ('exact', '-exact', 'in', '-in', 'lt', 'lte', 'gt', 'gte', 'range'),
-}
-```
+A mapping between the client-friendly datatypes and sensible operators
+that will be used to validate a query condition. In many cases, these types
+support more operators than what are defined, but are not include because
+they are not commonly used.
 
 ### INTERNAL_TYPE_FORMFIELDS
 
-```
-# A general mapping of formfield overrides for all subclasses. the mapping is
-# similar to the SIMPLE_TYPE_MAP, but the values reference internal
-# formfield classes, that is integer -> IntegerField. in many cases, the
-# validation performed may need to be a bit less restrictive than what the
-# is actually necessary
-INTERNAL_TYPE_FORMFIELDS = {
-    'auto': 'IntegerField',
-    'integer': 'FloatField',
-    'positiveinteger': 'FloatField',
-    'positivesmallinteger': 'FloatField',
-    'smallinteger': 'FloatField',
+A general mapping of formfield overrides for all subclasses. the mapping is
+similar to the SIMPLE_TYPE_MAP, but the values reference internal
+formfield classes, that is integer -> IntegerField. in many cases, the
+validation performed may need to be a bit less restrictive than what the
+is actually necessary
 
-    # Generic datatypes mapped from above
-    'number': 'FloatField',
-}
-```
+### ENUMERABLE_MAXIMUM
 
-### SYNC_ENUMERABLE_MAXIMUM
-
-```
-# The maximum number of distinct values allowed for setting the
-# `enumerable` flag on `DataField` instances during the `init` process. This
-# will only be applied to fields with non-text strings types and booleans
-ENUMERABLE_MAXIMUM = 30
-```
+The maximum number of distinct values allowed for setting the
+`enumerable` flag on `DataField` instances during the `init` process. This
+will only be applied to fields with non-text strings types and booleans
 
 ### HISTORY_ENABLED
 
-```
-# Flag for enabling the history API
-HISTORY_ENABLED = False
-```
+Flag for enabling the history API.
 
 ### HISTORY_MAX_SIZE
 
-```
-# The maximum size of a user's history. If the value is an integer, this
-# is the maximum number of allowed items in the user's history. Set to
-# `None` (or 0) to enable unlimited history. Note, in order to enforce this
-# limit, the `avocado history --prune` command must be executed to remove
-# the oldest history from each user based on this value.
-HISTORY_MAX_SIZE = None
-```
-
----
-
-# Optional App Integration
-
-## [django-haystack](http://haystacksearch.org/)
-Avocado utilizes Haystack for building search indexes for `DataField` and `DataConcept` objects and their underlying data. In practice, this is primarily used for clients exposing a search feature for finding the `DataField` or `DataConcept` representations for some data.
-
-## [Numpy](http://numpy.scipy.org/) & [SciPy](http://www.scipy.org/)
-
-Avocado has support for clustering continuous numeric values when generating distribution queries.
+The maximum size of a user's history. If the value is an integer, this
+is the maximum number of allowed items in the user's history. Set to
+`None` (or 0) to enable unlimited history. Note, in order to enforce this
+limit, the `avocado history --prune` command must be executed to remove
+the oldest history from each user based on this value.
 
 ---
 
