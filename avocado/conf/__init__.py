@@ -17,7 +17,11 @@ class Settings(object):
         # settings
         for key, value in iter(settings_dict.items()):
             if key == key.upper():
-                setattr(self, key, value)
+                default = getattr(self, key)
+                if isinstance(default, dict):
+                    default.update(value)
+                else:
+                    setattr(self, key, value)
 
 
 class LazySettings(LazyObject):
