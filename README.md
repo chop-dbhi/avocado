@@ -909,6 +909,28 @@ Having these indexes enables generating queries regardless of the entry point an
 
 ## CHANGELOG
 
+2.0.13 [diff](https://github.com/cbmi/avocado/compare/2.0.12...2.0.13)
+
+- Change `HTMLFormatter` to require the `template` argument which may be a template name
+or a `Template` object.
+- Allow arbitrary `*args` and `**kwargs` to be passed into `*Exporter.write` and
+`*Exporter.read` to enable propagation from `write` to `read`
+- Add `short_name` and `long_name` for use downstream by clients
+- Add [export-specific format as the first *preferred format*](https://github.com/cbmi/avocado/commit/e9865e6631bc62fc63d6cea439dd6d61f4d930d5)
+    - This is a better default which enables specific formatting when needed. The more general format can be reused across formatters, but when very specific formatting is necessary, this default is preferred.
+- Refactor `DataField.model` and `DataField.field` to take in account `Lexicon` and `ObjectSet` models
+    - The *real* field and model instances are now named `real_field` and `real_model`, respectively.
+- Fix #55, `Lexicon.label` is now correctly used by the `DataView`
+- Rename `sync` subcommand to `init`
+- Rename `SYNC_ENUMERABLE_MAXIMUM` to `ENUMERABLE_MAXIMUM`
+- Remove `orphaned` command in favor of new `check` that performs multiple setup
+checks as well as check for invalid datafields.
+- Remove `searchable` model field since this applies only to text-based fields.
+    - This has been repurposed as a deprecated computed property
+- Fix #45, allow dict-based settings to be updated, but not overridden
+- Remove `DataField.data_source` field
+    - There was no functional utility of this field and is (currently) out of the scope for Avocado
+
 2.0.12 [diff](https://github.com/cbmi/avocado/compare/2.0.11...2.0.12)
 
 - Rename `SasExporter` => `SASExporter` for caps consistency
