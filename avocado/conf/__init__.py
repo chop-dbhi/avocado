@@ -126,7 +126,7 @@ class Scipy(Dependency):
 
     def test_install(self):
         try:
-            import numpy
+            import scipy
         except ImportError:
             return False
 
