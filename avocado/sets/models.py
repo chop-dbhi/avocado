@@ -1,5 +1,5 @@
 import django
-from django.db import models, transaction, IntegrityError
+from django.db import models, transaction
 
 
 class ObjectSetError(Exception):
@@ -175,12 +175,21 @@ class ObjectSet(models.Model):
         return added
 
     @transaction.commit_on_success
-    def remove(self, obj):
+    def remove(self, obj, delete=False):
         "Removes `obj` from the set."
         self._check_pk()
         self._check_type(obj)
-        removed = self._set_objects.filter(set_object=obj,
-            object_set=self).update(removed=True)
+
+        # Fetch then delete since delete() does not return the count deleted
+        if delete:
+            try:
+                self._set_objects.get(set_object=obj, object_set=self).delete()
+                removed = 1
+            except self._set_object_class.DoesNotExist:
+                removed = 0
+        else:
+            removed = self._set_objects.filter(set_object=obj,
+                object_set=self).update(removed=True)
         if removed:
             self.count -= 1
             self.save()
@@ -198,20 +207,26 @@ class ObjectSet(models.Model):
         return added
 
     @transaction.commit_on_success
-    def clear(self):
+    def clear(self, delete=False):
         "Remove all objects from the set."
         self._check_pk()
-        removed = self._set_objects.update(removed=True)
+        removed = self.count
+        if delete:
+            self._all_set_objects.delete()
+        else:
+            self._set_objects.update(removed=True)
         self.count = 0
         self.save()
         return removed
 
     @transaction.commit_on_success
-    def replace(self, objs):
+    def replace(self, objs, delete=False):
         "Replace the current set with the new objects."
         self._check_pk()
-        self._set_objects.update(removed=True)
-        self.count = 0
+        self.clear(delete=delete)
+        # On a real delete, a bulk load is faster
+        if delete:
+            return self.bulk(objs)
         return self.update(objs)
 
     def flush(self):

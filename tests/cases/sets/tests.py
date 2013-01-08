@@ -78,6 +78,19 @@ class SetsTestCase(TestCase):
         # The `removed` record still exists
         self.assertEqual(s._all_set_objects.count(), 1)
 
+    def test_remove_delete(self):
+        s = RecordSet()
+        s.save()
+
+        r1 = Record(pk=1)
+        self.assertTrue(s.add(r1))
+        self.assertEqual(s.count, 1)
+        s.remove(r1, delete=True)
+        self.assertEqual(s.count, 0)
+
+        # Real delete
+        self.assertEqual(s._all_set_objects.count(), 0)
+
     def test_update(self):
         s = RecordSet()
         s.save()
@@ -107,6 +120,18 @@ class SetsTestCase(TestCase):
         # The `removed` records still exist
         self.assertEqual(s._all_set_objects.count(), 6)
 
+    def test_replace_delete(self):
+        s = RecordSet()
+        s.save()
+
+        s.bulk([Record(pk=i) for i in xrange(3)])
+        self.assertEqual(s.count, 3)
+        self.assertEqual(s.replace([Record(pk=i) for i in xrange(2, 6)], delete=True), 4)
+        self.assertEqual(s.count, 4)
+
+        # Original ones removed
+        self.assertEqual(s._all_set_objects.count(), 4)
+
     def test_clear(self):
         s = RecordSet()
         s.save()
@@ -117,6 +142,16 @@ class SetsTestCase(TestCase):
 
         # The `removed` records still exist
         self.assertEqual(s._all_set_objects.count(), 10)
+
+    def test_clear_delete(self):
+        s = RecordSet()
+        s.save()
+
+        s.bulk([Record(pk=i) for i in xrange(10)])
+        self.assertEqual(s.clear(delete=True), 10)
+
+        # The `removed` records still exist
+        self.assertEqual(s._all_set_objects.count(), 0)
 
     def test_flush(self):
         s = RecordSet()
