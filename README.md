@@ -909,6 +909,10 @@ Having these indexes enables generating queries regardless of the entry point an
 
 ## CHANGELOG
 
+2.0.14 [diff](https://github.com/cbmi/avocado/compare/2.0.13...2.0.14)
+
+- Fix bug that only checked for NumPy for the for SciPy feature
+
 2.0.13 [diff](https://github.com/cbmi/avocado/compare/2.0.12...2.0.13)
 
 - Change `HTMLFormatter` to require the `template` argument which may be a template name
