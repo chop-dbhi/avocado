@@ -477,6 +477,13 @@ class DataContext(AbstractDataContext, Base):
     user = models.ForeignKey(User, null=True, blank=True, related_name='datacontext+')
     session_key = models.CharField(max_length=40, null=True, blank=True)
 
+    def __unicode__(self):
+        if self.user_id:
+            out = unicode(self.user)
+        else:
+            out = self.session_key
+        return u'{0} ({1})'.format(out, 'session' if self.session else 'archived')
+
     def archive(self):
         if self.archived:
             return False
@@ -499,6 +506,13 @@ class DataView(AbstractDataView, Base):
     # otherwise the session key can be used.
     user = models.ForeignKey(User, null=True, blank=True, related_name='dataview+')
     session_key = models.CharField(max_length=40, null=True, blank=True)
+
+    def __unicode__(self):
+        if self.user_id:
+            out = unicode(self.user)
+        else:
+            out = self.session_key
+        return u'{0} ({1})'.format(out, 'session' if self.session else 'archived')
 
     def archive(self):
         if self.archived:
