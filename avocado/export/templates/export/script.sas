@@ -1,7 +1,9 @@
 data SAS_EXPORT;
 INFILE "{{ data_filename }}" TRUNCOVER DSD firstobs=2;{% for format in informats %}
-    informat {{ format|safe }};{% endfor %}{% for format in formats %}
-    format {{ format|safe }};{% endfor %}{% for input in inputs %}
+    informat {{ format|safe }};{% endfor %}
+    {% for format in formats %}
+    format {{ format|safe }};{% endfor %}
+    {% for input in inputs %}
     input {{ input|safe }};{% endfor %}
 run;
 

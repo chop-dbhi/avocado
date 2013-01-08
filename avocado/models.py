@@ -302,6 +302,12 @@ class DataField(BasePlural):
         "Returns a distinct set of choices for this field."
         return zip(self.values, self.labels)
 
+    @property
+    def coded_choices(self):
+        "Returns a distinct set of coded choices for this field."
+        if self.lexicon:
+            return zip(self.codes, self.labels)
+
     # Data Aggregation Properties
     def groupby(self, *args):
         return Aggregator(self.field).groupby(*args)

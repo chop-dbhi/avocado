@@ -40,9 +40,9 @@ class RExporter(BaseExporter):
 
         values_len = len(field.codes)
 
-        for i, (val, code) in enumerate(field.codes):
+        for i, (code, label) in enumerate(field.coded_choices):
             factor += str(code)
-            level += '"{0}"'.format(str(val))
+            level += '"{0}"'.format(str(label))
             if i == values_len - 1:
                 factor += '))\n'
                 level += ')\n'

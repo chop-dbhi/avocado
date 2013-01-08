@@ -72,10 +72,12 @@ class SASExporter(BaseExporter):
         value_format = '{0} {0}_f.'.format(name)
         value = '{0}_f'.format(name)
 
-        for i, (val, code) in enumerate(field.codes):
-            value += ' {0}="{1}" '.format(code, val)
+        codes = []
+        for i, (code, label) in enumerate(field.coded_choices):
+            codes.append('{0}="{1}"'.format(code, label))
 
-        return value_format, value
+        values = '{0} {1}'.format(value, '\t'.join(codes))
+        return value_format, values
 
     def write(self, iterable, buff=None, template_name='export/script.sas', *args, **kwargs):
         zip_file = ZipFile(self.get_file_obj(buff), 'w')

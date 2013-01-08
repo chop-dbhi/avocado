@@ -66,7 +66,7 @@ class FileExportTestCase(TestCase):
         exporter = export.SASExporter(self.concepts)
         exporter.write(self.query, fname)
         self.assertTrue(os.path.exists(fname))
-        self.assertEqual(len(open(fname).read()), 1364)
+        self.assertEqual(len(open(fname).read()), 1374)
         os.remove(fname)
 
     def test_r(self):
@@ -118,7 +118,7 @@ class ResponseExportTestCase(FileExportTestCase):
         exporter = export.SASExporter(self.concepts)
         response = HttpResponse()
         exporter.write(self.query, response)
-        self.assertEqual(len(response.content), 1364)
+        self.assertEqual(len(response.content), 1374)
 
     def test_r(self):
         exporter = export.RExporter(self.concepts)
