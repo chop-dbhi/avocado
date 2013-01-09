@@ -13,6 +13,7 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'haystack',
     'guardian',
+    'south',
 
     'avocado',
     'avocado.export',
@@ -71,7 +72,10 @@ LOGGING = {
     }
 }
 
+SOUTH_TESTS_MIGRATE = False
+
 AVOCADO = {
     'HISTORY_ENABLED': True,
     'HISTORY_MAX_SIZE': 50,
+    'METADATA_MIGRATION_APP': 'core',
 }

@@ -15,6 +15,7 @@ class Command(BaseCommand):
         'legacy': 'legacy',
         'lexicon': 'lexicon',
         'history': 'history',
+        'migration': 'migration',
     }
 
     def print_subcommands(self, prog_name):

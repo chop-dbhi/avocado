@@ -71,3 +71,15 @@ HISTORY_ENABLED = False
 # limit, the `avocado history --prune` command must be executed to remove
 # the oldest history from each user based on this value.
 HISTORY_MAX_SIZE = None
+
+# App that the metadata migrations will be created for. This is typically the
+# project itself.
+METADATA_MIGRATION_APP = None
+
+# Directory for the migration backup fixtures. If None, this will default to
+# the fixtures dir in the app defined by `METADATA_MIGRATION_APP`
+METADATA_FIXTURE_DIR = None
+
+METADATA_FIXTURE_SUFFIX = 'avocado_metadata'
+
+METADATA_MIGRATION_SUFFIX = 'avocado_metadata_migration'

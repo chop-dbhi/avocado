@@ -774,6 +774,22 @@ Tools for managing Avocado's exposed history API.
 
 - `--prune` - Prunes the oldest archived objects based on the `HISTORY_ENABLED` and `HISTORY_MAX_SIZE` settings.
 
+
+### migration
+
+Create a metadata fixture and corresponding South data migration script for remote loading of metadata.
+
+```bash
+./manage.py avocado migration [migration_name] [fixture_name] [--no-fake] [--backup-path=<path>]
+```
+
+**Parameters**
+
+- `migration_name` - Custom name of the migration file. Defaults to "avocado_metadata_migration"
+- `fixture_name` - Custom name of the fixture name. Defaults to "avocado_metadata"
+- `--no-fake` - By default, new migrations created will be immediately _faked_ by South since the data migration is derived from the same database. This flag will prevent the faked migration from happening (this is not recommeneded).
+- `--backup-path=<path>` - When the migration executes, a metadata fixture is created of the target database immediately (and in the same transaction) prior to loading the new fixture. By default a temporary file is created, but this argument defines a specific file to write to. Note that depending on where the migration execution occurs (e.g. on a remote machine) the file path must be valid as well as have the correct permissions to writing to the file.
+
 ## Settings
 
 Avocado settings are defined as a dictionary, named `AVOCADO`, with each key corresponding to a setting listed below:
@@ -828,6 +844,26 @@ is the maximum number of allowed items in the user's history. Set to
 `None` (or 0) to enable unlimited history. Note, in order to enforce this
 limit, the `avocado history --prune` command must be executed to remove
 the oldest history from each user based on this value.
+
+### METADATA_MIGRATION_APP
+
+The app that the metadata migrations will be created for. This must be defined
+to use the `avocado migration` command.
+
+### METADATA_FIXTURE_DIR
+
+The directory where the metadata fixtures will be written to. If not defined,
+it will default to the fixtures directory in the app defined by
+`METADATA_MIGRATION_APP`.
+
+### METADATA_FIXTURE_SUFFIX
+
+The _suffix_ of the metadata fixtures. Default is `avocado_metadata`.
+
+### METADATA_MIGRATION_SUFFIX
+
+The _suffix_ of the South migration scripts for migrating the metadata.
+Default is `avocado_metadata_migration`.
 
 ---
 
