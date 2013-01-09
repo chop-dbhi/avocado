@@ -945,6 +945,14 @@ Having these indexes enables generating queries regardless of the entry point an
 
 ## CHANGELOG
 
+2.0.15 [diff](https://github.com/cbmi/avocado/compare/2.0.14...2.0.15)
+
+- Add backup utilities for performing metadata data migrations
+- New command `avocado migration` for creating a metadata fixture and a corresponding South migration to load the fixture
+- Fix bug in R and SAS exporters
+- Improve `ObjectSet` class to enable deleting set objects rather than just flagging as being deleted
+    - Pass the flag `delete=True` when calling a remove-based command, e.g. `foo.replace(objs, delete=True)`
+
 2.0.14 [diff](https://github.com/cbmi/avocado/compare/2.0.13...2.0.14)
 
 - Fix bug that only checked for NumPy for the for SciPy feature
