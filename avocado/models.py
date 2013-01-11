@@ -308,6 +308,12 @@ class DataField(BasePlural):
         if self.lexicon:
             return zip(self.codes, self.labels)
 
+    @property
+    def coded_values(self):
+        "Returns a distinct set of coded values for this field."
+        if self.lexicon:
+            return zip(self.values, self.codes)
+
     # Data Aggregation Properties
     def groupby(self, *args):
         return Aggregator(self.field).groupby(*args)
