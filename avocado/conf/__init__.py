@@ -1,8 +1,10 @@
 import re
 import functools
+from django.dispatch import receiver
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.functional import LazyObject
 from django.conf import settings as django_settings
+from django.test.signals import setting_changed
 from avocado.conf import global_settings
 
 
@@ -10,18 +12,20 @@ class Settings(object):
     def __init__(self, settings_dict):
         # set the initial settings as defined in the global_settings
         for setting in iter(dir(global_settings)):
-            if setting == setting.upper():
-                setattr(self, setting, getattr(global_settings, setting))
+            setattr(self, setting, getattr(global_settings, setting))
 
         # iterate over the user-defined settings and override the default
         # settings
         for key, value in iter(settings_dict.items()):
-            if key == key.upper():
-                default = getattr(self, key)
-                if isinstance(default, dict):
-                    default.update(value)
-                else:
-                    setattr(self, key, value)
+            setattr(self, key, value)
+
+    def __setattr__(self, key, value):
+        if key == key.upper():
+            default = getattr(self, key, None)
+            if isinstance(default, dict):
+                default.update(value)
+            else:
+                object.__setattr__(self, key, value)
 
 
 class LazySettings(LazyObject):
@@ -30,6 +34,16 @@ class LazySettings(LazyObject):
 
 
 settings = LazySettings()
+
+@receiver(setting_changed)
+def test_setting_changed_handler(**kwargs):
+    if kwargs['setting'] == 'AVOCADO':
+        for key, value in kwargs['value'].iteritems():
+            setattr(settings._wrapped, key, value)
+    elif kwargs['setting'].startswith('AVOCADO_'):
+        key = kwargs['setting'][8:]
+        value = kwargs['value']
+        setattr(settings._wrapped, key, value)
 
 
 class Dependency(object):
