@@ -1,9 +1,5 @@
 import os
 import sys
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
 from optparse import make_option
 from django.db.models import (get_model, get_models, get_app, AutoField,
     ForeignKey, OneToOneField, ManyToManyField, FieldDoesNotExist)
@@ -14,17 +10,15 @@ from avocado.sets.models import ObjectSet
 from avocado.core import utils
 
 
-
+_help = """\
+Finds all models referenced by the app, model or field `labels` and
+attempts to create a `DataField` instance per model field.
+Any `DataField` already loaded will not be altered in any way.
+"""
 
 
 class Command(BaseCommand):
-    help = '\n'.join([
-        'Finds all models referenced by the app, model or field `labels` and',
-        'attempts to create a `DataField` instance per model field.',
-        'Any `DataField` already loaded will not be altered in any way.'
-    ])
-
-    args = 'app [app.model, [app.model.field, [...]]]'
+    __doc__ = help = _help
 
     option_list = BaseCommand.option_list + (
         make_option('-e', '--include-non-editable', action='store_true',
@@ -194,29 +188,29 @@ class Command(BaseCommand):
         }
 
         try:
-            datafield = DataField.objects.get(**lookup)
+            f = DataField.objects.get(**lookup)
         except DataField.DoesNotExist:
-            datafield = DataField(published=False, **kwargs)
+            f = DataField(published=False, **kwargs)
 
-        if datafield.pk:
+        if f.pk:
             created = False
             if not force:
                 print u'({0}) {1}.{2} already exists. Skipping...'.format(app_name,
                     model_name, field.name)
                 return
             # Only overwrite if the source value is not falsy
-            datafield.__dict__.update([(k, v) for k, v in kwargs.items()])
+            f.__dict__.update([(k, v) for k, v in kwargs.items()])
         else:
             created = True
 
-        if not datafield.name:
+        if not f.name:
             # Use the default unicode representation of the datafield
             if prepend_model_name:
-                datafield.name = unicode(datafield)
+                f.name = unicode(f)
             else:
-                datafield.name = field.verbose_name.title()
+                f.name = field.verbose_name.title()
 
         # Update fields with flags
-        datafield.__dict__.update(utils.get_heuristic_flags(datafield))
-        datafield.save()
+        f.__dict__.update(utils.get_heuristic_flags(f))
+        f.save()
         return created

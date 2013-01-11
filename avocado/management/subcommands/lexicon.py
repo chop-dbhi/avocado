@@ -1,3 +1,4 @@
+from __future__ import print_function
 import re
 from django.db.models import get_model
 from django.core.management.base import BaseCommand, CommandError
@@ -6,25 +7,14 @@ from avocado.lexicon.managers import coerce_float
 
 non_alnum = re.compile(r'[^a-zA-Z0-9\-]+')
 
+_help = """\
+Creates a lexicon derived from `field` into the Lexicon
+subclass `model`. The distinct list of values for `field`
+will be queried and loaded into the table.
+"""
 
 class Command(BaseCommand):
-    """
-    SYNOPSIS::
-
-        python manage.py avocado lexicon [options...] field model
-
-    DESCRIPTION:
-
-        Creates a lexicon derived from `field` into the Lexicon
-        subclass `model`. The distinct list of values for `field`
-        will be queried and loaded into the table.
-    """
-
-    help = '\n'.join([
-        'Creates a lexicon derived from `field` into the Lexicon',
-        'subclass `model`. The distinct list of values for `field`',
-        'will be queried and loaded into the table.'
-    ])
+    __doc__ = help = _help
 
     args = 'field model'
 
@@ -57,4 +47,4 @@ class Command(BaseCommand):
             obj.save()
             count += 1
 
-        print u'{0} distinct values loaded'.format(count)
+        print(u'{0} distinct values loaded'.format(count))
