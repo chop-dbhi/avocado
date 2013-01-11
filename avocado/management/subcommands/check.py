@@ -8,12 +8,13 @@ from avocado.conf import OPTIONAL_DEPS
 from modeltree.tree import trees
 
 
-class Command(BaseCommand):
-    help = """Performs a series of checks for the setup and installation as well
-    as checks for any orphaned data fields.
-    """
+_help = """\
+Performs a series of checks for the setup and installation as well as checks
+for any orphaned data fields.
+"""
 
-    __doc__ = help
+class Command(BaseCommand):
+    __doc__ = help = _help
 
     option_list = BaseCommand.option_list + (
         make_option('--output', default='stdout',

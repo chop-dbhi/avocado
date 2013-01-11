@@ -1,72 +1,57 @@
 import sys
-from django.db.models import Q
-from django.core.management.base import BaseCommand
-from avocado.models import DataField
+import time
+import logging
+from optparse import make_option
+from django.core.management.base import BaseCommand, CommandError
+from avocado.management.base import DataFieldCommand
+
+log = logging.getLogger(__name__)
 
 
-class Command(BaseCommand):
-    """
-    SYNOPSIS::
+_help = """\
+Pre-caches data produced by various DataField methods that are data dependent.
 
-        python manage.py avocado cache [options...] labels...
+Pass `--flush` to explicitly flush any existing cache for each property.
+"""
 
-    DESCRIPTION:
+CACHED_METHODS = ('size', 'values', 'labels', 'codes')
 
-        Finds all models referenced by the app, model or field `labels` and
-        explicitly updates various cached properties relative to the
-        `data_modified` on `DataField` instances.
-    """
+class Command(DataFieldCommand):
+    __doc__ = help = _help
 
-    help = '\n'.join([
-        'Finds all models referenced by the app, model or field `labels` and',
-        'explicitly updates various cached properties relative to the',
-        '`data_modified` on `DataField` instances.',
-    ])
+    option_list = BaseCommand.option_list + (
+        make_option('--flush', action='store_true',
+            help='Flushes existing cache for each cached property.'),
 
-    args = 'app [app.model, [app.model.field, [...]]]'
+        make_option('--method', action='append', dest='methods',
+            default=CACHED_METHODS,
+            help='Select which methods to pre-cache. Choices: {0}'.format(', '.join(CACHED_METHODS))),
+    )
 
     def _progress(self):
         sys.stdout.write('.')
         sys.stdout.flush()
 
-    def handle(self, *args, **options):
-        "Handles app_label or app_label.model_label formats."
-        conditions = []
+    def handle_fields(self, fields, **options):
+        flush = options.get('flush')
+        methods = options.get('methods')
 
-        for label in args:
-            labels = label.split('.')
+        for method in methods:
+            if method not in CACHED_METHODS:
+                raise CommandError('Invalid method {0}. Choices are {1}'.format(method, ', '.join(CACHED_METHODS)))
 
-            # Specific field
-            if len(labels) == 3:
-                app, model, field = labels
-                conditions.append(Q(app_name=app, model_name=model, field_name=field))
-            # All fields for a model
-            elif len(labels) == 2:
-                app, model = labels
-                conditions.append(Q(app_name=app, model_name=model))
-            # All fields for each model in the app
-            else:
-                app = labels[0]
-                conditions.append(Q(app_name=app))
-
-        fields = DataField.objects.filter(enumerable=True)
-        if conditions:
-            q = Q()
-            for x in conditions:
-                q = q | x
-            fields = fields.filter(q).distinct()
+        fields = fields.filter(enumerable=True)
 
         count = 0
-        for datafield in fields:
-            datafield.size
-            self._progress()
-            datafield.labels
-            self._progress()
-            datafield.values
-            self._progress()
-            if datafield.lexicon:
-                datafield.coded
+        for f in fields:
+            t0 = time.time()
+            for method in methods:
+                func = getattr(f, method)
+                if flush:
+                    func.flush()
+                func()
                 self._progress()
             count += 1
+            log.debug('{0} cache set took {1:,} seconds'.format(f, time.time() - t0))
 
         print(u'{0} DataFields have been updated'.format(count))

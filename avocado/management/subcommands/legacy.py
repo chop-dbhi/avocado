@@ -6,30 +6,12 @@ from avocado.models import DataField
 from avocado.legacy import models as legacy
 
 
+_help = """\
+Utilities for migrating Avocado 1.x metadata to the Avocado 2.x data model.
+"""
+
 class Command(BaseCommand):
-    """
-    SYNOPSIS::
-
-        python manage.py avocado legacy [options]
-
-    DESCRIPTION:
-
-        Utilities for migrating Avocado 1.x metadata to the
-        Avocado 2.x data model.
-
-    OPTIONS:
-
-        ``--force`` - Forces legacy description data to override existing
-            fields.
-
-        ``--no-input`` - Prevent user prompts and assumes the default behavior
-            during migration.
-    """
-
-    help = '\n'.join([
-        'Utilities for migrating Avocado 1.x metadata to the',
-        'Avocado 2.x data model.',
-    ])
+    __doc__ = help = _help
 
     option_list = BaseCommand.option_list + (
         make_option('-f', '--force', action='store_true',

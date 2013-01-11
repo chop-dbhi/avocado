@@ -32,8 +32,13 @@ class Migration(DataMigration):
 
 log = logging.getLogger(__name__)
 
+
+_help = """\
+Simple utility for dumping Avocado metadata.
+"""
+
 class Command(BaseCommand):
-    help = 'Simple utility for dumping Avocado metadata.'
+    __doc__ = help = _help
 
     option_list = BaseCommand.option_list + (
         make_option('--database', action='store', dest='database',

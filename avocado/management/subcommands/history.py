@@ -6,24 +6,12 @@ from avocado.conf import settings
 from avocado.models import DataContext, DataView
 
 
+_help = """\
+Utilities for managing the history API.
+"""
+
 class Command(BaseCommand):
-    """
-    SYNOPSIS::
-
-        python manage.py avocado history [options]
-
-    DESCRIPTION:
-
-        Utilities for managing the history API.
-
-    OPTIONS:
-
-        ``--prune`` - Prunes archived DataContext and DataView entries
-        that exceeds HISTORY_MAX_SIZE.
-
-    """
-
-    help = 'Utilities for managing the history API'
+    __doc__ = help = _help
 
     option_list = BaseCommand.option_list + (
         make_option('--prune', action='store_true',
