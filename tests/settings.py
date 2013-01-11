@@ -80,6 +80,7 @@ AVOCADO = {
     'HISTORY_ENABLED': True,
     'HISTORY_MAX_SIZE': 50,
     'METADATA_MIGRATION_APP': 'core',
+    'DATA_CACHE_ENABLED': False,
 }
 
 SECRET_KEY = 'acb123'

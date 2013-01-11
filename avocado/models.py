@@ -10,7 +10,7 @@ from django.core.validators import RegexValidator
 from avocado.core import utils
 from avocado.core.models import Base, BasePlural
 from avocado.core.cache import (post_save_cache, pre_delete_uncache,
-    cached_property)
+    cached_method)
 from avocado import managers
 from avocado.query.models import AbstractDataView, AbstractDataContext, AbstractDataQuery
 from avocado.query.translators import registry as translators
@@ -217,7 +217,6 @@ class DataField(BasePlural):
     # Convenience Methods
     # Easier access to the underlying data for this data field
 
-    @property
     def values_list(self):
         "Returns a `ValuesListQuerySet` of values for this field."
         if self.lexicon or self.objectset:
@@ -233,7 +232,7 @@ class DataField(BasePlural):
             else:
                 field_name = self.field_name
             filters = {u'{0}__icontains'.format(field_name): query}
-            return self.values_list.filter(**filters)
+            return self.values_list().filter(**filters)
 
     def get_plural_unit(self):
         if self.unit_plural:
@@ -257,22 +256,22 @@ class DataField(BasePlural):
                 return self.model.objects.filter(**kwargs)\
                     .values_list('name', flat=True)[0]
             return smart_unicode(value)
-        return dict(self.choices).get(value, smart_unicode(value))
+        return dict(self.choices()).get(value, smart_unicode(value))
 
     # Data-related Cached Properties
     # These may be cached until the underlying data changes
 
-    @cached_property('size', version='data_modified')
+    @cached_method(version='data_modified')
     def size(self):
         "Returns the count of distinct values."
-        return self.values_list.count()
+        return self.values_list().count()
 
-    @cached_property('values', version='data_modified')
+    @cached_method(version='data_modified')
     def values(self):
         "Returns a distinct list of the values."
-        return tuple(self.values_list)
+        return tuple(self.values_list())
 
-    @cached_property('labels', version='data_modified')
+    @cached_method(version='data_modified')
     def labels(self):
         """Returns an ordered set of labels corresponding to the values.
         If this field represents to a Lexicon subclass, the `label` field
@@ -284,26 +283,23 @@ class DataField(BasePlural):
             return tuple(self.model.objects.values_list('name', flat=True))
         # Unicode each value, use an iterator here to prevent loading the
         # raw values in memory
-        return map(smart_unicode, iter(self.values_list))
+        return map(smart_unicode, iter(self.values_list()))
 
-    @cached_property('codes', version='data_modified')
+    @cached_method(version='data_modified')
     def codes(self):
         "Returns a distinct set of coded values for this field"
         if self.lexicon:
             return tuple(self.model.objects.values_list('code', flat=True))
 
-    @property
     def choices(self):
         "Returns a distinct set of choices for this field."
-        return zip(self.values, self.labels)
+        return zip(self.values(), self.labels())
 
-    @property
     def coded_choices(self):
         "Returns a distinct set of coded choices for this field."
         if self.lexicon:
-            return zip(self.codes, self.labels)
+            return zip(self.codes(), self.labels())
 
-    @property
     def coded_values(self):
         "Returns a distinct set of coded values for this field."
         if self.lexicon:

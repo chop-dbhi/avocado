@@ -38,14 +38,15 @@ class Command(BaseCommand):
         if len(toks) != 3:
             raise CommandError(u'{0} is not a valid field identifier. Use a ' \
                 '"." delimited notation, e.g. "app.model.field"'.format(field_label))
-        datafield = DataField(app_name=toks[0], model_name=toks[1],
-            field_name=toks[2])
 
-        if not datafield.field:
+        # Not required to be persisted to the database..
+        f = DataField(app_name=toks[0], model_name=toks[1], field_name=toks[2])
+
+        if not f.field:
             raise CommandError(u'The field {0} could not be found.'.format(field_label))
 
         count = 0
-        values = list(datafield.values)
+        values = list(f.values())
         values.sort(key=coerce_float)
 
         for value in values:
