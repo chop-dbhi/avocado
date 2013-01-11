@@ -1,11 +1,14 @@
 import os
+import time
 from django.core import management
+from django.db import models
 from django.test import TestCase, TransactionTestCase
 from django.test.utils import override_settings
 from avocado.core.loader import Registry, AlreadyRegistered
 from avocado.core.paginator import BufferedPaginator
 
-__all__ = ('RegistryTestCase', 'BufferedPaginatorTestCase')
+__all__ = ('RegistryTestCase', 'BufferedPaginatorTestCase',
+    'CachedMethodTestCase', 'BackupTestCase')
 
 class RegistryTestCase(TestCase):
     def setUp(self):
@@ -144,6 +147,54 @@ class BufferedPaginatorTestCase(TestCase):
         self.assertEqual(bp.get_overlap(55, 12), (True, (None, None), (61, 7)))
         self.assertEqual(bp.get_overlap(20, 8), (False, (20, 8), (None, None)))
         self.assertEqual(bp.get_overlap(70, 3), (False, (70, 3), (None, None)))
+
+
+class CachedMethodTestCase(TestCase):
+    @override_settings(AVOCADO_DATA_CACHE_ENABLED=True)
+    def test(self):
+        from avocado.core.cache import cached_method
+
+        class Foo(models.Model):
+            def get_version(self):
+                return 1
+
+            @cached_method(timeout=2)
+            def unversioned(self):
+                return [1]
+
+            @cached_method(version='get_version', timeout=2)
+            def versioned(self):
+                return [2]
+
+        f = Foo()
+
+        # Not cached upon initialization
+        self.assertFalse(f.versioned.cached())
+        self.assertFalse(f.unversioned.cached())
+
+        self.assertEqual(f.versioned(), [2])
+        self.assertEqual(f.unversioned(), [1])
+
+        self.assertTrue(f.versioned.cached())
+        self.assertTrue(f.unversioned.cached())
+
+        # Time passes..
+        time.sleep(2)
+
+        self.assertFalse(f.versioned.cached())
+        self.assertFalse(f.unversioned.cached())
+
+        self.assertEqual(f.versioned(), [2])
+        self.assertEqual(f.unversioned(), [1])
+
+        self.assertTrue(f.versioned.cached())
+        self.assertTrue(f.unversioned.cached())
+
+        f.unversioned.flush()
+        f.versioned.flush()
+
+        self.assertFalse(f.unversioned.cached())
+        self.assertFalse(f.versioned.cached())
 
 
 @override_settings(SOUTH_TESTS_MIGRATE=True)

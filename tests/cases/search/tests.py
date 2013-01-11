@@ -59,7 +59,7 @@ class FieldSearchTest(SearchTest):
         # they contain
         for f in fields:
             if f.simple_type != 'boolean' and f.enumerable or f.searchable:
-                for v in f.values:
+                for v in f.values():
                     self.assertTrue(f in [x.object for x in DataField.objects.search(v)])
 
     def test_partial(self):
@@ -101,7 +101,7 @@ class ConceptSearchTest(SearchTest):
         for c in concepts:
             for f in c.fields.all():
                 if f.simple_type != 'boolean' and f.enumerable or f.searchable:
-                    for v in f.values:
+                    for v in f.values():
                         self.assertTrue(c in [x.object for x in DataConcept.objects.search(v)])
 
     def test_partial(self):

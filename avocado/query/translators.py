@@ -109,7 +109,7 @@ class Translator(object):
         # If this field is flagged as enumerable, use a select multiple
         # by default.
         if field.enumerable and 'widget' not in kwargs:
-            kwargs['widget'] = forms.SelectMultiple(choices=field.choices)
+            kwargs['widget'] = forms.SelectMultiple(choices=field.choices())
 
         # The model field instance has a convenience method called `formfield`
         # that is suited for the field type

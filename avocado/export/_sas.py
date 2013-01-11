@@ -73,7 +73,7 @@ class SASExporter(BaseExporter):
         value = u'{0}_f'.format(name)
 
         codes = []
-        for i, (code, label) in enumerate(field.coded_choices):
+        for i, (code, label) in enumerate(field.coded_choices()):
             codes.append(u'{0}="{1}"'.format(code, label))
 
         values = u'{0} {1}'.format(value, '\t'.join(codes))

@@ -224,12 +224,11 @@ A `DataField` also acts as an interface that exposes various properties and meth
 
 - `f.internal_type` - The low-level datatype of the field. This is really only used for mapping to the `simple_type`, displayed below. Read more about the [internal vs. simple types](#internal-vs-simple-types).
 - `f.simple_type` - The high-level datatype of the field used for validation purposes and as general metadata for client applications. (These types can be overridden, [read about](SIMPLE_TYPE_MAP) the `SIMPLE_TYPE_MAP` setting)
-- `f.size` - Returns the number of _distinct_ values for this field
-- `f.values_list` - Returns a `ValuesQuerySet` of distinct values for the field.
+- `f.values_list()` - Returns a `ValuesQuerySet` of distinct values for the field.
+- `f.size()` - Returns the number of _distinct_ values for this field
 This is primarily used by the functions below. Useful when you want to apply additional QuerySet operations.
-- `f.values` - Returns a tuple of distinct raw values ordered by the field. If the corresponding model is a subclass of Avocado's `Lexicon` abstract model, the order corresponds to the `order` field on the `Lexicon` model subclass. Read more about the [`Lexicon` abstract class](#lexicon-abstract-class).
-- `f.labels` - Returns a unicoded tuple of labels. If the corresponding model is a subclass of Avocado's `Lexicon` abstract model, this corresponds to the `label` field on the `Lexicon` model subclass. Read more about the [`Lexicon` abstract class](#lexicon-abstract-class).
-- `f.choices` - A tuple of pairs zipped from `f.values` and `f.labels`. This is useful for populating form fields for client applications.
+- `f.values()` - Returns a tuple of distinct raw values ordered by the field. If the corresponding model is a subclass of Avocado's `Lexicon` abstract model, the order corresponds to the `order` field on the `Lexicon` model subclass. Read more about the [`Lexicon` abstract class](#lexicon-abstract-class).
+- `f.labels()` - Returns a unicoded tuple of labels. If the corresponding model is a subclass of Avocado's `Lexicon` abstract model, this corresponds to the `label` field on the `Lexicon` model subclass. Read more about the [`Lexicon` abstract class](#lexicon-abstract-class).
 - `f.searchable` (DEPRECATED) - A flag denoting if the field's data should be treated as searchable text. This applies to `TextField`s and `CharField`s which are not marked as `enumerable`.
 
 ```python
@@ -237,15 +236,15 @@ This is primarily used by the functions below. Useful when you want to apply add
 'char'
 >>> f.simple_type
 'string'
->>> f.size
+>>> f.size()
 33
->>> f.values
+>>> f.values()
 ('A Christmas Carol', 'A Tale of Two Cities', 'The Adventures of Oliver Twist', ...)
->>> f.labels
+>>> f.labels()
 (u'A Christmas Carol', u'A Tale of Two Cities', u'The Adventures of Oliver Twist', ...)
->>> f.choices
+>>> f.choices()
 (('A Christmas Carol', u'A Christmas Carol'), ...)
->>> f.values_list
+>>> f.values_list()
 ['A Christmas Carol', 'A Tale of Two Cities', 'The Adventures of Oliver Twist', ...]
 ```
 
@@ -591,8 +590,8 @@ fields since they are supplementary to the `value` (you can of course add them
 manually later)
 - the `DataField` that represents the `value` field on a Lexicon subclass will
     - use the `order` field whenever accessing values or when applied to a query
-    - use the `label` field when accessing `f.labels`
-    - use the `code` field when accessing `f.codes`
+    - use the `label` field when accessing `f.labels()`
+    - use the `code` field when accessing `f.codes()`
 
 ---
 

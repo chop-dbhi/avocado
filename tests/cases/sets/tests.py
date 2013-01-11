@@ -211,9 +211,9 @@ class SetsTestCase(TestCase):
     def test_datafield_properties(self):
         [RecordSet(name=u'Set {0}'.format(i)).save() for i in xrange(10)]
         f = DataField(app_name='sets', model_name='recordset', field_name='id')
-        self.assertEqual(f.values, (1, 2, 3, 4, 5, 6, 7, 8, 9, 10))
-        self.assertEqual(f.labels, ('Set 0', 'Set 1', 'Set 2', 'Set 3',
-            'Set 4', 'Set 5', 'Set 6', 'Set 7', 'Set 8', 'Set 9'))
+        self.assertEqual(list(f.values()), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+        self.assertEqual(list(f.labels()), ['Set 0', 'Set 1', 'Set 2', 'Set 3',
+            'Set 4', 'Set 5', 'Set 6', 'Set 7', 'Set 8', 'Set 9'])
 
     def test_translator(self):
         s = RecordSet()
