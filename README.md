@@ -945,6 +945,11 @@ Having these indexes enables generating queries regardless of the entry point an
 
 ## CHANGELOG
 
+2.0.17 [diff](https://github.com/cbmi/avocado/compare/2.0.16...2.0.17)
+
+- Fix performance in `Formatter` class due to redundant logging
+- Add support for `Decimal` types in `Formatter.to_number` method
+
 2.0.16 [diff](https://github.com/cbmi/avocado/compare/2.0.15...2.0.16)
 
 - Update ModelTree to version 1.1.3 (critical bug fix)
