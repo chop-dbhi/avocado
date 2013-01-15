@@ -100,6 +100,10 @@ class Formatter(object):
         else:
             self.keys = keys
 
+        # Keep track of fields/concepts that cause an error to prevent
+        # logging the exception twice
+        self._errors = {}
+
     def __call__(self, values, preferred_formats=None, **context):
         # Create a copy of the preferred formats since each set values may
         # be processed slightly differently (e.g. mixed data type in column)
@@ -150,7 +154,9 @@ class Formatter(object):
                     return output
                 # Remove from the preferred formats list since it failed
                 except Exception:
-                    log.exception('Multi-value formatter error')
+                    if self.concept and self.concept not in self._errors:
+                        self._errors[self.concept] = None
+                        log.exception('Multi-value formatter error')
                     preferred_formats.pop(0)
 
         # The output is independent of the input. Formatters may output more
@@ -161,8 +167,8 @@ class Formatter(object):
         for i, (key, value) in enumerate(values.iteritems()):
             for f in preferred_formats:
                 method = getattr(self, 'to_{0}'.format(f))
+                field = self.fields[key] if self.fields else None
                 try:
-                    field = self.fields[key] if self.fields else None
                     fvalue = method(value, field=field, concept=self.concept,
                         process_multiple=False, **context)
                     if isinstance(fvalue, dict):
@@ -171,7 +177,9 @@ class Formatter(object):
                         output[key] = fvalue
                     break
                 except Exception:
-                    log.exception('Single-value formatter error')
+                    if field and field not in self._errors:
+                        self._errors[field] = None
+                        log.exception('Single-value formatter error')
         return output
 
     def __contains__(self, choice):
