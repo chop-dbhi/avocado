@@ -1,4 +1,5 @@
 import logging
+from decimal import Decimal
 from collections import defaultdict
 try:
     from collections import OrderedDict
@@ -205,20 +206,24 @@ class Formatter(object):
     def to_number(self, value, **context):
         # Attempts to convert a number. Starting with ints and floats
         # Eventually create to_decimal using the decimal library.
-        if type(value) is int or type(value) is float:
+        if isinstance(value, (int, float)):
             return value
+        if isinstance(value, Decimal):
+            return float(str(value))
         if isinstance(value, basestring):
+            if value.isdigit():
+                return int(value)
             try:
-                value = int(value)
+                return float(value)
             except (ValueError, TypeError):
-                value = float(value)
-            return value
+                pass
         raise FormatterException('Cannot convert {0} to number'.format(value))
 
     def to_coded(self, value, **context):
         # Attempts to convert value to its coded representation
-        if 'field' in context:
-            for key, coded in context['field'].coded_values:
+        field = context.get('field')
+        if field:
+            for key, coded in field.coded_values:
                 if key == value:
                     return coded
         raise FormatterException('No coded value for {0}'.format(value))
