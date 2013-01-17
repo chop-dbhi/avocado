@@ -157,7 +157,7 @@ class Formatter(object):
                 except Exception:
                     if self.concept and self.concept not in self._errors:
                         self._errors[self.concept] = None
-                        log.exception('Multi-value formatter error')
+                        log.warning('Multi-value formatter error', exc_info=True)
                     preferred_formats.pop(0)
 
         # The output is independent of the input. Formatters may output more
@@ -180,7 +180,7 @@ class Formatter(object):
                 except Exception:
                     if field and field not in self._errors:
                         self._errors[field] = None
-                        log.exception('Single-value formatter error')
+                        log.warning('Single-value formatter error', exc_info=True)
         return output
 
     def __contains__(self, choice):
