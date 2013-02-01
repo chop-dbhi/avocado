@@ -1,4 +1,5 @@
 import django
+from datetime import datetime
 from django.db import models, transaction
 
 
@@ -30,8 +31,8 @@ class ObjectSet(models.Model):
     # count each time.
     count = models.PositiveIntegerField(default=0, editable=False)
 
-    created = models.DateTimeField(auto_now_add=True)
-    modified = models.DateTimeField(auto_now=True)
+    created = models.DateTimeField(default=datetime.now)
+    modified = models.DateTimeField(default=datetime.now)
 
     # Name of field which contains the set of objects
     set_object_rel = None
@@ -171,6 +172,7 @@ class ObjectSet(models.Model):
         added = self._add(obj, added)
         if added:
             self.count += 1
+            self.modified = datetime.now()
             self.save()
         return added
 
@@ -192,6 +194,7 @@ class ObjectSet(models.Model):
                 object_set=self).update(removed=True)
         if removed:
             self.count -= 1
+            self.modified = datetime.now()
             self.save()
         return bool(removed)
 
@@ -203,6 +206,7 @@ class ObjectSet(models.Model):
         for obj in iter(objs):
             added += int(self._add(obj, added))
         self.count += added
+        self.modified = datetime.now()
         self.save()
         return added
 
@@ -216,6 +220,7 @@ class ObjectSet(models.Model):
         else:
             self._set_objects.update(removed=True)
         self.count = 0
+        self.modified = datetime.now()
         self.save()
         return removed
 
