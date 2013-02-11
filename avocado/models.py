@@ -56,9 +56,9 @@ class DataField(BasePlural):
     it defines the natural key of the Django field that represents the location
     of that data e.g. ``library.book.title``.
     """
-    app_name = models.CharField(max_length=50)
-    model_name = models.CharField(max_length=50)
-    field_name = models.CharField(max_length=50)
+    app_name = models.CharField(max_length=200)
+    model_name = models.CharField(max_length=200)
+    field_name = models.CharField(max_length=200)
 
     internal = models.BooleanField(default=False,
         help_text='Flag for internal use and does not abide by the published' \

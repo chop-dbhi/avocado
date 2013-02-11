@@ -64,7 +64,7 @@ class BasePlural(Base):
         ``name_plural`` - Same as ``name``, but the plural form. If not
         provided, an 's' will appended to the end of the ``name``.
     """
-    name_plural = models.CharField(max_length=60, null=True, blank=True)
+    name_plural = models.CharField(max_length=200, null=True, blank=True)
 
     class Meta(object):
         abstract = True
