@@ -64,7 +64,11 @@ class Command(BaseCommand):
 
         make_option('-q', '--quiet', action='store_true',
             dest='quiet', default=False,
-            help='Do not print any output')
+            help='Do not print any output'),
+
+        make_option('--prepend-model-name', action='store_true',
+            dest='prepend_model_name', default=False,
+            help='Prepend the model name to the field name')
     )
 
     # These are ignored since these join fields will be determined at runtime
@@ -178,6 +182,7 @@ class Command(BaseCommand):
         include_keys = options.get('include_keys')
         force = options.get('force')
         include_non_editable = options.get('include_non_editable')
+        prepend_model_name = options.get('prepend_model_name')
 
         # M2Ms do not make any sense here..
         if isinstance(field, ManyToManyField):
@@ -229,7 +234,10 @@ class Command(BaseCommand):
 
         if not datafield.name:
             # Use the default unicode representation of the datafield
-            datafield.name = unicode(datafield)
+            if prepend_model_name:
+                datafield.name = unicode(datafield)
+            else:
+                datafield.name = field.verbose_name.title()
 
         # Update fields with flags
         datafield.__dict__.update(utils.get_heuristic_flags(datafield))
