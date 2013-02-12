@@ -20,10 +20,10 @@ def unique_keys(fields):
     based on the field's natural_key.
     """
     def model_prefix(field, key):
-        return '{0}__{1}'.format(field.model_name, key)
+        return u'{0}__{1}'.format(field.model_name, key)
 
     def app_prefix(field, key):
-        return '{0}__{1}'.format(field.app_name, model_prefix(field, key))
+        return u'{0}__{1}'.format(field.app_name, model_prefix(field, key))
 
     # Evaluate in case this is QuerySet..
     fields = list(fields)
@@ -130,7 +130,7 @@ class Formatter(object):
         # If no preferred multi-value methods succeed, each value is processed
         # independently with the remaining formats
         for f in iter(preferred_formats):
-            method = getattr(self, 'to_{0}'.format(f), None)
+            method = getattr(self, u'to_{0}'.format(f), None)
             # This formatter does not support this format, remove it
             # from the available list
             if not method:
@@ -157,7 +157,7 @@ class Formatter(object):
                 except Exception:
                     if self.concept and self.concept not in self._errors:
                         self._errors[self.concept] = None
-                        log.warning('Multi-value formatter error', exc_info=True)
+                        log.warning(u'Multi-value formatter error', exc_info=True)
                     preferred_formats.pop(0)
 
         # The output is independent of the input. Formatters may output more
@@ -167,7 +167,7 @@ class Formatter(object):
         # Attempt to process each
         for i, (key, value) in enumerate(values.iteritems()):
             for f in preferred_formats:
-                method = getattr(self, 'to_{0}'.format(f))
+                method = getattr(self, u'to_{0}'.format(f))
                 field = self.fields[key] if self.fields else None
                 try:
                     fvalue = method(value, field=field, concept=self.concept,
@@ -180,11 +180,11 @@ class Formatter(object):
                 except Exception:
                     if field and field not in self._errors:
                         self._errors[field] = None
-                        log.warning('Single-value formatter error', exc_info=True)
+                        log.warning(u'Single-value formatter error', exc_info=True)
         return output
 
     def __contains__(self, choice):
-        return hasattr(self, 'to_{0}'.format(choice))
+        return hasattr(self, u'to_{0}'.format(choice))
 
     def __unicode__(self):
         return u'{0}'.format(self.name or self.__class__.__name__)
@@ -201,7 +201,7 @@ class Formatter(object):
         # If value is native True or False value, return it
         if type(value) is bool:
             return value
-        raise FormatterException('Cannot convert {0} to boolean'.format(value))
+        raise FormatterException(u'Cannot convert {0} to boolean'.format(value))
 
     def to_number(self, value, **context):
         # Attempts to convert a number. Starting with ints and floats
@@ -209,7 +209,7 @@ class Formatter(object):
         if isinstance(value, (int, float)):
             return value
         if isinstance(value, Decimal):
-            return float(str(value))
+            return float(unicode(value))
         if isinstance(value, basestring):
             if value.isdigit():
                 return int(value)
@@ -217,7 +217,7 @@ class Formatter(object):
                 return float(value)
             except (ValueError, TypeError):
                 pass
-        raise FormatterException('Cannot convert {0} to number'.format(value))
+        raise FormatterException(u'Cannot convert {0} to number'.format(value))
 
     def to_coded(self, value, **context):
         # Attempts to convert value to its coded representation
@@ -226,7 +226,7 @@ class Formatter(object):
             for key, coded in field.coded_values:
                 if key == value:
                     return coded
-        raise FormatterException('No coded value for {0}'.format(value))
+        raise FormatterException(u'No coded value for {0}'.format(value))
 
     def to_raw(self, value, **context):
         return value

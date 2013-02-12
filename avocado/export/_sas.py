@@ -47,7 +47,7 @@ class SASExporter(BaseExporter):
             return name
         self.num_lg_names += 1
         sas_name = name[:20]
-        sas_name += '_lg_{0}'.format(self.num_lg_names)
+        sas_name += u'_lg_{0}'.format(self.num_lg_names)
         return sas_name
 
     def _get_formats(self, sas_name, datafield):
@@ -56,27 +56,27 @@ class SASExporter(BaseExporter):
         """
         # get the informat/format
         if datafield.simple_type == 'string':
-            informat = s_format = '${0}.'.format(datafield.field.max_length)
+            informat = s_format = u'${0}.'.format(datafield.field.max_length)
         else:
             s_format = self.sas_format_map[datafield.simple_type]
             informat = self.sas_informat_map[datafield.simple_type]
 
-        sas_informat = '{0:<10}{1:>10}'.format(sas_name, informat)
-        sas_format = '{0:<10}{1:>10}'.format(sas_name, s_format)
+        sas_informat = u'{0:<10}{1:>10}'.format(sas_name, informat)
+        sas_format = u'{0:<10}{1:>10}'.format(sas_name, s_format)
         return sas_format, sas_informat
 
     def _code_values(self, name, field):
         """If field can be coded return the value dictionary
         and the format name for the dictionary
         """
-        value_format = '{0} {0}_f.'.format(name)
-        value = '{0}_f'.format(name)
+        value_format = u'{0} {0}_f.'.format(name)
+        value = u'{0}_f'.format(name)
 
         codes = []
         for i, (code, label) in enumerate(field.coded_choices):
-            codes.append('{0}="{1}"'.format(code, label))
+            codes.append(u'{0}="{1}"'.format(code, label))
 
-        values = '{0} {1}'.format(value, '\t'.join(codes))
+        values = u'{0} {1}'.format(value, '\t'.join(codes))
         return value_format, values
 
     def write(self, iterable, buff=None, template_name='export/script.sas', *args, **kwargs):
@@ -102,7 +102,7 @@ class SASExporter(BaseExporter):
 
                 # Add the field names to the input statement
                 if field.simple_type == 'string':
-                    inputs.append('{0} $'.format(name))
+                    inputs.append(u'{0} $'.format(name))
                 else:
                     inputs.append(name)
 
@@ -114,7 +114,7 @@ class SASExporter(BaseExporter):
                     values.append(value)
 
                 # construct labels
-                labels.append('{0}="{1}"'.format(name, str(cfield)))
+                labels.append(u'{0}="{1}"'.format(name, unicode(cfield)))
 
         data_filename = 'data.csv'
         script_filename = 'script.sas'

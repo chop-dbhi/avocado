@@ -33,16 +33,16 @@ class RExporter(BaseExporter):
 
     def _code_values(self, name, field):
         "If the field can be coded return the r factor and level for it."
-        data_field = 'data${0}'.format(name)
+        data_field = u'data${0}'.format(name)
 
-        factor = '{0}.factor = factor({0},levels=c('.format(data_field)
-        level = 'levels({0}.factor)=c('.format(data_field)
+        factor = u'{0}.factor = factor({0},levels=c('.format(data_field)
+        level = u'levels({0}.factor)=c('.format(data_field)
 
         values_len = len(field.codes)
 
         for i, (code, label) in enumerate(field.coded_choices):
-            factor += str(code)
-            level += '"{0}"'.format(str(label))
+            factor += unicode(code)
+            level += u'"{0}"'.format(unicode(label))
             if i == values_len - 1:
                 factor += '))\n'
                 level += ')\n'
@@ -63,7 +63,7 @@ class RExporter(BaseExporter):
             for cfield in cfields:
                 field = cfield.field
                 name = self._format_name(field.field_name)
-                labels.append('attr(data${0}, "label") = "{1}"'.format(name, str(cfield)))
+                labels.append(u'attr(data${0}, "label") = "{1}"'.format(name, unicode(cfield)))
 
                 if field.lexicon:
                     codes = self._code_values(name, field)

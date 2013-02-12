@@ -39,4 +39,4 @@ class LexiconTestCase(TestCase):
         v = DataView({'ordering': [c.pk]})
 
         qs = Month.objects.filter(label__startswith='J').values('id')
-        self.assertEqual(str(v.apply(qs).query), 'SELECT "lexicon_month"."id" FROM "lexicon_month" WHERE "lexicon_month"."label" LIKE J% ESCAPE \'\\\'  ORDER BY "lexicon_month"."order" ASC')
+        self.assertEqual(unicode(v.apply(qs).query), 'SELECT "lexicon_month"."id" FROM "lexicon_month" WHERE "lexicon_month"."label" LIKE J% ESCAPE \'\\\'  ORDER BY "lexicon_month"."order" ASC')

@@ -17,11 +17,8 @@ class BaseOperator(object):
     verbose_name = ''
     negated = False
 
-    def __str__(self):
-        return '{0} ({1})'.format(self.verbose_name, self.uid)
-
     def __unicode__(self):
-        return unicode(str(self))
+        return u'{0} ({1})'.format(self.verbose_name, self.uid)
 
     def __repr__(self):
         return u'<Operator: "{0}" ({1})>'.format(self.verbose_name, self.uid)
@@ -84,9 +81,9 @@ class ContainerTypeOperator(BaseOperator):
         # Add the leftover item count for the tail of the list
         tail = length - self.max_list_size
         if tail > 0:
-            text += ' ... ({0} more)'.format(tail)
+            text += u' ... ({0} more)'.format(tail)
 
-        return text + ' {0} '.format(self.join_string) + last
+        return text + u' {0} '.format(self.join_string) + last
 
 
 class Null(BaseOperator):
@@ -216,7 +213,7 @@ class Range(ContainerTypeOperator):
 
     def text(self, value):
         value = map(self.coerce_to_unicode, value)
-        return '{0} {1}'.format(self.verbose_name, ' and '.join(value))
+        return u'{0} {1}'.format(self.verbose_name, ' and '.join(value))
 
 
 class NotRange(Range):

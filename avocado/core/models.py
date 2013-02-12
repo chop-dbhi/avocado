@@ -53,7 +53,7 @@ class Base(models.Model):
     def save(self, *args, **kwargs):
         if self.archived and self.published:
             self.published = False
-            log.debug('{0} is published, but is being archived. It has ' \
+            log.debug(u'{0} is published, but is being archived. It has ' \
                 'been unpublished'.format(self))
         super(Base, self).save(*args, **kwargs)
 

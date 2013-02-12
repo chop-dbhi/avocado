@@ -68,11 +68,11 @@ class Translator(object):
 
         # No operator is registered
         if operator is None:
-            raise ValidationError('"{0}" is not a valid operator'.format(uid))
+            raise ValidationError(u'"{0}" is not a valid operator'.format(uid))
 
         # Ensure the operator is allowed
         if operator.uid not in allowed_operators:
-            raise ValidationError('Operator "{0}" cannot be used for ' \
+            raise ValidationError(u'Operator "{0}" cannot be used for ' \
                 'this translator'.format(operator))
 
         return operator
@@ -234,7 +234,7 @@ class Translator(object):
 
         _value = self._normalize_value(field, value)
         if not operator.is_valid(_value):
-            raise ValidationError('"{0}" is not valid for the operator '
+            raise ValidationError(u'"{0}" is not valid for the operator '
                 '"{1}"'.format(value, operator))
 
         return operator, value

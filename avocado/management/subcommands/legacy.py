@@ -56,16 +56,16 @@ class Command(BaseCommand):
                 f = DataField(app_name=lf.app_name, model_name=lf.model_name,
                     field_name=lf.field_name)
 
-            qualified_name = '({0}) {1}.{2}'.format(f.app_name, f.model_name,
+            qualified_name = u'({0}) {1}.{2}'.format(f.app_name, f.model_name,
                 f.field_name)
 
             if f.pk and not force:
-                print '{0} already exists. Skipping...'.format(qualified_name)
+                print u'{0} already exists. Skipping...'.format(qualified_name)
                 continue
 
             # Check if this is an orphan
             if not f.field:
-                print '{0} is orphaned. Skipping...'.format(qualified_name)
+                print u'{0} is orphaned. Skipping...'.format(qualified_name)
                 continue
 
             # Map various fields
@@ -75,7 +75,7 @@ class Command(BaseCommand):
             f.translator = lf.translator
             f.group_id = lf.group_id
 
-            print 'Migrating...\t{0}'.format(qualified_name)
+            print u'Migrating...\t{0}'.format(qualified_name)
 
             flags = utils.get_heuristic_flags(f)
             f.__dict__.update(flags)
@@ -83,11 +83,11 @@ class Command(BaseCommand):
             # Disagreement with enumerable status
             if not no_input and f.enumerable != lf.enable_choices:
                 if lf.enable_choices:
-                    override = raw_input('"{0}" is marked as enumerable, but '
+                    override = raw_input(u'"{0}" is marked as enumerable, but '
                         'does not qualify to be enumerable. Override? '
                         '[y/N] '.format(qualified_name))
                 else:
-                    override = raw_input('"{0}" is not marked as enumerable, '
+                    override = raw_input(u'"{0}" is not marked as enumerable, '
                         'but qualifies to be enumerable. Override? '
                         '[y/N] '.format(qualified_name))
 
@@ -99,4 +99,4 @@ class Command(BaseCommand):
 
             total_migrated += 1
 
-        print 'Fields migrated:\t{0}'.format(total_migrated)
+        print u'Fields migrated:\t{0}'.format(total_migrated)

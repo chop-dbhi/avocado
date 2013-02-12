@@ -143,7 +143,7 @@ class Aggregator(object):
             if len(raw) == 1:
                 condition = clone.field_name, raw[0]
             else:
-                condition = '{0}__in'.format(clone.field_name), raw
+                condition = u'{0}__in'.format(clone.field_name), raw
             clone._filter.append(M(tree=clone.model, **dict([condition])))
 
         clone._filter.extend(args)
@@ -178,7 +178,7 @@ class Aggregator(object):
             if len(raw) == 1:
                 condition = clone.field_name, raw[0]
             else:
-                condition = '{0}__in'.format(clone.field_name), raw
+                condition = u'{0}__in'.format(clone.field_name), raw
             clone._exclude.append(M(tree=clone.model, **dict([condition])))
 
         clone._exclude.extend(args)

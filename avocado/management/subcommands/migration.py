@@ -1,6 +1,5 @@
 import re
 import os
-import sys
 import logging
 from optparse import make_option
 from django.db import DEFAULT_DB_ALIAS
@@ -14,7 +13,7 @@ from avocado.core import backup
 METADATA_FIXTURE_SUFFIX = settings.METADATA_FIXTURE_SUFFIX
 METADATA_MIGRATION_SUFFIX = settings.METADATA_MIGRATION_SUFFIX
 
-METADATA_MIGRATION_TEMPLATE = """\
+METADATA_MIGRATION_TEMPLATE = u"""\
 # -*- coding: utf-8 -*-
 from south.v2 import DataMigration
 
@@ -59,9 +58,9 @@ class Command(BaseCommand):
 
         if not os.path.exists(fixture_dir):
             os.makedir(fixture_dir)
-            log.info('Created fixture directory: {0}'.format(fixture_dir))
+            log.info(u'Created fixture directory: {0}'.format(fixture_dir))
         elif not os.path.isdir(fixture_dir):
-            raise CommandError('The metadata fixture directory {0}.. is not a directory.'.format(fixture_dir))
+            raise CommandError(u'The metadata fixture directory {0}.. is not a directory.'.format(fixture_dir))
 
         # Only allow valid names
         if re.search('[^_\w]', migration_suffix):
@@ -71,7 +70,7 @@ class Command(BaseCommand):
         backup.create_fixture(fixture_name, using=database)
 
         if verbosity > 1:
-            log.info('Created fixture {0}'.format(fixture_name))
+            log.info(u'Created fixture {0}'.format(fixture_name))
 
         # Get the Migrations for this app (creating the migrations dir if needed)
         migrations = migration.Migrations(settings.METADATA_MIGRATION_APP,
@@ -86,7 +85,7 @@ class Command(BaseCommand):
         fp = open(os.path.join(migrations.migrations_dir(), next_filename), 'w')
         fp.write(file_contents)
         fp.close()
-        log.info('Created migration {0}'.format(next_filename))
+        log.info(u'Created migration {0}'.format(next_filename))
 
         if not no_fake:
             # Clear and reload migrations..

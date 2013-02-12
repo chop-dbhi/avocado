@@ -69,4 +69,4 @@ class Command(BaseCommand):
                 self._progress()
             count += 1
 
-        print('{0} DataFields have been updated'.format(count))
+        print(u'{0} DataFields have been updated'.format(count))

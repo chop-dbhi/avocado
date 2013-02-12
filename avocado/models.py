@@ -123,7 +123,7 @@ class DataField(BasePlural):
             return self.name
         if self.lexicon or self.objectset:
             return self.model._meta.verbose_name
-        return '{0} {1}'.format(self.model._meta.verbose_name,
+        return u'{0} {1}'.format(self.model._meta.verbose_name,
             self.field.verbose_name).title()
 
     def __len__(self):
@@ -237,7 +237,7 @@ class DataField(BasePlural):
                 field_name = 'value'
             else:
                 field_name = self.field_name
-            filters = {'{0}__icontains'.format(field_name): query}
+            filters = {u'{0}__icontains'.format(field_name): query}
             return self.values_list.filter(**filters).iterator()
 
     def get_plural_unit(self):

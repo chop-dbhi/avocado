@@ -66,7 +66,7 @@ class FileExportTestCase(TestCase):
         exporter = export.SASExporter(self.concepts)
         exporter.write(self.query, fname)
         self.assertTrue(os.path.exists(fname))
-        self.assertEqual(len(open(fname).read()), 1374)
+        self.assertEqual(len(open(fname).read()), 1335)
         os.remove(fname)
 
     def test_r(self):
@@ -74,14 +74,14 @@ class FileExportTestCase(TestCase):
         exporter = export.RExporter(self.concepts)
         exporter.write(self.query, fname)
         self.assertTrue(os.path.exists(fname))
-        self.assertEqual(len(open(fname).read()), 793)
+        self.assertEqual(len(open(fname).read()), 754)
         os.remove(fname)
 
     def test_json(self):
         exporter = export.JSONExporter(self.concepts)
         buff = exporter.write(self.query)
         buff.seek(0)
-        self.assertEqual(len(buff.read()), 651)
+        self.assertEqual(len(buff.read()), 639)
 
     def test_html(self):
         exporter = export.HTMLExporter(self.concepts)
@@ -118,19 +118,19 @@ class ResponseExportTestCase(FileExportTestCase):
         exporter = export.SASExporter(self.concepts)
         response = HttpResponse()
         exporter.write(self.query, response)
-        self.assertEqual(len(response.content), 1374)
+        self.assertEqual(len(response.content), 1335)
 
     def test_r(self):
         exporter = export.RExporter(self.concepts)
         response = HttpResponse()
         exporter.write(self.query, response)
-        self.assertEqual(len(response.content), 793)
+        self.assertEqual(len(response.content), 754)
 
     def test_json(self):
         exporter = export.JSONExporter(self.concepts)
         response = HttpResponse()
         exporter.write(self.query, response)
-        self.assertEqual(len(response.content), 651)
+        self.assertEqual(len(response.content), 639)
 
     def test_html(self):
         exporter = export.HTMLExporter(self.concepts)

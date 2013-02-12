@@ -120,7 +120,7 @@ class ObjectSet(models.Model):
 
     def _check_type(self, obj):
         if not isinstance(obj, self._object_class):
-            raise TypeError("Only objects of type '{0}' can be added to the "\
+            raise TypeError(u"Only objects of type '{0}' can be added to the "\
                 "set".format(self._object_class.__name__))
 
     def _add(self, obj, added):

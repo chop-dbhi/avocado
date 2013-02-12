@@ -92,8 +92,8 @@ class DataContextParserTestCase(TestCase):
             'value': True
         }, tree=Employee)
 
-        self.assertEqual(str(node.apply().values('id').query), 'SELECT DISTINCT "query_employee"."id" FROM "query_employee" INNER JOIN "query_title" ON ("query_employee"."title_id" = "query_title"."id") WHERE "query_title"."boss" = True ')
-        self.assertEqual(node.language, {'operator': 'exact', 'language': u'Title Boss is True', 'id': 4, 'value': True})
+        self.assertEqual(unicode(node.apply().values('id').query), 'SELECT DISTINCT "query_employee"."id" FROM "query_employee" INNER JOIN "query_title" ON ("query_employee"."title_id" = "query_title"."id") WHERE "query_title"."boss" = True ')
+        self.assertEqual(node.language, {'operator': 'exact', 'language': u'Boss is True', 'id': 4, 'value': True})
 
         # Branch node
         node = parsers.datacontext.parse({
@@ -109,19 +109,19 @@ class DataContextParserTestCase(TestCase):
             }]
         }, tree=Employee)
 
-        self.assertEqual(str(node.apply().values('id').query), 'SELECT DISTINCT "query_employee"."id" FROM "query_employee" INNER JOIN "query_title" ON ("query_employee"."title_id" = "query_title"."id") WHERE ("query_employee"."first_name" = John  AND "query_title"."boss" = True )')
+        self.assertEqual(unicode(node.apply().values('id').query), 'SELECT DISTINCT "query_employee"."id" FROM "query_employee" INNER JOIN "query_title" ON ("query_employee"."title_id" = "query_title"."id") WHERE ("query_employee"."first_name" = John  AND "query_title"."boss" = True )')
         self.assertEqual(node.language, {
             'type': 'and',
             'children': [{
                 'id': 4,
                 'operator': 'exact',
                 'value': True,
-                'language': 'Title Boss is True',
+                'language': 'Boss is True',
             }, {
                 'id': 5,
                 'operator': 'exact',
                 'value': 'John',
-                'language': 'Employee First Name is John',
+                'language': 'First Name is John',
             }]
         })
 
@@ -154,9 +154,9 @@ class DataViewParserTestCase(TestCase):
         node = parsers.dataview.parse({
             'columns': [1],
         }, tree=Employee)
-        self.assertEqual(str(node.apply().query), 'SELECT "query_employee"."id", "query_office"."location", "query_title"."name" FROM "query_employee" INNER JOIN "query_office" ON ("query_employee"."office_id" = "query_office"."id") LEFT OUTER JOIN "query_title" ON ("query_employee"."title_id" = "query_title"."id")')
+        self.assertEqual(unicode(node.apply().query), 'SELECT "query_employee"."id", "query_office"."location", "query_title"."name" FROM "query_employee" INNER JOIN "query_office" ON ("query_employee"."office_id" = "query_office"."id") LEFT OUTER JOIN "query_title" ON ("query_employee"."title_id" = "query_title"."id")')
 
         node = parsers.dataview.parse({
             'ordering': [(1, 'desc')],
         }, tree=Employee)
-        self.assertEqual(str(node.apply().query), 'SELECT "query_employee"."id", "query_employee"."first_name", "query_employee"."last_name", "query_employee"."title_id", "query_employee"."office_id", "query_employee"."is_manager" FROM "query_employee" INNER JOIN "query_office" ON ("query_employee"."office_id" = "query_office"."id") LEFT OUTER JOIN "query_title" ON ("query_employee"."title_id" = "query_title"."id") ORDER BY "query_office"."location" DESC, "query_title"."name" DESC')
+        self.assertEqual(unicode(node.apply().query), 'SELECT "query_employee"."id", "query_employee"."first_name", "query_employee"."last_name", "query_employee"."title_id", "query_employee"."office_id", "query_employee"."is_manager" FROM "query_employee" INNER JOIN "query_office" ON ("query_employee"."office_id" = "query_office"."id") LEFT OUTER JOIN "query_title" ON ("query_employee"."title_id" = "query_title"."id") ORDER BY "query_office"."location" DESC, "query_title"."name" DESC')

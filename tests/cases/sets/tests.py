@@ -209,7 +209,7 @@ class SetsTestCase(TestCase):
 
     # Avocado integration
     def test_datafield_properties(self):
-        [RecordSet(name='Set {0}'.format(i)).save() for i in xrange(10)]
+        [RecordSet(name=u'Set {0}'.format(i)).save() for i in xrange(10)]
         f = DataField(app_name='sets', model_name='recordset', field_name='id')
         self.assertEqual(f.values, (1, 2, 3, 4, 5, 6, 7, 8, 9, 10))
         self.assertEqual(f.labels, ('Set 0', 'Set 1', 'Set 2', 'Set 3',
@@ -223,5 +223,5 @@ class SetsTestCase(TestCase):
 
         f = DataField(app_name='sets', model_name='recordset', field_name='id')
         trans = f.translate(value=s.pk, tree=Record)
-        self.assertEqual(str(trans['query_modifiers']['condition']),
+        self.assertEqual(unicode(trans['query_modifiers']['condition']),
             "(AND: ('recordset__id__exact', 1))")

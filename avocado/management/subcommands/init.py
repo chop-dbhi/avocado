@@ -14,33 +14,10 @@ from avocado.sets.models import ObjectSet
 from avocado.core import utils
 
 
+
+
+
 class Command(BaseCommand):
-    """
-    SYNOPSIS::
-
-        python manage.py avocado init [options...] labels
-
-    DESCRIPTION:
-
-        Finds all models referenced by the app, model or field `labels` and
-        attempts to create a `DataField` instance per model field.
-        Any `DataField` already loaded will not be altered in any way.
-
-    OPTIONS:
-
-        `--include-non-editable` - Create `DataField` instances for fields
-        marked as not editable (i.e. `editable=False`).
-
-        `--include-keys` - Create `DataField` instances for primary key
-        and foreign key fields.
-
-        `--update` - Updates existing `DataField` instances with metadata from
-        model fields. Note this overwrites any descriptive metadata changes made
-        to `DataField` such as `name`, `name_plural`, and `description`.
-
-        `--force` - Synonym to `--update`
-    """
-
     help = '\n'.join([
         'Finds all models referenced by the app, model or field `labels` and',
         'attempts to create a `DataField` instance per model field.',
@@ -119,7 +96,7 @@ class Command(BaseCommand):
                 model = get_model(app_name, model_name)
 
                 if model is None:
-                    print 'Cannot find model "{0}", skipping...'.format(label)
+                    print u'Cannot find model "{0}", skipping...'.format(label)
                     continue
 
                 # Specific field
@@ -127,7 +104,7 @@ class Command(BaseCommand):
                     try:
                         field = model._meta.get_field_by_name(field_name)[0]
                     except FieldDoesNotExist:
-                        print 'Cannot find field "{0}", skipping...'.format(label)
+                        print u'Cannot find field "{0}", skipping...'.format(label)
                         continue
                     pending_fields = [(field, model_name, app_name)]
 
@@ -137,7 +114,7 @@ class Command(BaseCommand):
             else:
                 app = get_app(app_name)
                 if app is None:
-                    print 'Cannot find app "{0}", skipping...'.format(label)
+                    print u'Cannot find app "{0}", skipping...'.format(label)
                     continue
                 pending_models.extend(get_models(app))
 
@@ -166,14 +143,14 @@ class Command(BaseCommand):
                     updated += 1
 
             if added == 1:
-                print '1 field added for {0}'.format(label)
+                print u'1 field added for {0}'.format(label)
             elif added > 1:
-                print '{0} fields added for {1}'.format(added, label)
+                print u'{0} fields added for {1}'.format(added, label)
 
             if updated == 1:
-                print '1 field updated for {0}'.format(label)
+                print u'1 field updated for {0}'.format(label)
             elif updated > 1:
-                print '{0} fields updated for {1}'.format(updated, label)
+                print u'{0} fields updated for {1}'.format(updated, label)
 
         if options.get('quiet'):
             sys.stdout = self.stdout
@@ -224,7 +201,7 @@ class Command(BaseCommand):
         if datafield.pk:
             created = False
             if not force:
-                print '({0}) {1}.{2} already exists. Skipping...'.format(app_name,
+                print u'({0}) {1}.{2} already exists. Skipping...'.format(app_name,
                     model_name, field.name)
                 return
             # Only overwrite if the source value is not falsy
