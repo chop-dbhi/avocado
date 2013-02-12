@@ -185,6 +185,12 @@ class DataFieldAdmin(PublishedAdmin):
     @transaction.commit_on_success
     def create_dataconcept_single(self, request, queryset):
         fields = list(queryset)
+
+        # In case only a single field is selected with this action, directly map
+        if len(fields) == 1:
+            DataConcept.objects.create_from_field(fields[0])
+            return
+
         max_length = DataConcept._meta.get_field_by_name('name')[0].max_length
         name = ', '.join([f.name for f in fields])[:max_length - 5] + '...'
         concept = DataConcept(name=u'"{0}"'.format(name))
