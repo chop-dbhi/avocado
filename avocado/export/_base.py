@@ -1,3 +1,4 @@
+from avocado.models import DataView
 from cStringIO import StringIO
 
 
@@ -8,9 +9,13 @@ class BaseExporter(object):
     preferred_formats = []
 
     def __init__(self, concepts):
-        self.concepts = concepts
+        if isinstance(concepts, DataView):
+            node = concepts.parse()
+            concepts = node.get_concepts_for_select()
+
         self.params = []
         self.row_length = 0
+        self.concepts = concepts
 
         for concept in concepts:
             length = concept.concept_fields.count()

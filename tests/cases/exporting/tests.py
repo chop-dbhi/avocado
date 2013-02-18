@@ -4,10 +4,39 @@ from django.http import HttpResponse
 from django.template import Template
 from django.core import management
 from avocado import export
-from avocado.models import DataField, DataConcept, DataConceptField
+from avocado.formatters import RawFormatter
+from avocado.models import DataField, DataConcept, DataConceptField, DataView
 from . import models
 
 __all__ = ['FileExportTestCase', 'ResponseExportTestCase']
+
+
+class ExportTestCase(TestCase):
+    fixtures = ['export.json']
+
+    def setUp(self):
+        management.call_command('avocado', 'init', 'exporting', quiet=True)
+
+    def test_view(self):
+        salary_field = DataField.objects.get_by_natural_key('exporting', 'title', 'salary')
+        salary_concept = DataConcept()
+        salary_concept.save()
+        DataConceptField(concept=salary_concept, field=salary_field, order=1).save()
+
+        view = DataView(json={'ordering': [[salary_concept.pk, 'desc']]})
+        query = view.apply(tree=models.Employee).raw()
+
+        # Ick..
+        exporter = export.CSVExporter(view)
+        exporter.params.insert(0, (RawFormatter(keys=['pk']), 1))
+        exporter.row_length += 1
+
+        buff = exporter.write(query)
+        buff.seek(0)
+
+        lines = buff.read().splitlines()
+        # Skip the header
+        self.assertEqual([int(x) for x in lines[1:]], [2, 4, 6, 1, 3, 5])
 
 
 class FileExportTestCase(TestCase):

@@ -159,4 +159,15 @@ class DataViewParserTestCase(TestCase):
         node = parsers.dataview.parse({
             'ordering': [(1, 'desc')],
         }, tree=Employee)
-        self.assertEqual(unicode(node.apply().query), 'SELECT "query_employee"."id", "query_employee"."first_name", "query_employee"."last_name", "query_employee"."title_id", "query_employee"."office_id", "query_employee"."is_manager" FROM "query_employee" INNER JOIN "query_office" ON ("query_employee"."office_id" = "query_office"."id") LEFT OUTER JOIN "query_title" ON ("query_employee"."title_id" = "query_title"."id") ORDER BY "query_office"."location" DESC, "query_title"."name" DESC')
+        self.assertEqual(unicode(node.apply().query), 'SELECT "query_employee"."id" FROM "query_employee" INNER JOIN "query_office" ON ("query_employee"."office_id" = "query_office"."id") LEFT OUTER JOIN "query_title" ON ("query_employee"."title_id" = "query_title"."id") ORDER BY "query_office"."location" DESC, "query_title"."name" DESC')
+
+    def test_apply_distinct(self):
+        node = parsers.dataview.parse({
+            'columns': [1],
+        }, tree=Employee)
+        self.assertEqual(unicode(node.apply(Employee.objects.distinct()).query), 'SELECT DISTINCT "query_employee"."id", "query_office"."location", "query_title"."name" FROM "query_employee" INNER JOIN "query_office" ON ("query_employee"."office_id" = "query_office"."id") LEFT OUTER JOIN "query_title" ON ("query_employee"."title_id" = "query_title"."id")')
+
+        node = parsers.dataview.parse({
+            'ordering': [(1, 'desc')],
+        }, tree=Employee)
+        self.assertEqual(unicode(node.apply(Employee.objects.distinct()).query), 'SELECT DISTINCT "query_employee"."id", "query_office"."location", "query_title"."name" FROM "query_employee" INNER JOIN "query_office" ON ("query_employee"."office_id" = "query_office"."id") LEFT OUTER JOIN "query_title" ON ("query_employee"."title_id" = "query_title"."id") ORDER BY "query_office"."location" DESC, "query_title"."name" DESC')
