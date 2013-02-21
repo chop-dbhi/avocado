@@ -945,6 +945,19 @@ Having these indexes enables generating queries regardless of the entry point an
 
 ## CHANGELOG
 
+2.0.19 [diff](https://github.com/cbmi/avocado/compare/2.0.18...2.0.19)
+
+- Add implementation (and fix) for handling the SELECT DISTINCT/ORDER BY behavior in databases more transparently 
+
+2.0.18 [diff](https://github.com/cbmi/avocado/compare/2.0.17...2.0.18)
+
+- Fix #67, change `ObjectSet` `created` and `modified` to not be auto-updated
+- Increase length of `DataField` `app_name`, `model_name`, and `field_name`
+    - For extra *long* field names...
+- Change `avocado init` to not prepend the model name to the field name
+- Fix and ensure unicode throughout
+- Fix the admin action for creating a single `DataConcept` from multiple fields when only one field is selected
+
 2.0.17 [diff](https://github.com/cbmi/avocado/compare/2.0.16...2.0.17)
 
 - Fix performance in `Formatter` class due to redundant logging
