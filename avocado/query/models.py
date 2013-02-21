@@ -60,6 +60,8 @@ class AbstractDataContext(models.Model):
 
     def apply(self, queryset=None, tree=None, **context):
         "Applies this context to a QuerySet."
+        if tree is None and queryset is not None:
+            tree = queryset.model
         return self.parse(tree=tree, **context).apply(queryset=queryset)
 
     def language(self, tree=None, **context):
@@ -90,5 +92,7 @@ class AbstractDataView(models.Model):
 
     def apply(self, queryset=None, tree=None, include_pk=True, **context):
         "Applies this context to a QuerySet."
+        if tree is None and queryset is not None:
+            tree = queryset.model
         return self.parse(tree=tree, **context).apply(queryset=queryset,
             include_pk=include_pk)
