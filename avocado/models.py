@@ -20,7 +20,6 @@ from avocado.sets.models import ObjectSet
 from avocado.events.models import Log
 from avocado.stats.agg import Aggregator
 from avocado import formatters
-from avocado.queryview import registry as queryviews
 
 
 __all__ = ('DataCategory', 'DataConcept', 'DataField',
@@ -416,8 +415,9 @@ class DataConcept(BasePlural):
     formatter_name = models.CharField('formatter', max_length=100, blank=True,
         null=True, choices=formatters.registry.choices)
 
-    queryview = models.CharField(max_length=100, blank=True, null=True,
-        choices=queryviews.choices)
+    # A flag that denotes this concept is 'queryable' which assumes fields
+    # that DO NOT result in a nonsensicle representation of the concept.
+    queryable = models.BooleanField(default=True)
 
     # A flag that denotes when this concept can be applied to an ORDER BY
     # Certain concepts are not appropriate because they are too complicated,
