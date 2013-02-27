@@ -108,7 +108,7 @@ class SASExporter(BaseExporter):
 
                 # If a field can be coded create a SAS PROC Format statement
                 # that creates a value dictionary
-                if field.lexicon:
+                if field.supports_coded_values:
                     value_format, value = self._code_values(name, field)
                     value_formats.append(value_format)
                     values.append(value)

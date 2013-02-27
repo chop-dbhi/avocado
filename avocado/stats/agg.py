@@ -1,5 +1,4 @@
 from copy import deepcopy
-from django.db import models
 from django.db.models import Q, Count, Sum, Avg, Max, Min, StdDev, Variance
 from django.db.models.query import REPR_OUTPUT_SIZE
 from modeltree.compat import LOOKUP_SEP
@@ -7,21 +6,10 @@ from modeltree.utils import M
 
 
 class Aggregator(object):
-    def __init__(self, field, model=None):
-        if not isinstance(field, models.Field):
-            if not model:
-                raise TypeError('Field instance or field name and model class required')
-            field_name = field
-            field = model._meta.get_field_by_name(field_name)[0]
-        else:
-            model = field.model
-            field_name = field.name
-
+    def __init__(self, field, queryset=None):
         self.field = field
-        self.field_name = field_name
-        self.model = model
-
-        self._queryset = None
+        self.model = field.model
+        self._queryset = queryset
         self._aggregates = {}
         self._filter = []
         self._exclude = []
@@ -49,7 +37,12 @@ class Aggregator(object):
         return repr(data)
 
     def __getitem__(self, key):
-        return list(self._result_iter())[key]
+        "Handle single item aggregations as well as list-based items."
+        items = list(self._result_iter())
+        # Short-cut for pop aggregation where there is only one applied
+        if len(items) == 1:
+            return items[0][key]
+        return items[key]
 
     def __iter__(self):
         return self._result_iter()
@@ -99,18 +92,17 @@ class Aggregator(object):
         if self._orderby:
             queryset = queryset.order_by(*self._orderby)
         if not self._groupby:
-            return [dict(queryset)]
+            return [queryset]
         return queryset
 
     def _clone(self):
-        clone = self.__class__(self.field_name, self.model)
+        clone = self.__class__(self.field, queryset=self._queryset)
         clone._aggregates = deepcopy(self._aggregates)
         clone._filter = deepcopy(self._filter)
         clone._exclude = deepcopy(self._exclude)
         clone._having = deepcopy(self._having)
         clone._groupby = deepcopy(self._groupby)
         clone._orderby = deepcopy(self._orderby)
-        clone._queryset = self._queryset
         return clone
 
     def _aggregate(self, *groupby, **aggregates):
@@ -121,6 +113,7 @@ class Aggregator(object):
         return clone
 
     def apply(self, queryset):
+        "Apply aggregator to pre-defiend queryset."
         clone = self._clone()
         clone._queryset = queryset
         return clone
@@ -141,9 +134,9 @@ class Aggregator(object):
         # operator.
         if raw:
             if len(raw) == 1:
-                condition = clone.field_name, raw[0]
+                condition = clone.field.name, raw[0]
             else:
-                condition = u'{0}__in'.format(clone.field_name), raw
+                condition = u'{0}__in'.format(clone.field.name), raw
             clone._filter.append(M(tree=clone.model, **dict([condition])))
 
         clone._filter.extend(args)
@@ -176,9 +169,9 @@ class Aggregator(object):
         # operator.
         if raw:
             if len(raw) == 1:
-                condition = clone.field_name, raw[0]
+                condition = clone.field.name, raw[0]
             else:
-                condition = u'{0}__in'.format(clone.field_name), raw
+                condition = u'{0}__in'.format(clone.field.name), raw
             clone._exclude.append(M(tree=clone.model, **dict([condition])))
 
         clone._exclude.extend(args)
@@ -214,39 +207,36 @@ class Aggregator(object):
     def count(self, *groupby, **kwargs):
         "Performs a COUNT aggregation."
         distinct = kwargs.get('distinct', False)
-        if distinct:
-            aggregates = {'distinct_count': Count(self.field_name,
-                distinct=distinct)}
-        else:
-            aggregates = {'count': Count(self.field_name)}
+        key = 'distinct_count' if distinct else 'count'
+        aggregates = {key: Count(self.field.name, distinct=distinct)}
         return self._aggregate(*groupby, **aggregates)
 
     def sum(self, *groupby):
         "Performs an SUM aggregation."
-        aggregates = {'sum': Sum(self.field_name)}
+        aggregates = {'sum': Sum(self.field.name)}
         return self._aggregate(*groupby, **aggregates)
 
     def avg(self, *groupby):
         "Performs an AVG aggregation."
-        aggregates = {'avg': Avg(self.field_name)}
+        aggregates = {'avg': Avg(self.field.name)}
         return self._aggregate(*groupby, **aggregates)
 
     def min(self, *groupby):
         "Performs an MIN aggregation."
-        aggregates = {'min': Min(self.field_name)}
+        aggregates = {'min': Min(self.field.name)}
         return self._aggregate(*groupby, **aggregates)
 
     def max(self, *groupby):
         "Performs an MAX aggregation."
-        aggregates = {'max': Max(self.field_name)}
+        aggregates = {'max': Max(self.field.name)}
         return self._aggregate(*groupby, **aggregates)
 
     def stddev(self, *groupby):
         "Performs an STDDEV aggregation."
-        aggregates = {'stddev': StdDev(self.field_name)}
+        aggregates = {'stddev': StdDev(self.field.name)}
         return self._aggregate(*groupby, **aggregates)
 
     def variance(self, *groupby):
         "Performs an VARIANCE aggregation."
-        aggregates = {'variance': Variance(self.field_name)}
+        aggregates = {'variance': Variance(self.field.name)}
         return self._aggregate(*groupby, **aggregates)

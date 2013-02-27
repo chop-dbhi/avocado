@@ -75,10 +75,7 @@ class Node(object):
         model_fields = []
 
         for f in fields:
-            if f.lexicon:
-                model_fields.append(f.model._meta.get_field('label'))
-            else:
-                model_fields.append(f.field)
+            model_fields.append(f._interface._label_field)
         return model_fields
 
     def _get_order_by(self):
@@ -94,11 +91,7 @@ class Node(object):
                 for f in groups[pk]:
                     # Special case for Lexicon-based models, order by their
                     # model-defined `order` field.
-                    if f.lexicon:
-                        field = f.model._meta.get_field('order')
-                        lookup = tree.query_string_for_field(field)
-                    else:
-                        lookup = tree.query_string_for_field(f.field)
+                    lookup = tree.query_string_for_field(f._interface._orderby_field)
 
                     if direction.lower() == 'desc':
                         order_by.append('-' + lookup)

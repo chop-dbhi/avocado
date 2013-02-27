@@ -95,25 +95,19 @@ class Translator(object):
         # 'required' validation errors should be raised.
         kwargs['required'] = False
 
-        # Special handling for primary keys
-        if isinstance(field.field, models.AutoField):
-            kwargs.pop('form_class', None)
-            queryset = field.objects
-            if hasattr(value, '__iter__'):
-                formfield = forms.ModelMultipleChoiceField(queryset, **kwargs)
-            else:
-                formfield = forms.ModelChoiceField(queryset, **kwargs)
-            cleaned_value = formfield.clean(value)
-            return cleaned_value
-
         # If this field is flagged as enumerable, use a select multiple
         # by default.
-        if field.enumerable and 'widget' not in kwargs:
+        if 'widget' not in kwargs and field.enumerable or isinstance(field.field, (models.AutoField, models.ForeignKey)):
             kwargs['widget'] = forms.SelectMultiple(choices=field.choices())
 
-        # The model field instance has a convenience method called `formfield`
-        # that is suited for the field type
-        formfield = field.field.formfield(**kwargs)
+        # Special treatment since the formfield method returns None
+        # regardless of the arguments passed in.
+        if isinstance(field.field, models.AutoField):
+            formfield = forms.IntegerField(**kwargs)
+        else:
+            # The model field instance has a convenience method called `formfield`
+            # that is suited for the field type
+            formfield = field.field.formfield(**kwargs)
 
         # Special case for ``None`` values since all form fields seem to handle
         # the conversion differently. Simply ignore the cleaning if ``None``,
@@ -215,10 +209,6 @@ class Translator(object):
         """Normalizes a cleaned value from some non-primitive type
         such as a model or queryset instance.
         """
-        if field.simple_type == 'key':
-            if isinstance(value, (list, tuple, QuerySet)):
-                return [x.pk for x in value]
-            return value.pk
         if isinstance(value, QuerySet):
             return [x.pk for x in value]
         if isinstance(value, models.Model):

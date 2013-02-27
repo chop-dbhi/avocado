@@ -12,6 +12,19 @@ PK_LOOKUPS = ('pk', 'pk__exact')
 log = logging.getLogger(__name__)
 
 
+def post_save_cache(sender, instance, **kwargs):
+    """General post-save handler for caching model instances. NOTE: This must
+    be used in conjunction with the `pre_delete_uncache` since the cache is set
+    to never expire.
+    """
+    cache.set(instance_cache_key(instance), instance, timeout=NEVER_EXPIRE)
+
+
+def pre_delete_uncache(sender, instance, **kwargs):
+    "General post-delete handler for removing cache for model instances."
+    cache.delete(instance_cache_key(instance))
+
+
 def instance_cache_key(instance, label=None, version=None):
     "Creates a cache key for the instance with an optional label and token."
 
@@ -120,19 +133,6 @@ def cached_method(func=None, version=None, timeout=NEVER_EXPIRE, key_func=instan
     if inspect.ismethod(func):
         return decorator(func)
     return decorator
-
-
-def post_save_cache(sender, instance, **kwargs):
-    """General post-save handler for caching model instances. NOTE: This must
-    be used in conjunction with the `pre_delete_uncache` since the cache is set
-    to never expire.
-    """
-    cache.set(instance_cache_key(instance), instance, timeout=NEVER_EXPIRE)
-
-
-def pre_delete_uncache(sender, instance, **kwargs):
-    "General post-delete handler for removing cache for model instances."
-    cache.delete(instance_cache_key(instance))
 
 
 class CacheQuerySet(QuerySet):

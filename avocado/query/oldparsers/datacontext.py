@@ -81,8 +81,11 @@ class Condition(Node):
     @property
     def _meta(self):
         if not hasattr(self, '__meta'):
-            self.__meta = self.field.translate(operator=self.operator,
-                value=self.value, tree=self.tree, **self.context)
+            if self.field:
+                self.__meta = self.field.translate(operator=self.operator,
+                    value=self.value, tree=self.tree, **self.context)
+            else:
+                self.__meta = {'query_modifiers': {}}
         return self.__meta
 
     @property

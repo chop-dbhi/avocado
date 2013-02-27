@@ -65,7 +65,7 @@ class RExporter(BaseExporter):
                 name = self._format_name(field.field_name)
                 labels.append(u'attr(data${0}, "label") = "{1}"'.format(name, unicode(cfield)))
 
-                if field.lexicon:
+                if field.supports_coded_values:
                     codes = self._code_values(name, field)
                     factors.append(codes[0])
                     levels.append(codes[1])

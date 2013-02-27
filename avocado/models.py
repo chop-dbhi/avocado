@@ -2,24 +2,18 @@ import re
 from django.db import models
 from django.contrib.sites.models import Site
 from django.contrib.auth.models import User, Group
-from django.utils.encoding import smart_unicode
 from django.utils.translation import ugettext_lazy as _
-from django.db.models.fields import FieldDoesNotExist
 from django.db.models.signals import post_save, pre_delete
 from django.core.validators import RegexValidator
-from avocado.core import utils
-from avocado.core.models import Base, BasePlural
-from avocado.core.cache import (post_save_cache, pre_delete_uncache,
-    cached_method)
 from avocado import managers
+from avocado.core.models import Base, BasePlural
+from avocado.core.cache.model import post_save_cache, pre_delete_uncache
 from avocado.query.models import AbstractDataView, AbstractDataContext, AbstractDataQuery
 from avocado.query.translators import registry as translators
 from avocado.query.operators import registry as operators
-from avocado.lexicon.models import Lexicon
-from avocado.sets.models import ObjectSet
 from avocado.events.models import Log
-from avocado.stats.agg import Aggregator
 from avocado import formatters
+from avocado import interfaces
 
 
 __all__ = ('DataCategory', 'DataConcept', 'DataField',
@@ -113,20 +107,64 @@ class DataField(BasePlural):
             ('view_datafield', 'Can view datafield'),
         )
 
+    def __init__(self, *args, **kwargs):
+        super(DataField, self).__init__(*args, **kwargs)
+
+        # To prevent having an object.__getattribute__ circus below..
+        self._model = None
+        self.__interface = None
+
     def __unicode__(self):
+        if self.field:
+            return unicode(self._interface)
         if self.name:
             return self.name
-        if self.lexicon or self.objectset:
-            return self.model._meta.verbose_name
-        return u'{0} {1}'.format(self.model._meta.verbose_name,
-            self.field.verbose_name).title()
+        return u'{0}.{1}.{2}'.format(self.app_name, self.model_name, self.field_name)
 
     def __len__(self):
-        return self.size
+        return self.size()
 
     def __nonzero__(self):
         "Takes precedence over __len__, so it is always truthy."
         return True
+
+    def __getattr__(self, attr):
+        "Implement to fallback to using the _interface for this instance."
+        # No private or magic methods allowed
+        if not attr.startswith('_') and self._interface:
+            try:
+                return getattr(self._interface, attr)
+            except AttributeError:
+                pass
+        raise AttributeError("'{0}' object has no attribute '{1}'".format(type(self).__name__, attr))
+
+    @property
+    def _interface(self):
+        if self.__interface is None and self.field:
+            self.__interface = interfaces.get_interface(self.field)(self)
+        return self.__interface
+
+    @property
+    def model(self):
+        "Returns the model class this datafield is associated with."
+        if self._model is None:
+            self._model = models.get_model(self.app_name, self.model_name)
+        return self._model
+
+    @property
+    def field(self):
+        "Returns the field object this datafield is associated with."
+        if self.model:
+            try:
+                return self.model._meta.get_field_by_name(self.field_name)[0]
+            except models.FieldDoesNotExist:
+                pass
+
+    def save(self, *args, **kwargs):
+        # Ensure a name has been set
+        if not self.name:
+            self.name = unicode(self)
+        return super(DataField, self).save(*args, **kwargs)
 
     # The natural key should be used any time fields are being exported
     # for integration in another system. It makes it trivial to map to new
@@ -134,105 +172,6 @@ class DataField(BasePlural):
     # primary key).
     def natural_key(self):
         return self.app_name, self.model_name, self.field_name
-
-    # Django Model Field-related Properties and Methods
-
-    @property
-    def real_model(self):
-        "Returns the model class this datafield is associated with."
-        if not hasattr(self, '_real_model'):
-            self._real_model = models.get_model(self.app_name, self.model_name)
-        return self._real_model
-
-    @property
-    def real_field(self):
-        "Returns the field object this datafield is associated with."
-        if self.real_model:
-            try:
-                return self.real_model._meta.get_field(self.field_name)
-            except FieldDoesNotExist:
-                pass
-
-    @property
-    def model(self):
-        "Returns the model class this datafield represents."
-        real_field = self.real_field
-        # Handle foreign key fields to a Lexicon model
-        if real_field and isinstance(real_field, models.ForeignKey) \
-                and issubclass(real_field.rel.to, Lexicon):
-            return real_field.rel.to
-        return self.real_model
-
-    @property
-    def field(self):
-        "Returns the field object this datafield represents."
-        model = self.model
-        if model and issubclass(model, (Lexicon, ObjectSet)):
-            return model._meta.pk
-        return self.real_field
-
-    @property
-    def nullable(self):
-        "Returns whether this field can contain NULL values."
-        return self.field.null
-
-    @property
-    def internal_type(self):
-        "Returns the internal type of the field this datafield represents."
-        return utils.get_internal_type(self.field)
-
-    @property
-    def simple_type(self):
-        """Returns a simple type mapped from the internal type."
-
-        By default, it will use the field's internal type, but can be
-        overridden by the ``SIMPLE_TYPE_MAP`` setting.
-        """
-        return utils.get_simple_type(self.field)
-
-    @property
-    def lexicon(self):
-        """Returns true if the model is a subclass of Lexicon and this
-        is the pk field. All other fields on the class are treated as
-        normal datafields.
-        """
-        return self.model and issubclass(self.model, Lexicon) \
-            and self.field == self.model._meta.pk
-
-    @property
-    def objectset(self):
-        """Returns true if the model is a subclass of ObjectSet and this
-        is the pk field. All other fields on the class are treated as
-        normal datafields.
-        """
-        return self.model and issubclass(self.model, ObjectSet) \
-            and self.field == self.model._meta.pk
-
-    @property
-    def searchable(self):
-        "Returns true if a text-field and is not an enumerable field."
-        return self.simple_type == 'string' and not self.enumerable
-
-
-    # Convenience Methods
-    # Easier access to the underlying data for this data field
-
-    def values_list(self):
-        "Returns a `ValuesListQuerySet` of values for this field."
-        if self.lexicon or self.objectset:
-            return self.model.objects.values_list('pk', flat=True)
-        return self.model.objects.values_list(self.field_name, flat=True)\
-            .order_by(self.field_name).distinct()
-
-    def search(self, query):
-        "Rudimentary search for string-based values."
-        if self.simple_type == 'string' or self.lexicon:
-            if self.lexicon:
-                field_name = 'value'
-            else:
-                field_name = self.field_name
-            filters = {u'{0}__icontains'.format(field_name): query}
-            return self.values_list().filter(**filters)
 
     def get_plural_unit(self):
         if self.unit_plural:
@@ -243,103 +182,6 @@ class DataField(BasePlural):
             plural = self.unit
         return plural
 
-    def get_label(self, value):
-        """Gets the label for a particular raw data value.
-        If this is classified as `searchable`, a database hit will occur.
-        """
-        if self.searchable:
-            kwargs = {self.field_name: value}
-            if self.lexicon:
-                return self.model.objects.filter(**kwargs)\
-                    .values_list('label', flat=True)[0]
-            if self.objectset:
-                return self.model.objects.filter(**kwargs)\
-                    .values_list('name', flat=True)[0]
-            return smart_unicode(value)
-        return dict(self.choices()).get(value, smart_unicode(value))
-
-    # Data-related Cached Properties
-    # These may be cached until the underlying data changes
-
-    @cached_method(version='data_modified')
-    def size(self):
-        "Returns the count of distinct values."
-        return self.values_list().count()
-
-    @cached_method(version='data_modified')
-    def values(self):
-        "Returns a distinct list of the values."
-        return tuple(self.values_list())
-
-    @cached_method(version='data_modified')
-    def labels(self):
-        """Returns an ordered set of labels corresponding to the values.
-        If this field represents to a Lexicon subclass, the `label` field
-        will be used, otherwise the values will simply be unicoded.
-        """
-        if self.lexicon:
-            return tuple(self.model.objects.values_list('label', flat=True))
-        if self.objectset:
-            return tuple(self.model.objects.values_list('name', flat=True))
-        # Unicode each value, use an iterator here to prevent loading the
-        # raw values in memory
-        return map(smart_unicode, iter(self.values_list()))
-
-    @cached_method(version='data_modified')
-    def codes(self):
-        "Returns a distinct set of coded values for this field"
-        if self.lexicon:
-            return tuple(self.model.objects.values_list('code', flat=True))
-
-    def choices(self):
-        "Returns a distinct set of choices for this field."
-        return zip(self.values(), self.labels())
-
-    def coded_choices(self):
-        "Returns a distinct set of coded choices for this field."
-        if self.lexicon:
-            return zip(self.codes(), self.labels())
-
-    def coded_values(self):
-        "Returns a distinct set of coded values for this field."
-        if self.lexicon:
-            return zip(self.values, self.codes)
-
-    # Data Aggregation Properties
-    def groupby(self, *args):
-        return Aggregator(self.field).groupby(*args)
-
-    def count(self, *args, **kwargs):
-        "Returns an the aggregated counts."
-        return Aggregator(self.field).count(*args, **kwargs)
-
-    def max(self, *args):
-        "Returns the maximum value."
-        return Aggregator(self.field).max(*args)
-
-    def min(self, *args):
-        "Returns the minimum value."
-        return Aggregator(self.field).min(*args)
-
-    def avg(self, *args):
-        "Returns the average value. Only applies to quantitative data."
-        if self.simple_type == 'number':
-            return Aggregator(self.field).avg(*args)
-
-    def sum(self, *args):
-        "Returns the sum of values. Only applies to quantitative data."
-        if self.simple_type == 'number':
-            return Aggregator(self.field).sum(*args)
-
-    def stddev(self, *args):
-        "Returns the standard deviation. Only applies to quantitative data."
-        if self.simple_type == 'number':
-            return Aggregator(self.field).stddev(*args)
-
-    def variance(self, *args):
-        "Returns the variance. Only applies to quantitative data."
-        if self.simple_type == 'number':
-            return Aggregator(self.field).variance(*args)
 
     # Translator Convenience Methods
 

@@ -1,5 +1,5 @@
 from django.db import models
-from .cache import CacheQuerySet
+from .cache.model import CacheQuerySet
 
 
 # Taken from Carl Meyer's django-model-utils

@@ -94,3 +94,11 @@ VALIDATION_WARNINGS = {}
 # Toggle whether DataField instances should cache the underlying data
 # for their most common data access methods.
 DATA_CACHE_ENABLED = True
+
+FIELD_INTERFACES = (
+    'avocado.sets.interfaces.ObjectSetInterface',
+    'avocado.lexicon.interfaces.LexiconInterface',
+    'avocado.interfaces.ForeignKeyInterface',
+)
+
+BASE_FIELD_INTERFACE = 'avocado.interfaces.FieldInterface'

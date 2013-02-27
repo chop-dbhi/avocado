@@ -152,7 +152,7 @@ class BufferedPaginatorTestCase(TestCase):
 class CachedMethodTestCase(TestCase):
     @override_settings(AVOCADO_DATA_CACHE_ENABLED=True)
     def test(self):
-        from avocado.core.cache import cached_method
+        from avocado.core.cache.model import cached_method
 
         class Foo(models.Model):
             def get_version(self):

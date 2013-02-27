@@ -1,5 +1,6 @@
 from django import forms
 from django.db import models
+from django.core.exceptions import ImproperlyConfigured
 from django.utils.importlib import import_module
 from avocado.conf import settings
 
@@ -8,13 +9,10 @@ def get_form_class(name):
     # Absolute import if a period exists, otherwise assume the
     # name refers to a built-in Django class
     if '.' in name:
-        path = name.split('.')[:-1]
-        module = import_module(path)
-    else:
-        if not name.endswith('Field'):
-            name = name + 'Field'
-        module = forms
-    return getattr(module, name)
+        return import_by_path(name)
+    if not name.endswith('Field'):
+        name = name + 'Field'
+    return getattr(forms, name)
 
 
 def get_internal_type(field):
@@ -23,6 +21,7 @@ def get_internal_type(field):
     if datatype.endswith('field'):
         datatype = datatype[:-5]
     return datatype
+
 
 def get_simple_type(internal):
     """Returns a simple type mapped from the internal type."
@@ -67,3 +66,27 @@ def parse_field_key(key):
         toks = key
     offset = len(keys) - len(toks)
     return dict(zip(keys[offset:], toks))
+
+
+# Ported from Django 1.5
+def import_by_path(dotted_path, error_prefix=''):
+    """
+    Import a dotted module path and return the attribute/class designated by the
+    last name in the path. Raise ImproperlyConfigured if something goes wrong.
+    """
+    try:
+        module_path, class_name = dotted_path.rsplit('.', 1)
+    except ValueError:
+        raise ImproperlyConfigured("%s%s doesn't look like a module path" % (
+            error_prefix, dotted_path))
+    try:
+        module = import_module(module_path)
+    except ImportError as e:
+        raise ImproperlyConfigured('%sError importing module %s: "%s"' % (
+            error_prefix, module_path, e))
+    try:
+        attr = getattr(module, class_name)
+    except AttributeError:
+        raise ImproperlyConfigured('%sModule "%s" does not define a "%s" attribute/class' % (
+            error_prefix, module_path, class_name))
+    return attr

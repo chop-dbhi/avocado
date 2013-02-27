@@ -1,8 +1,6 @@
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Q
-from django.db import transaction
 from django.conf import settings
-from django.db.models.manager import ManagerDescriptor
 from django.core.exceptions import ImproperlyConfigured
 from avocado.conf import OPTIONAL_DEPS, requires_dep
 from avocado.core.managers import PublishedManager, PublishedQuerySet
@@ -69,19 +67,6 @@ class DataConceptQuerySet(PublishedQuerySet):
         return concepts
 
 
-class DataFieldManagerDescriptor(ManagerDescriptor):
-    """Manager descriptor customized to allow for `f.objects` which returns
-    a QuerySet of the underlying model objects which DataField represents.
-    """
-    def __init__(self, manager):
-        self.manager = manager
-
-    def __get__(self, instance, type=None):
-        if instance and isinstance(instance.field, models.AutoField):
-            return instance.model.objects.all()
-        return super(DataFieldManagerDescriptor, self).__get__(instance, type)
-
-
 class DataFieldManager(PublishedManager):
     "Manager for the `DataField` model."
 
@@ -99,9 +84,9 @@ class DataFieldManager(PublishedManager):
             datafield = queryset.get(id=app_name)
         else:
             keys = ['app_name', 'model_name', 'field_name']
-            if type(app_name) is list:
+            if isinstance(app_name, (list, tuple)):
                 values = app_name
-            elif type(app_name) and '.' in app_name:
+            elif isinstance(app_name, basestring) and '.' in app_name:
                 values = app_name.split('.')
             else:
                 values = [app_name, model_name, field_name]
