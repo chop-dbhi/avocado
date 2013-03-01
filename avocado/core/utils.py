@@ -23,6 +23,15 @@ def get_internal_type(field):
         datatype = datatype[:-5]
     return datatype
 
+def get_simple_type(field):
+    """Returns a simple type mapped from the internal type."
+
+    By default, it will use the field's internal type, but can be
+    overridden by the ``SIMPLE_TYPE_MAP`` setting.
+    """
+    internal = get_internal_type(field)
+    return settings.SIMPLE_TYPE_MAP.get(internal, internal)
+
 
 def get_heuristic_flags(field):
     # TODO add better conditions for determining how to set the
