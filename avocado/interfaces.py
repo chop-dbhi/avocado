@@ -35,7 +35,6 @@ def get_interface(field):
     return get_base_interface()
 
 
-
 class FieldInterface(object):
     # Denotes whether this interface supports _real_ coded values. The API
     # is defined below to support it, however there is no guarantee the field
@@ -273,45 +272,69 @@ class FieldInterface(object):
         "Returns a distinct list of the values."
         queryset = self._values_queryset(**context)
         if iterator:
-            return queryset.iterator()
+            return iter(queryset)
         return tuple(queryset)
 
-    def labels(self, **context):
+    def labels(self, iterator=False, **context):
         "Returns an distinct list of labels corresponding to the values."
-        return tuple(self._labels_queryset(**context))
+        queryset = self._labels_queryset(**context)
+        if iterator:
+            return iter(queryset)
+        return tuple(queryset)
 
-    def codes(self, **context):
+    def codes(self, iterator=False, **context):
         "Returns a distinct set of coded values for this field"
-        return tuple(self._codes_queryset(**context))
+        queryset = self._codes_queryset(**context)
+        if iterator:
+            return iter(queryset)
+        return tuple(queryset)
 
-    def choices(self, **context):
+    def choices(self, iterator=False, distinct=True, **context):
         "Returns a distinct set of labeled values."
         if self._has_field_choices():
-            return tuple(self._field_choices)
-        return tuple(self._base_queryset(**context)\
-            .values_list(self._value_field.name, self._label_field.name))
+            choices = self._field_choices
+        else:
+            choices = self._base_queryset(**context)\
+                .values_list(self._value_field.name, self._label_field.name)
+            if distinct:
+                choices = choices.distinct()
+        if iterator:
+            return iter(choices)
+        return tuple(choices)
 
-    def coded_choices(self, **context):
+    def coded_choices(self, iterator=False, distinct=True, **context):
         "Returns a distinct set of labeled codes."
         if self._has_field_choices() and self._code_field is self._value_field:
-            return tuple(self._field_choices)
-        return tuple(self._base_queryset(**context)\
-            .values_list(self._code_field.name, self._label_field.name))
+            choices = self._field_choices
+        else:
+            choices = self._base_queryset(**context)\
+                .values_list(self._code_field.name, self._label_field.name)
+            if distinct:
+                choices = choices.distinct()
+        if iterator:
+            return iter(choices)
+        return tuple(choices)
 
-    def search(self, query, match='contains', **context):
+    def search(self, query, match='contains', iterator=False, distinct=True, **context):
         "Rudimentary search for string-based values."
         # Check type of search field..
         if utils.get_simple_type(self._search_field) != 'string':
             return
         if not query:
-            return ()
-        if match not in ('contains', 'exact', 'regex'):
+            results = []
+        elif match not in ('contains', 'exact', 'regex'):
             raise ValueError("Match must be 'contains', 'exact', or 'regex'.")
-        # Notice the `i` for case-insensitivity..
-        lookup = u'{0}__i{1}'.format(self._search_field.name, match)
-        # Return tuple of the value and the label
-        return tuple(self._base_queryset(**context).filter(**{lookup: query})\
-                .values_list(self._value_field.name, self._search_field.name))
+        else:
+            # Notice the `i` for case-insensitivity..
+            lookup = u'{0}__i{1}'.format(self._search_field.name, match)
+            # Return tuple of the value and the label
+            results = self._base_queryset(**context).filter(**{lookup: query})\
+                .values_list(self._value_field.name, self._search_field.name)
+            if distinct:
+                results = results.distinct()
+        if iterator:
+            return iter(results)
+        return tuple(results)
 
 
     # Data Aggregation Properties
