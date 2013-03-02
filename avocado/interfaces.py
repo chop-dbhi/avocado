@@ -1,9 +1,12 @@
 from django.db import models
 from django.core import exceptions
 from django.utils.encoding import smart_unicode
-from avocado.core import utils
+from avocado.core import utils, loader
 from avocado.conf import settings
 from avocado.stats.agg import Aggregator
+
+
+registry = loader.Registry()
 
 
 # Utility functions to loading interfaces classes
@@ -375,3 +378,6 @@ class ForeignKeyInterface(get_base_interface()):
         "Overridden to account for the `limit_choices_to` property."
         queryset = super(ForeignKeyInterface, self)._base_queryset(**context)
         return queryset.complex_filter(self.field.rel.limit_choices_to)
+
+
+loader.autodiscover('interfaces')

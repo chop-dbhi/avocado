@@ -77,6 +77,10 @@ class DataField(BasePlural):
     translator = models.CharField(max_length=100, blank=True, null=True,
         choices=translators.choices)
 
+    # Associate a specific interface class to this field
+    interface = models.CharField(max_length=100, blank=True, null=True,
+        choices=interfaces.registry.choices)
+
     # The timestamp of the last time the underlying data for this field
     # has been modified. This is used for the cache key and for general
     # reference. The underlying table may not have a timestamp nor is it
@@ -141,7 +145,11 @@ class DataField(BasePlural):
     @property
     def _interface(self):
         if self.__interface is None and self.field:
-            self.__interface = interfaces.get_interface(self.field)(self)
+            if self.interface:
+                klass = interfaces.registry.get(self.interface)
+            else:
+                klass = interfaces.get_interface(self.field)
+            self.__interface = klass(self)
         return self.__interface
 
     @property
