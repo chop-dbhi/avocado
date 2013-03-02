@@ -37,7 +37,7 @@ class LexiconInterface(FieldInterface):
         return self.model._meta.get_field_by_name('code')[0]
 
     @property
-    def _orderby_field(self):
+    def _order_field(self):
         return self.model._meta.get_field_by_name('order')[0]
 
     @property

@@ -18,7 +18,7 @@ class LexiconTestCase(TestCase):
         self.assertEqual(i._label_field.name, 'label')
         self.assertEqual(i._search_field.name, 'label')
 
-        self.assertEqual(i._orderby_field.name, 'order')
+        self.assertEqual(i._order_field.name, 'order')
         self.assertEqual(i._code_field.name, 'code')
 
         self.assertEqual(i.values(), (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12))

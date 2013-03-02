@@ -91,7 +91,7 @@ class Node(object):
                 for f in groups[pk]:
                     # Special case for Lexicon-based models, order by their
                     # model-defined `order` field.
-                    lookup = tree.query_string_for_field(f._interface._orderby_field)
+                    lookup = tree.query_string_for_field(f._interface._order_field)
 
                     if direction.lower() == 'desc':
                         order_by.append('-' + lookup)

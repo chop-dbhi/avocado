@@ -75,7 +75,7 @@ class FieldInterface(object):
         return self.field
 
     @property
-    def _orderby_field(self):
+    def _order_field(self):
         "The field to be used when ordering the underlying data."
         return self.field
 
@@ -122,7 +122,7 @@ class FieldInterface(object):
         """
         queryset = self.model._default_manager.all()
         if order:
-            queryset = queryset.order_by(self._orderby_field.name)
+            queryset = queryset.order_by(self._order_field.name)
         return queryset
 
     def _values_queryset(self, distinct=True, **context):
