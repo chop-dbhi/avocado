@@ -40,6 +40,9 @@ class BufferedPaginator(Paginator):
             offset = count + offset
 
         self.offset = offset
+
+        if buf_size is None and object_list is not None:
+            buf_size = len(object_list)
         self.buf_size = buf_size or count
 
     def page(self, number):
