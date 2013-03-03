@@ -347,6 +347,8 @@ class FieldInterface(object):
         "Returns the count of distinct values."
         if self._has_field_choices():
             return len(self._value_field.choices)
+        # Ensure this is distinct
+        context['default'] = True
         return self._values_queryset(**context).count()
 
     def max(self, **context):
