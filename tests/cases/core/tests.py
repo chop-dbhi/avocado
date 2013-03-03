@@ -2,7 +2,6 @@ import os
 from django.core import management
 from django.test import TestCase, TransactionTestCase
 from django.test.utils import override_settings
-from django.core.exceptions import ImproperlyConfigured
 from avocado.core.loader import Registry, AlreadyRegistered
 from avocado.core.paginator import BufferedPaginator
 
@@ -33,13 +32,12 @@ class RegistryTestCase(TestCase):
 
     def test_default(self):
         class C(object): pass
-        C.default = True
-        self.r.register(C)
-        self.assertEqual(self.r['foo'], C)
+        self.r.register(C, default=True)
+        self.assertEqual(self.r['Default'], C)
 
         class D(object): pass
-        D.default = True
-        self.assertRaises(ImproperlyConfigured, self.r.register, D)
+        self.r.register(D, default=True)
+        self.assertEqual(self.r['Default'], D)
 
 
 class BufferedPaginatorTestCase(TestCase):

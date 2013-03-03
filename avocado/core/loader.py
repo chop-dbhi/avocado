@@ -1,7 +1,6 @@
 import inspect
 from django.conf import settings
 from django.utils.importlib import import_module
-from django.core.exceptions import ImproperlyConfigured
 
 
 class AlreadyRegistered(Exception):
@@ -13,15 +12,15 @@ class NotRegistered(Exception):
 
 
 class Registry(object):
-    "Simple class that keeps track of a set of registered classes."
+    "Registry for classes or instances."
     def __init__(self, default=None, name=None, register_instance=True):
-        if register_instance and inspect.isclass(default):
-            default = default()
         self.register_instance = register_instance
-        self.default = default
         self._registry = {}
+        self.default = None
+
+        # Register the default class/instance
         if default:
-            self.register(default, name)
+            self.register(default, name, default=True)
 
     def __getitem__(self, name):
         return self._registry.get(name, self.default)
@@ -29,10 +28,13 @@ class Registry(object):
     def get(self, name):
         return self.__getitem__(name)
 
-    def register(self, obj, name=None):
-        """Registers a class with an optional name. The class name will be used
-        if not supplied.
+    def register(self, obj, name=None, default=False):
+        """Registers a class or instance with an optional name. The class
+        name will be used if not supplied.
         """
+        if default and not name:
+            name = 'Default'
+
         if inspect.isclass(obj):
             name = name or obj.__name__
             # Create an instance if instances should be registered
@@ -41,44 +43,27 @@ class Registry(object):
         else:
             name = name or obj.__class__.__name__
 
-        if name in self._registry:
-            raise AlreadyRegistered(u'The class {0} is already registered'.format(name))
-
-        # Check to see if this class should be used as the default for this
-        # registry
-        if getattr(obj, 'default', False):
-            # ensure the default if already overriden is not being overriden
-            # again.
-            if self.default:
-                if self.register_instance:
-                    name = self.default.__class__.__name__
-                else:
-                    name = self.default.__name__
-                objtype = 'class' if self.register_instance else 'instance'
-                raise ImproperlyConfigured(u'The default {0} cannot be set '
-                    'more than once for this registry ({1} is the default).'.format(objtype, name))
-
-            self.default = obj
-        else:
-            if name in self._registry:
-                raise AlreadyRegistered(u'Another class is registered with the '
-                    'name "{0}"'.format(name))
-
-            self._registry[name] = obj
+        if default:
+            self.default = self._registry[name] = obj
+        elif name in self._registry:
+            raise AlreadyRegistered(u'The object "{0}" is already registered'.format(name))
+        self._registry[name] = obj
 
     def unregister(self, name):
-        """Unregisters a class. Note that these calls must be made in
-        INSTALLED_APPS listed after the apps that already registered the class.
+        """Unregisters an object.
+
+        **Note:** that these calls must be made in INSTALLED_APPS listed
+        after the apps that already registered the class.
         """
-        # Use the name of the class if passed in. Second condition checks for an
-        # instance of the class.
+        # Use the name of the class if passed in. Second condition checks
+        # for an instance of the class.
         if inspect.isclass(name):
             name = name.__name__
         elif hasattr(name, '__class__'):
             name = name.__class__.__name__
+
         if name not in self._registry:
-            objtype = 'class' if self.register_instance else 'instance'
-            raise NotRegistered(u'No {0} is registered under the name "{1}"'.format(objtype, name))
+            raise NotRegistered(u'No object "{0}" registered'.format(name))
         self._registry.pop(name)
 
     @property
@@ -89,12 +74,11 @@ class Registry(object):
 
 def autodiscover(module_name):
     """Simple auto-discover for looking through each INSTALLED_APPS for each
-    ``module_name`` and fail silently when not found. This should be used for
-    modules that have 'registration' like behavior.
+    module_name and fail silently when not found or if an error occurs.
     """
     for app in settings.INSTALLED_APPS:
         # Attempt to import the app's ``module_name``.
         try:
-            import_module(u'{0}.{1}'.format(app, module_name))
+            import_module('{0}.{1}'.format(app, module_name))
         except:
             pass
