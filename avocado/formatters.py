@@ -15,7 +15,7 @@ class FormatterException(Exception):
     pass
 
 
-def unique_keys(fields):
+def _unique_keys(fields):
     """Takes a list of fields and generated a unique list of keys based
     based on the field's natural_key.
     """
@@ -28,7 +28,7 @@ def unique_keys(fields):
     # Evaluate in case this is QuerySet..
     fields = list(fields)
 
-    keys = []
+    pairs = []
     names = []
     models = defaultdict(int)
 
@@ -59,9 +59,10 @@ def unique_keys(fields):
 
             # Mark this field name to prefixed from now on
             prefixed[name] = method
-        keys.append(key)
 
-    return keys
+        pairs.append((key, field))
+
+    return pairs
 
 
 class Formatter(object):
@@ -96,8 +97,8 @@ class Formatter(object):
 
         if concept:
             fields = list(concept.fields.order_by('concept_fields__order'))
-            self.keys = unique_keys(fields)
-            self.fields = OrderedDict(zip(self.keys, fields))
+            self.fields = OrderedDict(_unique_keys(fields))
+            self.keys = self.fields.keys()
         else:
             self.keys = keys
 
