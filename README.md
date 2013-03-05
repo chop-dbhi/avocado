@@ -945,6 +945,10 @@ Having these indexes enables generating queries regardless of the entry point an
 
 ## CHANGELOG
 
+2.0.20 [diff](https://github.com/cbmi/avocado/compare/2.0.19...2.0.20)
+
+- Fix possible mis-ordering of formatter keys and fields
+
 2.0.19 [diff](https://github.com/cbmi/avocado/compare/2.0.18...2.0.19)
 
 - Add implementation (and fix) for handling the SELECT DISTINCT/ORDER BY behavior in databases more transparently 
