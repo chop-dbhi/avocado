@@ -74,6 +74,7 @@ class Exporter(object):
         self.force_distinct = force_distinct
         self.kwargs = kwargs
 
+        self.concepts = concepts
         self.preferred_formats = preferred_formats
         self._format = RowFormatter(concepts, self.preferred_formats)
         self._last_row = None

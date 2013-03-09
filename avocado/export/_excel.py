@@ -45,7 +45,7 @@ class ExcelExporter(Exporter):
         ws_dict.append(('Field Name', 'Data Type', 'Description',
             'Concept Name', 'Concept Discription'))
 
-        for c in self._format.concepts:
+        for c in self.concepts:
             cfields = c.concept_fields.select_related('field')
             for cfield in cfields:
                 field = cfield.field

@@ -1,5 +1,4 @@
 from zipfile import ZipFile
-from cStringIO import StringIO
 from string import punctuation
 from django.template import Context
 from django.template.loader import get_template
@@ -51,13 +50,26 @@ class RExporter(Exporter):
             level += ' ,'
         return factor, level
 
-    def write(self, iterable, buff=None, template_name='export/script.R', *args, **kwargs):
-        zip_file = ZipFile(self.get_file_obj(buff), 'w')
+    def write_data(self, *args, **kwargs):
+        """Creates the in-memory buffer of CSV data using this exporter's
+        `preferred_formats`.
+        """
+        exporter = CSVExporter(self.iterator, self.concepts,
+            preferred_formats=self.preferred_formats)
+        return exporter.write(*args, **kwargs)
+
+    def write_script(self, *args, **kwargs):
+        "Write the script file for export."
+
+        template_name = kwargs.get('template_name', 'export/script.R')
+        data_filename = kwargs.get('data_filename', 'data.csv')
 
         factors = []      # field names
         levels = []       # value dictionaries
         labels = []       # data labels
 
+        # TODO, these should use a cached version of the concepts if available
+        # by the base exporter class.
         for c in self.concepts:
             cfields = c.concept_fields.all()
             for cfield in cfields:
@@ -70,19 +82,6 @@ class RExporter(Exporter):
                     factors.append(codes[0])
                     levels.append(codes[1])
 
-        data_filename = 'data.csv'
-        script_filename = 'script.R'
-
-        # File buffers
-        data_buff = StringIO()
-        # Create the data file
-        data_exporter = CSVExporter(self.concepts)
-        # Overwrite preferred formats for data file
-        data_exporter.preferred_formats = self.preferred_formats
-        data_exporter.write(iterable, data_buff, *args, **kwargs)
-
-        zip_file.writestr(data_filename, data_buff.getvalue())
-
         template = get_template(template_name)
         context = Context({
             'data_filename': data_filename,
@@ -91,8 +90,25 @@ class RExporter(Exporter):
             'levels': levels,
         })
 
-        # Write script from template
-        zip_file.writestr(script_filename, template.render(context))
-        zip_file.close()
+        return template.render(context)
 
+    def write(self, buff=None, *args, **kwargs):
+        """Creates a in-memory or file-based zipfile containing the script
+        and data files.
+        """
+        kwargs.setdefault('data_filename', 'data.csv')
+        kwargs.setdefault('script_filename', 'script.R')
+
+        buff = get_file_obj(buff)
+        zip_file = ZipFile(buff, 'w')
+
+        # Write data
+        data_buff = self.write_data(*args, **kwargs)
+        zip_file.writestr(kwargs['data_filename'], data_buff.getvalue())
+
+        # Write script
+        script_str = self.write_script(*args, **kwargs)
+        zip_file.writestr(kwargs['script_filename'], script_str)
+
+        zip_file.close()
         return zip_file

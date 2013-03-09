@@ -3,7 +3,7 @@ from cStringIO import StringIO
 from string import punctuation
 from django.template import Context
 from django.template.loader import get_template
-from _base import Exporter
+from _base import Exporter, get_file_obj
 from _csv import CSVExporter
 
 
@@ -79,8 +79,8 @@ class SASExporter(Exporter):
         values = u'{0} {1}'.format(value, '\t'.join(codes))
         return value_format, values
 
-    def write(self, iterable, buff=None, template_name='export/script.sas', *args, **kwargs):
-        zip_file = ZipFile(self.get_file_obj(buff), 'w')
+    def write(self, buff=None, template_name='export/script.sas', *args, **kwargs):
+        zip_file = ZipFile(get_file_obj(buff), 'w')
 
         formats = []            # sas formats for all fields
         informats = []          # sas informats for all fields
@@ -122,10 +122,10 @@ class SASExporter(Exporter):
         # File buffers
         data_buff = StringIO()
         # Create the data file
-        data_exporter = CSVExporter(self.concepts)
+        data_exporter = CSVExporter(self.iterator, self.concepts)
         # Overwrite preferred formats for data file
         data_exporter.preferred_formats = self.preferred_formats
-        data_exporter.write(iterable, data_buff, *args, **kwargs)
+        data_exporter.write(data_buff, *args, **kwargs)
 
         zip_file.writestr(data_filename, data_buff.getvalue())
 
