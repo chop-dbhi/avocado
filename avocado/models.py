@@ -20,7 +20,7 @@ from avocado.lexicon.models import Lexicon
 from avocado.sets.models import ObjectSet
 from avocado.events.models import Log
 from avocado.stats.agg import Aggregator
-from avocado.formatters import registry as formatters
+from avocado import formatters
 from avocado.queryview import registry as queryviews
 
 
@@ -418,7 +418,7 @@ class DataConcept(BasePlural):
     # defined, this DataConcept is not intended to be exposed since the
     # underlying data may not be appropriate for client consumption.
     formatter_name = models.CharField('formatter', max_length=100, blank=True,
-        null=True, choices=formatters.choices)
+        null=True, choices=formatters.registry.choices)
 
     queryview = models.CharField(max_length=100, blank=True, null=True,
         choices=queryviews.choices)
@@ -440,7 +440,7 @@ class DataConcept(BasePlural):
         name = self.formatter_name
         cache = getattr(self, '_formatter_cache', None)
         if not cache or name != cache[0]:
-            formatter = formatters.get(name)(self)
+            formatter = formatters.registry.get(name)(self)
             self._formatter_cache = (name, formatter)
         else:
             formatter = cache[1]
