@@ -190,7 +190,7 @@ class Command(BaseCommand):
         try:
             f = DataField.objects.get(**lookup)
         except DataField.DoesNotExist:
-            f = DataField(published=False, **kwargs)
+            f = DataField(**kwargs)
 
         if f.pk:
             created = False
