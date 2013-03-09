@@ -5,10 +5,10 @@ if not OPTIONAL_DEPS['openpyxl']:
     raise ImproperlyConfigured('openpyxl must be installed to use this exporter.')
 
 from openpyxl import Workbook
-from _base import BaseExporter
+from _base import Exporter, get_file_obj
 
 
-class ExcelExporter(BaseExporter):
+class ExcelExporter(Exporter):
     short_name = 'Excel'
     long_name = 'Microsoft Excel 2007 Format'
 
@@ -17,9 +17,7 @@ class ExcelExporter(BaseExporter):
 
     preferred_formats = ('excel', 'boolean', 'number', 'string')
 
-    def write(self, iterable, buff=None, *args, **kwargs):
-        buff = self.get_file_obj(buff)
-
+    def write(self, buff=None, *args, **kwargs):
         wb = Workbook(optimized_write=True)
 
         ws_data = wb.create_sheet()
@@ -27,7 +25,7 @@ class ExcelExporter(BaseExporter):
 
         header = []
         # Create the data worksheet
-        for i, row_gen in enumerate(self.read(iterable, *args, **kwargs)):
+        for i, row_gen in enumerate(self):
             row = []
             for data in row_gen:
                 if i == 0:
@@ -47,19 +45,21 @@ class ExcelExporter(BaseExporter):
         ws_dict.append(('Field Name', 'Data Type', 'Description',
             'Concept Name', 'Concept Discription'))
 
-        for c in self.concepts:
+        for c in self._format.concepts:
             cfields = c.concept_fields.select_related('field')
             for cfield in cfields:
                 field = cfield.field
                 ws_dict.append((field.field_name, field.simple_type,
                     field.description, c.name, c.description))
 
+        buff = get_file_obj(buff)
+
         # This hacked up implementation is due to `save_virtual_workbook`
         # not behaving correctly. This function should handle the work
         # https://bitbucket.org/ericgazoni/openpyxl/src/94b05cf9defb9787b4dfbf9e8dca7ba6e0b33d56/openpyxl/writer/excel.py?at=default#cl-154
         # however, no data is actually being saved to the worksheets..
         if isinstance(buff, HttpResponse):
-            _buff = self.get_file_obj()
+            _buff = get_file_obj()
             wb.save(_buff)
             buff.content = _buff.getvalue()
             _buff.close()

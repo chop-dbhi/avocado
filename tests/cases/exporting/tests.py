@@ -8,8 +8,6 @@ from avocado.formatters import RawFormatter
 from avocado.models import DataField, DataConcept, DataConceptField, DataView
 from . import models
 
-__all__ = ['FileExportTestCase', 'ResponseExportTestCase']
-
 
 class ExportTestCase(TestCase):
     fixtures = ['export.json']
@@ -27,11 +25,11 @@ class ExportTestCase(TestCase):
         query = view.apply(tree=models.Employee).raw()
 
         # Ick..
-        exporter = export.CSVExporter(view)
-        exporter.params.insert(0, (RawFormatter(keys=['pk']), 1))
-        exporter.row_length += 1
+        exporter = export.CSVExporter(query, view)
+        exporter._format.params.insert(0, (RawFormatter(keys=['pk']), 1))
+        exporter._format.row_length += 1
 
-        buff = exporter.write(query)
+        buff = exporter.write()
         buff.seek(0)
 
         lines = buff.read().splitlines()
@@ -74,16 +72,20 @@ class FileExportTestCase(TestCase):
         self.query = models.Employee.objects.values_list('first_name', 'last_name',
                 'is_manager', 'title__name', 'title__salary')
 
+    def test_iterator(self):
+        exporter = export.Exporter(self.query, self.concepts)
+        self.assertEqual(len(list(exporter)), 6)
+
     def test_csv(self):
-        exporter = export.CSVExporter(self.concepts)
-        buff = exporter.write(self.query)
+        exporter = export.CSVExporter(self.query, self.concepts)
+        buff = exporter.write()
         buff.seek(0)
         self.assertEqual(len(buff.read()), 246)
 
     def test_excel(self):
         fname = 'excel_export.xlsx'
-        exporter = export.ExcelExporter(self.concepts)
-        exporter.write(self.query, fname)
+        exporter = export.ExcelExporter(self.query, self.concepts)
+        exporter.write(fname)
         self.assertTrue(os.path.exists(fname))
         # Observed slight size differences..
         l = len(open(fname).read())
@@ -92,28 +94,28 @@ class FileExportTestCase(TestCase):
 
     def test_sas(self):
         fname = 'sas_export.zip'
-        exporter = export.SASExporter(self.concepts)
-        exporter.write(self.query, fname)
+        exporter = export.SASExporter(self.query, self.concepts)
+        exporter.write(fname)
         self.assertTrue(os.path.exists(fname))
         self.assertEqual(len(open(fname).read()), 1335)
         os.remove(fname)
 
     def test_r(self):
         fname = 'r_export.zip'
-        exporter = export.RExporter(self.concepts)
-        exporter.write(self.query, fname)
+        exporter = export.RExporter(self.query, self.concepts)
+        exporter.write(fname)
         self.assertTrue(os.path.exists(fname))
         self.assertEqual(len(open(fname).read()), 754)
         os.remove(fname)
 
     def test_json(self):
-        exporter = export.JSONExporter(self.concepts)
-        buff = exporter.write(self.query)
+        exporter = export.JSONExporter(self.query, self.concepts)
+        buff = exporter.write()
         buff.seek(0)
         self.assertEqual(len(buff.read()), 639)
 
     def test_html(self):
-        exporter = export.HTMLExporter(self.concepts)
+        exporter = export.HTMLExporter(self.query, self.concepts)
         template = Template("""<table>
 {% for row in rows %}
     <tr>
@@ -123,46 +125,46 @@ class FileExportTestCase(TestCase):
     </tr>
 {% endfor %}
 </table>""")
-        buff = exporter.write(self.query, template=template)
+        buff = exporter.write(template)
         buff.seek(0)
         self.assertEqual(len(buff.read()), 494)
 
 
 class ResponseExportTestCase(FileExportTestCase):
     def test_csv(self):
-        exporter = export.CSVExporter(self.concepts)
+        exporter = export.CSVExporter(self.query, self.concepts)
         response = HttpResponse()
-        exporter.write(self.query, response)
+        exporter.write(response)
         self.assertEqual(len(response.content), 246)
 
     def test_excel(self):
-        exporter = export.ExcelExporter(self.concepts)
+        exporter = export.ExcelExporter(self.query, self.concepts)
         response = HttpResponse()
-        exporter.write(self.query, response)
+        exporter.write(response)
         # Observed slight size differences..
         l = len(response.content)
         self.assertTrue(6220 <= l <= 6250)
 
     def test_sas(self):
-        exporter = export.SASExporter(self.concepts)
+        exporter = export.SASExporter(self.query, self.concepts)
         response = HttpResponse()
-        exporter.write(self.query, response)
+        exporter.write(response)
         self.assertEqual(len(response.content), 1335)
 
     def test_r(self):
-        exporter = export.RExporter(self.concepts)
+        exporter = export.RExporter(self.query, self.concepts)
         response = HttpResponse()
-        exporter.write(self.query, response)
+        exporter.write(response)
         self.assertEqual(len(response.content), 754)
 
     def test_json(self):
-        exporter = export.JSONExporter(self.concepts)
+        exporter = export.JSONExporter(self.query, self.concepts)
         response = HttpResponse()
-        exporter.write(self.query, response)
+        exporter.write(response)
         self.assertEqual(len(response.content), 639)
 
     def test_html(self):
-        exporter = export.HTMLExporter(self.concepts)
+        exporter = export.HTMLExporter(self.query, self.concepts)
         response = HttpResponse()
         template = Template("""<table>
 {% for row in rows %}
@@ -173,5 +175,5 @@ class ResponseExportTestCase(FileExportTestCase):
     </tr>
 {% endfor %}
 </table>""")
-        exporter.write(self.query, template=template, buff=response)
+        exporter.write(template, buff=response)
         self.assertEqual(len(response.content), 494)

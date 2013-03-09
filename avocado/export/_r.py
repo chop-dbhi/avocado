@@ -3,11 +3,11 @@ from cStringIO import StringIO
 from string import punctuation
 from django.template import Context
 from django.template.loader import get_template
-from _base import BaseExporter
+from _base import Exporter, get_file_obj
 from _csv import CSVExporter
 
 
-class RExporter(BaseExporter):
+class RExporter(Exporter):
     short_name = 'R'
     long_name = 'R Programming Language'
 

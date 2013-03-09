@@ -3,13 +3,16 @@ from avocado.formatters import Formatter
 from cStringIO import StringIO
 
 
-class BaseExporter(object):
-    "Base class for all exporters"
-    file_extension = 'txt'
-    content_type = 'text/plain'
-    preferred_formats = []
+def get_file_obj(name=None):
+    if name is None:
+        return StringIO()
+    if isinstance(name, basestring):
+        return open(name, 'w+')
+    return name
 
-    def __init__(self, concepts=None):
+
+class RowFormatter(object):
+    def __init__(self, concepts=None, preferred_formats=None):
         if concepts is None:
             concepts = ()
         elif isinstance(concepts, DataView):
@@ -17,6 +20,7 @@ class BaseExporter(object):
             concepts = node.get_concepts_for_select()
 
         self.params = []
+        self.preferred_formats = preferred_formats
         self.row_length = 0
         self.concepts = concepts
 
@@ -45,32 +49,53 @@ class BaseExporter(object):
         else:
             self.params.append(params)
 
-    def get_file_obj(self, name=None):
-        if name is None:
-            return StringIO()
-        if isinstance(name, basestring):
-            return open(name, 'w+')
-        return name
-
-    def _format_row(self, row, **kwargs):
+    def __call__(self, row, **kwargs):
+        "Apply the formatter for each chunk of the row."
         for formatter, length in self.params:
             values, row = row[:length], row[length:]
             yield formatter(values, preferred_formats=self.preferred_formats, **kwargs)
 
-    def read(self, iterable, force_distinct=True, *args, **kwargs):
+
+class Exporter(object):
+    "Base class for all exporters"
+
+    file_extension = 'txt'
+    content_type = 'text/plain'
+    preferred_formats = []
+
+    def __init__(self, iterable, concepts, force_distinct=True, preferred_formats=None, **kwargs):
         """Takes an iterable that produces rows to be formatted.
 
         If `force_distinct` is true, rows will be filtered based on the slice
         of the row that is *up* for to be formatted. Note, this assumes the
         rows are ordered.
         """
-        last_row = None
-        for row in iterable:
-            _row = row[:self.row_length]
-            if force_distinct and _row == last_row:
-                continue
-            last_row = _row
-            yield self._format_row(_row, **kwargs)
+        self.iterator = iter(iterable)
+        self.force_distinct = force_distinct
+        self.kwargs = kwargs
 
-    def write(self, iterable, *args, **kwargs):
+        self.preferred_formats = preferred_formats
+        self._format = RowFormatter(concepts, self.preferred_formats)
+        self._last_row = None
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        while True:
+            row = next(self.iterator)
+
+            # Truncate to the processable length
+            row = row[:self._format.row_length]
+
+            # Perform a check if force distinct is true, only store the
+            # last row if necessary
+            if self.force_distinct:
+                if row == self._last_row:
+                    continue
+                self._last_row = row
+
+            return self._format(row, **self.kwargs)
+
+    def write(self, *args, **kwargs):
         raise NotImplemented

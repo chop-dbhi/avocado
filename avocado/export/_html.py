@@ -1,9 +1,9 @@
 from django.template import Context
 from django.template.loader import get_template
-from _base import BaseExporter
+from _base import Exporter, get_file_obj
 
 
-class HTMLExporter(BaseExporter):
+class HTMLExporter(Exporter):
     short_name = 'HTML'
     long_name = 'HyperText Markup Language (HTML)'
 
@@ -12,12 +12,12 @@ class HTMLExporter(BaseExporter):
 
     preferred_formats = ('html', 'string')
 
-    def write(self, iterable, template, buff=None, *args, **kwargs):
-        buff = self.get_file_obj(buff)
+    def write(self, template, buff=None, *args, **kwargs):
+        buff = get_file_obj(buff)
 
         if isinstance(template, basestring):
             template = get_template(template)
 
-        context = Context({'rows': self.read(iterable, *args, **kwargs)})
+        context = Context({'rows': iter(self)})
         buff.write(template.render(context))
         return buff

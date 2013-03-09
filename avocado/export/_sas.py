@@ -3,11 +3,11 @@ from cStringIO import StringIO
 from string import punctuation
 from django.template import Context
 from django.template.loader import get_template
-from _base import BaseExporter
+from _base import Exporter
 from _csv import CSVExporter
 
 
-class SASExporter(BaseExporter):
+class SASExporter(Exporter):
     short_name = 'SAS'
     long_name = 'Statistical Analysis System (SAS)'
 
