@@ -111,6 +111,48 @@ class DataField(BasePlural):
             ('view_datafield', 'Can view datafield'),
         )
 
+    @classmethod
+    def init(cls, app_name, model_name=None, field_name=None, **kwargs):
+        """Convenience method for initializing a new instance with metadata
+        populated directly from the model field instance. This returns an
+        _unsaved_ instance.
+        """
+        # Field instance
+        if isinstance(app_name, models.Field):
+            field = app_name
+            field_name = field.name
+            model_name = field.model.module_name
+            app_name = field.model._meta.app_label
+
+        # Dot-delimited string
+        elif isinstance(app_name, basestring) and '.' in app_name:
+            values = app_name.split('.')
+            if len(values) != 3:
+                raise ValueError("The dot-delimited field format must be 'app.model.field'.")
+            app_name, model_name, field_name = values
+
+        defaults = {
+            'app_name': app_name,
+            'model_name': model_name.lower(),
+            'field_name': field_name,
+        }
+
+        # Temp instance to validate the model field exists
+        f = cls(**defaults)
+        if not f.field:
+            raise ValueError('Field does not correspond to a model field.')
+
+        # Add field-derived components
+        defaults.update({
+            'name': f.field.verbose_name.title(),
+            'description': f.field.help_text or None,
+        })
+
+        # Update defaults with kwargs
+        defaults.update(kwargs)
+
+        return cls(**defaults)
+
     def __init__(self, *args, **kwargs):
         super(DataField, self).__init__(*args, **kwargs)
 
