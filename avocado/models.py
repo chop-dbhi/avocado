@@ -11,7 +11,6 @@ from avocado.core import utils
 from avocado.core.models import Base, BasePlural
 from avocado.core.cache import (post_save_cache, pre_delete_uncache,
     cached_property)
-from avocado.conf import settings
 from avocado import managers
 from avocado.query.models import AbstractDataView, AbstractDataContext, AbstractDataQuery
 from avocado.query.translators import registry as translators
@@ -26,9 +25,6 @@ from avocado.queryview import registry as queryviews
 
 __all__ = ('DataCategory', 'DataConcept', 'DataField',
     'DataContext', 'DataView', 'DataQuery')
-
-
-SIMPLE_TYPE_MAP = settings.SIMPLE_TYPE_MAP
 
 
 ident_re = re.compile(r'^[a-zA-Z][a-zA-Z0-9_]*$')
@@ -193,7 +189,7 @@ class DataField(BasePlural):
         By default, it will use the field's internal type, but can be
         overridden by the ``SIMPLE_TYPE_MAP`` setting.
         """
-        return SIMPLE_TYPE_MAP.get(self.internal_type, self.internal_type)
+        return utils.get_simple_type(self.field)
 
     @property
     def lexicon(self):
@@ -616,10 +612,10 @@ class DataView(AbstractDataView, Base):
 
 class DataQuery(AbstractDataQuery, Base):
     """
-    JSON object representing a complete query. 
+    JSON object representing a complete query.
 
     The query is constructed from a context(providing the 'WHERE' statements)
-    and a view(providing the 'SELECT' and 'ORDER BY" statements). This 
+    and a view(providing the 'SELECT' and 'ORDER BY" statements). This
     corresponds to all the statements of the SQL query to dictate what info
     to retrieve, how to filter it, and the order to display it in.
     """
