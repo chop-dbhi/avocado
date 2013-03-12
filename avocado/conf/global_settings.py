@@ -3,7 +3,7 @@
 # only need to differentiate between high-level types like number, string,
 # and boolean. More granular separation be may desired to alter the
 # allowed operators or may infer a different client-side representation
-SIMPLE_TYPE_MAP = {
+SIMPLE_TYPES = {
     'auto': 'key',
     'foreignkey': 'key',
 
@@ -32,7 +32,7 @@ SIMPLE_TYPE_MAP = {
 # that will be used to validate a query condition. In many cases, these types
 # support more operators than what are defined, but are not include because
 # they are not commonly used.
-OPERATOR_MAP = {
+OPERATORS = {
     'key': ('exact', '-exact', 'in', '-in'),
     'boolean': ('exact', '-exact', 'in', '-in'),
     'date': ('exact', '-exact', 'in', '-in', 'lt', 'lte', 'gt', 'gte', 'range'),

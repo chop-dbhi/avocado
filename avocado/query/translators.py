@@ -9,7 +9,7 @@ from avocado.core.utils import get_form_class
 from .operators import registry as operators
 
 
-OPERATOR_MAP = settings.OPERATOR_MAP
+OPERATORS = settings.OPERATORS
 INTERNAL_DATATYPE_FORMFIELDS = settings.INTERNAL_DATATYPE_FORMFIELDS
 
 
@@ -50,7 +50,7 @@ class Translator(object):
 
     def get_operators(self, field):
         # Determine list of allowed operators
-        return self.operators or OPERATOR_MAP[field.simple_type]
+        return self.operators or OPERATORS[field.simple_type]
 
     def _validate_operator(self, field, uid, **kwargs):
         # Determine list of allowed operators
