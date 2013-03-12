@@ -1,7 +1,7 @@
 import jsonfield
 from django.db import models
 from modeltree.tree import trees
-from . import parsers
+from . import oldparsers as parsers
 
 
 class AbstractDataContext(models.Model):
