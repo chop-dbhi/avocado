@@ -2,7 +2,7 @@ from copy import deepcopy
 from django.test import TestCase
 from django.core.exceptions import ValidationError
 from django.core import management
-from avocado.query import parsers
+from avocado.query import oldparsers as parsers
 from avocado.models import DataConcept, DataField, DataConceptField
 from ..models import Employee
 
