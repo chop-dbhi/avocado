@@ -45,7 +45,6 @@ def get_heuristic_flags(field):
     }
 
 
-# BACKPORT: 2.1
 def parse_field_key(key):
     "Returns a field lookup based on a variety of key types."
     if isinstance(key, int):

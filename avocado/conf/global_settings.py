@@ -86,3 +86,7 @@ METADATA_MIGRATION_SUFFIX = 'avocado_metadata_migration'
 QUERY_PROCESSORS = {
     'default': 'avocado.query.pipeline.QueryProcessor',
 }
+
+# Custom validation error and warnings messages
+VALIDATION_ERRORS = {}
+VALIDATION_WARNINGS = {}
