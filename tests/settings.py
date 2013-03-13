@@ -31,6 +31,7 @@ INSTALLED_APPS = (
     'tests.cases.search',
     'tests.cases.stats',
     'tests.cases.subcommands',
+    'tests.cases.validation',
 )
 
 CACHES = {

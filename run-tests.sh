@@ -16,6 +16,7 @@ read -d '' ARGS <<- EOF
     stats
     search
     subcommands
+    validation
 EOF
 fi
 

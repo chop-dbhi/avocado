@@ -17,6 +17,7 @@ apps = [
     'stats',
     'search',
     'subcommands',
+    'validation',
 ]
 
 management.call_command(*apps)
