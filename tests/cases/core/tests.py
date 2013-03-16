@@ -190,8 +190,8 @@ class CachedMethodTestCase(TestCase):
         self.assertTrue(f.versioned.cached())
         self.assertTrue(f.unversioned.cached())
 
-        f.unversioned.flush()
-        f.versioned.flush()
+        f.unversioned.clear()
+        f.versioned.clear()
 
         self.assertFalse(f.unversioned.cached())
         self.assertFalse(f.versioned.cached())

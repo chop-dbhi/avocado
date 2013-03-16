@@ -159,6 +159,15 @@ class FieldInterface(object):
         """
         return self._instance.field.null
 
+    @property
+    def enumerable(self):
+        """Returns whether the field is enumerable.
+
+        This is dependent on the underlying data itself and will dynamically
+        adjust itself based on the number of size (number of distinct values).
+        """
+        return self.size() <= settings.ENUMERABLE_MAX_SIZE
+
     def value_exists(self, value, **context):
         "Optimized method for checking if a value exists."
         lookup = {self._value_field.name: value}

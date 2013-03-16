@@ -58,7 +58,7 @@ INTERNAL_DATATYPE_FORMFIELDS = {
 # The minimum number of distinct values required when determining to set the
 # `searchable` flag on `DataField` instances during the `init` process. This
 # will only be applied to fields with a Avocado datatype of 'string'
-ENUMERABLE_MAXIMUM = 30
+ENUMERABLE_MAX_SIZE = 50
 
 # Flag for enabling the history API
 HISTORY_ENABLED = False

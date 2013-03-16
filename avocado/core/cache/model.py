@@ -91,8 +91,8 @@ class CacheProxy(object):
             self._set(key, data)
         return data
 
-    def flush(self):
-        "Flushes cached data for this method."
+    def clear(self):
+        "cleares cached data for this method."
         if self.func_self is None:
             return
         cache.delete(self.cache_key)
@@ -123,9 +123,13 @@ def cached_method(func=None, version=None, timeout=NEVER_EXPIRE, key_func=instan
                 cache_proxy.func_self = self
             return cache_proxy.get_or_set(*args, **kwargs)
 
+        # This enables other components to reference and/or check for the
+        # existence of the proxy
+        inner.__cacheproxy__ = cache_proxy
+
         # Augment method with a few methods. These are wrapped in a lambda
         # to prevent mucking the cache_proxy instance directly..
-        inner.flush = lambda: cache_proxy.flush()
+        inner.clear = lambda: cache_proxy.clear()
         inner.cached = lambda: cache_proxy.cached()
 
         return inner

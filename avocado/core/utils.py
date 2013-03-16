@@ -47,7 +47,7 @@ def get_heuristic_flags(field):
     enumerable = False
 
     if field.internal_type != 'text' and field.simple_type in ('string', 'boolean') \
-            and field.size() <= settings.ENUMERABLE_MAXIMUM:
+            and field.size() <= settings.ENUMERABLE_MAX_SIZE:
         enumerable = True
 
     return {

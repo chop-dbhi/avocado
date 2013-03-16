@@ -10,7 +10,6 @@ class Command(BaseCommand):
     commands = {
         'init': 'init',
         'check': 'check',
-        'data': 'data',
         'cache': 'cache',
         'legacy': 'legacy',
         'lexicon': 'lexicon',
