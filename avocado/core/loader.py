@@ -25,11 +25,16 @@ class Registry(object):
 
         self.default = default
 
-    def __getitem__(self, name):
-        return self._registry.get(name, self.default)
+    def __contains__(self, key):
+        return key in self._registry
+
+    def __getitem__(self, key):
+        return self._registry.get(key, self.default)
 
     def get(self, name):
-        return self.__getitem__(name)
+        if name in self:
+            return self[name]
+        return self.default
 
     def register(self, obj, name=None, default=False):
         """Registers a class or instance with an optional name. The class
