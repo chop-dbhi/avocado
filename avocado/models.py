@@ -91,6 +91,8 @@ class DataField(BasePlural):
     data_modified = models.DateTimeField(null=True, help_text='The last time '\
         ' the underlying data for this field was modified.')
 
+    group = models.ForeignKey(Group, null=True, blank=True, related_name='fields+')
+
     # Certain fields may not be relevant or appropriate for all
     # sites being deployed. This is primarily for preventing exposure of
     # access to private data from certain sites. For example, there may and
@@ -98,8 +100,6 @@ class DataField(BasePlural):
     # has full access to all fields, while the external may have a limited set.
     # NOTE this is not reliable way to prevent exposure of sensitive data.
     # This should be used to simply hide _access_ to the concepts.
-    group = models.ForeignKey(Group, null=True, blank=True, related_name='fields+')
-
     sites = models.ManyToManyField(Site, blank=True, related_name='fields+')
 
     # The order of this datafield with respect to the category (if defined).
@@ -395,6 +395,9 @@ class DataConcept(BasePlural):
     fields = models.ManyToManyField(DataField, through='DataConceptField',
         related_name='concepts')
 
+    group = models.ForeignKey(Group, null=True, blank=True,
+        related_name='concepts+')
+
     # Certain concepts may not be relevant or appropriate for all
     # sites being deployed. This is primarily for preventing exposure of
     # access to private data from certain sites. For example, there may and
@@ -402,9 +405,6 @@ class DataConcept(BasePlural):
     # has full access to all fields, while the external may have a limited set.
     # NOTE this is not reliable way to prevent exposure of sensitive data.
     # This should be used to simply hide _access_ to the concepts.
-    group = models.ForeignKey(Group, null=True, blank=True,
-        related_name='concepts+')
-
     sites = models.ManyToManyField(Site, blank=True, related_name='concepts+')
 
     order = models.FloatField(null=True, blank=True, db_column='_order')
