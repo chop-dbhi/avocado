@@ -3,6 +3,7 @@ from django.core import exceptions
 from django.utils.encoding import smart_unicode
 from avocado.core import utils, loader
 from avocado.conf import settings
+from avocado.data.cache import FieldCache
 from avocado.stats.agg import Aggregator
 
 
@@ -48,6 +49,7 @@ class FieldInterface(object):
 
     def __init__(self, instance):
         self._instance = instance
+        self._cache = FieldCache(self)
 
     def __unicode__(self):
         if self._instance.name:
