@@ -24,13 +24,14 @@ def get_internal_type(field):
         datatype = datatype[:-5]
     return datatype
 
-def get_simple_type(field):
+def get_simple_type(internal):
     """Returns a simple type mapped from the internal type."
 
     By default, it will use the field's internal type, but can be
     overridden by the ``SIMPLE_TYPES`` setting.
     """
-    internal = get_internal_type(field)
+    if isinstance(internal, models.Field):
+        internal = get_internal_type(internal)
     return settings.SIMPLE_TYPES.get(internal, internal)
 
 
