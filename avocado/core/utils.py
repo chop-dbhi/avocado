@@ -43,3 +43,17 @@ def get_heuristic_flags(field):
     return {
         'enumerable': enumerable,
     }
+
+
+# BACKPORT: 2.1
+def parse_field_key(key):
+    "Returns a field lookup based on a variety of key types."
+    if isinstance(key, int):
+        return {'pk': key}
+    keys = ('app_name', 'model_name', 'field_name')
+    if isinstance(key, basestring):
+        toks = key.split('.')
+    elif isinstance(key, (list, tuple)):
+        toks = key
+    offset = len(keys) - len(toks)
+    return dict(zip(keys[offset:], toks))

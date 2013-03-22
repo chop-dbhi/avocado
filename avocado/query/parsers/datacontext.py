@@ -1,10 +1,12 @@
+import warnings
 from modeltree.tree import trees
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
+from avocado.core import utils
 
 AND = 'AND'
 OR = 'OR'
 BRANCH_KEYS = ('children', 'type')
-CONDITION_KEYS = ('id', 'value')
+CONDITION_KEYS = ('operator', 'value')
 COMPOSITE_KEYS = ('id', 'composite')
 LOGICAL_OPERATORS = ('and', 'or')
 
@@ -22,16 +24,14 @@ def is_branch(obj):
     if has_keys(obj, keys=BRANCH_KEYS):
         if obj['type'] not in LOGICAL_OPERATORS:
             raise ValidationError('Invalid branch operator')
-        length = len(obj['children'])
-        if length < 2:
-            raise ValidationError('Branch must contain two or more children')
         return True
 
 
 def is_condition(obj):
     "Validates required structure for a condition node"
     if has_keys(obj, keys=CONDITION_KEYS):
-        return True
+        if 'field' in obj or 'id' in obj:
+            return True
 
 
 def is_composite(obj):
@@ -67,10 +67,17 @@ class Node(object):
 
 class Condition(Node):
     "Contains information for a single query condition."
-    def __init__(self, id, operator, value, **context):
-        self.id = id
+    def __init__(self, value, operator, id=None, field=None, concept=None, **context):
+        if field:
+            self.field_key = field
+        else:
+            self.field_key = id
+            warnings.warn('The "id" key has been replaced with "field"', DeprecationWarning)
+
+        self.concept_key = concept
         self.operator = operator
         self.value = value
+
         super(Condition, self).__init__(**context)
 
     @property
@@ -81,10 +88,26 @@ class Condition(Node):
         return self.__meta
 
     @property
+    def concept(self):
+        if not hasattr(self, '_concept'):
+            if self.concept_key:
+                from avocado.models import DataConcept
+                self._concept = DataConcept.objects.get(id=self.concept_key)
+            else:
+                self._concept = None
+        return self._concept
+
+    @property
     def field(self):
         if not hasattr(self, '_field'):
             from avocado.models import DataField
-            self._field = DataField.objects.get_by_natural_key(self.id)
+            # Parse to get into a consistent format
+            field_key = utils.parse_field_key(self.field_key)
+
+            if self.concept:
+                self._field = self.concept.fields.get(**field_key)
+            else:
+                self._field = DataField.objects.get(**field_key)
         return self._field
 
     @property
@@ -185,10 +208,19 @@ def validate(attrs, **context):
             raise ValidationError(u'DataContext "{0}" does not exist.'.format(attrs['id']))
         validate(cxt.json, **context)
     elif is_condition(attrs):
-        from avocado.models import DataField
+        from avocado.models import DataField, DataConcept
+
+        field_key = attrs.get('field', attrs.get('id'))
+        # Parse to get into a consistent format
+        field_key = utils.parse_field_key(field_key)
+
         try:
-            field = DataField.objects.get_by_natural_key(attrs['id'])
-        except DataField.DoesNotExist, e:
+            if 'concept' in attrs:
+                concept = DataConcept.objects.get(id=attrs['concept'])
+                field = concept.fields.get(**field_key)
+            else:
+                field = DataField.objects.get(**field_key)
+        except ObjectDoesNotExist, e:
             raise ValidationError(e.message)
         field.validate(operator=attrs['operator'], value=attrs['value'])
     elif is_branch(attrs):
@@ -208,8 +240,9 @@ def parse(attrs, **context):
             cxt = DataContext.objects.get(id=attrs['id'])
         return parse(cxt.json, **context)
     elif is_condition(attrs):
-        node = Condition(attrs['id'], attrs.get('operator', None), attrs['value'], **context)
+        node = Condition(operator=attrs['operator'], value=attrs['value'],
+            id=attrs.get('id'), field=attrs.get('field'), **context)
     else:
-        node = Branch(attrs['type'], **context)
+        node = Branch(type=attrs['type'], **context)
         node.children = map(lambda x: parse(x, **context), attrs['children'])
     return node

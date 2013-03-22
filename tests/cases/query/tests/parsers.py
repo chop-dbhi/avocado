@@ -34,6 +34,13 @@ class DataContextParserTestCase(TestCase):
             'value': 'CEO'
         }, tree=Employee), None)
 
+        # Single by field
+        self.assertEqual(parsers.datacontext.validate({
+            'field': 4,
+            'operator': 'exact',
+            'value': 'CEO'
+        }, tree=Employee), None)
+
         # Branch node
         self.assertEqual(parsers.datacontext.validate({
             'type': 'and',
@@ -45,6 +52,22 @@ class DataContextParserTestCase(TestCase):
                 'id': 5,
                 'operator': 'exact',
                 'value': 'John',
+            }]
+        }, tree=Employee), None)
+
+        # No children
+        self.assertEqual(parsers.datacontext.validate({
+            'type': 'and',
+            'children': []
+        }, tree=Employee), None)
+
+        # 1 child
+        self.assertEqual(parsers.datacontext.validate({
+            'type': 'and',
+            'children': [{
+                'id': 4,
+                'operator': 'exact',
+                'value': 'CEO'
             }]
         }, tree=Employee), None)
 
@@ -66,15 +89,6 @@ class DataContextParserTestCase(TestCase):
         # Invalid logical operator
         self.assertRaises(ValidationError, parsers.datacontext.validate, {'type': 'foo', 'children': []})
 
-        # No children
-        self.assertRaises(ValidationError, parsers.datacontext.validate, {'type': 'and', 'children': []})
-
-        # 1 child
-        self.assertRaises(ValidationError, parsers.datacontext.validate, {
-            'type': 'and',
-            'children': [{'id': 4, 'operator': 'exact', 'value': 'CEO'}]
-        })
-
         # Missing 'value' key in first condition
         self.assertRaises(ValidationError, parsers.datacontext.validate, {
             'type': 'and',
@@ -84,6 +98,49 @@ class DataContextParserTestCase(TestCase):
                 'id': 4, 'operator': 'exact', 'value': 'CEO'
             }]
         })
+
+    def test_field_for_concept(self):
+        f = DataField.objects.get(id=4)
+        c1 = DataConcept()
+        c2 = DataConcept()
+        c1.save()
+        c2.save()
+        cf = DataConceptField(concept=c1, field=f)
+        cf.save()
+
+        self.assertEqual(parsers.datacontext.validate({
+            'concept': c1.pk,
+            'field': 4,
+            'operator': 'exact',
+            'value': 'CEO'
+        }, tree=Employee), None)
+
+        # Invalid concept
+        self.assertRaises(ValidationError, parsers.datacontext.validate, {
+            'concept': c2.pk,
+            'field': 4,
+            'operator': 'exact',
+            'value': 'CEO'
+        }, tree=Employee)
+
+    def test_parsed_node(self):
+        node = parsers.datacontext.parse({
+            'type': 'and',
+            'children': [],
+        }, tree=Employee)
+
+        self.assertEqual(node.condition, None)
+
+        node = parsers.datacontext.parse({
+            'type': 'and',
+            'children': [{
+                'id': 4,
+                'operator': 'exact',
+                'value': True
+            }],
+        }, tree=Employee)
+
+        self.assertEqual(str(node.condition), "(AND: ('title__boss__exact', True))")
 
     def test_apply(self):
         node = parsers.datacontext.parse({
