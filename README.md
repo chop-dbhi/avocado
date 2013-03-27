@@ -945,6 +945,14 @@ Having these indexes enables generating queries regardless of the entry point an
 
 ## CHANGELOG
 
+2.0.21 [diff](https://github.com/cbmi/avocado/compare/2.0.20...2.0.21)
+
+- Backport context node schema from 2.1
+    - This is a backwards compatible port of the context node changes in Avocado 2.1 specifically to:
+        - Support the `field` key instead of `id` as the field identifier
+        - Support the `concept` key which is used to scope the `field`
+        - Support branches without children or one child to act as containers
+
 2.0.20 [diff](https://github.com/cbmi/avocado/compare/2.0.19...2.0.20)
 
 - Fix possible mis-ordering of formatter keys and fields
