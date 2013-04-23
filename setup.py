@@ -4,8 +4,8 @@ from setuptools.command import install as _install
 
 
 install_requires = [
-    'django>=1.4,<1.5',
-    'modeltree>=1.1.3',
+    'django>=1.4,<1.6',
+    'modeltree>=1.1.5',
     'South==0.7.6',
     # Uses a dependency link below
     'jsonfield>=1.0b',
