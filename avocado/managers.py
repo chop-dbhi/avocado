@@ -109,7 +109,7 @@ class DataFieldManager(PublishedManager):
         return datafield
 
     @requires_dep('haystack')
-    def search(self, content, queryset=None, max_results=10):
+    def search(self, content, queryset=None, max_results=None):
         from haystack.query import RelatedSearchQuerySet
         sqs = RelatedSearchQuerySet().models(self.model).load_all()\
             .auto_query(content)
@@ -126,7 +126,7 @@ class DataConceptManager(PublishedManager):
         return DataConceptQuerySet(self.model, using=self._db)
 
     @requires_dep('haystack')
-    def search(self, content, queryset=None, max_results=10):
+    def search(self, content, queryset=None, max_results=None):
         from haystack.query import RelatedSearchQuerySet
         sqs = RelatedSearchQuerySet().models(self.model).load_all()\
             .auto_query(content)
