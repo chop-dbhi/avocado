@@ -945,6 +945,14 @@ Having these indexes enables generating queries regardless of the entry point an
 
 ## CHANGELOG
 
+2.0.22 [diff](https://github.com/cbmi/avocado/compare/2.0.21...2.0.22)
+
+- Add support for Django 1.5
+- Increase minimum version of ModelTree 1.1.5
+- Add a Haystack `search_sites` module for convenience when integrating in a project
+- Remove default search results size of 10
+    - This is arbitrary and has caused confusion that it was truncating results
+
 2.0.21 [diff](https://github.com/cbmi/avocado/compare/2.0.20...2.0.21)
 
 - Backport context node schema from 2.1
