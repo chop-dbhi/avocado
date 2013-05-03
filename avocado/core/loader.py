@@ -25,6 +25,12 @@ class Registry(object):
 
         self.default = default
 
+    def __len__(self):
+        return len(self._registry)
+
+    def __nonzero__(self):
+        return True
+
     def __contains__(self, key):
         return key in self._registry
 
