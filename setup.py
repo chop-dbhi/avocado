@@ -7,8 +7,7 @@ install_requires = [
     'django>=1.4,<1.6',
     'modeltree>=1.1.5',
     'South==0.7.6',
-    # Uses a dependency link below
-    'jsonfield>=1.0b',
+    'jsonfield==0.9.4',
 ]
 
 if sys.version_info < (2, 7):
@@ -57,10 +56,6 @@ kwargs = {
         # Includes extra exporter dependencies
         'extras': ['openpyxl>=1.6,<1.7'],
     },
-
-    'dependency_links': [
-        'https://github.com/cbmi/django-jsonfield/zipball/601872f#egg=jsonfield-1.0b',
-    ],
 
     # Metadata
     'name': 'avocado',
