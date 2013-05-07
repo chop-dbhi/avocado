@@ -483,6 +483,8 @@ class DataContext(AbstractDataContext, Base):
     This corresponds to the `WHERE` statements in a SQL query.
     """
     session = models.BooleanField(default=False)
+    template = models.BooleanField(default=False)
+    default = models.BooleanField(default=False)
 
     # For authenticated users the `user` can be directly referenced,
     # otherwise the session key can be used.
@@ -490,6 +492,8 @@ class DataContext(AbstractDataContext, Base):
     session_key = models.CharField(max_length=40, null=True, blank=True)
 
     def __unicode__(self):
+        if self.name:
+            return self.name
         if self.user_id:
             out = unicode(self.user)
         else:
@@ -513,6 +517,8 @@ class DataView(AbstractDataView, Base):
     This corresponds to the `SELECT` and `ORDER BY` statements in a SQL query.
     """
     session = models.BooleanField(default=False)
+    template = models.BooleanField(default=False)
+    default = models.BooleanField(default=False)
 
     # For authenticated users the `user` can be directly referenced,
     # otherwise the session key can be used.
@@ -520,7 +526,9 @@ class DataView(AbstractDataView, Base):
     session_key = models.CharField(max_length=40, null=True, blank=True)
 
     def __unicode__(self):
-        if self.user_id:
+        if self.name:
+            return self.name
+        elif self.user_id:
             out = unicode(self.user)
         else:
             out = self.session_key
