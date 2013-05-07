@@ -12,7 +12,6 @@ class AbstractDataContext(models.Model):
     """
     json = jsonfield.JSONField(null=True, blank=True, default=dict,
         validators=[parsers.datacontext.validate])
-    composite = models.BooleanField(default=False)
     count = models.IntegerField(null=True, db_column='_count')
 
     class Meta(object):
@@ -21,7 +20,7 @@ class AbstractDataContext(models.Model):
     def _combine(self, other, operator):
         if not isinstance(other, self.__class__):
             raise TypeError('Other object must be a DataContext instance')
-        cxt = self.__class__(composite=True)
+        cxt = self.__class__()
         cxt.user_id = self.user_id or other.user_id
         if self.json and other.json:
             cxt.json = {
