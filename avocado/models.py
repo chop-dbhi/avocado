@@ -509,6 +509,19 @@ class DataContext(AbstractDataContext, Base):
         self.pk, self.session, self.archived = backup
         return True
 
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if self.template and self.default:
+            queryset = self.__class__.objects.filter(template=True, default=True)
+            if self.pk:
+                queryset = queryset.exclude(pk=self.pk)
+            if queryset.exists():
+                raise ValidationError('Only one default template can be defined')
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super(self.__class__, self).save(*args, **kwargs)
+
 
 class DataView(AbstractDataView, Base):
     """JSON object representing one or more data field conditions. The data may
@@ -542,6 +555,19 @@ class DataView(AbstractDataView, Base):
         self.save()
         self.pk, self.session, self.archived = backup
         return True
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if self.template and self.default:
+            queryset = self.__class__.objects.filter(template=True, default=True)
+            if self.pk:
+                queryset = queryset.exclude(pk=self.pk)
+            if queryset.exists():
+                raise ValidationError('Only one default template can be defined')
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super(self.__class__, self).save(*args, **kwargs)
 
 
 # Register instance-level cache invalidation handlers

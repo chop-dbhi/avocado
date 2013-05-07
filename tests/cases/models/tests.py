@@ -5,9 +5,11 @@ except ImportError:
 from django.test import TestCase
 from django.core import management
 from django.core.cache import cache
+from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 from guardian.shortcuts import assign
-from avocado.models import DataField, DataCategory, DataConcept, DataConceptField
+from avocado.models import (DataField, DataConcept, DataConceptField,
+    DataContext, DataView)
 
 
 class ModelInstanceCacheTestCase(TestCase):
@@ -181,5 +183,35 @@ class DataConceptManagerTestCase(TestCase):
         self.assertEqual([x.pk for x in DataConcept.objects.published(user2)], [])
 
 
-class DataCategoryTestCase(TestCase):
-    pass
+class DataContextTestCase(TestCase):
+    def test_clean(self):
+        # Save a default template
+        cxt = DataContext(template=True, default=True)
+        cxt.save()
+
+        # Save new template (not default)
+        cxt2 = DataContext(template=True)
+        cxt2.save()
+
+        # Try changing it to default
+        cxt2.default = True
+        self.assertRaises(ValidationError, cxt2.save)
+
+        cxt.save()
+
+
+class DataViewTestCase(TestCase):
+    def test_clean(self):
+        # Save a default template
+        cxt = DataView(template=True, default=True)
+        cxt.save()
+
+        # Save new template (not default)
+        cxt2 = DataView(template=True)
+        cxt2.save()
+
+        # Try changing it to default
+        cxt2.default = True
+        self.assertRaises(ValidationError, cxt2.save)
+
+        cxt.save()
