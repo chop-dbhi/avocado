@@ -184,6 +184,11 @@ class DataConceptManagerTestCase(TestCase):
 
 
 class DataContextTestCase(TestCase):
+    def test_init(self):
+        json = {'field': 'models.title.salary', 'operator': 'gt', 'value': '1000'}
+        cxt = DataContext(json)
+        self.assertEqual(cxt.json, json)
+
     def test_clean(self):
         # Save a default template
         cxt = DataContext(template=True, default=True)
@@ -201,17 +206,22 @@ class DataContextTestCase(TestCase):
 
 
 class DataViewTestCase(TestCase):
+    def test_init(self):
+        json = {'columns': []}
+        view = DataView(json)
+        self.assertEqual(view.json, json)
+
     def test_clean(self):
         # Save a default template
-        cxt = DataView(template=True, default=True)
-        cxt.save()
+        view = DataView(template=True, default=True)
+        view.save()
 
         # Save new template (not default)
-        cxt2 = DataView(template=True)
-        cxt2.save()
+        view2 = DataView(template=True)
+        view2.save()
 
         # Try changing it to default
-        cxt2.default = True
-        self.assertRaises(ValidationError, cxt2.save)
+        view2.default = True
+        self.assertRaises(ValidationError, view2.save)
 
-        cxt.save()
+        view.save()

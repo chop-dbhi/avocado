@@ -14,6 +14,14 @@ class AbstractDataContext(models.Model):
         validators=[parsers.datacontext.validate])
     count = models.IntegerField(null=True, db_column='_count')
 
+    def __init__(self, *args, **kwargs):
+        if args and isinstance(args[0], dict):
+            if 'json' in kwargs:
+                raise TypeError("{0}.__init__() got multiple values for keyword argument 'json'".format(self.__class__.__name__))
+            args = list(args)
+            kwargs['json'] = args.pop(0)
+        super(AbstractDataContext, self).__init__(*args, **kwargs)
+
     class Meta(object):
         abstract = True
 
@@ -76,6 +84,14 @@ class AbstractDataView(models.Model):
     json = jsonfield.JSONField(null=True, blank=True, default=dict,
         validators=[parsers.dataview.validate])
     count = models.IntegerField(null=True, db_column='_count')
+
+    def __init__(self, *args, **kwargs):
+        if args and isinstance(args[0], dict):
+            if 'json' in kwargs:
+                raise TypeError("{0}.__init__() got multiple values for keyword argument 'json'".format(self.__class__.__name__))
+            args = list(args)
+            kwargs['json'] = args.pop(0)
+        super(AbstractDataView, self).__init__(*args, **kwargs)
 
     class Meta(object):
         abstract = True
