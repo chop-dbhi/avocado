@@ -257,7 +257,7 @@ class Translator(object):
         language = self.language(field, operator, value, **kwargs)
 
         return {
-            'id': field.pk,
+            'field': field.pk,
             'operator': roperator,
             'value': rvalue,
             'cleaned_data': {

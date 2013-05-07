@@ -7,7 +7,7 @@ AND = 'AND'
 OR = 'OR'
 BRANCH_KEYS = ('children', 'type')
 CONDITION_KEYS = ('operator', 'value')
-COMPOSITE_KEYS = ('id', 'composite')
+COMPOSITE_KEYS = ('composite',)
 LOGICAL_OPERATORS = ('and', 'or')
 
 
@@ -22,8 +22,6 @@ def has_keys(obj, keys):
 def is_branch(obj):
     "Validates required structure for a branch node"
     if has_keys(obj, keys=BRANCH_KEYS):
-        if obj['type'] not in LOGICAL_OPERATORS:
-            raise ValidationError('Invalid branch operator')
         return True
 
 
@@ -36,8 +34,6 @@ def is_condition(obj):
 
 def is_composite(obj):
     if has_keys(obj, keys=COMPOSITE_KEYS):
-        if obj['composite'] is not True:
-            raise ValidationError('Composite key must be set to True.')
         return True
 
 
@@ -47,8 +43,9 @@ class Node(object):
     extra = None
     language = None
 
-    def __init__(self, **context):
-        self.tree = context.pop('tree', None)
+    def __init__(self, enabled=True, tree=None, **context):
+        self.enabled = enabled
+        self.tree = tree
         self.context = context
 
     def apply(self, queryset=None, distinct=True):
@@ -67,7 +64,9 @@ class Node(object):
 
 class Condition(Node):
     "Contains information for a single query condition."
-    def __init__(self, value, operator, id=None, field=None, concept=None, **context):
+    def __init__(self, value, operator, id=None, field=None,
+            concept=None, **context):
+
         if field:
             self.field_key = field
         else:
@@ -89,38 +88,43 @@ class Condition(Node):
 
     @property
     def concept(self):
-        if not hasattr(self, '_concept'):
-            if self.concept_key:
-                from avocado.models import DataConcept
-                self._concept = DataConcept.objects.get(id=self.concept_key)
-            else:
-                self._concept = None
-        return self._concept
+        if self.enabled:
+            if not hasattr(self, '_concept'):
+                if self.concept_key:
+                    from avocado.models import DataConcept
+                    self._concept = DataConcept.objects.get(id=self.concept_key)
+                else:
+                    self._concept = None
+            return self._concept
 
     @property
     def field(self):
-        if not hasattr(self, '_field'):
-            from avocado.models import DataField
-            # Parse to get into a consistent format
-            field_key = utils.parse_field_key(self.field_key)
+        if self.enabled:
+            if not hasattr(self, '_field'):
+                from avocado.models import DataField
+                # Parse to get into a consistent format
+                field_key = utils.parse_field_key(self.field_key)
 
-            if self.concept:
-                self._field = self.concept.fields.get(**field_key)
-            else:
-                self._field = DataField.objects.get(**field_key)
-        return self._field
+                if self.concept:
+                    self._field = self.concept.fields.get(**field_key)
+                else:
+                    self._field = DataField.objects.get(**field_key)
+            return self._field
 
     @property
     def condition(self):
-        return self._meta['query_modifiers'].get('condition', None)
+        if self.enabled:
+            return self._meta['query_modifiers'].get('condition', None)
 
     @property
     def annotations(self):
-        return self._meta['query_modifiers'].get('annotations', None)
+        if self.enabled:
+            return self._meta['query_modifiers'].get('annotations', None)
 
     @property
     def extra(self):
-        return self._meta['query_modifiers'].get('extra', None)
+        if self.enabled:
+            return self._meta['query_modifiers'].get('extra', None)
 
     @property
     def language(self):
@@ -195,22 +199,28 @@ class Branch(Node):
 def validate(attrs, **context):
     if type(attrs) is not dict:
         raise ValidationError('Object must be of type dict')
-    if not attrs:
-        return
+
+    if not attrs or attrs.get('enabled', False):
+        return attrs
+
+    attrs.pop('enabled', None)
+
     if is_composite(attrs):
         from avocado.models import DataContext
         try:
             if 'user' in context:
-                cxt = DataContext.objects.get(id=attrs['id'], user=context['user'])
+                cxt = DataContext.objects.get(id=attrs['composite'], user=context['user'])
             else:
-                cxt = DataContext.objects.get(id=attrs['id'])
+                cxt = DataContext.objects.get(id=attrs['composite'])
+            validate(cxt.json, **context)
+            attrs['language'] = cxt.name
         except DataContext.DoesNotExist:
-            raise ValidationError(u'DataContext "{0}" does not exist.'.format(attrs['id']))
-        validate(cxt.json, **context)
-        attrs['language'] = cxt.name
+            attrs['enabled'] = False
+            attrs.setdefault('errors', [])
+            attrs.append(u'DataContext "{0}" does not exist.'.format(attrs['id']))
+
     elif is_condition(attrs):
         from avocado.models import DataField, DataConcept
-
         field_key = attrs.get('field', attrs.get('id'))
         # Parse to get into a consistent format
         field_key = utils.parse_field_key(field_key)
@@ -221,17 +231,23 @@ def validate(attrs, **context):
                 field = concept.fields.get(**field_key)
             else:
                 field = DataField.objects.get(**field_key)
-        except ObjectDoesNotExist, e:
-            raise ValidationError(e.message)
-        field.validate(operator=attrs['operator'], value=attrs['value'])
-        node = parse(attrs, **context)
-        attrs['language'] = node.language['language']
+            field.validate(operator=attrs['operator'], value=attrs['value'])
+            node = parse(attrs, **context)
+            attrs['language'] = node.language['language']
+        except ObjectDoesNotExist:
+            attrs['enabled'] = False
+            attrs.setdefault('errors', [])
+            attrs['errors'].append('Field does not exist')
+
     elif is_branch(attrs):
-        map(lambda x: validate(x, **context), attrs['children'])
-        node = parse(attrs, **context)
-        attrs['language'] = node.language['children']
+        if attrs['type'] not in LOGICAL_OPERATORS:
+            attrs['enabled'] = False
+        else:
+            map(lambda x: validate(x, **context), attrs['children'])
     else:
-        raise ValidationError(u'Object neither a branch nor condition: {0}'.format(attrs))
+        attrs['enabled'] = False
+
+    return attrs
 
 
 def parse(attrs, **context):
@@ -240,9 +256,9 @@ def parse(attrs, **context):
     elif is_composite(attrs):
         from avocado.models import DataContext
         if 'user' in context:
-            cxt = DataContext.objects.get(id=attrs['id'], user=context['user'])
+            cxt = DataContext.objects.get(id=attrs['composite'], user=context['user'])
         else:
-            cxt = DataContext.objects.get(id=attrs['id'])
+            cxt = DataContext.objects.get(id=attrs['composite'])
         return parse(cxt.json, **context)
     elif is_condition(attrs):
         node = Condition(operator=attrs['operator'], value=attrs['value'],

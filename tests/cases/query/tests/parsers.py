@@ -1,3 +1,4 @@
+from copy import deepcopy
 from django.test import TestCase
 from django.core.exceptions import ValidationError
 from django.core import management
@@ -15,94 +16,113 @@ class DataContextParserTestCase(TestCase):
     def test_valid(self):
         title = DataField.objects.get_by_natural_key('query.title.name')
 
-        # Single by id
-        self.assertEqual(parsers.datacontext.validate({
+        # Single by id (deprecated)
+        attrs = {
             'id': title.pk,
             'operator': 'exact',
-            'value': 'CEO'
-        }, tree=Employee), None)
+            'value': 'CEO',
+            'language': 'Name is CEO'
+        }
+        self.assertEqual(parsers.datacontext.validate(deepcopy(attrs), tree=Employee), attrs)
 
         # Single by dotted label
-        self.assertEqual(parsers.datacontext.validate({
-            'id': 'query.title.boss',
+        attrs = {
+            'field': 'query.title.name',
             'operator': 'exact',
-            'value': 'CEO'
-        }, tree=Employee), None)
+            'value': 'CEO',
+            'language': 'Name is CEO'
+        }
+        self.assertEqual(parsers.datacontext.validate(deepcopy(attrs), tree=Employee), attrs)
 
         # Single by label list
-        self.assertEqual(parsers.datacontext.validate({
-            'id': ['query', 'title', 'boss'],
+        attrs = {
+            'field': ['query', 'title', 'name'],
             'operator': 'exact',
-            'value': 'CEO'
-        }, tree=Employee), None)
+            'value': 'CEO',
+            'language': 'Name is CEO'
+        }
+        self.assertEqual(parsers.datacontext.validate(deepcopy(attrs), tree=Employee), attrs)
 
         # Single by field
-        self.assertEqual(parsers.datacontext.validate({
-            'field': 4,
+        attrs = {
+            'field': title.pk,
             'operator': 'exact',
-            'value': 'CEO'
-        }, tree=Employee), None)
+            'value': 'CEO',
+            'language': 'Name is CEO'
+        }
+        self.assertEqual(parsers.datacontext.validate(deepcopy(attrs), tree=Employee), attrs)
 
         # Branch node
-        self.assertEqual(parsers.datacontext.validate({
+        attrs = {
             'type': 'and',
             'children': [{
-                'id': 'query.title.name',
+                'field': 'query.title.name',
                 'operator': 'exact',
                 'value': 'CEO',
+                'language': 'Name is CEO'
             }, {
-                'id': 'query.employee.first_name',
+                'field': 'query.employee.first_name',
                 'operator': 'exact',
                 'value': 'John',
-            }]
-        }, tree=Employee), None)
+                'language': 'First Name is John'
+            }],
+        }
+        self.assertEqual(parsers.datacontext.validate(deepcopy(attrs), tree=Employee), attrs)
 
         # No children
-        self.assertEqual(parsers.datacontext.validate({
+        attrs = {
             'type': 'and',
-            'children': []
-        }, tree=Employee), None)
+            'children': [],
+        }
+        self.assertEqual(parsers.datacontext.validate(deepcopy(attrs), tree=Employee), attrs)
 
         # 1 child
-        self.assertEqual(parsers.datacontext.validate({
+        attrs = {
             'type': 'and',
             'children': [{
-                'id': 4,
+                'field': 'query.title.name',
                 'operator': 'exact',
-                'value': 'CEO'
+                'value': 'CEO',
+                'language': 'Name is CEO'
             }]
-        }, tree=Employee), None)
+        }
+        self.assertEqual(parsers.datacontext.validate(deepcopy(attrs), tree=Employee), attrs)
 
     def test_invalid(self):
         # Non-existent data field
-        self.assertRaises(ValidationError, parsers.datacontext.validate, {
-            'id': 999,
+        attrs = parsers.datacontext.validate({
+            'field': 999,
             'operator': 'exact',
             'value': 'CEO'
-        }, tree=Employee)
+        })
+        self.assertFalse(attrs['enabled'])
 
         # Object must be a dict
         self.assertRaises(ValidationError, parsers.datacontext.validate, None)
 
         # Invalid logical operator
-        self.assertRaises(ValidationError, parsers.datacontext.validate,
-            {'type': 'foo', 'children': []})
+        attrs = parsers.datacontext.validate({'type': 'foo', 'children': []})
+        self.assertFalse(attrs['enabled'])
 
         # Missing 'value' key in first condition
-        self.assertRaises(ValidationError, parsers.datacontext.validate, {
+        attrs = parsers.datacontext.validate({
             'type': 'and',
             'children': [{
-                'id': 'query.title.name',
+                'field': 'query.title.name',
                 'operator': 'exact'
             }, {
-                'id': 'query.title.name',
+                'field': 'query.title.name',
                 'operator': 'exact',
                 'value': 'CEO'
             }]
-        })
+        }, tree=Employee)
+
+        self.assertTrue(attrs.get('enabled', True))
+        self.assertFalse(attrs['children'][0]['enabled'])
+        self.assertTrue(attrs['children'][1].get('enabled', True))
 
     def test_field_for_concept(self):
-        f = DataField.objects.get(id=4)
+        f = DataField.objects.get(model_name='title', field_name='name')
         c1 = DataConcept()
         c2 = DataConcept()
         c1.save()
@@ -110,20 +130,26 @@ class DataContextParserTestCase(TestCase):
         cf = DataConceptField(concept=c1, field=f)
         cf.save()
 
-        self.assertEqual(parsers.datacontext.validate({
+
+        attrs = {
             'concept': c1.pk,
-            'field': 4,
+            'field': f.pk,
             'operator': 'exact',
-            'value': 'CEO'
-        }, tree=Employee), None)
+            'value': 'CEO',
+            'language': 'Name is CEO'
+        }
+
+        self.assertEqual(parsers.datacontext.validate(deepcopy(attrs), tree=Employee), attrs)
 
         # Invalid concept
-        self.assertRaises(ValidationError, parsers.datacontext.validate, {
+        attrs = parsers.datacontext.validate({
             'concept': c2.pk,
-            'field': 4,
+            'field': f.pk,
             'operator': 'exact',
-            'value': 'CEO'
+            'value': 'CEO',
         }, tree=Employee)
+
+        self.assertFalse(attrs['enabled'])
 
     def test_parsed_node(self):
         node = parsers.datacontext.parse({
@@ -137,7 +163,7 @@ class DataContextParserTestCase(TestCase):
         node = parsers.datacontext.parse({
             'type': 'and',
             'children': [{
-                'id': 'query.title.name',
+                'field': 'query.title.name',
                 'operator': 'exact',
                 'value': 'CEO',
             }]
@@ -148,23 +174,23 @@ class DataContextParserTestCase(TestCase):
 
     def test_apply(self):
         node = parsers.datacontext.parse({
-            'id': 'query.title.boss',
+            'field': 'query.title.boss',
             'operator': 'exact',
             'value': True
         }, tree=Employee)
 
         self.assertEqual(unicode(node.apply().values('id').query), 'SELECT DISTINCT "query_employee"."id" FROM "query_employee" INNER JOIN "query_title" ON ("query_employee"."title_id" = "query_title"."id") WHERE "query_title"."boss" = True ')
-        self.assertEqual(node.language, {'operator': 'exact', 'language': u'Boss is True', 'id': 4, 'value': True})
+        self.assertEqual(node.language, {'operator': 'exact', 'language': u'Boss is True', 'field': 4, 'value': True})
 
         # Branch node
         node = parsers.datacontext.parse({
             'type': 'and',
             'children': [{
-                'id': 'query.title.boss',
+                'field': 'query.title.boss',
                 'operator': 'exact',
                 'value': True,
             }, {
-                'id': 'query.employee.first_name',
+                'field': 'query.employee.first_name',
                 'operator': 'exact',
                 'value': 'John',
             }]
@@ -175,12 +201,12 @@ class DataContextParserTestCase(TestCase):
         self.assertEqual(node.language, {
             'type': 'and',
             'children': [{
-                'id': 4,
+                'field': 4,
                 'operator': 'exact',
                 'value': True,
                 'language': 'Boss is True',
             }, {
-                'id': 5,
+                'field': 5,
                 'operator': 'exact',
                 'value': 'John',
                 'language': 'First Name is John',
