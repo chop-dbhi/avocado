@@ -26,14 +26,14 @@ class AbstractDataContext(models.Model):
             cxt.json = {
                 'type': operator,
                 'children': [
-                    {'id': self.pk, 'composite': True},
-                    {'id': other.pk, 'composite': True}
+                    {'composite': self.pk},
+                    {'composite': other.pk}
                 ]
             }
         elif self.json:
-            cxt.json = {'id': self.pk, 'composite': True}
+            cxt.json = {'composite': self.pk}
         elif other.json:
-            cxt.json = {'id': other.pk, 'composite': True}
+            cxt.json = {'composite': other.pk}
         return cxt
 
     def __and__(self, other):
