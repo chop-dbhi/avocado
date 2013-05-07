@@ -207,6 +207,7 @@ def validate(attrs, **context):
         except DataContext.DoesNotExist:
             raise ValidationError(u'DataContext "{0}" does not exist.'.format(attrs['id']))
         validate(cxt.json, **context)
+        attrs['language'] = cxt.name
     elif is_condition(attrs):
         from avocado.models import DataField, DataConcept
 
@@ -223,8 +224,12 @@ def validate(attrs, **context):
         except ObjectDoesNotExist, e:
             raise ValidationError(e.message)
         field.validate(operator=attrs['operator'], value=attrs['value'])
+        node = parse(attrs, **context)
+        attrs['language'] = node.language['language']
     elif is_branch(attrs):
-        map(lambda x: validate(x), attrs['children'])
+        map(lambda x: validate(x, **context), attrs['children'])
+        node = parse(attrs, **context)
+        attrs['language'] = node.language['children']
     else:
         raise ValidationError(u'Object neither a branch nor condition: {0}'.format(attrs))
 
