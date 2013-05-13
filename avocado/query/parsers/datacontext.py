@@ -200,10 +200,10 @@ def validate(attrs, **context):
     if type(attrs) is not dict:
         raise ValidationError('Object must be of type dict')
 
-    if not attrs or attrs.get('enabled', False):
+    if not attrs:
         return attrs
 
-    attrs.pop('enabled', None)
+    enabled = attrs.pop('enabled', None)
 
     if is_composite(attrs):
         from avocado.models import DataContext
@@ -245,6 +245,11 @@ def validate(attrs, **context):
         else:
             map(lambda x: validate(x, **context), attrs['children'])
     else:
+        attrs['enabled'] = False
+
+    # If this condition was originally disabled, ensure that decision is
+    # persisted
+    if enabled is False:
         attrs['enabled'] = False
 
     return attrs
