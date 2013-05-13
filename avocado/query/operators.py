@@ -65,12 +65,17 @@ class ContainerTypeOperator(BaseOperator):
 
     def text(self, value):
         value = map(self.coerce_to_unicode, value)
+        length = len(value)
 
-        last = value[-1]
-        length = len(value) - 1
+        if length == 1:
+            if self.negated:
+                name = NotExact.verbose_name
+            else:
+                name = Exact.verbose_name
+            return u'{0} {1}'.format(name, value[0])
 
-        if length == 0:
-            return u'{0} {1}'.format(self.verbose_name, last)
+        last = value.pop()
+        length -= 1
 
         if length > self.max_list_size:
             head = value[:self.max_list_size]
