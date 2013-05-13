@@ -80,15 +80,16 @@ class ContainerTypeOperator(BaseOperator):
         if length > self.max_list_size:
             head = value[:self.max_list_size]
         else:
-            head = value[:-1]
-        text = self.verbose_name + ' ' + ', '.join(head)
+            head = value
+
+        text = '{0} {1}'.format(self.verbose_name, ', '.join(head))
 
         # Add the leftover item count for the tail of the list
         tail = length - self.max_list_size
         if tail > 0:
             text += u' ... ({0} more)'.format(tail)
 
-        return text + u' {0} '.format(self.join_string) + last
+        return u'{0} {1} {2}'.format(text, self.join_string, last)
 
 
 class Null(BaseOperator):
@@ -148,24 +149,22 @@ class InsensitiveNotExact(InsensitiveExact):
 class Contains(StringOperator):
     lookup = 'contains'
     short_name = 'contains'
-    verbose_name = short_name
+    verbose_name = 'contains the text'
 
 
 class InsensitiveContains(Contains):
     lookup = 'icontains'
-    short_name = 'contains'
-    verbose_name = short_name
 
 
 class NotContains(Contains):
     short_name = 'does not contain'
-    verbose_name = 'does not contain'
+    verbose_name = 'does not contain the text'
     negated = True
 
 
 class NotInsensitiveContains(InsensitiveContains):
     short_name = 'does not contain'
-    verbose_name = 'does not contain'
+    verbose_name = 'does not contain the text'
     negated = True
 
 
