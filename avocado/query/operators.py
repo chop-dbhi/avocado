@@ -192,13 +192,15 @@ class GreaterThanOrEqual(SimpleTypeOperator):
 # Operators for container types (excluding strings)
 class InList(ContainerTypeOperator):
     lookup = 'in'
+    join_string = 'or'
     short_name = 'includes'
-    verbose_name = 'includes'
+    verbose_name = 'is either'
 
 
 class NotInList(InList):
+    join_string = 'nor'
     short_name = 'excludes'
-    verbose_name = 'excludes'
+    verbose_name = 'is neither'
     negated = True
 
 
