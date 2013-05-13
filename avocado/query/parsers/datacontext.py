@@ -43,8 +43,7 @@ class Node(object):
     extra = None
     language = None
 
-    def __init__(self, enabled=True, tree=None, **context):
-        self.enabled = enabled
+    def __init__(self, tree=None, **context):
         self.tree = tree
         self.context = context
 
@@ -88,43 +87,38 @@ class Condition(Node):
 
     @property
     def concept(self):
-        if self.enabled:
-            if not hasattr(self, '_concept'):
-                if self.concept_key:
-                    from avocado.models import DataConcept
-                    self._concept = DataConcept.objects.get(id=self.concept_key)
-                else:
-                    self._concept = None
-            return self._concept
+        if not hasattr(self, '_concept'):
+            if self.concept_key:
+                from avocado.models import DataConcept
+                self._concept = DataConcept.objects.get(id=self.concept_key)
+            else:
+                self._concept = None
+        return self._concept
 
     @property
     def field(self):
-        if self.enabled:
-            if not hasattr(self, '_field'):
-                from avocado.models import DataField
-                # Parse to get into a consistent format
-                field_key = utils.parse_field_key(self.field_key)
+        if not hasattr(self, '_field'):
+            from avocado.models import DataField
+            # Parse to get into a consistent format
+            field_key = utils.parse_field_key(self.field_key)
 
-                if self.concept:
-                    self._field = self.concept.fields.get(**field_key)
-                else:
-                    self._field = DataField.objects.get(**field_key)
-            return self._field
+            if self.concept:
+                self._field = self.concept.fields.get(**field_key)
+            else:
+                self._field = DataField.objects.get(**field_key)
+        return self._field
 
     @property
     def condition(self):
-        if self.enabled:
-            return self._meta['query_modifiers'].get('condition', None)
+        return self._meta['query_modifiers'].get('condition', None)
 
     @property
     def annotations(self):
-        if self.enabled:
-            return self._meta['query_modifiers'].get('annotations', None)
+        return self._meta['query_modifiers'].get('annotations', None)
 
     @property
     def extra(self):
-        if self.enabled:
-            return self._meta['query_modifiers'].get('extra', None)
+        return self._meta['query_modifiers'].get('extra', None)
 
     @property
     def language(self):
@@ -256,12 +250,13 @@ def validate(attrs, **context):
 
 
 def parse(attrs, **context):
-    if not attrs:
+    if not attrs or attrs.get('enabled') is False:
         node = Node(**context)
     elif is_composite(attrs):
         from avocado.models import DataContext
         if 'user' in context:
-            cxt = DataContext.objects.get(id=attrs['composite'], user=context['user'])
+            cxt = DataContext.objects.get(id=attrs['composite'],
+                user=context['user'])
         else:
             cxt = DataContext.objects.get(id=attrs['composite'])
         return parse(cxt.json, **context)
