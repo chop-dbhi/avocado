@@ -30,6 +30,9 @@ class ModelInstanceCacheTestCase(TestCase):
         self.is_manager.save()
 
         queryset = DataField.objects.filter(pk=pk)
+        # Without this len test, the _result_cache will not be populated due to
+        # the inherent laziness of the filter method.
+        self.assertGreater(len(queryset), 0)
         self.assertEqual(queryset._result_cache[0].pk, pk)
 
 
