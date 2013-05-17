@@ -72,10 +72,11 @@ def whiten(points):
     else:
         return [p[i] / std_devs[i] for i in dimension_indeces for p in points]
 
-def euclidean(p1, p2):
-    return math.sqrt(sum([
-        (p1.coords[i] - p2.coords[i]) ** 2 for i in range(p1.n)
-    ]))
+def sqr_euclidean(p1, p2):
+    """
+    Computes the squared Euclidean distance between 'p1' and 'p2'.
+    """
+    return sum([(p1.coords[i] - p2.coords[i]) ** 2 for i in range(p1.n)])
 
 def calculate_center(points, n):
     vals = [0.0 for i in range(n)]
@@ -95,7 +96,7 @@ def kmeans(points, k, min_diff):
         for p in points:
             smallest_distance = float('Inf')
             for i in range(k):
-                distance = euclidean(p, clusters[i].center)
+                distance = sqr_euclidean(p, clusters[i].center)
                 if distance < smallest_distance:
                     smallest_distance = distance
                     idx = i
@@ -107,7 +108,7 @@ def kmeans(points, k, min_diff):
             center = calculate_center(plists[i], old.n)
             new = Cluster(plists[i], center, old.n)
             clusters[i] = new
-            diff = max(diff, euclidean(old.center, new.center))
+            diff = max(diff, sqr_euclidean(old.center, new.center))
 
         if diff < min_diff:
             break
