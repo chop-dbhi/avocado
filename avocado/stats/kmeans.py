@@ -17,7 +17,7 @@ def std_dev(values):
             A list of numbers to compute the standard deviation of.
 
     Returns:
-        The standard deviation of the values in the 'values' list.
+        The standard deviation of the elements in the 'values' list.
     """
     # Compute the mean
     mean = sum(values, 0.0) / len(values)
@@ -34,7 +34,7 @@ def whiten(points):
     Each dimension is divided by its standard deviation accross all points.
 
     Arguments:
-        points: list of lists
+        points: list of points
             Each row of the supplied list is a point and each column of those
             rows is a dimension of that point as shown below.
 
@@ -42,6 +42,13 @@ def whiten(points):
             points = [[ 1., 2., 3.],  #  p0
                       [ 4., 5., 6.],  #  p1
                       [ 7., 8., 9.]]  #  p2
+            
+            Single dimension point list:
+            #         d0
+            points = [1.,   #p0
+                      2.,   #p1
+                      3.,   #p2
+                      4.]   #p3
 
     Returns:
         The values in 'points' scaled by the standard deviation along each
