@@ -47,12 +47,13 @@ def whiten(points):
         The values in 'points' scaled by the standard deviation along each
         dimension.
     """
-    # Check for a single dimension list. If this is the case, convert the list
-    # into the form described in the docstring for this method. This check 
-    # assumes that if the first element is not a list then all elements are 
-    # non-list and the list is single dimension.
+    # Check for a single dimension list. This check assumes that if the first 
+    # element is not a list then all elements are non-list and the list is 
+    # single dimension. If the list is single dimension just divide all the 
+    # points by the standard deviation and return that as the whitened list.
     if len(points) > 0 and type(points[0]) != 'list':
-        points = [[p] for p in points]
+        standard_deviation = std_dev(points)
+        return [p / standard_deviation for p in points]
 
     # Organize the points list as a list where each row is a list of values
     # of the same dimension
@@ -65,12 +66,8 @@ def whiten(points):
     dimension_indeces = range(len(dimensions))
 
     # Divide all the point dimensions by the corresponding dimension standard
-    # deviation. If we only had one dimension then we need to make sure we 
-    # return a list of just the points and not a nested list.
-    if dimensions > 1:
-        return [[p[i] / std_devs[i] for i in dimension_indeces] for p in points]
-    else:
-        return [p[i] / std_devs[i] for i in dimension_indeces for p in points]
+    # deviation.
+    return [[p[i] / std_devs[i] for i in dimension_indeces] for p in points]
 
 def sqr_euclidean(p1, p2):
     """
