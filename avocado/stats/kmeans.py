@@ -51,7 +51,7 @@ def whiten(points):
     # element is not a list then all elements are non-list and the list is 
     # single dimension. If the list is single dimension just divide all the 
     # points by the standard deviation and return that as the whitened list.
-    if len(points) > 0 and type(points[0]) != 'list':
+    if len(points) > 0 and not isinstance(points[0], list):
         standard_deviation = std_dev(points)
         return [p / standard_deviation for p in points]
 
