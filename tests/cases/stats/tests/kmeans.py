@@ -36,4 +36,4 @@ class KmeansTestCase(TestCase):
 
         comp_whiten = zip(scipy_whiten, our_whiten)
 
-        [self.assertListEqual(scipy_list.tolist(), our_list) for scipy_list, our_list in comp_whiten]
+        [self.assertSequenceEqual(scipy_list.tolist(), our_list) for scipy_list, our_list in comp_whiten]
