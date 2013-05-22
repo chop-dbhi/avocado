@@ -14,6 +14,9 @@ random_points = [float(x.strip()) for x in random_points_file.xreadlines()]
 random_points_3d = [[float(x) for x in l.strip().split(",")] for l in random_points_3d_file.xreadlines()]
 
 class KmeansTestCase(TestCase):
+    maxDiff = None
+    epsilon = 1e-15
+
     def test_std_dev(self):
         numpy_std_dev = np.std(np.array(random_points))
         our_std_dev = kmeans.std_dev(random_points)
@@ -84,3 +87,22 @@ class KmeansTestCase(TestCase):
 
         self.assertSequenceEqual(s_code.tolist(), m_code)
         self.assertSequenceEqual(s_dist.tolist(), m_dist)
+
+    def test_kmeans(self):
+        centroids = [p for p in random.sample(random_points_3d, 3)]
+        s_centroids, s_distance = vq.kmeans(np.array(random_points_3d), np.array(centroids))
+        m_centroids, m_distance = kmeans.kmeans(random_points_3d, centroids)
+        self.assertEqual(s_distance, m_distance)
+        self.assertEqual(len(s_centroids.tolist()), len(m_centroids))
+
+        # We can't just use assertSequenceEqual because there is some rounding
+        # errors somewhere in the floating point math causing a difference
+        # in a couple values over 15 decimal places in.
+        if s_centroids.size == len(m_centroids):
+            [self.assertAlmostEqual(s,m,epsilon) for s, m in zip(s_centroids.tolist(), m_centroids)]
+        
+        # centroids = [p for p in random.sample(random_points_3d, 3)]
+        #s_centroids, s_distance = vq.kmeans(np.array(random_points_3d), np.array(centroids))
+        #m_centroids, m_distance = kmeans.kmeans(random_points_3d, centroids)
+        #self.assertEqual(s_distance, m_distance)
+        #self.assertSequenceEqual(s_centroids.tolist(), m_centroids)

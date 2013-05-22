@@ -214,3 +214,91 @@ def vq(observations, codebook):
     # in the loop so that we can save time by not taking the square root of 
     # non-minimal distances.
     return encodings, [math.sqrt(d) for d in min_distances]
+
+def dimension_mean(observations):
+    """
+    Calculates the mean of the observations along each dimension.
+    """
+    # Organize the points list as a list where each row is a list of values
+    # of the same dimension
+    dimensions = zip(*observations)
+    
+    return [sum(d) / len(d) for d in dimensions]
+
+def kmeans(observations, k_or_centroids):
+    # TODO: Add support for iterations in k is supplied and ignore iterations
+    # if initial centroids are provided.
+
+    centroids = []
+    k = 0
+
+    if len(observations) < 1:
+        raise ValueError("Observations must contain at least one observation, found 0.")
+
+    if isinstance(k_or_centroids, list):
+        centroids = list(k_or_centroids)
+        k = len(centroids)
+        if k < 1:
+            raise ValueError("At least one centroid must be provided for clustering, found 0.")
+    else:
+        k = k_or_centroids
+        centroids = [o for o in random.sample(observations, k)]
+        if k < 1:
+            raise ValueError("Number of clusters(k) must be greater than 0.")
+
+    # Create a codebook/training set from the initial centroids. Throughout 
+    # this method, the codebook can be considered the current best guess at 
+    # the cluster centroids.
+    codebook = list(centroids)
+    mean_difference = float('Inf')
+    previous_mean_distance = None
+
+    # This is the threshold SciPy uses.
+    # TODO: Make this an argument to kmeans()
+    threshold = 1e-5 
+
+    while mean_difference > threshold:
+        num_centroids = len(codebook)
+
+        # Use the Vector Quantization to determine cluster membership and 
+        # distances for all points given the centroids in the codebook. The 
+        # result from vq will be the encoding of all the observations to their
+        # clusters and the distances to the centroids of those clusters.
+        cluster_codes, distances = vq(observations, codebook)
+
+        # Compute the mean distance of all points to their corresponding
+        # cluster centroid.
+        mean_distance = sum(distances) / len(distances)
+
+        # Compute the difference in mean distance between this clustering
+        # step and the last one.
+        if previous_mean_distance != None:
+            mean_difference = previous_mean_distance - mean_distance
+
+        # The following is the update step of the k-means algorithm where the
+        # centroid position changes based on the observations in each cluster.
+        # We can safely ignore this step if the have reached the threshold
+        # for minimum difference in mean distance.
+        if mean_difference > threshold:
+            for i in range(num_centroids):
+                # Get all the observations that are currently residing in this
+                # centroid's cluster. We know that the encoding returned from
+                # the vector quantization maps the observation codevectors to
+                # their cluster codes so we can use that for the lookup.
+                cluster_observations = [observation for cluster, observation in zip(cluster_codes, observations) if cluster == i]
+
+                # If the cluster has observations in it then update the
+                # centroid(codebook entry) of that cluster to be the mean of
+                # all the observations in that cluster along each dimension of
+                # of the observations.
+                if len(cluster_observations) > 0:
+                    codebook[i] = dimension_mean(cluster_observations)
+
+            # Remove centroids of empty clusters
+            codebook = [codebook[i] for i in range(len(codebook)) if len(codebook[i]) > 0]
+
+        # Store this mean distance so we can access it in the next loop 
+        # and diff against this iterations mean distance.
+        previous_mean_distance = mean_distance
+    
+    return codebook, previous_mean_distance
