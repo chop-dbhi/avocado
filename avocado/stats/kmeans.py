@@ -305,3 +305,56 @@ def kmeans(observations, k_or_centroids):
         previous_mean_distance = mean_distance
     
     return codebook, previous_mean_distance
+
+def find_outliers(observations, outlier_threshold=3, whitened=True):
+    """
+    Finds and returns outliers in the 'observations'.
+
+    Outliers are those items in the 'observations' that have a normalized
+    distance that is at least 'outlier_threshold' away from the the calculated 
+    center of the the population defined in 'observations'. The normalized
+    distance of an observation is its distance from the centroid divided by
+    the mean distance of all observation centroid distances.
+
+    Arguments:
+        observations: list of n-dimensional observations
+            An NxM list of lists defining the population to check for 
+            outliers where M is the dimension of the observations and N is the
+            number of observations.
+        outlier_threshold: float
+            Used to define outliers. Outliers are observations with normalized
+            distances greater than this threshold.
+        whitened: bool
+            If the 'observations' weren't already whitened, passing False for
+            this argument will result in the original 'observations' being 
+            whitened before the outlier search starts.
+
+    Returns:
+        The indices of the outliers in 'observations'.
+    """
+    if not whitened:
+        observations = whiten(observations)
+
+    #TODO: Support 1d observation populations
+
+    # Organize the points list as a list where each row is a list of values
+    # of the same dimension.
+    dimensions = zip(*observations)
+
+    # Compute the mid-point index and construct the centroid by taking
+    # the midpoint of the sorted list in each dimension.
+    midpoint_index = (len(observations) - 1) / 2
+    
+    # Remember, k-means doesn't support one-dimensional lists yet, thus
+    # the nested list in the assignment below. Without this, you will
+    # get an error in the call to k-means because the dimensions won't
+    # match.
+    centroid = [[sorted(d)[midpoint_index] for d in dimensions]]
+
+    # Calculate the distance from every observation to the centroid.
+    _, distances = vq(observations, kmeans(observations, centroid)[0])
+
+    mean_distance = sum(distances) / len(distances)
+
+    return [i for i, distance in enumerate(distances) \
+            if (distance / mean_distance) >= outlier_threshold]

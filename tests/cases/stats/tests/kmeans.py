@@ -40,7 +40,8 @@ class KmeansTestCase(TestCase):
 
         comp_whiten = zip(scipy_whiten, our_whiten)
 
-        [self.assertSequenceEqual(scipy_list.tolist(), our_list) for scipy_list, our_list in comp_whiten]
+        [self.assertSequenceEqual(scipy_list.tolist(), our_list) for \
+                scipy_list, our_list in comp_whiten]
 
     def test_scipy_vq_versions_1d(self):
         one_dim_points = [1.9, 2.3, 1.5, 2.5, 0.8, 0.6, 0.4, 1.8, 1.0, 1.0]
@@ -92,7 +93,8 @@ class KmeansTestCase(TestCase):
 
     def test_kmeans(self):
         centroids = [p for p in random.sample(random_points_3d, 3)]
-        s_centroids, s_distance = vq.kmeans(np.array(random_points_3d), np.array(centroids))
+        s_centroids, s_distance = \
+                vq.kmeans(np.array(random_points_3d), np.array(centroids))
         m_centroids, m_distance = kmeans.kmeans(random_points_3d, centroids)
         self.assertEqual(s_distance, m_distance)
         self.assertEqual(len(s_centroids.tolist()), len(m_centroids))
@@ -101,4 +103,25 @@ class KmeansTestCase(TestCase):
         # errors somewhere in the floating point math causing a difference
         # in a couple values over 15 decimal places in.
         if s_centroids.size == len(m_centroids):
-            [self.assertAlmostEqual(s,m,epsilon) for s, m in zip(s_centroids.tolist(), m_centroids)]
+            [self.assertAlmostEqual(s,m,epsilon) for s, m \
+                    in zip(s_centroids.tolist(), m_centroids)]
+
+    def test_no_outliers(self):
+        points = [[i,i] for i in range(300)]
+        c_outliers = cluster.find_outliers(points, whitened=False)
+        m_outliers = kmeans.find_outliers(points, whitened=False)
+
+        self.assertEqual(c_outliers, [])
+        self.assertEqual(m_outliers, [])
+
+    def test_find_outliers(self):
+        c_outliers = cluster.find_outliers(random_points_3d, whitened=False)
+        m_outliers = kmeans.find_outliers(random_points_3d, whitened=False)
+
+        self.assertEqual(len(c_outliers), len(m_outliers))
+
+        # Account for rounding errors at extremely high precision by
+        # manually checking sequence elements
+        if len(c_outliers) == len(m_outliers):
+            [self.assertAlmostEqual(c, m, epsilon) for c, m \
+                    in zip(c_outliers, m_outliers)]
