@@ -226,11 +226,14 @@ def dimension_mean(observations):
     return [sum(d) / len(d) for d in dimensions]
 
 def kmeans(observations, k_or_centroids):
-    # TODO: Add support for iterations in k is supplied and ignore iterations
+    # TODO: Add support for iterations if k is supplied and ignore iterations
     # if initial centroids are provided.
-
     centroids = []
     k = 0
+
+    # TODO: Add support for one-dimensional observation sets
+    if get_dimension(observations) == 1:
+        raise RuntimeError("kmeans does not currently support one-dimensional observations")
 
     if len(observations) < 1:
         raise ValueError("Observations must contain at least one observation, found 0.")
@@ -254,7 +257,7 @@ def kmeans(observations, k_or_centroids):
     previous_mean_distance = None
 
     # This is the threshold SciPy uses.
-    # TODO: Make this an argument to kmeans()
+    # TODO: Make this an argument to kmeans()?
     threshold = 1e-5 
 
     while mean_difference > threshold:

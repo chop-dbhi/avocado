@@ -42,6 +42,17 @@ class KmeansTestCase(TestCase):
 
         [self.assertSequenceEqual(scipy_list.tolist(), our_list) for scipy_list, our_list in comp_whiten]
 
+    def test_scipy_vq_versions_1d(self):
+        one_dim_points = [1.9, 2.3, 1.5, 2.5, 0.8, 0.6, 0.4, 1.8, 1.0, 1.0]
+        vq_points = np.array([[p] for p in one_dim_points])
+        book = np.array([vq_points[3], vq_points[7]])
+
+        c_code, c_dist = vq.vq(vq_points, book)
+        p_code, p_dist = vq.py_vq(vq_points, book)
+
+        self.assertSequenceEqual(c_code.tolist(), p_code.tolist())
+        self.assertSequenceEqual(c_dist.tolist(), p_dist.tolist())
+
     def test_scipy_vq_versions(self):
         vq_points = np.array([[ 1.9,2.3],
                               [ 1.5,2.5],
@@ -56,17 +67,7 @@ class KmeansTestCase(TestCase):
         self.assertSequenceEqual(c_code.tolist(), p_code.tolist())
         self.assertSequenceEqual(c_dist.tolist(), p_dist.tolist())
 
-        one_dim_points = [1.9, 2.3, 1.5, 2.5, 0.8, 0.6, 0.4, 1.8, 1.0, 1.0]
-        vq_points = np.array([[p] for p in one_dim_points])
-        book = np.array([vq_points[3], vq_points[7]])
-
-        c_code, c_dist = vq.vq(vq_points, book)
-        p_code, p_dist = vq.py_vq(vq_points, book)
-
-        self.assertSequenceEqual(c_code.tolist(), p_code.tolist())
-        self.assertSequenceEqual(c_dist.tolist(), p_dist.tolist())
-
-    def test_vq(self):
+    def test_vq_1d(self):
         book = [p for p in random.sample(random_points, 8)]
 
         # SciPy doesn't work with 1d arrays yet so the 1d test data needs to
@@ -80,6 +81,7 @@ class KmeansTestCase(TestCase):
         self.assertSequenceEqual(s_code.tolist(), m_code)
         self.assertSequenceEqual(s_dist.tolist(), m_dist)
 
+    def test_vq(self):
         book = [p for p in random.sample(random_points_3d, 8)]
 
         s_code, s_dist = vq.vq(np.array(random_points_3d), np.array(book))
@@ -100,9 +102,3 @@ class KmeansTestCase(TestCase):
         # in a couple values over 15 decimal places in.
         if s_centroids.size == len(m_centroids):
             [self.assertAlmostEqual(s,m,epsilon) for s, m in zip(s_centroids.tolist(), m_centroids)]
-        
-        # centroids = [p for p in random.sample(random_points_3d, 3)]
-        #s_centroids, s_distance = vq.kmeans(np.array(random_points_3d), np.array(centroids))
-        #m_centroids, m_distance = kmeans.kmeans(random_points_3d, centroids)
-        #self.assertEqual(s_distance, m_distance)
-        #self.assertSequenceEqual(s_centroids.tolist(), m_centroids)
