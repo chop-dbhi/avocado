@@ -12,10 +12,47 @@ random_points_file = open(os.path.join(os.path.dirname(__file__), '../fixtures/r
 random_points_3d_file = open(os.path.join(os.path.dirname(__file__), '../fixtures/random_points_3d.txt'))
 random_points = [float(x.strip()) for x in random_points_file.xreadlines()]
 random_points_3d = [[float(x) for x in l.strip().split(",")] for l in random_points_3d_file.xreadlines()]
-EPSILON = 1e-15
+PLACES = 10
 
 class KmeansTestCase(TestCase):
     maxDiff = None
+
+    def assertSequenceAlmostEqual(self, seq1, seq2):
+        """
+        Helper method for checking that 2 sequences are almost equal.
+
+        Two sequences are considered almost equal if they have the same order
+        and each pair of elements of the sequences passes the 
+        assertAlmostEqual to the number of decimal places specified in PLACES.
+        This method will also work for nested lists of numbers. For example,
+        let's say we wanted to see if two collections of 3D points were almost
+        equal, we could use the following:
+
+            pts1 = [[0.206331960142751, 0.612540082088810, 0.843236918599283], 
+                    [0.269705965446683, 0.218132746363829, 0.277332011689122], 
+                    [0.728684538148946, 0.734953792412333, 0.722476119561547]]
+            pts2 = [[0.206331960142700, 0.612540082088819, 0.843236918599288], 
+                    [0.269705965446609, 0.218132746363899, 0.277332011689182], 
+                    [0.728684538148046, 0.734953792412933, 0.722476119561847]]
+            assertSequenceAlmostEqual(pts1, pts2)
+
+        Arguments:
+            seq1, seq2: (nested)list of numbers to check for near equality
+
+        NOTE: This method assumes 'seq1' 'seq2' have equal, non-zero length. If
+        you are not certain the lengths match, use the following assert before
+        calling this method or this method might have unpredictable results.
+        For nested lists, it is not only assumed that overall list length is
+        the same, but also that each nested list pair is of equal length.
+
+            assertEqual(len(seq1), len(seq2))
+        """
+        if isinstance(seq1[0], list):
+            for list1, list2 in zip(seq1, seq2):
+                self.assertSequenceAlmostEqual(list1, list2)
+        else:
+            for num1, num2 in zip(seq1, seq2):
+                self.assertAlmostEqual(num1, num2, PLACES)
 
     def test_std_dev(self):
         numpy_std_dev = np.std(np.array(random_points))
@@ -66,7 +103,7 @@ class KmeansTestCase(TestCase):
         p_code, p_dist = vq.py_vq(vq_points, book)
 
         self.assertSequenceEqual(c_code.tolist(), p_code.tolist())
-        self.assertSequenceEqual(c_dist.tolist(), p_dist.tolist())
+        self.assertSequenceAlmostEqual(c_dist.tolist(), p_dist.tolist())
 
     def test_vq_1d(self):
         book = [p for p in random.sample(random_points, 8)]
@@ -80,7 +117,7 @@ class KmeansTestCase(TestCase):
         m_code, m_dist = kmeans.vq(random_points, book)
 
         self.assertSequenceEqual(s_code.tolist(), m_code)
-        self.assertSequenceEqual(s_dist.tolist(), m_dist)
+        self.assertSequenceAlmostEqual(s_dist.tolist(), m_dist)
 
     def test_vq(self):
         book = [p for p in random.sample(random_points_3d, 8)]
@@ -89,7 +126,7 @@ class KmeansTestCase(TestCase):
         m_code, m_dist = kmeans.vq(random_points_3d, book)
 
         self.assertSequenceEqual(s_code.tolist(), m_code)
-        self.assertSequenceEqual(s_dist.tolist(), m_dist)
+        self.assertSequenceAlmostEqual(s_dist.tolist(), m_dist)
 
     def test_kmeans(self):
         centroids = [p for p in random.sample(random_points_3d, 3)]
@@ -97,13 +134,9 @@ class KmeansTestCase(TestCase):
                 vq.kmeans(np.array(random_points_3d), np.array(centroids))
         m_centroids, m_distance = kmeans.kmeans(random_points_3d, centroids)
         self.assertEqual(s_distance, m_distance)
+        
         self.assertEqual(len(s_centroids.tolist()), len(m_centroids))
-
-        # We can't just use assertSequenceEqual because there is some rounding
-        # errors somewhere in the floating point math causing a difference
-        # in a couple values over 15 decimal places in.
-        [self.assertAlmostEqual(s,m,EPSILON) for s, m \
-                in zip(s_centroids.tolist(), m_centroids)]
+        self.assertSequenceAlmostEqual(s_centroids.tolist(), m_centroids)
 
     def test_no_outliers(self):
         points = [[i,i] for i in range(300)]
@@ -118,8 +151,4 @@ class KmeansTestCase(TestCase):
         m_outliers = kmeans.find_outliers(random_points_3d, whitened=False)
 
         self.assertEqual(len(c_outliers), len(m_outliers))
-
-        # Account for rounding errors at extremely high precision by
-        # manually checking sequence elements
-        [self.assertAlmostEqual(c, m, EPSILON) for c, m \
-                in zip(c_outliers, m_outliers)]
+        self.assertSequenceEqual(c_outliers, m_outliers)
