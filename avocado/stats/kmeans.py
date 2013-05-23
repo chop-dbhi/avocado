@@ -23,6 +23,43 @@ def std_dev(values):
 
     return math.sqrt(sum(square_differences) / len(square_differences))
 
+def divide_by_scalar(lst, s):
+    """
+    Divides each element in 'lst' by the scalar 's'.
+
+    Returns a new list with each element of the new list equal to the element
+    at the same position in 'lst' divided by 's'.
+    """
+    return [l / s for l in lst]
+
+def divide_lists(lst_numer, lst_denom):
+    """
+    Divides each element of the nested list 'lst_numer' by 'lst_denom'.
+
+    The division is done by taking each element of 'lst_numer' and for each
+    index of that element, dividing the item at that index by the item at the
+    same index of 'lst_denom'. See example below:
+
+        >>> numer = [[1., 2.],
+        ...          [3., 4.]]
+        >>> denom = [0.5, 0.5]
+        >>> divide_lists(numer, denom)
+        [[2., 4.], [6., 8.]]
+
+    NOTE: It is assumed that each element of 'lst_numer' has the same length
+    as 'lst_denom' as shown in the dimensions of the arguments below.
+
+    Arguments:
+        lst_numer: nested list of list(dimensions N x M)
+        lst_denom: list of denominators(dimensions 1 x M)
+
+    Returns:
+        A new list formed by dividing each element of 'lst_numer' by 
+        'lst_denom' according to the division process described above.
+    """
+    indexes = range(len(lst_denom))
+    return [[n[i] / lst_denom[i] for i in indexes] for n in lst_numer]
+
 def whiten(points):
     """
     Normalizes a set of points on a per dimension basis.
@@ -55,8 +92,7 @@ def whiten(points):
     # single dimension. If the list is single dimension just divide all the 
     # points by the standard deviation and return that as the whitened list.
     if len(points) > 0 and not isinstance(points[0], list):
-        standard_deviation = std_dev(points)
-        return [p / standard_deviation for p in points]
+        return divide_by_scalar(points, std_dev(points))
 
     # Organize the points list as a list where each row is a list of values
     # of the same dimension
@@ -65,12 +101,9 @@ def whiten(points):
     # Compute the standard deviation of each dimension
     std_devs = [std_dev(d) for d in dimensions]
     
-    # Store index of each dimension to avoid recomputing in the loop below
-    dimension_indeces = range(len(dimensions))
-
     # Divide all the point dimensions by the corresponding dimension standard
     # deviation.
-    return [[p[i] / std_devs[i] for i in dimension_indeces] for p in points]
+    return divide_lists(points, std_devs) 
 
 def get_dimension(observations):
     """
