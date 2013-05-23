@@ -141,7 +141,7 @@ def get_dimension(observations):
             i_dimension = 1
         
         if i_dimension != dimension:
-            raise ValueError("Observations do not have a consistent dimension.")
+            raise ValueError("Observations must have the same dimension.")
 
     return dimension
     
@@ -199,11 +199,11 @@ def vq(observations, codebook):
                    minimum distance between the ith observation and its
                    encoding.
     """
-    
     if len(observations) < 1:
-        raise ValueError("vq requires at least one observation. 0 observations found.")
+        raise ValueError("vq() requires at least one observation.")
     if len(codebook) < 1:
-        raise ValueError("vq requires at least one codebook vector. 0 codebook entries found.")
+        raise ValueError("vq() requires at least one codebook vector.")
+    
     # Create copies of the observations and codebook just in case we need to 
     # transform to multi-dimensional.
     obs = list(observations)
@@ -230,7 +230,8 @@ def vq(observations, codebook):
     for i in range(n):
         # Compute the squared Euclidean distance between this observation and
         # every entry in the code book.
-        distances = [observation_sqr_euclidean(obs[i], cb[j]) for j in range(len(cb))]
+        distances = \
+            [observation_sqr_euclidean(obs[i], cb[j]) for j in range(len(cb))]
         
         # Sum across all dimensions of each distance measure.
         distance_totals = [sum(distances[j]) for j in range(len(distances))]
@@ -264,16 +265,16 @@ def kmeans(observations, k_or_centroids):
 
     # TODO: Add support for one-dimensional observation sets
     if get_dimension(observations) == 1:
-        raise RuntimeError("kmeans does not currently support one-dimensional observations")
+        raise RuntimeError("kmeans() doesn't support 1D observations.")
 
     if len(observations) < 1:
-        raise ValueError("Observations must contain at least one observation, found 0.")
+        raise ValueError("observations must contain at least 1 observation.")
 
     if isinstance(k_or_centroids, list):
         centroids = list(k_or_centroids)
         k = len(centroids)
         if k < 1:
-            raise ValueError("At least one centroid must be provided for clustering, found 0.")
+            raise ValueError("kmeans() requires at least 1 centroid.")
     else:
         k = k_or_centroids
         centroids = [o for o in random.sample(observations, k)]
@@ -319,7 +320,8 @@ def kmeans(observations, k_or_centroids):
                 # centroid's cluster. We know that the encoding returned from
                 # the vector quantization maps the observation codevectors to
                 # their cluster codes so we can use that for the lookup.
-                cluster_observations = [observation for cluster, observation in zip(cluster_codes, observations) if cluster == i]
+                cluster_observations = [observation for cluster, observation \
+                        in zip(cluster_codes, observations) if cluster == i]
 
                 # If the cluster has observations in it then update the
                 # centroid(codebook entry) of that cluster to be the mean of
@@ -331,7 +333,8 @@ def kmeans(observations, k_or_centroids):
                     codebook[i] = []
 
             # Remove centroids of empty clusters
-            codebook = [codebook[i] for i in range(len(codebook)) if len(codebook[i]) > 0]
+            codebook = [codebook[i] for i in range(len(codebook)) \
+                    if len(codebook[i]) > 0]
 
         # Store this mean distance so we can access it in the next loop 
         # and diff against this iterations mean distance.
