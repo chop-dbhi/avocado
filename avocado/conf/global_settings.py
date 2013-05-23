@@ -52,9 +52,7 @@ INTERNAL_DATATYPE_FORMFIELDS = {
     'positiveinteger': 'FloatField',
     'positivesmallinteger': 'FloatField',
     'smallinteger': 'FloatField',
-
-    # Generic datatypes mapped from above
-    'number': 'FloatField',
+    'biginteger': 'FloatField',
 }
 
 # The minimum number of distinct values required when determining to set the

@@ -31,3 +31,4 @@ class Project(models.Model):
     employees = models.ManyToManyField(Employee)
     manager = models.OneToOneField(Employee, related_name='managed_projects')
     due_date = models.DateField(null=True)
+    budget = models.DecimalField(max_digits=7, decimal_places=2, null=True)

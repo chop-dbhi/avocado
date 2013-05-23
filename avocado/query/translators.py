@@ -84,6 +84,9 @@ class Translator(object):
         if 'form_class' not in kwargs:
             if self.form_class:
                 kwargs['form_class'] = self.form_class
+            elif field.internal_type in INTERNAL_DATATYPE_FORMFIELDS:
+                name = INTERNAL_DATATYPE_FORMFIELDS[field.internal_type]
+                kwargs['form_class'] = get_form_class(name)
             elif field.simple_type in INTERNAL_DATATYPE_FORMFIELDS:
                 name = INTERNAL_DATATYPE_FORMFIELDS[field.simple_type]
                 kwargs['form_class'] = get_form_class(name)
