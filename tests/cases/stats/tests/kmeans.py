@@ -12,10 +12,10 @@ random_points_file = open(os.path.join(os.path.dirname(__file__), '../fixtures/r
 random_points_3d_file = open(os.path.join(os.path.dirname(__file__), '../fixtures/random_points_3d.txt'))
 random_points = [float(x.strip()) for x in random_points_file.xreadlines()]
 random_points_3d = [[float(x) for x in l.strip().split(",")] for l in random_points_3d_file.xreadlines()]
+EPSILON = 1e-15
 
 class KmeansTestCase(TestCase):
     maxDiff = None
-    epsilon = 1e-15
 
     def test_std_dev(self):
         numpy_std_dev = np.std(np.array(random_points))
@@ -103,7 +103,7 @@ class KmeansTestCase(TestCase):
         # errors somewhere in the floating point math causing a difference
         # in a couple values over 15 decimal places in.
         if s_centroids.size == len(m_centroids):
-            [self.assertAlmostEqual(s,m,epsilon) for s, m \
+            [self.assertAlmostEqual(s,m,EPSILON) for s, m \
                     in zip(s_centroids.tolist(), m_centroids)]
 
     def test_no_outliers(self):
@@ -123,5 +123,5 @@ class KmeansTestCase(TestCase):
         # Account for rounding errors at extremely high precision by
         # manually checking sequence elements
         if len(c_outliers) == len(m_outliers):
-            [self.assertAlmostEqual(c, m, epsilon) for c, m \
+            [self.assertAlmostEqual(c, m, EPSILON) for c, m \
                     in zip(c_outliers, m_outliers)]
