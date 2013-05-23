@@ -228,8 +228,6 @@ def dimension_mean(observations):
 def kmeans(observations, k_or_centroids):
     # TODO: Add support for iterations if k is supplied and ignore iterations
     # if initial centroids are provided.
-    centroids = []
-    k = 0
 
     # TODO: Add support for one-dimensional observation sets
     if get_dimension(observations) == 1:
@@ -330,7 +328,7 @@ def find_outliers(observations, outlier_threshold=3, whitened=True):
             whitened before the outlier search starts.
 
     Returns:
-        The indices of the outliers in 'observations'.
+        The indexes of the outliers in 'observations'.
     """
     if not whitened:
         observations = whiten(observations)
@@ -358,3 +356,107 @@ def find_outliers(observations, outlier_threshold=3, whitened=True):
 
     return [i for i, distance in enumerate(distances) \
             if (distance / mean_distance) >= outlier_threshold]
+
+def kmeans_optm(observations, k=None, outlier_threshold=3):
+    """
+    Execute k-means clustering on the the 'observations' population.
+    
+    Returns a dictionary containing the following data:
+        'centroids' - The k centers of the k clusters found by running the
+        k-means algorithm.
+        'indexes' - An ordered list mapping each observation in 'observations'
+        to the centroid of the cluster it falls in.
+        'distances' - A list of distances between each observation and the 
+        centroid of its cluster.
+        'outliers' - A list of outlier indexes in the 'oberservations' list.
+        This is only returned if an 'outlier_threshold' is specified. If
+        outliers aren't required, set outlier_threshold=None.
+
+    If 'k' is not supplied it will be calculated given the following formula:
+        
+        k = sqrt(n / 2)
+
+    where n is the length of the 'observations' list. The initialization 
+    method is optimized to find the mid-points of each cluster from a sorted
+    list of observations. This ultimately reduces the number of iterations
+    required during clustering due to increased likelihood of convergence.
+
+    Referenes:
+        Number of clusters - http://en.wikipedia.org/wiki/Determining_the_number_of_clusters_in_a_data_set#Rule_of_thumb
+        Improved k-means initial centroids - http://www.ijcsit.com/docs/vol1issue2/ijcsit2010010214.pdf
+        
+    See:
+        find_outliers()
+
+    Arguments:
+        observations: list of n-dimensional observations
+        k: int or None
+            The number of clusters to calculate. If 'k' is not supplied, it
+            will be calculated according to the formula descibed above.
+        outlier_threshold: float
+            Used to define outliers. Outliers are observations with normalized
+            distances greater than this threshold.
+    Returns:
+        A dictionary containing the centroids, indexes of each observation's
+        centroid, distances from each observation to its centroid and 
+        optionally a list of indexes of the outliers in 'observations'. More
+        detailed info on the return values are included above.
+    """
+    # If an outlier threshold is defined, remove outliers relative to
+    # the population before running k-means clustering.
+    if outlier_threshold:
+        outliers = find_outliers(observations, outlier_threshold, False)
+        observations = \
+                [o for i, o in enumerate(observations) if i not in outliers]
+    else:
+        outliers = []
+
+    # Organize the points list as a list where each row is a list of values
+    # of the same dimension.
+    dimensions = zip(*observations)
+
+    # Manually calculate the standard deviation for each dimension of the 
+    # observation list in order to de-normalize the centroids later. 
+    # Otherwise, the centroid would be relative to the normalized dimensions 
+    # rather than the original.
+    std = [std_dev(d) for d in dimensions]
+    norm_observations = [[d / s for d, s in zip(o, std)] for o in observations]
+  
+    n = len(observations)
+
+    # Compute the number of clusters if it wasn't specified
+    k = k or int(math.sqrt(n / 2))
+
+    # Organize the normalized list as a list where each row is a list of values
+    # of the same dimension.
+    norm_dimensions = zip(*norm_observations)
+
+    # Sort the observational data by dimension and then return the
+    # dimension based list back to the original observational form so
+    # the sorted list has n records and m dimensions just like the
+    # original observations list.
+    sorted_dimensions = [sorted(d) for d in norm_dimensions]
+    sorted_observations = [list(d) for d in zip(*sorted_dimensions)]
+    
+    step = n / k
+    offset = step / 2
+    initial_centroids = sorted_observations[offset::step]
+
+    # Perform the clustering then calculate the centroid each
+    # observation is associated with and the distance between each
+    # observation and its centroid. Centroids returned here are based on
+    # the normalized(see whitened()) observations.
+    centroids, _ = kmeans(norm_observations, initial_centroids)
+    indexes, distances = vq(norm_observations, centroids)
+
+    # Denormalize the centroids for downstream use. Do this by multiplying 
+    # each dimension of each centroid by the standard deviation along that 
+    # dimension that we calculated earlier.
+    denorm_centroids = [[d * s for d, s in zip(c, std)] for c in centroids]
+    
+    return {
+        'centroids': denorm_centroids, 
+        'indexes': indexes,
+        'distances': distances,
+        'outliers': outliers,
+    }
