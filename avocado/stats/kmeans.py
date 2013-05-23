@@ -327,6 +327,8 @@ def kmeans(observations, k_or_centroids):
                 # of the observations.
                 if len(cluster_observations) > 0:
                     codebook[i] = dimension_mean(cluster_observations)
+                else:
+                    codebook[i] = []
 
             # Remove centroids of empty clusters
             codebook = [codebook[i] for i in range(len(codebook)) if len(codebook[i]) > 0]
@@ -453,7 +455,7 @@ def kmeans_optm(observations, k=None, outlier_threshold=3):
     # Otherwise, the centroid would be relative to the normalized dimensions 
     # rather than the original.
     std = [std_dev(d) for d in dimensions]
-    norm_observations = [[d / s for d, s in zip(o, std)] for o in observations]
+    norm_observations = divide_lists(observations, std)
   
     n = len(observations)
 
