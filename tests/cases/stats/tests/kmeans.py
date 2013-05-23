@@ -10,13 +10,13 @@ __all__ = ('KmeansTestCase',)
 
 random_points_file = open(os.path.join(os.path.dirname(__file__), '../fixtures/random_points.txt'))
 random_points_3d_file = open(os.path.join(os.path.dirname(__file__), '../fixtures/random_points_3d.txt'))
+
 random_points = [float(x.strip()) for x in random_points_file.xreadlines()]
 random_points_3d = [[float(x) for x in l.strip().split(",")] for l in random_points_3d_file.xreadlines()]
+
 PLACES = 10
 
 class KmeansTestCase(TestCase):
-    maxDiff = None
-
     def assertSequenceAlmostEqual(self, seq1, seq2):
         """
         Helper method for checking that 2 sequences are almost equal.
@@ -151,4 +151,28 @@ class KmeansTestCase(TestCase):
         m_outliers = kmeans.find_outliers(random_points_3d, whitened=False)
 
         self.assertEqual(len(c_outliers), len(m_outliers))
+        self.assertSequenceEqual(c_outliers, m_outliers)
+
+    def test_kmeans_optm(self):
+        c_kmeans = cluster.kmeans_optm(random_points_3d)
+        m_kmeans = kmeans.kmeans_optm(random_points_3d)
+
+        # Make sure all the right keys are present in both dictionaries
+        for key in ['centroids', 'indexes', 'distances', 'outliers']:
+            self.assertTrue(c_kmeans.has_key(key) and m_kmeans.has_key(key))
+
+        c_indexes = c_kmeans['indexes'].tolist()
+        m_indexes = m_kmeans['indexes']
+        self.assertSequenceEqual(c_indexes, m_indexes)
+
+        c_distances = c_kmeans['distances']
+        m_distances = m_kmeans['distances']
+        self.assertSequenceAlmostEqual(c_distances, m_distances)
+        
+        c_centroids = c_kmeans['centroids']
+        m_centroids = m_kmeans['centroids']
+        self.assertSequenceAlmostEqual(c_centroids.tolist(), m_centroids)
+
+        c_outliers = c_kmeans['outliers']
+        m_outliers = m_kmeans['outliers']
         self.assertSequenceEqual(c_outliers, m_outliers)
