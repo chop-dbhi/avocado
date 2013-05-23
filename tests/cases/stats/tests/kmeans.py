@@ -102,9 +102,8 @@ class KmeansTestCase(TestCase):
         # We can't just use assertSequenceEqual because there is some rounding
         # errors somewhere in the floating point math causing a difference
         # in a couple values over 15 decimal places in.
-        if s_centroids.size == len(m_centroids):
-            [self.assertAlmostEqual(s,m,EPSILON) for s, m \
-                    in zip(s_centroids.tolist(), m_centroids)]
+        [self.assertAlmostEqual(s,m,EPSILON) for s, m \
+                in zip(s_centroids.tolist(), m_centroids)]
 
     def test_no_outliers(self):
         points = [[i,i] for i in range(300)]
@@ -122,6 +121,5 @@ class KmeansTestCase(TestCase):
 
         # Account for rounding errors at extremely high precision by
         # manually checking sequence elements
-        if len(c_outliers) == len(m_outliers):
-            [self.assertAlmostEqual(c, m, EPSILON) for c, m \
-                    in zip(c_outliers, m_outliers)]
+        [self.assertAlmostEqual(c, m, EPSILON) for c, m \
+                in zip(c_outliers, m_outliers)]
