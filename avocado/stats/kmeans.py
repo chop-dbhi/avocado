@@ -61,7 +61,7 @@ def divide_lists(lst_numer, lst_denom):
     indexes = range(len(lst_denom))
     return [[n[i] / lst_denom[i] for i in indexes] for n in lst_numer]
 
-def whiten(points):
+def normalize(points):
     """
     Normalizes a set of points on a per dimension basis.
 
@@ -91,7 +91,7 @@ def whiten(points):
     # Check for a single dimension list. This check assumes that if the first 
     # element is not a list then all elements are non-list and the list is 
     # single dimension. If the list is single dimension just divide all the 
-    # points by the standard deviation and return that as the whitened list.
+    # points by the standard deviation and return that as the normalized list.
     if len(points) > 0 and not isinstance(points[0], list):
         return divide_by_scalar(points, std_dev(points))
 
@@ -355,7 +355,7 @@ def kmeans(observations, k_or_centroids, threshold=1e-5):
     
     return codebook, previous_mean_distance
 
-def find_outliers(observations, outlier_threshold=3, whitened=True):
+def find_outliers(observations, outlier_threshold=3, normalized=True):
     """
     Finds and returns outliers in the 'observations'.
 
@@ -373,16 +373,16 @@ def find_outliers(observations, outlier_threshold=3, whitened=True):
         outlier_threshold: float
             Used to define outliers. Outliers are observations with normalized
             distances greater than this threshold.
-        whitened: bool
-            If the 'observations' weren't already whitened, passing False for
+        normalized: bool
+            If the 'observations' weren't already normalized, passing False for
             this argument will result in the original 'observations' being 
-            whitened before the outlier search starts.
+            normalized before the outlier search starts.
 
     Returns:
         The indexes of the outliers in 'observations'.
     """
-    if not whitened:
-        observations = whiten(observations)
+    if not normalized:
+        observations = normalize(observations)
 
     #TODO: Support 1d observation populations
 
@@ -496,7 +496,7 @@ def kmeans_optm(observations, k=None, outlier_threshold=3):
     # Perform the clustering then calculate the centroid each
     # observation is associated with and the distance between each
     # observation and its centroid. Centroids returned here are based on
-    # the normalized(see whitened()) observations.
+    # the normalized(see normalize()) observations.
     centroids, _ = kmeans(norm_observations, initial_centroids)
     indexes, distances = vq(norm_observations, centroids)
 

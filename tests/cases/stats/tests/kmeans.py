@@ -62,24 +62,24 @@ class KmeansTestCase(TestCase):
 
         self.assertEqual(numpy_std_dev, our_std_dev)
 
-    def test_whiten(self):
-        scipy_whiten = vq.whiten(np.array(random_points))
-        our_whiten = kmeans.whiten(random_points)
+    def test_normalize(self):
+        scipy_normalize = vq.whiten(np.array(random_points))
+        our_normalize = kmeans.normalize(random_points)
         
-        self.assertEqual(len(scipy_whiten), len(our_whiten))
+        self.assertEqual(len(scipy_normalize), len(our_normalize))
 
-        comp_whiten = zip(scipy_whiten, our_whiten)
+        comp_normalize = zip(scipy_normalize, our_normalize)
 
-        [self.assertEqual(*comp) for comp in comp_whiten]
+        [self.assertEqual(*comp) for comp in comp_normalize]
         
-        scipy_whiten = vq.whiten(np.array(random_points_3d))
-        our_whiten = kmeans.whiten(random_points_3d)
+        scipy_normalize = vq.whiten(np.array(random_points_3d))
+        our_normalize = kmeans.normalize(random_points_3d)
         
-        self.assertEqual(len(scipy_whiten), len(our_whiten))
+        self.assertEqual(len(scipy_normalize), len(our_normalize))
 
-        comp_whiten = zip(scipy_whiten, our_whiten)
+        comp_normalize = zip(scipy_normalize, our_normalize)
         [self.assertSequenceEqual(scipy_list.tolist(), our_list) for \
-                scipy_list, our_list in comp_whiten]
+                scipy_list, our_list in comp_normalize]
 
     def test_vq_1d(self):
         book = [p for p in random.sample(random_points, 8)]
@@ -123,14 +123,14 @@ class KmeansTestCase(TestCase):
     def test_no_outliers(self):
         points = [[i,i] for i in range(300)]
         c_outliers = cluster.find_outliers(points, whitened=False)
-        m_outliers = kmeans.find_outliers(points, whitened=False)
+        m_outliers = kmeans.find_outliers(points, normalized=False)
 
         self.assertEqual(c_outliers, [])
         self.assertEqual(m_outliers, [])
 
     def test_find_outliers(self):
         c_outliers = cluster.find_outliers(random_points_3d, whitened=False)
-        m_outliers = kmeans.find_outliers(random_points_3d, whitened=False)
+        m_outliers = kmeans.find_outliers(random_points_3d, normalized=False)
 
         self.assertSequenceEqual(c_outliers, m_outliers)
 
