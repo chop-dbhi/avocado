@@ -140,6 +140,30 @@ class KmeansTestCase(TestCase):
 
         self.assertSequenceEqual(c_outliers, m_outliers)
 
+    def test_kmeans_optm_1d(self):
+        c_kmeans = cluster.kmeans_optm(random_points)
+        m_kmeans = kmeans.kmeans_optm(random_points)
+
+        # Make sure all the right keys are present in both dictionaries
+        for key in ['centroids', 'indexes', 'distances', 'outliers']:
+            self.assertTrue(c_kmeans.has_key(key) and m_kmeans.has_key(key))
+
+        c_indexes = c_kmeans['indexes'].tolist()
+        m_indexes = m_kmeans['indexes']
+        self.assertSequenceEqual(c_indexes, m_indexes)
+
+        c_distances = c_kmeans['distances']
+        m_distances = m_kmeans['distances']
+        self.assertSequenceAlmostEqual(c_distances, m_distances)
+        
+        c_centroids = c_kmeans['centroids']
+        m_centroids = m_kmeans['centroids']
+        self.assertSequenceAlmostEqual(c_centroids.tolist(), m_centroids)
+
+        c_outliers = c_kmeans['outliers']
+        m_outliers = m_kmeans['outliers']
+        self.assertSequenceEqual(c_outliers, m_outliers)
+
     def test_kmeans_optm(self):
         c_kmeans = cluster.kmeans_optm(random_points_3d)
         m_kmeans = kmeans.kmeans_optm(random_points_3d)

@@ -462,32 +462,41 @@ def kmeans_optm(observations, k=None, outlier_threshold=3):
     else:
         outliers = []
 
+    d = get_dimension(observations)
+    n = len(observations)
+    
+    # Compute the number of clusters if it wasn't specified
+    k = k or int(math.sqrt(n / 2))
+
     # Organize the points list as a list where each row is a list of values
     # of the same dimension.
-    dimensions = zip(*observations)
+    if d > 1:
+        dimensions = zip(*observations)
 
     # Manually calculate the standard deviation for each dimension of the 
     # observation list in order to de-normalize the centroids later. 
     # Otherwise, the centroid would be relative to the normalized dimensions 
     # rather than the original.
-    std = [std_dev(d) for d in dimensions]
-    norm_observations = divide_lists(observations, std)
+    if d == 1:
+        std = std_dev(observations)
+        norm_observations = divide_by_scalar(observations, std)
+    else:
+        std = [std_dev(d) for d in dimensions]
+        norm_observations = divide_lists(observations, std)
   
-    n = len(observations)
+    if d == 1:
+        sorted_observations = sorted(norm_observations)
+    else:
+        # Organize the normalized list as a list where each row is a list of values
+        # of the same dimension.
+        norm_dimensions = zip(*norm_observations)
 
-    # Compute the number of clusters if it wasn't specified
-    k = k or int(math.sqrt(n / 2))
-
-    # Organize the normalized list as a list where each row is a list of values
-    # of the same dimension.
-    norm_dimensions = zip(*norm_observations)
-
-    # Sort the observational data by dimension and then return the
-    # dimension based list back to the original observational form so
-    # the sorted list has n records and m dimensions just like the
-    # original observations list.
-    sorted_dimensions = [sorted(d) for d in norm_dimensions]
-    sorted_observations = [list(d) for d in zip(*sorted_dimensions)]
+        # Sort the observational data by dimension and then return the
+        # dimension based list back to the original observational form so
+        # the sorted list has n records and m dimensions just like the
+        # original observations list.
+        sorted_dimensions = [sorted(d) for d in norm_dimensions]
+        sorted_observations = [list(d) for d in zip(*sorted_dimensions)]
     
     step = n / k
     offset = step / 2
@@ -503,7 +512,10 @@ def kmeans_optm(observations, k=None, outlier_threshold=3):
     # Denormalize the centroids for downstream use. Do this by multiplying 
     # each dimension of each centroid by the standard deviation along that 
     # dimension that we calculated earlier.
-    denorm_centroids = [[d * s for d, s in zip(c, std)] for c in centroids]
+    if d == 1:
+        denorm_centroids = [c * std for c in centroids]
+    else:
+        denorm_centroids = [[d * s for d, s in zip(c, std)] for c in centroids]
     
     return {
         'centroids': denorm_centroids, 
