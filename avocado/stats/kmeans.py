@@ -17,7 +17,7 @@ def std_dev(values):
         The standard deviation of the elements in the 'values' list.
     """
     # Compute the mean
-    mean = sum(values, 0.0) / len(values)
+    mean = sum(values) / len(values)
 
     # Compute the square difference of all the values
     square_differences = [(v - mean)**2 for v in values]
