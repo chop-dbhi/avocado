@@ -51,7 +51,7 @@ class KmeansTestCase(TestCase):
 
         if isinstance(seq1[0], list):
             for list1, list2 in zip(seq1, seq2):
-                self.assertSequenceAlmostEqual(list1, list2)
+                self.assertSequenceAlmostEqual(list1, list2, num_places)
         else:
             for num1, num2 in zip(seq1, seq2):
                 self.assertAlmostEqual(num1, num2, num_places)
