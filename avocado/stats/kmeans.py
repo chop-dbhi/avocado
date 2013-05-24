@@ -146,7 +146,7 @@ def get_dimension(observations):
 
     return dimension
     
-def observation_sqr_euclidean(obs1, obs2):
+def sqr_euclidean_dist(obs1, obs2):
     """
     Calculates the square Euclidean distance for each feature.
 
@@ -156,12 +156,12 @@ def observation_sqr_euclidean(obs1, obs2):
 
         >>> o1 = [1, 2, 3]
         >>> o2 = [3, 6, 9]
-        >>> observation_sqr_euclidean(o1, o2)
+        >>> sqr_euclidean_dist(o1, o2)
         [4, 14, 36]
     
         >>> o1 = 5.4
         >>> o2 = 2.4
-        >>> observations_sqr_euclide
+        >>> sqr_euclidean_dist(o1, o2)
         9.000000000000004
 
     NOTE: This method assumes 'obs1' and 'obs2' are both numbers or lists of 
@@ -231,7 +231,7 @@ def vq(observations, codebook):
     for i in range(n):
         # Compute the squared Euclidean distance between this observation and
         # every entry in the code book.
-        distances = [observation_sqr_euclidean(observations[i], codebook[j]) \
+        distances = [sqr_euclidean_dist(observations[i], codebook[j]) \
                 for j in range(len(codebook))]
         
         # Sum across all dimensions of each distance measure. If we only have
