@@ -177,8 +177,8 @@ def sqr_euclidean_dist(obs1, obs2):
     """
     if isinstance(obs1, list):
         return [(o1 - o2) ** 2 for o1, o2 in zip(obs1, obs2)]
-    else:
-        return (obs1 - obs2) ** 2
+
+    return (obs1 - obs2) ** 2
 
 def index_of_min(values):
     """
@@ -257,7 +257,23 @@ def vq(observations, codebook):
 def dimension_mean(observations):
     """
     Calculates the mean of the observations along each dimension.
+
+    If the observations are of a single dimension, 'observations' will just
+    be a list of numbers and the mean of the list itself will be returned. For
+    more details, see the example below:
+
+        >>> o = [[1.0, 0.0],
+        ...      [0.5, 2.0]]
+        >>> dimension_mean(o)
+        [0.75, 1.0]
+
+        >>> o = [1., 3., 5., 10.]
+        >>> dimension_mean(o)
+        4.75
     """
+    if get_dimension(observations) == 1:
+        return sum(observations) / len(observations)
+
     # Organize the points list as a list where each row is a list of values
     # of the same dimension
     dimensions = zip(*observations)
@@ -267,10 +283,6 @@ def dimension_mean(observations):
 def kmeans(observations, k_or_centroids, threshold=1e-5):
     # TODO: Add support for iterations if k is supplied and ignore iterations
     # if initial centroids are provided.
-
-    # TODO: Add support for one-dimensional observation sets
-    if get_dimension(observations) == 1:
-        raise RuntimeError("kmeans() doesn't support 1D observations.")
 
     if len(observations) < 1:
         raise ValueError("observations must contain at least 1 observation.")
@@ -331,11 +343,11 @@ def kmeans(observations, k_or_centroids, threshold=1e-5):
                 if len(cluster_observations) > 0:
                     codebook[i] = dimension_mean(cluster_observations)
                 else:
-                    codebook[i] = []
+                    codebook[i] = None
 
             # Remove centroids of empty clusters
             codebook = [codebook[i] for i in range(len(codebook)) \
-                    if len(codebook[i]) > 0]
+                    if codebook[i]]
 
         # Store this mean distance so we can access it in the next loop 
         # and diff against this iterations mean distance.
