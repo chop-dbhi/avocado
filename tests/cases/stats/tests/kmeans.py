@@ -85,12 +85,7 @@ class KmeansTestCase(TestCase):
     def test_vq_1d(self):
         book = [p for p in random.sample(random_points, 8)]
 
-        # SciPy doesn't work with 1d arrays yet so the 1d test data needs to
-        # be transformed to a multidimensional representation.
-        one_d_array = np.array([[p] for p in random_points])
-        one_d_book_array = np.array([[b] for b in book])
-
-        s_code, s_dist = vq.vq(one_d_array, one_d_book_array)
+        s_code, s_dist = vq.vq(np.array(random_points), np.array(book))
         m_code, m_dist = kmeans.vq(random_points, book)
 
         self.assertSequenceEqual(s_code.tolist(), m_code)
