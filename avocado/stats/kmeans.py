@@ -384,21 +384,21 @@ def find_outliers(observations, outlier_threshold=3, normalized=True):
     if not normalized:
         observations = normalize(observations)
 
-    #TODO: Support 1d observation populations
+    d = get_dimension(observations)
 
     # Organize the points list as a list where each row is a list of values
     # of the same dimension.
-    dimensions = zip(*observations)
+    if d > 1:
+        dimensions = zip(*observations)
 
     # Compute the mid-point index and construct the centroid by taking
     # the midpoint of the sorted list in each dimension.
     midpoint_index = (len(observations) - 1) / 2
     
-    # Remember, k-means doesn't support one-dimensional lists yet, thus
-    # the nested list in the assignment below. Without this, you will
-    # get an error in the call to k-means because the dimensions won't
-    # match.
-    centroid = [[sorted(d)[midpoint_index] for d in dimensions]]
+    if d == 1:
+        centroid = [sorted(observations)[midpoint_index]]
+    else:
+        centroid = [[sorted(d)[midpoint_index] for d in dimensions]]
 
     # Calculate the distance from every observation to the centroid.
     _, distances = vq(observations, kmeans(observations, centroid)[0])

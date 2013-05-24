@@ -128,6 +128,12 @@ class KmeansTestCase(TestCase):
         self.assertEqual(c_outliers, [])
         self.assertEqual(m_outliers, [])
 
+    def test_find_outliers_1d(self):
+        c_outliers = cluster.find_outliers(np.array(random_points), outlier_threshold=3)
+        m_outliers = kmeans.find_outliers(random_points, outlier_threshold=3)
+
+        self.assertSequenceEqual(c_outliers, m_outliers)
+
     def test_find_outliers(self):
         c_outliers = cluster.find_outliers(random_points_3d, whitened=False)
         m_outliers = kmeans.find_outliers(random_points_3d, normalized=False)
