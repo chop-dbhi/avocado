@@ -85,7 +85,7 @@ class KmeansTestCase(TestCase):
         book = [p for p in random.sample(random_points, 8)]
 
         s_code, s_dist = vq.vq(np.array(random_points), np.array(book))
-        m_code, m_dist = kmeans.vq(random_points, book)
+        m_code, m_dist = kmeans.compute_clusters(random_points, book)
 
         self.assertSequenceEqual(s_code.tolist(), m_code)
         self.assertSequenceAlmostEqual(s_dist.tolist(), m_dist)
@@ -94,7 +94,7 @@ class KmeansTestCase(TestCase):
         book = [p for p in random.sample(random_points_3d, 8)]
 
         s_code, s_dist = vq.vq(np.array(random_points_3d), np.array(book))
-        m_code, m_dist = kmeans.vq(random_points_3d, book)
+        m_code, m_dist = kmeans.compute_clusters(random_points_3d, book)
 
         self.assertSequenceEqual(s_code.tolist(), m_code)
         self.assertSequenceAlmostEqual(s_dist.tolist(), m_dist)
