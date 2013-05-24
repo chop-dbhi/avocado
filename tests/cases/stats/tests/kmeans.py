@@ -78,7 +78,6 @@ class KmeansTestCase(TestCase):
         self.assertEqual(len(scipy_whiten), len(our_whiten))
 
         comp_whiten = zip(scipy_whiten, our_whiten)
-
         [self.assertSequenceEqual(scipy_list.tolist(), our_list) for \
                 scipy_list, our_list in comp_whiten]
 
@@ -109,8 +108,8 @@ class KmeansTestCase(TestCase):
         s_centroids, s_distance = \
                 vq.kmeans(np.array(random_points_3d), np.array(centroids))
         m_centroids, m_distance = kmeans.kmeans(random_points_3d, centroids)
-        self.assertEqual(s_distance, m_distance)
         
+        self.assertEqual(s_distance, m_distance)
         self.assertEqual(len(s_centroids.tolist()), len(m_centroids))
 
         # I'm getting everything to pass at 10 places except for this where 
@@ -133,7 +132,6 @@ class KmeansTestCase(TestCase):
         c_outliers = cluster.find_outliers(random_points_3d, whitened=False)
         m_outliers = kmeans.find_outliers(random_points_3d, whitened=False)
 
-        self.assertEqual(len(c_outliers), len(m_outliers))
         self.assertSequenceEqual(c_outliers, m_outliers)
 
     def test_kmeans_optm(self):
