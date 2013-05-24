@@ -5,7 +5,8 @@ def std_dev(values):
     """
     Computes the standard deviation of the 'values' list. 
 
-    TODO: Consider adding support for axes as in numpy:
+    TODO: Consider adding support for axes as in numpy and letting this method
+    accept nested lists:
         http://docs.scipy.org/doc/numpy/reference/generated/numpy.std.html
     
     Arguments:
@@ -153,17 +154,31 @@ def observation_sqr_euclidean(obs1, obs2):
     Euclidean distance along each feature of the observations. This is shown
     in the example below:
 
-        o1 = [1, 2, 3]
-        o2 = [3, 6, 9]
-        observation_sqr_euclidean(o1, o2)
-
-        #   [4, 14, 36]
+        >>> o1 = [1, 2, 3]
+        >>> o2 = [3, 6, 9]
+        >>> observation_sqr_euclidean(o1, o2)
+        [4, 14, 36]
     
+        >>> o1 = 5.4
+        >>> o2 = 2.4
+        >>> observations_sqr_euclide
+        9.000000000000004
+
+    NOTE: This method assumes 'obs1' and 'obs2' are both numbers or lists of 
+    equal length. No verification is done to make sure that both have the same
+    type or that the list lengths are equal.
+
+    Arguments:
+        obs1, obs2: number or list of numbers
+
     Returns:
         The square Euclidean distance along each feature of supplied 
         observations.
     """
-    return [(o1 - o2) ** 2 for o1, o2 in zip(obs1, obs2)]
+    if isinstance(obs1, list):
+        return [(o1 - o2) ** 2 for o1, o2 in zip(obs1, obs2)]
+    else:
+        return (obs1 - obs2) ** 2
 
 def index_of_min(values):
     """
@@ -204,25 +219,11 @@ def vq(observations, codebook):
     if len(codebook) < 1:
         raise ValueError("vq() requires at least one codebook vector.")
     
-    # Create copies of the observations and codebook just in case we need to 
-    # transform to multi-dimensional.
-    obs = list(observations)
-    cb = list(codebook)
+    d = get_dimension(observations)
+    n = len(observations)
+    codebook_indexes = range(len(codebook))
 
-    # Since this method is meant to remove the dependency on scipy and scipy 
-    # has no support for 1d arrays, we modify 1d lists to multi-dimensional 
-    # lists in order to reuse the same multi-dimensional VQ algorithm and then 
-    # simply flatten the result later in the case of 1d lists.
-    # TODO: Write a Scalar Quantization method or make this 1d compatible
-    #       without this hack.
-    d = get_dimension(obs)
-    if d == 1:
-        obs = [[o] for o in observations]
-        cb = [[c] for c in codebook]
-
-    n = len(obs)
-
-    if d != get_dimension(cb):
+    if d != get_dimension(codebook):
         raise ValueError("observations and codebook must have the same number of features(columns) per observation")
 
     encodings = [0] * n
@@ -230,11 +231,15 @@ def vq(observations, codebook):
     for i in range(n):
         # Compute the squared Euclidean distance between this observation and
         # every entry in the code book.
-        distances = \
-            [observation_sqr_euclidean(obs[i], cb[j]) for j in range(len(cb))]
+        distances = [observation_sqr_euclidean(observations[i], codebook[j]) \
+                for j in range(len(codebook))]
         
-        # Sum across all dimensions of each distance measure.
-        distance_totals = [sum(distances[j]) for j in range(len(distances))]
+        # Sum across all dimensions of each distance measure. If we only have
+        # one dimension then this is simply the distance list itself.
+        if d == 1:
+            distance_totals = distances
+        else:
+            distance_totals = [sum(distances[j]) for j in range(len(distances))]
 
         # Find the index containing the minimum distance. This provides a 
         # decoding from the codevector to the output vector.
@@ -259,7 +264,7 @@ def dimension_mean(observations):
     
     return [sum(d) / len(d) for d in dimensions]
 
-def kmeans(observations, k_or_centroids):
+def kmeans(observations, k_or_centroids, threshold=1e-5):
     # TODO: Add support for iterations if k is supplied and ignore iterations
     # if initial centroids are provided.
 
@@ -287,10 +292,6 @@ def kmeans(observations, k_or_centroids):
     codebook = list(centroids)
     mean_difference = float('Inf')
     previous_mean_distance = None
-
-    # This is the threshold SciPy uses.
-    # TODO: Make this an argument to kmeans()?
-    threshold = 1e-5 
 
     while mean_difference > threshold:
         num_centroids = len(codebook)

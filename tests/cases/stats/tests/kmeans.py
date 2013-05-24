@@ -111,7 +111,7 @@ class KmeansTestCase(TestCase):
         book = [p for p in random.sample(random_points, 8)]
 
         # SciPy doesn't work with 1d arrays yet so the 1d test data needs to
-        # be transformed to a multidimensional representation
+        # be transformed to a multidimensional representation.
         one_d_array = np.array([[p] for p in random_points])
         one_d_book_array = np.array([[b] for b in book])
 
@@ -131,7 +131,11 @@ class KmeansTestCase(TestCase):
         self.assertSequenceAlmostEqual(s_dist.tolist(), m_dist)
 
     def test_kmeans(self):
-        centroids = [p for p in random.sample(random_points_3d, 3)]
+        # These indices don't really matter since the points are random but
+        # I am fixing them here for repeatability of the test.
+        centroids = [random_points_3d[125], 
+                     random_points_3d[500], 
+                     random_points_3d[875]]
         s_centroids, s_distance = \
                 vq.kmeans(np.array(random_points_3d), np.array(centroids))
         m_centroids, m_distance = kmeans.kmeans(random_points_3d, centroids)
