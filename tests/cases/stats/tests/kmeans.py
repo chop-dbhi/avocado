@@ -82,31 +82,6 @@ class KmeansTestCase(TestCase):
         [self.assertSequenceEqual(scipy_list.tolist(), our_list) for \
                 scipy_list, our_list in comp_whiten]
 
-    def test_scipy_vq_versions_1d(self):
-        one_dim_points = [1.9, 2.3, 1.5, 2.5, 0.8, 0.6, 0.4, 1.8, 1.0, 1.0]
-        vq_points = np.array([[p] for p in one_dim_points])
-        book = np.array([vq_points[3], vq_points[7]])
-
-        c_code, c_dist = vq.vq(vq_points, book)
-        p_code, p_dist = vq.py_vq(vq_points, book)
-
-        self.assertSequenceEqual(c_code.tolist(), p_code.tolist())
-        self.assertSequenceEqual(c_dist.tolist(), p_dist.tolist())
-
-    def test_scipy_vq_versions(self):
-        vq_points = np.array([[ 1.9,2.3],
-                              [ 1.5,2.5],
-                              [ 0.8,0.6],
-                              [ 0.4,1.8],
-                              [ 1.0,1.0]])
-        book = np.array((vq_points[0], vq_points[2]))
-
-        c_code, c_dist = vq.vq(vq_points, book)
-        p_code, p_dist = vq.py_vq(vq_points, book)
-
-        self.assertSequenceEqual(c_code.tolist(), p_code.tolist())
-        self.assertSequenceAlmostEqual(c_dist.tolist(), p_dist.tolist())
-
     def test_vq_1d(self):
         book = [p for p in random.sample(random_points, 8)]
 
