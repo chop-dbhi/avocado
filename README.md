@@ -790,6 +790,19 @@ Create a metadata fixture and corresponding South data migration script for remo
 - `--no-fake` - By default, new migrations created will be immediately _faked_ by South since the data migration is derived from the same database. This flag will prevent the faked migration from happening (this is not recommeneded).
 - `--backup-path=<path>` - When the migration executes, a metadata fixture is created of the target database immediately (and in the same transaction) prior to loading the new fixture. By default a temporary file is created, but this argument defines a specific file to write to. Note that depending on where the migration execution occurs (e.g. on a remote machine) the file path must be valid as well as have the correct permissions to writing to the file.
 
+## Statistics
+
+Avocado defines a number of methods related to cluster computation for sets of numeric data. The most relevant of these methods are detailed below.
+
+- `compute_clusters(points, centroids)` - Given the clusters defined by the supplied list of centroids, this method calculates the cluster each of the supplied points belongs in as well as the distance from those points to the centroid of those cluster. compute_clusters returns a list of indexes of the cluster centroids for each point and a list of distances(Euclidean distance) from each point to its cluster centroid. Let's say the output of the compute_cluster was `[0, 0, 1, 1, 1], [2.5, 1.1, 0.5, 1.3, 0.1]`. From this, we know that points[0] belongs in the cluster with centroid centroids[0] and has a Euclidean distance from centroids[0] of 2.5.
+- `kmeans(points, k_or_centroids, threshold=1e-5)` - Computes the cluster centroids and mean distance between cluster centroids and cluster points. The number of cluster centroids computed is controlled by the value passed to `k_or_centroids`. If an integer is passed for this value, then that number of cluster centroids will be computed using random points as the initial centroids. If it is a list of points, then those points will be used as the initial centroids.
+- `find_outliers(points, outlier_threshold=3, normalized=True)` - Identifies outliers in the points population. Returns the indexes of points that were found to be outliers. Outliers are calculated by first computing cluster centroids and then finding those points with normalized distances from their cluster centroids that are at least `outlier_threshold`. The `normalized` argument indicates whether the points are normalized already. If set to `False`, the original points will be normalized before outlier identification begins.
+- `kmeans_optm(points, k=None, outlier_threshold=3):` - This can be thought of as the all-inclusive clustering method. This aggregates and links the output of `kmeans`, `compute_clusters`, and `find_outliers` to return the complete picture of the clusters. If k is not supplied, it will be set as `k = sqrt(n / 2)` where `n = len(points`. Returns a dictionary containing the key/value pairs described below:
+    - 'centroids' - The centroids of the identified clusters.
+    - 'indexes' - The index of each point's centroid in the centroids list. This defines what cluster each point falls in.
+    - 'distances' - The distance of each point to its centroid.
+    - 'outliers' - The indexes(in `points`) of the outliers.
+
 ## Settings
 
 Avocado settings are defined as a dictionary, named `AVOCADO`, with each key corresponding to a setting listed below:
