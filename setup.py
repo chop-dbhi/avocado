@@ -6,7 +6,7 @@ from setuptools.command import install as _install
 install_requires = [
     'django>=1.4,<1.6',
     'modeltree>=1.1.5',
-    'South==0.7.6',
+    'South==0.8.1',
     'jsonfield==0.9.4',
 ]
 
