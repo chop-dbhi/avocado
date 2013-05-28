@@ -379,7 +379,7 @@ def kmeans(points, k_or_centroids, threshold=1e-5):
             centroids = [centroids[i] for i in \
                     range(len(centroids)) if centroids[i]]
 
-        # Store this mean distance so we can access it in the next loop  and 
+        # Store this mean distance so we can access it in the next loop and 
         # diff against this iterations mean distance.
         previous_mean_distance = mean_distance
     
@@ -392,8 +392,8 @@ def find_outliers(points, outlier_threshold=3, normalized=True):
     Outliers are those items in the 'points' that have a normalized distance 
     that is at least 'outlier_threshold' away from the the calculated center 
     of the the population defined in 'points'. The normalized distance of a
-    point is its distance from the centroid if its cluster divided by the mean 
-    distance of all point-to-centroid distances.
+    point is the distance from the point to its cluster's centroid divided by 
+    the mean distance of all point-to-centroid distances.
 
     Arguments:
         points: list of n-dimensional points 
