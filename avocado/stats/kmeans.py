@@ -17,12 +17,12 @@ def std_dev(values):
         The standard deviation of the elements in the 'values' list.
     """
     # Compute the mean
-    mean = sum(values) / len(values)
+    mean = sum(values) / float(len(values))
 
     # Compute the square difference of all the values
     square_differences = [(v - mean)**2 for v in values]
 
-    return math.sqrt(sum(square_differences) / len(square_differences))
+    return math.sqrt(sum(square_differences) / float(len(square_differences)))
 
 def is_iterable(obj):
     """
@@ -45,7 +45,7 @@ def divide_by_scalar(lst, s):
     Returns a new list with each element of the new list equal to the element
     at the same position in 'lst' divided by 's'.
     """
-    return [l / s for l in lst]
+    return [l / float(s) for l in lst]
 
 def divide_lists(lst_numer, lst_denom):
     """
@@ -73,7 +73,7 @@ def divide_lists(lst_numer, lst_denom):
         'lst_denom' according to the division process described above.
     """
     indexes = range(len(lst_denom))
-    return [[n[i] / lst_denom[i] for i in indexes] for n in lst_numer]
+    return [[n[i] / float(lst_denom[i]) for i in indexes] for n in lst_numer]
 
 def normalize(points):
     """
@@ -294,13 +294,13 @@ def dimension_mean(points):
         4.75
     """
     if get_dimension(points) == 1:
-        return sum(points) / len(points)
+        return sum(points) / float(len(points))
 
     # Organize the points list as a list where each row is a list of values
     # of the same dimension.
     dimensions = zip(*points)
     
-    return [sum(d) / len(d) for d in dimensions]
+    return [sum(d) / float(len(d)) for d in dimensions]
 
 def kmeans(points, k_or_centroids, threshold=1e-5):
     """
@@ -349,7 +349,7 @@ def kmeans(points, k_or_centroids, threshold=1e-5):
 
         # Compute the mean distance of all points to their corresponding
         # cluster centroid.
-        mean_distance = sum(distances) / len(distances)
+        mean_distance = sum(distances) / float(len(distances))
 
         # Compute the difference in mean distance between this clustering step
         # and the last one.
@@ -434,7 +434,7 @@ def find_outliers(points, outlier_threshold=3, normalized=True):
     _, distances = \
             compute_clusters(points, kmeans(points, centroid)[0])
 
-    mean_distance = sum(distances) / len(distances)
+    mean_distance = sum(distances) / float(len(distances))
 
     return [i for i, distance in enumerate(distances) \
             if (distance / mean_distance) >= outlier_threshold]
