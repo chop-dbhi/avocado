@@ -24,6 +24,20 @@ def std_dev(values):
 
     return math.sqrt(sum(square_differences) / len(square_differences))
 
+def is_iterable(obj):
+    """
+    Returns True if 'obj' is iterable and False otherwise.
+
+    We check for __iter__ and for __getitem__ here because an iterable type
+    must, by definition, define one of these attributes but is not required or
+    guarenteed to define both of them. For more information on iterable types
+    see:
+        
+        http://docs.python.org/2/glossary.html#term-iterable
+        http://docs.python.org/2/library/functions.html#iter
+    """
+    return hasattr(obj, '__iter__') or hasattr(obj, '__getitem__')
+
 def divide_by_scalar(lst, s):
     """
     Divides each element in 'lst' by the scalar 's'.
@@ -92,7 +106,7 @@ def normalize(points):
     # element is not a list then all elements are non-list and the list is 
     # single dimension. If the list is single dimension just divide all the 
     # points by the standard deviation and return that as the normalized list.
-    if len(points) > 0 and not isinstance(points[0], list):
+    if len(points) > 0 and not is_iterable(points[0]):
         return divide_by_scalar(points, std_dev(points))
 
     # Organize the points list as a list where each row is a list of values of 
@@ -133,14 +147,14 @@ def get_dimension(points):
         points in 'points'.
     """
 
-    if isinstance(points[0], list):
+    if is_iterable(points[0]):
         dimension = len(points[0])
     else:
         dimension = 1
 
     i_dimension = -1
     for i in range(len(points)):
-        if isinstance(points[i], list):
+        if is_iterable(points[i]):
             i_dimension = len(points[i])
         else:
             i_dimension = 1
@@ -178,7 +192,7 @@ def sqr_euclidean_dist(point1, point2):
     Returns:
         The square Euclidean distance along each dimensions of the points.
     """
-    if isinstance(point1, list):
+    if is_iterable(point1):
         return [(p1 - p2) ** 2 for p1, p2 in zip(point1, point2)]
 
     return (point1 - point2) ** 2
@@ -313,7 +327,7 @@ def kmeans(points, k_or_centroids, threshold=1e-5):
     if len(points) < 1:
         raise ValueError("points must contain at least 1 point.")
    
-    if isinstance(k_or_centroids, list):
+    if is_iterable(k_or_centroids):
         k = len(k_or_centroids)
         initial_centroids = k_or_centroids
     else:
@@ -427,8 +441,9 @@ def find_outliers(points, outlier_threshold=3, normalized=True):
 
 def kmeans_optm(points, k=None, outlier_threshold=3):
     """
-    Execute k-means clustering on the the 'points' population.
-    
+    Execute k-means clustering(for finding centroid) on, compute the clusters 
+    for, and run outlier detection on the 'points' population.
+
     Returns a dictionary containing the following data:
         'centroids': The k centers of the k clusters found by running the
                      k-means algorithm.
