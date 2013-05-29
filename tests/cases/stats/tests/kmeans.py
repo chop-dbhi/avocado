@@ -1,7 +1,7 @@
 import os
 import random
 from django.test import TestCase
-from avocado.stats import cluster, kmeans
+from avocado.stats import kmeans
 from scipy.cluster import vq
 import numpy as np
 from itertools import chain
@@ -122,68 +122,6 @@ class KmeansTestCase(TestCase):
 
     def test_no_outliers(self):
         points = [[i,i] for i in range(300)]
-        c_outliers = cluster.find_outliers(points, whitened=False)
         m_outliers = kmeans.find_outliers(points, normalized=False)
 
-        self.assertEqual(c_outliers, [])
         self.assertEqual(m_outliers, [])
-
-    def test_find_outliers_1d(self):
-        c_outliers = cluster.find_outliers(np.array(random_points), outlier_threshold=3)
-        m_outliers = kmeans.find_outliers(random_points, outlier_threshold=3)
-
-        self.assertSequenceEqual(c_outliers, m_outliers)
-
-    def test_find_outliers(self):
-        c_outliers = cluster.find_outliers(random_points_3d, whitened=False)
-        m_outliers = kmeans.find_outliers(random_points_3d, normalized=False)
-
-        self.assertSequenceEqual(c_outliers, m_outliers)
-
-    def test_kmeans_optm_1d(self):
-        c_kmeans = cluster.kmeans_optm(random_points)
-        m_kmeans = kmeans.kmeans_optm(random_points)
-
-        # Make sure all the right keys are present in both dictionaries
-        for key in ['centroids', 'indexes', 'distances', 'outliers']:
-            self.assertTrue(c_kmeans.has_key(key) and m_kmeans.has_key(key))
-
-        c_indexes = c_kmeans['indexes'].tolist()
-        m_indexes = m_kmeans['indexes']
-        self.assertSequenceEqual(c_indexes, m_indexes)
-
-        c_distances = c_kmeans['distances']
-        m_distances = m_kmeans['distances']
-        self.assertSequenceAlmostEqual(c_distances, m_distances)
-        
-        c_centroids = c_kmeans['centroids']
-        m_centroids = m_kmeans['centroids']
-        self.assertSequenceAlmostEqual(c_centroids.tolist(), m_centroids)
-
-        c_outliers = c_kmeans['outliers']
-        m_outliers = m_kmeans['outliers']
-        self.assertSequenceEqual(c_outliers, m_outliers)
-
-    def test_kmeans_optm(self):
-        c_kmeans = cluster.kmeans_optm(random_points_3d)
-        m_kmeans = kmeans.kmeans_optm(random_points_3d)
-
-        # Make sure all the right keys are present in both dictionaries
-        for key in ['centroids', 'indexes', 'distances', 'outliers']:
-            self.assertTrue(c_kmeans.has_key(key) and m_kmeans.has_key(key))
-
-        c_indexes = c_kmeans['indexes'].tolist()
-        m_indexes = m_kmeans['indexes']
-        self.assertSequenceEqual(c_indexes, m_indexes)
-
-        c_distances = c_kmeans['distances']
-        m_distances = m_kmeans['distances']
-        self.assertSequenceAlmostEqual(c_distances, m_distances)
-        
-        c_centroids = c_kmeans['centroids']
-        m_centroids = m_kmeans['centroids']
-        self.assertSequenceAlmostEqual(c_centroids.tolist(), m_centroids)
-
-        c_outliers = c_kmeans['outliers']
-        m_outliers = m_kmeans['outliers']
-        self.assertSequenceEqual(c_outliers, m_outliers)
