@@ -493,13 +493,33 @@ class DataContext(AbstractDataContext, Base):
     objects = managers.DataContextManager()
 
     def __unicode__(self):
+        toks = []
+
+        # Identifier
         if self.name:
-            return self.name
-        if self.user_id:
-            out = unicode(self.user)
+            toks.append(self.name)
+        elif self.user_id:
+            toks.append(unicode(self.user))
+        elif self.session_key:
+            toks.append(self.session_key)
+        elif self.pk:
+            toks.append('#{0}'.format(self.pk))
         else:
-            out = self.session_key
-        return u'{0} ({1})'.format(out, 'session' if self.session else 'archived')
+            toks.append('unsaved')
+
+        # State
+        if self.default:
+            toks.append('default template')
+        elif self.template:
+            toks.append('template')
+        elif self.session:
+            toks.append('session')
+        elif self.archived:
+            toks.append('archived')
+        else:
+            toks.append('rogue')
+
+        return u'{0} ({1})'.format(*toks)
 
     def archive(self):
         if self.archived:
@@ -542,13 +562,33 @@ class DataView(AbstractDataView, Base):
     objects = managers.DataViewManager()
 
     def __unicode__(self):
+        toks = []
+
+        # Identifier
         if self.name:
-            return self.name
+            toks.append(self.name)
         elif self.user_id:
-            out = unicode(self.user)
+            toks.append(unicode(self.user))
+        elif self.session_key:
+            toks.append(self.session_key)
+        elif self.pk:
+            toks.append('#{0}'.format(self.pk))
         else:
-            out = self.session_key
-        return u'{0} ({1})'.format(out, 'session' if self.session else 'archived')
+            toks.append('unsaved')
+
+        # State
+        if self.default:
+            toks.append('default template')
+        elif self.template:
+            toks.append('template')
+        elif self.session:
+            toks.append('session')
+        elif self.archived:
+            toks.append('archived')
+        else:
+            toks.append('rogue')
+
+        return u'{0} ({1})'.format(*toks)
 
     def archive(self):
         if self.archived:
