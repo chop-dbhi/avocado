@@ -158,3 +158,19 @@ class DataConceptManager(PublishedManager):
 
 class DataCategoryManager(PublishedManager):
     "Manager for the `DataCategory` model."
+
+
+class DataContextViewBaseManager(models.Manager):
+    def get_default_template(self):
+        try:
+            return self.get_query_set().get(default=True, template=True)
+        except self.model.DoesNotExist:
+            pass
+
+
+class DataViewManager(DataContextViewBaseManager):
+    "Manager for the `DataView` model."
+
+
+class DataContextManager(DataContextViewBaseManager):
+    "Manager for the `DataContext` model."

@@ -12,8 +12,7 @@ from avocado.core.models import Base, BasePlural
 from avocado.core.cache import (post_save_cache, pre_delete_uncache,
     cached_property)
 from avocado.conf import settings
-from avocado.managers import (DataFieldManager, DataConceptManager,
-    DataCategoryManager)
+from avocado import managers
 from avocado.query.models import AbstractDataView, AbstractDataContext
 from avocado.query.translators import registry as translators
 from avocado.query.operators import registry as operators
@@ -44,7 +43,7 @@ class DataCategory(Base):
         help_text='Sub-categories are limited to one-level deep')
     order = models.FloatField(null=True, blank=True, db_column='_order')
 
-    objects = DataCategoryManager()
+    objects = managers.DataCategoryManager()
 
     class Meta(object):
         ordering = ('-parent__id', 'order', 'name')
@@ -109,7 +108,7 @@ class DataField(BasePlural):
     # The order of this datafield with respect to the category (if defined).
     order = models.FloatField(null=True, blank=True, db_column='_order')
 
-    objects = DataFieldManager()
+    objects = managers.DataFieldManager()
 
     class Meta(object):
         unique_together = ('app_name', 'model_name', 'field_name')
@@ -429,7 +428,7 @@ class DataConcept(BasePlural):
     # represents.
     sortable = models.BooleanField(default=True)
 
-    objects = DataConceptManager()
+    objects = managers.DataConceptManager()
 
     def format(self, *args, **kwargs):
         """Convenience method for formatting data relative to this concept's
@@ -491,6 +490,8 @@ class DataContext(AbstractDataContext, Base):
     user = models.ForeignKey(User, null=True, blank=True, related_name='datacontext+')
     session_key = models.CharField(max_length=40, null=True, blank=True)
 
+    objects = managers.DataContextManager()
+
     def __unicode__(self):
         if self.name:
             return self.name
@@ -537,6 +538,8 @@ class DataView(AbstractDataView, Base):
     # otherwise the session key can be used.
     user = models.ForeignKey(User, null=True, blank=True, related_name='dataview+')
     session_key = models.CharField(max_length=40, null=True, blank=True)
+
+    objects = managers.DataViewManager()
 
     def __unicode__(self):
         if self.name:
