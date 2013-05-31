@@ -90,6 +90,16 @@ class KmeansTestCase(TestCase):
         self.assertSequenceEqual(s_code.tolist(), m_code)
         self.assertSequenceAlmostEqual(s_dist.tolist(), m_dist)
 
+    def test_vq_1d_nested(self):
+        nested = [[p] for p in random_points]
+        book = [p for p in random.sample(nested, 8)]
+
+        s_code, s_dist = vq.vq(np.array(nested), np.array(book))
+        m_code, m_dist = kmeans.compute_clusters(nested, book)
+
+        self.assertSequenceEqual(s_code.tolist(), m_code)
+        self.assertSequenceAlmostEqual(s_dist.tolist(), m_dist)
+
     def test_vq(self):
         book = [p for p in random.sample(random_points_3d, 8)]
 

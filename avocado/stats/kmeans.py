@@ -120,6 +120,35 @@ def normalize(points):
     # dimension over all points.
     return divide_lists(points, std_devs) 
 
+def is_nested(points):
+    """
+    Returns True if points is a nested iterable and False if not.
+
+    A nested iterable is an iterable that is made of iterable elements. See
+    the example below:
+
+        >>> p = [[1, 2, 3],
+        ...      [4, 5, 6]]
+        >>> is_nested(p)
+        True
+        >>> p = [10, 20, 30]
+        >>> is_nested(p)
+        False
+        >>> p = [[10], [20], [30]]
+        >>> is_nested(p)
+        True
+
+    NOTE: This method only checks the first element of the iterable 'points'
+    to make the determination of "nestedness". It is assumed that all elements
+    of 'points' are either iterable or not iterable, that is, they match the
+    property of the first element.
+
+    """
+    if len(points) > 0:
+        return is_iterable(points[0])
+
+    return false
+
 def get_dimension(points):
     """
     Returns the dimension of the 'points' list.
@@ -260,7 +289,7 @@ def compute_clusters(points, centroids):
         
         # Sum across all dimensions of each distance measure. If we only have
         # one dimension then this is simply the distance list itself.
-        if d == 1:
+        if d == 1 and not is_nested(centroids):
             distance_totals = distances
         else:
             distance_totals = \
@@ -293,7 +322,7 @@ def dimension_mean(points):
         >>> dimension_mean(p)
         4.75
     """
-    if get_dimension(points) == 1:
+    if get_dimension(points) == 1 and not is_nested(points):
         return sum(points) / float(len(points))
 
     # Organize the points list as a list where each row is a list of values
@@ -418,14 +447,14 @@ def find_outliers(points, outlier_threshold=3, normalized=True):
 
     # Organize the points list as a list where each row is a list of values of 
     # the same dimension.
-    if d > 1:
+    if is_nested(points):
         dimensions = zip(*points)
 
     # Compute the mid-point index and construct the centroid by taking the 
     # midpoint of the sorted list in each dimension.
     midpoint_index = (len(points) - 1) / 2
     
-    if d == 1:
+    if d == 1 and not is_nested(points):
         centroid = [sorted(points)[midpoint_index]]
     else:
         centroid = [[sorted(d)[midpoint_index] for d in dimensions]]
@@ -509,14 +538,14 @@ def kmeans_optm(points, k=None, outlier_threshold=3):
     # point list in order to de-normalize the centroids later. Otherwise, the 
     # centroid would be relative to the normalized dimensions rather than the 
     # original.
-    if d == 1:
+    if d == 1 and not is_nested(points):
         std = std_dev(points)
         norm_points = divide_by_scalar(points, std)
     else:
         std = [std_dev(d) for d in dimensions]
         norm_points = divide_lists(points, std)
   
-    if d == 1:
+    if d == 1 and not is_nested(points):
         sorted_points = sorted(norm_points)
     else:
         # Organize the normalized list as a list where each row is a list of 
@@ -543,7 +572,7 @@ def kmeans_optm(points, k=None, outlier_threshold=3):
     # Denormalize the centroids for downstream use. Do this by multiplying 
     # each dimension of each centroid by the standard deviation along that 
     # dimension that we calculated earlier.
-    if d == 1:
+    if d == 1 and not is_nested(points):
         denorm_centroids = [c * std for c in centroids]
     else:
         denorm_centroids = [[d * s for d, s in zip(c, std)] for c in centroids]
