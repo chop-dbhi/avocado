@@ -103,11 +103,6 @@ What's having all this great descriptive data if no one can find it? Haystack pr
 
 Install by doing `pip install django-haystack` and installing one of the supported search engine backends. The easiest to setup is [Whoosh](http://pypi.python.org/pypi/Whoosh) which is implemented in pure Python. Install it by doing `pip install whoosh`. Add `haystack` to `INSTALLED_APPS`.
 
-#### [SciPy](http://www.scipy.org)
-Avocado comes with a `stats` package for performing some rudimentary statistical, aggregation and clustering operations on the data. This is not always required or necessary for all data, but if there is a heavy emphasis on numerical data or the amount of data is quite large, the `stats` may come in handy.
-
-Install by doing `pip install numpy` first (a dependency of SciPy), followed by `pip install scipy`. Note, there are a few dependencies for compilation, so review [SciPy's installation instructions](http://www.scipy.org/Installing_SciPy) for more details.
-
 #### [openpyxl](http://packages.python.org/openpyxl/)
 Avocado comes with an `export` package for supporting various means of exporting data into different formats. One of those formats is the native Microsoft Excel _.xlsx_ format. To support that, the openpyxl library is used.
 

@@ -113,16 +113,6 @@ class Haystack(Dependency):
             return False
 
 
-#class Numpy(Dependency):
-#    name = 'numpy'
-#
-#    def test_install(self):
-#        try:
-#            import numpy
-#        except ImportError:
-#            return False
-
-
 class Scipy(Dependency):
     """Avocado comes with a stats package for performing some rudimentary
     statistical, aggregation and clustering operations on the data. This is not
@@ -183,7 +173,6 @@ class Guardian(Dependency):
 # features.
 OPTIONAL_DEPS = {
     'haystack': Haystack(),
-#    'numpy': Numpy(),
     'scipy': Scipy(),
     'openpyxl': Openpyxl(),
     'guardian': Guardian(),
