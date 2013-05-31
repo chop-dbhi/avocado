@@ -42,7 +42,7 @@ class AggregatorTestCase(TestCase):
 
     # Python unittest versions before 2.7 do not support expectedFailure so 
     # check for raised exceptions explicitly in earlier versions.
-    if sys.hexversion >= 0x02070000: 
+    if sys.version_info >= (2, 7): 
         @unittest.expectedFailure
         def test_stddev(self):
             self.assertEqual(self.is_manager.stddev(), None)
@@ -54,7 +54,7 @@ class AggregatorTestCase(TestCase):
             self.assertRaises(TypeError, self.salary.stddev())
             self.assertRaises(DatabaseError, self.first_name.stddev())
 
-    if sys.hexversion >= 0x02070000: 
+    if sys.version_info >= (2, 7): 
         @unittest.expectedFailure
         def test_variance(self):
             self.assertEqual(self.is_manager.variance(), None)
