@@ -8,8 +8,7 @@ env:
 virtualenv:
     system_site_packages: true
 before_install:
-    - pip install -q numpy
-    - pip install -q scipy
+    - sudo apt-get install -qq python-numpy python-scipy
 install:
     - pip install -q Django==$DJANGO --use-mirrors
 services:
