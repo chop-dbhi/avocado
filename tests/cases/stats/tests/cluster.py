@@ -4,7 +4,7 @@ from avocado.stats import cluster
 
 __all__ = ('ClusterTestCase',)
 
-random_points_file = open(os.path.join(os.path.dirname(__file__), '../fixtures/random_points.txt'))
+random_points_file = open(os.path.join(os.path.dirname(__file__), '../fixtures/random_points/points.txt'))
 random_points = [float(x.strip()) for x in random_points_file.xreadlines()]
 
 

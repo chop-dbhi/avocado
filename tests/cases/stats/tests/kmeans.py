@@ -8,11 +8,16 @@ from itertools import chain
 
 __all__ = ('KmeansTestCase',)
 
-random_points_file = open(os.path.join(os.path.dirname(__file__), '../fixtures/random_points.txt'))
-random_points_3d_file = open(os.path.join(os.path.dirname(__file__), '../fixtures/random_points_3d.txt'))
-
+random_points_file = open(
+        os.path.join(os.path.dirname(__file__), 
+        '../fixtures/random_points/points.txt'))
 random_points = [float(x.strip()) for x in random_points_file.xreadlines()]
-random_points_3d = [[float(x) for x in l.strip().split(",")] for l in random_points_3d_file.xreadlines()]
+
+random_points_3d_file = open(
+        os.path.join(os.path.dirname(__file__), 
+        '../fixtures/random_points_3d/points.txt'))
+random_points_3d = [[float(x) for x in l.strip().split(",")] 
+        for l in random_points_3d_file.xreadlines()]
 
 PLACES = 10
 
@@ -71,7 +76,7 @@ class KmeansTestCase(TestCase):
     def test_normalize(self):
         vq_file = open(
                 os.path.join(os.path.dirname(__file__), 
-                    '../fixtures/random_points_whiten_output.txt'))
+                '../fixtures/random_points/scipy_whiten_output.txt'))
         vq_output = [float(x.strip()) for x in vq_file.xreadlines()]
         
         our_normalize = kmeans.normalize(random_points)
@@ -80,7 +85,7 @@ class KmeansTestCase(TestCase):
 
         vq_file = open(
                 os.path.join(os.path.dirname(__file__), 
-                    '../fixtures/random_points_3d_whiten_output.txt'))
+                '../fixtures/random_points_3d/scipy_whiten_output.txt'))
         vq_output = [[float(x) for x in l.strip().split(",")] 
                 for l in vq_file.xreadlines()]
 
