@@ -59,28 +59,35 @@ class KmeansTestCase(TestCase):
     def test_std_dev(self):
         our_std_dev = kmeans.std_dev(random_points)
 
-        # The 28.247608160964884 value was calculated using numpy 1.6.1 on
-        # Python 2.7.2.
+        # The 28.247608160964884 value was calculated using numpy 1.7.1 on
+        # Python 2.7.3.
         self.assertEqual(28.247608160964884, our_std_dev)
 
     def test_normalize(self):
-        scipy_normalize = vq.whiten(np.array(random_points))
+        # The whiten output file was created using numpy 1.7.1, scipy 0.12.0
+        # and Python 2.7.3 on the contents of the random_points.txt file in
+        # fixtures.
+        vq_file = open(
+                os.path.join(os.path.dirname(__file__), 
+                    '../fixtures/random_points_vq_output.txt'))
+        vq_output = [float(x.strip()) for x in vq_file.xreadlines()]
+        
         our_normalize = kmeans.normalize(random_points)
         
-        self.assertEqual(len(scipy_normalize), len(our_normalize))
+        self.assertSequenceAlmostEqual(vq_output, our_normalize)
 
-        comp_normalize = zip(scipy_normalize, our_normalize)
+        # The whiten output file was created using numpy 1.7.1, scipy 0.12.0
+        # and Python 2.7.3 on the contents of the random_points.txt file in
+        # fixtures.
+        vq_file = open(
+                os.path.join(os.path.dirname(__file__), 
+                    '../fixtures/random_points_3d_vq_output.txt'))
+        vq_output = [[float(x) for x in l.strip().split(",")] 
+                for l in vq_file.xreadlines()]
 
-        [self.assertEqual(*comp) for comp in comp_normalize]
-        
-        scipy_normalize = vq.whiten(np.array(random_points_3d))
         our_normalize = kmeans.normalize(random_points_3d)
         
-        self.assertEqual(len(scipy_normalize), len(our_normalize))
-
-        comp_normalize = zip(scipy_normalize, our_normalize)
-        [self.assertSequenceEqual(scipy_list.tolist(), our_list) for \
-                scipy_list, our_list in comp_normalize]
+        self.assertSequenceAlmostEqual(vq_output, our_normalize)
 
     def test_vq_1d(self):
         book = [p for p in random.sample(random_points, 8)]
