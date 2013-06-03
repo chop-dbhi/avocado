@@ -57,10 +57,11 @@ class KmeansTestCase(TestCase):
                 self.assertAlmostEqual(num1, num2, num_places)
 
     def test_std_dev(self):
-        numpy_std_dev = np.std(np.array(random_points))
         our_std_dev = kmeans.std_dev(random_points)
 
-        self.assertEqual(numpy_std_dev, our_std_dev)
+        # The 28.247608160964884 value was calculated using numpy 1.6.1 on
+        # Python 2.7.2.
+        self.assertEqual(28.247608160964884, our_std_dev)
 
     def test_normalize(self):
         scipy_normalize = vq.whiten(np.array(random_points))
