@@ -90,7 +90,9 @@ class KmeansTestCase(TestCase):
         self.assertSequenceAlmostEqual(vq_output, our_normalize)
 
     def test_vq_1d(self):
-        book = [p for p in random.sample(random_points, 8)]
+        # Randomly generated list of indexes in the 1d random points list
+        book_indexes = [231, 31, 250, 104, 233, 289, 236, 259]
+        book = [random_points[i] for i in book_indexes]
 
         s_code, s_dist = vq.vq(np.array(random_points), np.array(book))
         m_code, m_dist = kmeans.compute_clusters(random_points, book)
