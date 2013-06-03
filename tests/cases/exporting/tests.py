@@ -87,7 +87,7 @@ class FileExportTestCase(TestCase):
         self.assertTrue(os.path.exists(fname))
         # Observed slight size differences..
         l = len(open(fname).read())
-        self.assertTrue(6220 <= l <= 6240)
+        self.assertTrue(6220 <= l <= 6250)
         os.remove(fname)
 
     def test_sas(self):
@@ -141,7 +141,7 @@ class ResponseExportTestCase(FileExportTestCase):
         exporter.write(self.query, response)
         # Observed slight size differences..
         l = len(response.content)
-        self.assertTrue(6220 <= l <= 6240)
+        self.assertTrue(6220 <= l <= 6250)
 
     def test_sas(self):
         exporter = export.SASExporter(self.concepts)
