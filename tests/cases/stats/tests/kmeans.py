@@ -17,6 +17,13 @@ random_points_3d = [[float(x) for x in l.strip().split(",")] for l in random_poi
 PLACES = 10
 
 class KmeansTestCase(TestCase):
+    """
+    NOTE: All numpy and scipy output files and values were created with the 
+    following:
+        numpy version 1.7.1
+        scipy version 0.12.0
+        python version 2.7.3
+    """
     def assertSequenceAlmostEqual(self, seq1, seq2, num_places=None):
         """
         Helper method for checking that 2 sequences are almost equal.
@@ -59,14 +66,9 @@ class KmeansTestCase(TestCase):
     def test_std_dev(self):
         our_std_dev = kmeans.std_dev(random_points)
 
-        # The 28.247608160964884 value was calculated using numpy 1.7.1 on
-        # Python 2.7.3.
         self.assertEqual(28.247608160964884, our_std_dev)
 
     def test_normalize(self):
-        # The whiten output file was created using numpy 1.7.1, scipy 0.12.0
-        # and Python 2.7.3 on the contents of the random_points.txt file in
-        # fixtures.
         vq_file = open(
                 os.path.join(os.path.dirname(__file__), 
                     '../fixtures/random_points_whiten_output.txt'))
@@ -76,9 +78,6 @@ class KmeansTestCase(TestCase):
         
         self.assertSequenceAlmostEqual(vq_output, our_normalize)
 
-        # The whiten output file was created using numpy 1.7.1, scipy 0.12.0
-        # and Python 2.7.3 on the contents of the random_points.txt file in
-        # fixtures.
         vq_file = open(
                 os.path.join(os.path.dirname(__file__), 
                     '../fixtures/random_points_3d_whiten_output.txt'))
