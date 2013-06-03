@@ -2,8 +2,6 @@ import os
 import random
 from django.test import TestCase
 from avocado.stats import kmeans
-from scipy.cluster import vq
-import numpy as np
 from itertools import chain
 
 __all__ = ('KmeansTestCase',)
@@ -164,20 +162,21 @@ class KmeansTestCase(TestCase):
         centroids = [random_points_3d[125], 
                      random_points_3d[500], 
                      random_points_3d[875]]
-        s_centroids, s_distance = \
-                vq.kmeans(np.array(random_points_3d), np.array(centroids))
+
+        s_centroids = [[ 0.44876204,  0.3331773 ,  0.233552  ],
+                       [ 0.49838519,  0.29378851,  0.75018887],
+                       [ 0.5225907 ,  0.80407079,  0.53268326]]
         m_centroids, m_distance = kmeans.kmeans(random_points_3d, centroids)
         
-        self.assertEqual(s_distance, m_distance)
-        self.assertEqual(len(s_centroids.tolist()), len(m_centroids))
+        self.assertEqual(0.35944390987038655, m_distance)
 
         # I'm getting everything to pass at 10 places except for this where 
         # there always seems to be at least one dimension of one centroid 
-        # about [.001-.005] away from where we expect it to be. For now, I'm 
-        # setting this to 2 places until I can check if there is an issue in 
-        # kmeans or if this is just a matter of floating differences between
-        # numpy and standard python.
-        self.assertSequenceAlmostEqual(s_centroids.tolist(), m_centroids, num_places=2)
+        # about [.001-.005] away from where we expect it to be. This is due to
+        # difference in floating point storage between numpy and python. See
+        # the following for more info:
+        #           https://github.com/cbmi/avocado/issues/34
+        self.assertSequenceAlmostEqual(s_centroids, m_centroids, num_places=2)
 
     def test_no_outliers(self):
         points = [[i,i] for i in range(300)]
