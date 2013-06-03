@@ -56,7 +56,7 @@ class KmeansTestCase(TestCase):
         """
         num_places = num_places or PLACES
 
-        if isinstance(seq1[0], list):
+        if kmeans.is_iterable(seq1[0]):
             for list1, list2 in zip(seq1, seq2):
                 self.assertSequenceAlmostEqual(list1, list2, num_places)
         else:
