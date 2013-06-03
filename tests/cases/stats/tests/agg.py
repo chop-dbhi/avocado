@@ -1,6 +1,8 @@
+import sys
 import unittest
 from django.test import TestCase
 from django.core import management
+from django.db import DatabaseError
 from avocado.models import DataField
 
 
@@ -38,14 +40,28 @@ class AggregatorTestCase(TestCase):
         self.assertEqual(self.salary.sum(), [{'sum': 375000}])
         self.assertEqual(self.first_name.sum(), None)
 
-    @unittest.expectedFailure
-    def test_stddev(self):
-        self.assertEqual(self.is_manager.stddev(), None)
-        self.assertEqual(self.salary.stddev(), [{'stddev': 66639.4502268}])
-        self.assertEqual(self.first_name.stddev(), None)
+    # Python unittest versions before 2.7 do not support expectedFailure so 
+    # check for raised exceptions explicitly in earlier versions.
+    if sys.version_info >= (2, 7): 
+        @unittest.expectedFailure
+        def test_stddev(self):
+            self.assertEqual(self.is_manager.stddev(), None)
+            self.assertEqual(self.salary.stddev(), [{'stddev': 66639.4502268}])
+            self.assertEqual(self.first_name.stddev(), None)
+    else:
+        def test_stddev(self):
+            self.assertRaises(DatabaseError, self.is_manager.stddev())
+            self.assertRaises(TypeError, self.salary.stddev())
+            self.assertRaises(DatabaseError, self.first_name.stddev())
 
-    @unittest.expectedFailure
-    def test_variance(self):
-        self.assertEqual(self.is_manager.variance(), None)
-        self.assertEqual(self.salary.variance(), [{'variance': 4440816326.530612}])
-        self.assertEqual(self.first_name.variance(), None)
+    if sys.version_info >= (2, 7): 
+        @unittest.expectedFailure
+        def test_variance(self):
+            self.assertEqual(self.is_manager.variance(), None)
+            self.assertEqual(self.salary.variance(), [{'variance': 4440816326.530612}])
+            self.assertEqual(self.first_name.variance(), None)
+    else:
+        def test_variance(self):
+            self.assertRaises(DatabaseError, self.is_manager.variance())
+            self.assertRaises(TypeError, self.salary.variance())
+            self.assertRaises(DatabaseError, self.first_name.variance())
