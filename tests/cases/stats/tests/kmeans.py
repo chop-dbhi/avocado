@@ -69,7 +69,7 @@ class KmeansTestCase(TestCase):
         # fixtures.
         vq_file = open(
                 os.path.join(os.path.dirname(__file__), 
-                    '../fixtures/random_points_vq_output.txt'))
+                    '../fixtures/random_points_whiten_output.txt'))
         vq_output = [float(x.strip()) for x in vq_file.xreadlines()]
         
         our_normalize = kmeans.normalize(random_points)
@@ -81,7 +81,7 @@ class KmeansTestCase(TestCase):
         # fixtures.
         vq_file = open(
                 os.path.join(os.path.dirname(__file__), 
-                    '../fixtures/random_points_3d_vq_output.txt'))
+                    '../fixtures/random_points_3d_whiten_output.txt'))
         vq_output = [[float(x) for x in l.strip().split(",")] 
                 for l in vq_file.xreadlines()]
 
