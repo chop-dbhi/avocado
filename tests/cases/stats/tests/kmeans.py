@@ -117,13 +117,25 @@ class KmeansTestCase(TestCase):
 
     def test_vq_1d_nested(self):
         nested = [[p] for p in random_points]
-        book = [p for p in random.sample(nested, 8)]
+        book_indexes = [231, 31, 250, 104, 233, 289, 236, 259]
+        book = [nested[i] for i in book_indexes]
 
-        s_code, s_dist = vq.vq(np.array(nested), np.array(book))
+        vq_file = open(
+                os.path.join(os.path.dirname(__file__),
+                    '../fixtures/random_points/scipy_vq_output.txt'))
+        
+        s_code = []
+        s_dist = []
+        for l in vq_file.xreadlines():
+            fields = l.split(",")
+            if not l.startswith("#") and len(fields) == 2:
+                s_code.append(int(fields[0].strip()))
+                s_dist.append(float(fields[1].strip()))
+
         m_code, m_dist = kmeans.compute_clusters(nested, book)
 
-        self.assertSequenceEqual(s_code.tolist(), m_code)
-        self.assertSequenceAlmostEqual(s_dist.tolist(), m_dist)
+        self.assertSequenceEqual(s_code, m_code)
+        self.assertSequenceAlmostEqual(s_dist, m_dist)
 
     def test_vq(self):
         book = [p for p in random.sample(random_points_3d, 8)]
