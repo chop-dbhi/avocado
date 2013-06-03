@@ -209,6 +209,7 @@ class DataConceptAdmin(PublishedAdmin):
         'queryview', 'formatter_name', 'sortable', 'related_datafields')
     list_editable = ('published', 'archived', 'internal', 'category',
         'queryview', 'formatter_name', 'sortable')
+    list_filter = ('published', 'archived', 'category')
     inlines = [DataConceptFieldInlineAdmin]
 
     fieldsets = (
