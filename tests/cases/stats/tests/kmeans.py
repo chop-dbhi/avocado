@@ -74,18 +74,18 @@ class KmeansTestCase(TestCase):
         self.assertEqual(28.247608160964884, our_std_dev)
 
     def test_normalize(self):
-        vq_file = open(
-                os.path.join(os.path.dirname(__file__), 
-                '../fixtures/random_points/scipy_whiten_output.txt'))
+        vq_file = open(os.path.join(
+            os.path.dirname(__file__), 
+            '../fixtures/random_points/scipy_whiten_output.txt'))
         vq_output = [float(x.strip()) for x in vq_file.xreadlines()]
         
         our_normalize = kmeans.normalize(random_points)
         
         self.assertSequenceAlmostEqual(vq_output, our_normalize)
 
-        vq_file = open(
-                os.path.join(os.path.dirname(__file__), 
-                '../fixtures/random_points_3d/scipy_whiten_output.txt'))
+        vq_file = open(os.path.join(
+            os.path.dirname(__file__), 
+            '../fixtures/random_points_3d/scipy_whiten_output.txt'))
         vq_output = [[float(x) for x in l.strip().split(",")] 
                 for l in vq_file.xreadlines()]
 
@@ -98,9 +98,9 @@ class KmeansTestCase(TestCase):
         book_indexes = [231, 31, 250, 104, 233, 289, 236, 259]
         book = [random_points[i] for i in book_indexes]
 
-        vq_file = open(
-                os.path.join(os.path.dirname(__file__),
-                    '../fixtures/random_points/scipy_vq_output.txt'))
+        vq_file = open(os.path.join(
+            os.path.dirname(__file__),
+            '../fixtures/random_points/scipy_vq_output.txt'))
         
         s_code = []
         s_dist = []
@@ -120,9 +120,9 @@ class KmeansTestCase(TestCase):
         book_indexes = [231, 31, 250, 104, 233, 289, 236, 259]
         book = [nested[i] for i in book_indexes]
 
-        vq_file = open(
-                os.path.join(os.path.dirname(__file__),
-                    '../fixtures/random_points/scipy_vq_output.txt'))
+        vq_file = open(os.path.join(
+            os.path.dirname(__file__),
+            '../fixtures/random_points/scipy_vq_output.txt'))
         
         s_code = []
         s_dist = []
@@ -138,13 +138,25 @@ class KmeansTestCase(TestCase):
         self.assertSequenceAlmostEqual(s_dist, m_dist)
 
     def test_vq(self):
-        book = [p for p in random.sample(random_points_3d, 8)]
+        book_indexes = [28, 182, 948, 434, 969, 814, 859, 123]
+        book = [random_points_3d[i] for i in book_indexes]
 
-        s_code, s_dist = vq.vq(np.array(random_points_3d), np.array(book))
+        vq_file = open(os.path.join(
+            os.path.dirname(__file__),
+            '../fixtures/random_points_3d/scipy_vq_output.txt'))
+
+        s_code = []
+        s_dist = []
+        for l in vq_file.xreadlines():
+            fields = l.split(",")
+            if not l.startswith("#") and len(fields) == 2:
+                s_code.append(int(fields[0].strip()))
+                s_dist.append(float(fields[1].strip()))
+
         m_code, m_dist = kmeans.compute_clusters(random_points_3d, book)
 
-        self.assertSequenceEqual(s_code.tolist(), m_code)
-        self.assertSequenceAlmostEqual(s_dist.tolist(), m_dist)
+        self.assertSequenceEqual(s_code, m_code)
+        self.assertSequenceAlmostEqual(s_dist, m_dist)
 
     def test_kmeans(self):
         # These indices don't really matter since the points are random but
