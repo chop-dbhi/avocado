@@ -113,28 +113,6 @@ class Haystack(Dependency):
             return False
 
 
-class Scipy(Dependency):
-    """Avocado comes with a stats package for performing some rudimentary
-    statistical, aggregation and clustering operations on the data. This is not
-    always required or necessary for all data, but if there is a heavy emphasis
-    on numerical data or the amount of data is quite large, the stats may come
-    in handy.
-
-    Install by doing `pip install numpy` first (a dependency of SciPy), followed
-    by `pip install scipy`. Note, there are a few dependencies for compilation,
-    so review SciPy's [installation instructions](http://www.scipy.org/Installing_SciPy)
-    for more details.
-    """
-
-    name = 'scipy'
-
-    def test_install(self):
-        try:
-            import scipy
-        except ImportError:
-            return False
-
-
 class Openpyxl(Dependency):
     """Avocado comes with an export package for supporting various means of
     exporting data into different formats. One of those formats is the native
@@ -173,7 +151,6 @@ class Guardian(Dependency):
 # features.
 OPTIONAL_DEPS = {
     'haystack': Haystack(),
-    'scipy': Scipy(),
     'openpyxl': Openpyxl(),
     'guardian': Guardian(),
 }

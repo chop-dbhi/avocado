@@ -29,8 +29,6 @@ kwargs = {
         'django-haystack==1.2.7',
         'whoosh==2.4.1',
         'openpyxl>=1.6,<1.7',
-        'scipy>=0.11.0,<0.13.0',
-        'numpy>=1.6,<1.8',
         'python-memcached==1.48',
         'coverage',
     ],

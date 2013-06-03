@@ -2,21 +2,31 @@ import os
 import random
 from django.test import TestCase
 from avocado.stats import kmeans
-from scipy.cluster import vq
-import numpy as np
 from itertools import chain
 
 __all__ = ('KmeansTestCase',)
 
-random_points_file = open(os.path.join(os.path.dirname(__file__), '../fixtures/random_points.txt'))
-random_points_3d_file = open(os.path.join(os.path.dirname(__file__), '../fixtures/random_points_3d.txt'))
-
+random_points_file = open(
+        os.path.join(os.path.dirname(__file__), 
+        '../fixtures/random_points/points.txt'))
 random_points = [float(x.strip()) for x in random_points_file.xreadlines()]
-random_points_3d = [[float(x) for x in l.strip().split(",")] for l in random_points_3d_file.xreadlines()]
+
+random_points_3d_file = open(
+        os.path.join(os.path.dirname(__file__), 
+        '../fixtures/random_points_3d/points.txt'))
+random_points_3d = [[float(x) for x in l.strip().split(",")] 
+        for l in random_points_3d_file.xreadlines()]
 
 PLACES = 10
 
 class KmeansTestCase(TestCase):
+    """
+    NOTE: All numpy and scipy output files and values were created with the 
+    following:
+        numpy version 1.7.1
+        scipy version 0.12.0
+        python version 2.7.3
+    """
     def assertSequenceAlmostEqual(self, seq1, seq2, num_places=None):
         """
         Helper method for checking that 2 sequences are almost equal.
@@ -49,7 +59,7 @@ class KmeansTestCase(TestCase):
         """
         num_places = num_places or PLACES
 
-        if isinstance(seq1[0], list):
+        if kmeans.is_iterable(seq1[0]):
             for list1, list2 in zip(seq1, seq2):
                 self.assertSequenceAlmostEqual(list1, list2, num_places)
         else:
@@ -57,57 +67,94 @@ class KmeansTestCase(TestCase):
                 self.assertAlmostEqual(num1, num2, num_places)
 
     def test_std_dev(self):
-        numpy_std_dev = np.std(np.array(random_points))
         our_std_dev = kmeans.std_dev(random_points)
 
-        self.assertEqual(numpy_std_dev, our_std_dev)
+        self.assertEqual(28.247608160964884, our_std_dev)
 
     def test_normalize(self):
-        scipy_normalize = vq.whiten(np.array(random_points))
+        vq_file = open(os.path.join(
+            os.path.dirname(__file__), 
+            '../fixtures/random_points/scipy_whiten_output.txt'))
+        vq_output = [float(x.strip()) for x in vq_file.xreadlines()]
+        
         our_normalize = kmeans.normalize(random_points)
         
-        self.assertEqual(len(scipy_normalize), len(our_normalize))
+        self.assertSequenceAlmostEqual(vq_output, our_normalize)
 
-        comp_normalize = zip(scipy_normalize, our_normalize)
+        vq_file = open(os.path.join(
+            os.path.dirname(__file__), 
+            '../fixtures/random_points_3d/scipy_whiten_output.txt'))
+        vq_output = [[float(x) for x in l.strip().split(",")] 
+                for l in vq_file.xreadlines()]
 
-        [self.assertEqual(*comp) for comp in comp_normalize]
-        
-        scipy_normalize = vq.whiten(np.array(random_points_3d))
         our_normalize = kmeans.normalize(random_points_3d)
         
-        self.assertEqual(len(scipy_normalize), len(our_normalize))
-
-        comp_normalize = zip(scipy_normalize, our_normalize)
-        [self.assertSequenceEqual(scipy_list.tolist(), our_list) for \
-                scipy_list, our_list in comp_normalize]
+        self.assertSequenceAlmostEqual(vq_output, our_normalize)
 
     def test_vq_1d(self):
-        book = [p for p in random.sample(random_points, 8)]
+        # Randomly generated list of indexes in the 1d random points list
+        book_indexes = [231, 31, 250, 104, 233, 289, 236, 259]
+        book = [random_points[i] for i in book_indexes]
 
-        s_code, s_dist = vq.vq(np.array(random_points), np.array(book))
+        vq_file = open(os.path.join(
+            os.path.dirname(__file__),
+            '../fixtures/random_points/scipy_vq_output.txt'))
+        
+        s_code = []
+        s_dist = []
+        for l in vq_file.xreadlines():
+            fields = l.split(",")
+            if not l.startswith("#") and len(fields) == 2:
+                s_code.append(int(fields[0].strip()))
+                s_dist.append(float(fields[1].strip()))
+
         m_code, m_dist = kmeans.compute_clusters(random_points, book)
 
-        self.assertSequenceEqual(s_code.tolist(), m_code)
-        self.assertSequenceAlmostEqual(s_dist.tolist(), m_dist)
+        self.assertSequenceEqual(s_code, m_code)
+        self.assertSequenceAlmostEqual(s_dist, m_dist)
 
     def test_vq_1d_nested(self):
         nested = [[p] for p in random_points]
-        book = [p for p in random.sample(nested, 8)]
+        book_indexes = [231, 31, 250, 104, 233, 289, 236, 259]
+        book = [nested[i] for i in book_indexes]
 
-        s_code, s_dist = vq.vq(np.array(nested), np.array(book))
+        vq_file = open(os.path.join(
+            os.path.dirname(__file__),
+            '../fixtures/random_points/scipy_vq_output.txt'))
+        
+        s_code = []
+        s_dist = []
+        for l in vq_file.xreadlines():
+            fields = l.split(",")
+            if not l.startswith("#") and len(fields) == 2:
+                s_code.append(int(fields[0].strip()))
+                s_dist.append(float(fields[1].strip()))
+
         m_code, m_dist = kmeans.compute_clusters(nested, book)
 
-        self.assertSequenceEqual(s_code.tolist(), m_code)
-        self.assertSequenceAlmostEqual(s_dist.tolist(), m_dist)
+        self.assertSequenceEqual(s_code, m_code)
+        self.assertSequenceAlmostEqual(s_dist, m_dist)
 
     def test_vq(self):
-        book = [p for p in random.sample(random_points_3d, 8)]
+        book_indexes = [28, 182, 948, 434, 969, 814, 859, 123]
+        book = [random_points_3d[i] for i in book_indexes]
 
-        s_code, s_dist = vq.vq(np.array(random_points_3d), np.array(book))
+        vq_file = open(os.path.join(
+            os.path.dirname(__file__),
+            '../fixtures/random_points_3d/scipy_vq_output.txt'))
+
+        s_code = []
+        s_dist = []
+        for l in vq_file.xreadlines():
+            fields = l.split(",")
+            if not l.startswith("#") and len(fields) == 2:
+                s_code.append(int(fields[0].strip()))
+                s_dist.append(float(fields[1].strip()))
+
         m_code, m_dist = kmeans.compute_clusters(random_points_3d, book)
 
-        self.assertSequenceEqual(s_code.tolist(), m_code)
-        self.assertSequenceAlmostEqual(s_dist.tolist(), m_dist)
+        self.assertSequenceEqual(s_code, m_code)
+        self.assertSequenceAlmostEqual(s_dist, m_dist)
 
     def test_kmeans(self):
         # These indices don't really matter since the points are random but
@@ -115,20 +162,21 @@ class KmeansTestCase(TestCase):
         centroids = [random_points_3d[125], 
                      random_points_3d[500], 
                      random_points_3d[875]]
-        s_centroids, s_distance = \
-                vq.kmeans(np.array(random_points_3d), np.array(centroids))
+
+        s_centroids = [[ 0.44876204,  0.3331773 ,  0.233552  ],
+                       [ 0.49838519,  0.29378851,  0.75018887],
+                       [ 0.5225907 ,  0.80407079,  0.53268326]]
         m_centroids, m_distance = kmeans.kmeans(random_points_3d, centroids)
         
-        self.assertEqual(s_distance, m_distance)
-        self.assertEqual(len(s_centroids.tolist()), len(m_centroids))
+        self.assertEqual(0.35944390987038655, m_distance)
 
         # I'm getting everything to pass at 10 places except for this where 
         # there always seems to be at least one dimension of one centroid 
-        # about [.001-.005] away from where we expect it to be. For now, I'm 
-        # setting this to 2 places until I can check if there is an issue in 
-        # kmeans or if this is just a matter of floating differences between
-        # numpy and standard python.
-        self.assertSequenceAlmostEqual(s_centroids.tolist(), m_centroids, num_places=2)
+        # about [.001-.005] away from where we expect it to be. This is due to
+        # difference in floating point storage between numpy and python. See
+        # the following for more info:
+        #           https://github.com/cbmi/avocado/issues/34
+        self.assertSequenceAlmostEqual(s_centroids, m_centroids, num_places=2)
 
     def test_no_outliers(self):
         points = [[i,i] for i in range(300)]
