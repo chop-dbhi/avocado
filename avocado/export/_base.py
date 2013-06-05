@@ -29,10 +29,10 @@ class BaseExporter(object):
             return open(name, 'w+')
         return name
 
-    def _format_row(self, row):
+    def _format_row(self, row, **kwargs):
         for formatter, length in self.params:
             values, row = row[:length], row[length:]
-            yield formatter(values, self.preferred_formats)
+            yield formatter(values, preferred_formats=self.preferred_formats, **kwargs)
 
     def read(self, iterable, force_distinct=True, *args, **kwargs):
         """Takes an iterable that produces rows to be formatted.
@@ -47,7 +47,7 @@ class BaseExporter(object):
             if force_distinct and _row == last_row:
                 continue
             last_row = _row
-            yield self._format_row(_row)
+            yield self._format_row(_row, **kwargs)
 
     def write(self, iterable, *args, **kwargs):
         raise NotImplemented
