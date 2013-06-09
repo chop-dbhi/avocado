@@ -574,6 +574,8 @@ class DataConcept(BasePlural, PublishArchiveMixin):
                                    'internal use and does not abide by '
                                    'the published and archived rules.')
 
+    type = models.CharField(max_length=100, blank=True, null=True)
+
     # Although a category does not technically need to be defined, this more
     # for workflow reasons than for when the concept is published. Automated
     # prcesses may create concepts on the fly, but not know which category they

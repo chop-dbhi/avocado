@@ -155,15 +155,16 @@ class DataConceptFieldInlineAdmin(admin.TabularInline):
 
 
 class DataConceptAdmin(PublishedAdmin):
-    list_display = ('name', 'published', 'archived', 'internal', 'category',
-                    'order', 'formatter_name', 'viewable', 'queryable',
-                    'sortable', 'related_datafields')
+    list_display = ('name', 'published', 'archived', 'internal', 'type',
+                    'category', 'order', 'formatter_name', 'viewable',
+                    'queryable', 'sortable', 'related_datafields')
 
-    list_editable = ('published', 'archived', 'internal', 'category', 'order',
-                     'formatter_name', 'viewable', 'queryable', 'sortable')
+    list_editable = ('published', 'archived', 'internal', 'type', 'category',
+                     'order', 'formatter_name', 'viewable', 'queryable',
+                     'sortable')
 
-    list_filter = ('published', 'archived', 'category', 'formatter_name',
-                   'viewable', 'queryable', 'sortable')
+    list_filter = ('published', 'archived', 'category', 'type',
+                   'formatter_name', 'viewable', 'queryable', 'sortable')
 
     inlines = [DataConceptFieldInlineAdmin]
 
@@ -188,7 +189,8 @@ class DataConceptAdmin(PublishedAdmin):
         }),
 
         ('Modifiers', {
-            'fields': ('formatter_name', 'viewable', 'queryable', 'sortable'),
+            'fields': ('formatter_name', 'viewable', 'queryable',
+                       'sortable', 'type'),
         }),
 
         ('Times of Interest', {
