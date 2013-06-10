@@ -81,3 +81,8 @@ METADATA_FIXTURE_DIR = None
 METADATA_FIXTURE_SUFFIX = 'avocado_metadata'
 
 METADATA_MIGRATION_SUFFIX = 'avocado_metadata_migration'
+
+# Query processors
+QUERY_PROCESSORS = {
+    'default': 'avocado.query.pipeline.QueryProcessor',
+}
