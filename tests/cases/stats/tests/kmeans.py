@@ -17,6 +17,12 @@ random_points_3d_file = open(
 random_points_3d = [[float(x) for x in l.strip().split(",")] 
         for l in random_points_3d_file.xreadlines()]
 
+int_points_3d_file = open(
+        os.path.join(os.path.dirname(__file__),
+        '../fixtures/int_3d/points.txt'))
+int_points_3d = [[int(x) for x in l.strip().split(",")]
+        for l in int_points_3d_file.xreadlines()]
+
 PLACES = 10
 
 class KmeansTestCase(TestCase):
@@ -183,3 +189,10 @@ class KmeansTestCase(TestCase):
         m_outliers = kmeans.find_outliers(points, normalized=False)
 
         self.assertEqual(m_outliers, [])
+
+    def test_outliers(self):
+        outlier_indexes = [91, 225, 263, 371, 377]
+        m_outliers = kmeans.find_outliers(int_points_3d, normalized=True)
+
+        self.assertSequenceEqual(outlier_indexes, m_outliers)
+        
