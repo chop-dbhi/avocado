@@ -1,4 +1,5 @@
-from avocado.models import DataView
+from avocado.models import DataConcept, DataView
+from avocado.formatters import Formatter
 from cStringIO import StringIO
 
 
@@ -8,8 +9,10 @@ class BaseExporter(object):
     content_type = 'text/plain'
     preferred_formats = []
 
-    def __init__(self, concepts):
-        if isinstance(concepts, DataView):
+    def __init__(self, concepts=None):
+        if concepts is None:
+            concepts = ()
+        elif isinstance(concepts, DataView):
             node = concepts.parse()
             concepts = node.get_concepts_for_select()
 
@@ -18,9 +21,29 @@ class BaseExporter(object):
         self.concepts = concepts
 
         for concept in concepts:
-            length = concept.concept_fields.count()
-            self.row_length += length
-            self.params.append((concept.format, length))
+            self.add_formatter(concept)
+
+    def __repr__(self):
+        return u'<{0}: {1}/{2}>'.format(self.__class__.__name__,
+            len(self.params), self.row_length)
+
+    def add_formatter(self, formatter, length=None, index=None):
+        if isinstance(formatter, DataConcept):
+            length = formatter.concept_fields.count()
+            formatter = formatter.format
+        elif isinstance(formatter, Formatter):
+            length = len(formatter.keys)
+        elif length is None:
+            raise ValueError('A length must be supplied with the to '
+                'denote how much of the row will be formatted.')
+
+        params = (formatter, length)
+        self.row_length += length
+
+        if index is not None:
+            self.params.insert(index, params)
+        else:
+            self.params.append(params)
 
     def get_file_obj(self, name=None):
         if name is None:
