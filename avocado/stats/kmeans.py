@@ -1,5 +1,6 @@
 import math
 import random
+from collections import defaultdict
 
 def std_dev(values):
     """
@@ -420,7 +421,7 @@ def find_outliers(points, outlier_threshold=3, normalized=True):
 
     Outliers are those items in the 'points' that have a normalized distance 
     that is at least 'outlier_threshold' away from the the calculated center 
-    of the the population defined in 'points'. The normalized distance of a
+    of the population defined in 'points'. The normalized distance of a
     point is the distance from the point to its cluster's centroid divided by 
     the mean distance of all point-to-centroid distances.
 
@@ -455,16 +456,16 @@ def find_outliers(points, outlier_threshold=3, normalized=True):
     midpoint_index = (len(points) - 1) / 2
     
     if d == 1 and not is_nested(points):
-        centroid = [sorted(points)[midpoint_index]]
+        centroids = [sorted(points)[midpoint_index]]
     else:
-        centroid = [[sorted(d)[midpoint_index] for d in dimensions]]
+        centroids = [[sorted(d)[midpoint_index] for d in dimensions]]
 
     # Calculate the distance from every point to the centroid.
     _, distances = \
-            compute_clusters(points, kmeans(points, centroid)[0])
-
+            compute_clusters(points, kmeans(points, centroids)[0])
+    
     mean_distance = sum(distances) / float(len(distances))
-
+    
     return [i for i, distance in enumerate(distances) \
             if (distance / mean_distance) >= outlier_threshold]
 
@@ -583,3 +584,64 @@ def kmeans_optm(points, k=None, outlier_threshold=3):
         'distances': distances,
         'outliers': outliers,
     }
+
+def weighted_counts(points, counts, k):
+    """
+    Calculate and return the weighted count of each centroid.
+
+    Performs k-means clustering in order to identify the centroids and the
+    distances between all points and their centroids. Weights and distances
+    for the centroids are then constructed from all the points in that 
+    centroids cluster. Using those values, the weighted count is computed for
+    each of the centroids and returned along with the centroid themselves. The
+    points returned are a list of point objects where each point in the list 
+    has a list of 'values' representing the centroid coordinates and a 'count'
+    which is the weighted count as computed for that centroid. Also returned
+    is the list of outlier indexes in the 'points' list as determined by the 
+    k-means algorithm.
+
+    Arguments:
+        points - list of n-dimensional points to run k-means on.
+        counts - the count for each point in the 'points' list. This list 
+                 must be of the same length as the 'points' list because the
+                 count for a point is determined by accessing both 'points'
+                 and 'counts' with the same index.
+        k - the number of clusters(k-value) to send to the k-means algorithm.
+
+    Returns:
+        centroid_counts - A list of points where each point has 'values' list 
+        containing the coordinates of the centroid it is associated with and a 
+        'count' which is an integer representing the weighted count as 
+        computed for that centroid.
+        outliers - A list of indexes of the outliers in 'point's as returned
+        by the k-means algorithm.
+    """
+    result = kmeans_optm(points, k=k)
+    outliers = [points[i] for i in result['outliers']]
+
+    dist_weights = defaultdict(lambda: {'dist': [], 'count': []})
+    for i, idx in enumerate(result['indexes']):
+        dist_weights[idx]['dist'].append(result['distances'][i])
+        dist_weights[idx]['count'].append(counts[i])
+
+    centroid_counts = []
+
+    # Determine best count relative to each point in the cluster
+    for i, centroid in enumerate(result['centroids']):
+        dist_sum = sum(dist_weights[i]['dist'])
+        weighted_counts = []
+        for j, dist in enumerate(dist_weights[i]['dist']):
+            if dist_sum:
+                wc = (1 - dist / dist_sum) * dist_weights[i]['count'][j]
+            else:
+                wc = dist_weights[i]['count'][j]
+            weighted_counts.append(wc)
+
+        values = list(centroid)
+        centroid_counts.append({
+            'values': values,
+            'count': int(sum(weighted_counts)),
+        })
+    
+    return centroid_counts, outliers
+

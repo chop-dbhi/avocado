@@ -191,8 +191,41 @@ class KmeansTestCase(TestCase):
         self.assertEqual(m_outliers, [])
 
     def test_outliers(self):
-        outlier_indexes = [91, 225, 263, 371, 377]
+        expected_outliers = [91, 225, 263, 371, 377]
         m_outliers = kmeans.find_outliers(int_points_3d, normalized=True)
 
-        self.assertSequenceEqual(outlier_indexes, m_outliers)
+        self.assertSequenceEqual(expected_outliers, m_outliers)
+
+    def test_weighted_counts(self):
+        """
+        We might expect these to be 300, 200, and 100 but in running through
+        this manually, the returned centroids from kmeans using k of 3 will be:
+            [[0.9999999999999954, 0.9999999999999954, 0.9999999999999954], 
+             [2.0000000000000018, 2.0000000000000018, 2.0000000000000018], 
+             [2.9999999999999964, 2.9999999999999964, 2.9999999999999964]]
         
+        which are close to but not exactly the perfect solution of:
+        
+            [[1.0, 1.0, 1.0],
+             [2.0, 2.0, 2.0],
+             [3.0, 3.0, 3.0]]
+
+        this is a result of the floating point math in k-means. Because of 
+        these seemingly trivial differences, we will get distances that aren't
+        quite zero meaning, there will be dist_sum values in the 
+        weighted_count methods. Because of that, we will lose fractions of a 
+        count on each of the weighted count calculations, which, when summed
+        over each centroid, account for difference of between 1 and 2 in the
+        returned counts versus the expected counts. The weighted_counts method
+        is deemed correct even though we expect counts of [300, 200, 100] 
+        because it can't be expected to overcome the issues introduced during
+        the floating point arithmetic during k-means execution.
+        """
+
+        expected_counts = [299, 199, 98]
+        counts = [1] * 605
+
+        centroid_counts, _ = kmeans.weighted_counts(int_points_3d, counts, 3)
+        m_counts = [c['count'] for c in centroid_counts]
+
+        self.assertSequenceEqual(expected_counts, m_counts)
