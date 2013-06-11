@@ -662,11 +662,14 @@ def weighted_counts(points, counts, k):
                 wc = dist_weights[i]['count'][j]
             weighted_counts.append(wc)
 
-        values = list(centroid)
+        if is_iterable(centroid):
+            values = list(centroid)
+        else:
+            values = centroid
+
         centroid_counts.append({
             'values': values,
             'count': int(sum(weighted_counts)),
         })
     
     return centroid_counts, outliers
-
