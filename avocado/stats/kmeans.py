@@ -278,7 +278,7 @@ def compute_clusters(points, centroids):
     cluster_indexes = range(len(centroids))
 
     if d != get_dimension(centroids):
-        raise ValueError("points and centroids must have the same dimension(found {} and {} respectively)".format(d, get_dimensions(centroids)))
+        raise ValueError("points and centroids must have the same dimension(found {} and {} respectively)".format(d, get_dimension(centroids)))
 
     clusters = [0] * n
     min_distances = [0] * n
