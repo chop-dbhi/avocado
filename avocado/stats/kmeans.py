@@ -557,11 +557,6 @@ def kmeans_optm(points, k=None, outlier_threshold=3):
     # Compute the number of clusters if it wasn't specified.
     k = k or int(math.sqrt(n / 2))
 
-    # Organize the points list as a list where each row is a list of values
-    # of the same dimension.
-    if d > 1:
-        dimensions = zip(*points)
-
     # Manually calculate the standard deviation for each dimension of the 
     # point list in order to de-normalize the centroids later. Otherwise, the 
     # centroid would be relative to the normalized dimensions rather than the 
@@ -569,6 +564,9 @@ def kmeans_optm(points, k=None, outlier_threshold=3):
     if d == 1 and not is_nested(points):
         std = std_dev(points)
     else:
+        # Organize the points list as a list where each row is a list of 
+        # valuesof the same dimension.
+        dimensions = zip(*points)
         std = [std_dev(d) for d in dimensions]
  
     norm_points = normalize(points)
