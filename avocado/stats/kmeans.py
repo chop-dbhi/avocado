@@ -145,10 +145,10 @@ def is_nested(points):
     property of the first element.
 
     """
-    if len(points) > 0:
+    if is_iterable(points) and len(points) > 0:
         return is_iterable(points[0])
 
-    return false
+    return False
 
 def get_dimension(points):
     """

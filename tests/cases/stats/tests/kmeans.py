@@ -97,6 +97,15 @@ class KmeansTestCase(TestCase):
         
         self.assertSequenceAlmostEqual(vq_output, our_normalize)
 
+    def test_is_nested(self):
+        nested = [[1, 2, 3], [4, 5, 6]]
+        not_nested = [1, 2, 3, 4, 5, 6]
+        not_iterable = 1
+
+        self.assertTrue(kmeans.is_nested(nested))
+        self.assertFalse(kmeans.is_nested(not_nested))
+        self.assertFalse(kmeans.is_nested(not_iterable))
+
     def test_vq_1d(self):
         # Randomly generated list of indexes in the 1d random points list
         book_indexes = [231, 31, 250, 104, 233, 289, 236, 259]
