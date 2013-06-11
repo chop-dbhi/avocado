@@ -82,22 +82,31 @@ def normalize(points):
 
     Each dimension is divided by its standard deviation accross all points.
 
+    NOTE: If all the points are the same along any dimension, the resulting
+    normalized value of all points along that dimension will be 0 because the
+    standard deviation of a collection of equal values is 0 and we can't 
+    realistically divide by 0 so we instead set the normalized value to 0.
+
     Arguments:
         points: list of points
             Each row of the supplied list is a point and each column of those
             rows is a dimension of that point as shown below.
 
-            #           d0  d1  d2
-            points = [[ 1., 2., 3.],  #  p0
-                      [ 4., 5., 6.],  #  p1
-                      [ 7., 8., 9.]]  #  p2
+            #               d0  d1  d2
+            >>> points = [[ 1., 2., 3.],  #  p0
+            ...           [ 4., 5., 6.],  #  p1
+            ...           [ 7., 8., 9.]]  #  p2
             
             Single dimension point list:
-            #         d0
-            points = [1.,   #p0
-                      2.,   #p1
-                      3.,   #p2
-                      4.]   #p3
+            #             d0
+            >>> points = [1.,   #p0
+            ...           2.,   #p1
+            ...           3.,   #p2
+            ...           4.]   #p3
+
+            Equal points list:
+            >>> points = [1., 1., 1.]
+            [0., 0., 0.]
 
     Returns:
         The values in 'points' scaled by the standard deviation along each
@@ -108,18 +117,36 @@ def normalize(points):
     # single dimension. If the list is single dimension just divide all the 
     # points by the standard deviation and return that as the normalized list.
     if len(points) > 0 and not is_iterable(points[0]):
-        return divide_by_scalar(points, std_dev(points))
+        std = std_dev(points)
+        if std == 0:
+            return [0] * len(points)
+        else:
+            return divide_by_scalar(points, std_dev(points))
 
     # Organize the points list as a list where each row is a list of values of 
     # the same dimension.
     dimensions = zip(*points)
 
     # Compute the standard deviation of each dimension.
-    std_devs = [std_dev(d) for d in dimensions]
+    std = [std_dev(d) for d in dimensions]
     
     # Divide all the point dimensions by the standard deviation of that 
     # dimension over all points.
-    return divide_lists(points, std_devs) 
+    if 0 in std:
+        norm_points = []
+        for point in points:
+            norm_point = []
+            for p, s in zip(point, std):
+                if s == 0:
+                    norm_point.append(0.0)
+                else:
+                    norm_point.append(p / s)
+
+            norm_points.append(norm_point)
+        
+        return norm_points
+    else:
+        return divide_lists(points, std) 
 
 def is_nested(points):
     """
@@ -541,11 +568,11 @@ def kmeans_optm(points, k=None, outlier_threshold=3):
     # original.
     if d == 1 and not is_nested(points):
         std = std_dev(points)
-        norm_points = divide_by_scalar(points, std)
     else:
         std = [std_dev(d) for d in dimensions]
-        norm_points = divide_lists(points, std)
-  
+ 
+    norm_points = normalize(points)
+
     if d == 1 and not is_nested(points):
         sorted_points = sorted(norm_points)
     else:
