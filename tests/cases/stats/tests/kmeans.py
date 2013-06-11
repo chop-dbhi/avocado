@@ -23,7 +23,13 @@ int_points_3d_file = open(
 int_points_3d = [[int(x) for x in l.strip().split(",")]
         for l in int_points_3d_file.xreadlines()]
 
+int_points_file = open(
+        os.path.join(os.path.dirname(__file__),
+        '../fixtures/int/points.txt'))
+int_points = [int(l.strip()) for l in int_points_file.xreadlines()]
+
 PLACES = 10
+EPSILON_10 = 1.e-10
 
 class KmeansTestCase(TestCase):
     """
@@ -96,6 +102,64 @@ class KmeansTestCase(TestCase):
         our_normalize = kmeans.normalize(random_points_3d)
         
         self.assertSequenceAlmostEqual(vq_output, our_normalize)
+
+        # By using the same elements, we can check for division by 0 errors
+        # in the code.
+        same_1d = [1] * 1000
+        expected_1d = [0] * 1000
+        same_3d = [[1, 1, i] for i in range(1, 1000)]
+
+        norm = kmeans.normalize(same_1d)
+        self.assertListEqual(expected_1d, norm)
+
+        # We don't care what the third value is, it is just there to make sure
+        # that the special handler for dimension standard deviations of 0 
+        # doesn't get over zealous and put 0's where they don't belong.
+        norm = kmeans.normalize(same_3d)
+        for p in norm:
+            self.assertEqual(0.0, p[0])
+            self.assertEqual(0.0, p[1])
+            self.assertNotEqual(0.0, p[2])
+
+    def test_is_nested(self):
+        nested = [[1, 2, 3], [4, 5, 6]]
+        not_nested = [1, 2, 3, 4, 5, 6]
+        not_iterable = 1
+
+        self.assertTrue(kmeans.is_nested(nested))
+        self.assertFalse(kmeans.is_nested(not_nested))
+        self.assertFalse(kmeans.is_nested(not_iterable))
+
+    def test_get_dimension(self):
+        self.assertRaises(ValueError, kmeans.get_dimension, [[1, 2, 3], [4, 5]])
+
+    def test_compute_clusters(self):
+        three_dimensional = [[1, 2, 3], [4, 5, 6]]
+        two_dimensional = [[1, 2], [3, 4], [5, 6]]
+        one_dimensional = [1, 2, 3]
+        empty = []
+
+        self.assertRaises(
+                ValueError, 
+                kmeans.compute_clusters, 
+                empty, 
+                one_dimensional)
+        self.assertRaises(
+                ValueError, 
+                kmeans.compute_clusters, 
+                one_dimensional, 
+                empty)
+        self.assertRaises(
+                ValueError, 
+                kmeans.compute_clusters, 
+                three_dimensional, 
+                two_dimensional)
+
+    def test_dimension_mean(self):
+        values = [1., 2., 3., 4., 5., 6., 7., 8., 9., 10.]
+        exp_mean = 5.5
+
+        self.assertEqual(kmeans.dimension_mean(values), exp_mean)
 
     def test_vq_1d(self):
         # Randomly generated list of indexes in the 1d random points list
@@ -184,6 +248,47 @@ class KmeansTestCase(TestCase):
         #           https://github.com/cbmi/avocado/issues/34
         self.assertSequenceAlmostEqual(s_centroids, m_centroids, num_places=2)
 
+        self.assertRaises(ValueError, kmeans.kmeans, [], 3)
+        self.assertRaises(ValueError, kmeans.kmeans, random_points_3d, 0)
+
+    def test_kmean_nonsense_centroid(self):
+        centroids = [[1., 1., 1.],
+                     [2., 2., 2.],
+                     [3., 3., 3.],
+                     [99999., 99999., 99999.]]
+
+        expected_centroids = [[1., 1., 1.],
+                              [2., 2., 2.],
+                              [3., 3., 3.]]
+
+        clean_points = [p for p in int_points_3d if 100 not in p]
+
+        # Since we pass a 4th centroid guess that is completely ridiculous, we
+        # expect that the resulting centroids will only contain 3 members.
+        m_centroids, _ = kmeans.kmeans(clean_points, centroids)
+
+        self.assertSequenceEqual(expected_centroids, m_centroids)
+
+    def test_kmeans_optm_1d(self):
+        # Verify that removing the outlier threshold returns an empty list
+        # of outliers on a list known to have outliers.
+        result = kmeans.kmeans_optm(int_points_3d, k=3, outlier_threshold=None)
+        self.assertFalse(result['outliers'])
+
+        expected_outliers = [91, 225, 263, 371, 377]
+        expected_centroids = [1.0, 2.0, 3.0]
+        expected_distance = 0.0
+        expected_indexes = [x - 1 for x in int_points if x != 100]
+
+        result = kmeans.kmeans_optm(int_points, k=3)
+
+        self.assertSequenceEqual(expected_outliers, result['outliers'])
+        [self.assertAlmostEqual(expected_distance, d, delta=EPSILON_10) 
+                for d in result['distances']]
+        [self.assertAlmostEqual(ec, c, delta=EPSILON_10) 
+                for ec, c in zip(expected_centroids, result['centroids'])]
+        self.assertSequenceEqual(expected_indexes, result['indexes'])         
+
     def test_no_outliers(self):
         points = [[i,i] for i in range(300)]
         m_outliers = kmeans.find_outliers(points, normalized=False)
@@ -193,7 +298,9 @@ class KmeansTestCase(TestCase):
     def test_outliers(self):
         expected_outliers = [91, 225, 263, 371, 377]
         m_outliers = kmeans.find_outliers(int_points_3d, normalized=True)
+        self.assertSequenceEqual(expected_outliers, m_outliers)
 
+        m_outliers = kmeans.find_outliers(int_points, normalized=True)
         self.assertSequenceEqual(expected_outliers, m_outliers)
 
     def test_weighted_counts(self):
@@ -227,5 +334,8 @@ class KmeansTestCase(TestCase):
 
         centroid_counts, _ = kmeans.weighted_counts(int_points_3d, counts, 3)
         m_counts = [c['count'] for c in centroid_counts]
+        self.assertSequenceEqual(expected_counts, m_counts)
 
+        centroid_counts, _ = kmeans.weighted_counts(int_points, counts, 3)
+        m_counts = [c['count'] for c in centroid_counts]
         self.assertSequenceEqual(expected_counts, m_counts)
