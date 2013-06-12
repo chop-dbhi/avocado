@@ -261,7 +261,7 @@ class DataField(BasePlural):
                 return self.model.objects.filter(**kwargs)\
                     .values_list('name', flat=True)[0]
             return smart_unicode(value)
-        return dict(self.choices)[value]
+        return dict(self.choices).get(value, smart_unicode(value))
 
     # Data-related Cached Properties
     # These may be cached until the underlying data changes
