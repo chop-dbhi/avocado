@@ -237,7 +237,7 @@ class DataField(BasePlural):
             else:
                 field_name = self.field_name
             filters = {u'{0}__icontains'.format(field_name): query}
-            return self.values_list.filter(**filters).iterator()
+            return self.values_list.filter(**filters)
 
     def get_plural_unit(self):
         if self.unit_plural:
