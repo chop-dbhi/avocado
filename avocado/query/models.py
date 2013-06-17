@@ -59,7 +59,7 @@ class AbstractDataContext(models.Model):
     @classmethod
     def validate(cls, attrs, **context):
         "Validate `attrs` as a context."
-        parsers.datacontext.validate(attrs, **context)
+        return parsers.datacontext.validate(attrs, **context)
 
     def parse(self, tree=None, **context):
         "Returns a parsed node for this context."
@@ -99,7 +99,7 @@ class AbstractDataView(models.Model):
     @classmethod
     def validate(cls, attrs, **context):
         "Validates `attrs` as a view."
-        parsers.dataview.validate(attrs, **context)
+        return parsers.dataview.validate(attrs, **context)
 
     def parse(self, tree=None, **context):
         "Returns a parsed node for this view."
@@ -160,11 +160,16 @@ class AbstractDataQuery(models.Model):
     @classmethod
     def validate(cls, attrs, **context):
         "Validates `attrs` as a query."
-        parsers.dataquery.validate(attrs, **context)
+        return parsers.dataquery.validate(attrs, **context)
 
     def parse(self, tree=None, **context):
         "Returns a parsed node for this query."
-        return parsers.dataquery.parse(self.json, tree=tree, **context)
+        json = {
+            'context': self.context_json,
+            'view': self.view_json,
+        }
+
+        return parsers.dataquery.parse(json, tree=tree, **context)
 
     def apply(self, queryset=None, tree=None, distinct=True, include_pk=True, **context):
         "Applies this context to a QuerySet."

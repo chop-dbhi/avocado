@@ -1,3 +1,4 @@
+from copy import deepcopy
 try:
     from collections import OrderedDict
 except ImportError:
@@ -5,11 +6,12 @@ except ImportError:
 from django.test import TestCase
 from django.core import management
 from django.core.cache import cache
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, ImproperlyConfigured
 from django.contrib.auth.models import User
 from guardian.shortcuts import assign
 from avocado.models import (DataField, DataConcept, DataConceptField,
     DataContext, DataView, DataQuery)
+from .models import Employee
 
 
 class ModelInstanceCacheTestCase(TestCase):
@@ -230,6 +232,19 @@ class DataViewTestCase(TestCase):
         view.save()
 
 class DataQueryTestCase(TestCase):
+    fixtures = ['query.json']
+
+    def setUp(self):
+        management.call_command('avocado', 'init', 'models', quiet=True)
+        f1 = DataField.objects.get(pk=1)
+        f2 = DataField.objects.get(pk=2)
+
+        c1 = DataConcept()
+        c1.save()
+
+        DataConceptField(concept=c1, field=f1).save()
+        DataConceptField(concept=c1, field=f2).save()
+
     def test_init(self):
         json = {
             'context': {'field': 'models.title.salary', 'operator': 'gt', 'value': '1000'},
@@ -243,6 +258,86 @@ class DataQueryTestCase(TestCase):
         # Test the json of the DataQuery properties too
         self.assertEqual(query.context.json, json['context'])
         self.assertEqual(query.view.json, json['view'])
+
+    def test_multiple_json_values(self):
+        json = {
+            'context': {'field': 'models.title.salary', 'operator': 'gt', 'value': '1000'},
+            'view': {'columns': []}
+        }
+        context_json = {
+            'context_json': {'field': 'models.title.salary', 'operator': 'gt', 'value': '1000'},
+        }
+        view_json = {
+            'view_json': {'columns': []}
+        }
+
+        self.assertRaises(TypeError, DataQuery, json, **context_json)
+        self.assertRaises(TypeError, DataQuery, json, **view_json) 
+
+    def test_validate(self):
+        attrs = {
+            'context': {
+                'field': 'models.title.name',
+                'operator': 'exact',
+                'value': 'CEO',
+                'language': 'Name is CEO'
+            },
+            'view': {
+                'columns': [1],
+            }
+        }
+
+        exp_attrs = deepcopy(attrs)
+        exp_attrs['view'] = None
+       
+        self.assertEqual(
+                DataQuery.validate(deepcopy(attrs), tree=Employee), 
+                exp_attrs)
+
+    def test_parse(self):
+        attrs = {
+            'context': {
+                'type': 'and',
+                'children': [{
+                    'field': 'models.title.name',
+                    'operator': 'exact',
+                    'value': 'CEO',
+                }]
+            },
+            'view': {
+                'ordering': [(1, 'desc')]
+            }
+        }
+
+        query = DataQuery(attrs)
+        node = query.parse(tree=Employee)
+        self.assertEqual(
+                str(node.datacontext_node.condition),
+                "(AND: ('title__name__exact', u'CEO'))")
+        self.assertEqual(
+                str(node.dataview_node.ordering), 
+                "[(1, 'desc')]")
+
+    def test_apply(self):
+        attrs = { 
+            'context': {
+                'field': 'models.title.boss',
+                'operator': 'exact',
+                'value': True
+            },
+            'view': {
+                'columns': [1],
+            }
+        }
+        query = DataQuery(attrs)
+
+        self.assertEqual(unicode(query.apply(tree=Employee).query), 'SELECT DISTINCT "models_employee"."id", "models_office"."location", "models_title"."name" FROM "models_employee" INNER JOIN "models_office" ON ("models_employee"."office_id" = "models_office"."id") LEFT OUTER JOIN "models_title" ON ("models_employee"."title_id" = "models_title"."id") WHERE "models_title"."boss" = True ')
+      
+        query = DataQuery({'view': {'ordering': [(1, 'desc')]}})
+        queryset = Employee.objects.all().distinct()
+        self.assertEqual(unicode(query.apply(queryset=queryset).query), 'SELECT DISTINCT "models_employee"."id", "models_office"."location", "models_title"."name" FROM "models_employee" INNER JOIN "models_office" ON ("models_employee"."office_id" = "models_office"."id") LEFT OUTER JOIN "models_title" ON ("models_employee"."title_id" = "models_title"."id") ORDER BY "models_office"."location" DESC, "models_title"."name" DESC')
+
+        self.assertRaises(ImproperlyConfigured, query.apply)
 
     def test_clean(self):
         # Save default template
