@@ -213,7 +213,6 @@ class DataContextParserTestCase(TestCase):
             }]
         })
 
-
 class DataViewParserTestCase(TestCase):
     fixtures = ['query.json']
 
@@ -237,7 +236,7 @@ class DataViewParserTestCase(TestCase):
         self.assertEqual(parsers.dataview.validate({
             'ordering': [(1, 'desc')],
         }, tree=Employee), None)
-
+    
     def test_apply(self):
         node = parsers.dataview.parse({
             'columns': [1],
@@ -259,3 +258,112 @@ class DataViewParserTestCase(TestCase):
             'ordering': [(1, 'desc')],
         }, tree=Employee)
         self.assertEqual(unicode(node.apply(Employee.objects.distinct()).query), 'SELECT DISTINCT "query_employee"."id", "query_office"."location", "query_title"."name" FROM "query_employee" INNER JOIN "query_office" ON ("query_employee"."office_id" = "query_office"."id") LEFT OUTER JOIN "query_title" ON ("query_employee"."title_id" = "query_title"."id") ORDER BY "query_office"."location" DESC, "query_title"."name" DESC')
+
+class DataQueryParserTestCase(TestCase):
+    fixtures = ['query.json']
+
+    def setUp(self):
+        management.call_command('avocado', 'init', 'query', quiet=True)
+        f1 = DataField.objects.get(pk=1)
+        f2 = DataField.objects.get(pk=2)
+
+        c1 = DataConcept()
+        c1.save()
+
+        DataConceptField(concept=c1, field=f1).save()
+        DataConceptField(concept=c1, field=f2).save()
+
+    def test_valid(self):
+        attrs = {
+            'context': {
+                'field': 'query.title.name',
+                'operator': 'exact',
+                'value': 'CEO',
+                'language': 'Name is CEO'
+            },
+            'view': {
+                'columns': [1],
+            }
+        }
+
+        exp_attrs = deepcopy(attrs)
+        exp_attrs['view'] = None
+        
+        self.assertEqual(
+                parsers.dataquery.validate(deepcopy(attrs), tree=Employee), 
+                exp_attrs)
+
+        # Only the context
+        attrs = {
+            'context': {
+                'field': 'query.title.name',
+                'operator': 'exact',
+                'value': 'CEO',
+                'language': 'Name is CEO'
+            }
+        }
+        self.assertEqual(
+                parsers.dataquery.validate(deepcopy(attrs), tree=Employee), 
+                attrs)
+        
+        # Only the view
+        attrs = {
+            'view': {
+                'ordering': [(1, 'desc')],
+            }
+        }
+        exp_attrs = {
+            'view': None
+        }
+        self.assertEqual(
+                parsers.dataquery.validate(attrs, tree=Employee), 
+                exp_attrs)
+
+    def test_parsed_node(self):
+        node = parsers.dataquery.parse({
+            'context': {
+                'type': 'and',
+                'children': [],
+            }
+        }, tree=Employee)
+
+        # No condition has been defined..
+        self.assertEqual(node.datacontext_node.condition, None)
+
+        node = parsers.dataquery.parse({
+            'context': {
+                'type': 'and',
+                'children': [{
+                    'field': 'query.title.name',
+                    'operator': 'exact',
+                    'value': 'CEO',
+                }]
+            }
+        }, tree=Employee)
+
+        # Only the one condition is represented
+        self.assertEqual(
+                str(node.datacontext_node.condition), 
+                "(AND: ('title__name__exact', u'CEO'))")
+    
+    def test_apply(self):
+        node = parsers.dataquery.parse({
+            'context': {
+                'field': 'query.title.boss',
+                'operator': 'exact',
+                'value': True
+            },
+            'view': {
+                'columns': [1],
+            }
+        }, tree=Employee)
+        
+        self.assertEqual(unicode(node.apply().query), 'SELECT DISTINCT "query_employee"."id", "query_office"."location", "query_title"."name" FROM "query_employee" INNER JOIN "query_office" ON ("query_employee"."office_id" = "query_office"."id") LEFT OUTER JOIN "query_title" ON ("query_employee"."title_id" = "query_title"."id") WHERE "query_title"."boss" = True ')
+
+        # Just the view
+        node = parsers.dataquery.parse({
+            'view': {
+                'ordering': [(1, 'desc')],
+            }
+        }, tree=Employee)
+        self.assertEqual(unicode(node.apply().query), 'SELECT "query_employee"."id" FROM "query_employee" INNER JOIN "query_office" ON ("query_employee"."office_id" = "query_office"."id") LEFT OUTER JOIN "query_title" ON ("query_employee"."title_id" = "query_title"."id") ORDER BY "query_office"."location" DESC, "query_title"."name" DESC')

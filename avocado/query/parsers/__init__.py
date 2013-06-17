@@ -1,1 +1,1 @@
-from . import dataview, datacontext
+from . import dataview, datacontext, dataquery

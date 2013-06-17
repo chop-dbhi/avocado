@@ -111,3 +111,61 @@ class AbstractDataView(models.Model):
             tree = queryset.model
         return self.parse(tree=tree, **context).apply(queryset=queryset,
             include_pk=include_pk)
+
+
+class AbstractDataQuery(models.Model):
+    """
+    JSON object representing a complete query. 
+
+    The query is constructed from a context(providing the 'WHERE' statements)
+    and a view(providing the 'SELECT' and 'ORDER BY" statements). This 
+    corresponds to all the statements of the SQL query to dictate what info
+    to retrieve, how to filter it, and the order to display it in.
+    """
+    context_json = jsonfield.JSONField(
+            null=True, 
+            blank=True, 
+            default=dict,
+            validators=[parsers.datacontext.validate])
+    view_json = jsonfield.JSONField(
+            null=True, 
+            blank=True, 
+            default=dict,
+            validators=[parsers.dataview.validate])
+
+    def __init__(self, *args, **kwargs):
+        if args and isinstance(args[0], dict):
+            if 'json' in kwargs:
+                raise TypeError("{0}.__init__() got multiple values for keyword argument 'json'".format(self.__class__.__name__))
+            args = list(args)
+            kwargs['json'] = args.pop(0)
+        super(AbstractDataQuery, self).__init__(*args, **kwargs)
+
+    class Meta(object):
+        abstract = True
+
+    @property
+    def context(self):
+        return AbstractDataContext(json=self.context_json)
+
+    @property
+    def view(self):
+        return AbstractDataView(json=self.view_json)
+
+    @classmethod
+    def validate(cls, attrs, **context):
+        "Validates `attrs` as a query."
+        parsers.dataquery.validate(attrs, **context)
+
+    def parse(self, tree=None, **context):
+        "Returns a parsed node for this query."
+        return parsers.dataquery.parse(self.json, tree=tree, **context)
+
+    def apply(self, queryset=None, tree=None, distinct=True, include_pk=True, **context):
+        "Applies this context to a QuerySet."
+        if tree is None and queryset is not None:
+            tree = queryset.model
+        return self.parse(tree=tree, **context).apply(
+            queryset=queryset, 
+            distinct=distinct,
+            include_pk=include_pk)
