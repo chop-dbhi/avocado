@@ -11,6 +11,7 @@ apps = [
     'formatters',
     'lexicon',
     'events',
+    'history',
     'models',
     'query',
     'sets',
