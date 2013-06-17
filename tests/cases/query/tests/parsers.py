@@ -274,6 +274,8 @@ class DataQueryParserTestCase(TestCase):
         DataConceptField(concept=c1, field=f2).save()
 
     def test_valid(self):
+        self.assertEqual(parsers.dataquery.validate({}, tree=Employee), None)
+
         attrs = {
             'context': {
                 'field': 'query.title.name',
@@ -320,6 +322,11 @@ class DataQueryParserTestCase(TestCase):
                 exp_attrs)
 
     def test_parsed_node(self):
+        # Make sure no context or view subnodes are created
+        node = parsers.dataquery.parse({}, tree=Employee)
+        self.assertEqual(node.datacontext_node, None)
+        self.assertEqual(node.dataview_node, None)
+
         node = parsers.dataquery.parse({
             'context': {
                 'type': 'and',
@@ -367,3 +374,15 @@ class DataQueryParserTestCase(TestCase):
             }
         }, tree=Employee)
         self.assertEqual(unicode(node.apply().query), 'SELECT "query_employee"."id" FROM "query_employee" INNER JOIN "query_office" ON ("query_employee"."office_id" = "query_office"."id") LEFT OUTER JOIN "query_title" ON ("query_employee"."title_id" = "query_title"."id") ORDER BY "query_office"."location" DESC, "query_title"."name" DESC')
+
+        # Just the context
+        node = parsers.dataquery.parse({
+            'context': {
+                'field': 'query.title.boss',
+                'operator': 'exact',
+                'value': True
+            }
+        }, tree=Employee)
+
+        self.assertEqual(unicode(node.apply().values('id').query), 'SELECT DISTINCT "query_employee"."id" FROM "query_employee" INNER JOIN "query_title" ON ("query_employee"."title_id" = "query_title"."id") WHERE "query_title"."boss" = True ')
+        self.assertEqual(node.datacontext_node.language, {'operator': 'exact', 'language': u'Boss is True', 'field': 4, 'value': True})
