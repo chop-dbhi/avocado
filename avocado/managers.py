@@ -160,7 +160,7 @@ class DataCategoryManager(PublishedManager):
     "Manager for the `DataCategory` model."
 
 
-class DataContextViewBaseManager(models.Manager):
+class DataClassBaseManager(models.Manager):
     def get_default_template(self):
         try:
             return self.get_query_set().get(default=True, template=True)
@@ -168,9 +168,13 @@ class DataContextViewBaseManager(models.Manager):
             pass
 
 
-class DataViewManager(DataContextViewBaseManager):
+class DataViewManager(DataClassBaseManager):
     "Manager for the `DataView` model."
 
 
-class DataContextManager(DataContextViewBaseManager):
+class DataContextManager(DataClassBaseManager):
     "Manager for the `DataContext` model."
+
+
+class DataQueryManager(DataClassBaseManager):
+    "Manager for the `DataQuery` model."
