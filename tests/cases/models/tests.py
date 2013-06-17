@@ -9,7 +9,7 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 from guardian.shortcuts import assign
 from avocado.models import (DataField, DataConcept, DataConceptField,
-    DataContext, DataView)
+    DataContext, DataView, DataQuery)
 
 
 class ModelInstanceCacheTestCase(TestCase):
@@ -228,3 +228,33 @@ class DataViewTestCase(TestCase):
         self.assertRaises(ValidationError, view2.save)
 
         view.save()
+
+class DataQueryTestCase(TestCase):
+    def test_init(self):
+        json = {
+            'context': {'field': 'models.title.salary', 'operator': 'gt', 'value': '1000'},
+            'view': {'columns': []}
+        }
+
+        query = DataQuery(json)
+        self.assertEqual(query.context_json, json['context'])
+        self.assertEqual(query.view_json, json['view'])
+
+        # Test the json of the DataQuery properties too
+        self.assertEqual(query.context.json, json['context'])
+        self.assertEqual(query.view.json, json['view'])
+
+    def test_clean(self):
+        # Save default template
+        query = DataQuery(template=True, default=True)
+        query.save()
+
+        # Save new template (not default)
+        query2 = DataQuery(template=True)
+        query2.save()
+
+        # Try changing the second query to the default
+        query2.default = True
+        self.assertRaises(ValidationError, query2.save)
+
+        query.save()
