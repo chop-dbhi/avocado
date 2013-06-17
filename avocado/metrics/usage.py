@@ -1,10 +1,15 @@
 import logging
 from datetime import datetime
 from threading import Thread
+from avocado.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from .models import Log
 
 logger = logging.getLogger(__name__)
+
+
+# This is intended to be strictly for testing purposes
+FORCE_SYNC_LOG = getattr(settings, 'FORCE_SYNC_LOG', False)
 
 
 def _log(instance=None, model=None, **kwargs):
@@ -45,7 +50,7 @@ def log(event, async=True, **kwargs):
     if 'timestamp' not in kwargs:
         kwargs['timestamp'] = datetime.now()
 
-    if async:
+    if async and not FORCE_SYNC_LOG:
         thread = Thread(target=_log, kwargs=kwargs)
         thread.start()
     else:
