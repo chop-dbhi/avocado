@@ -24,6 +24,7 @@ INSTALLED_APPS = (
     'tests.cases.lexicon',
     'tests.cases.exporting',
     'tests.cases.formatters',
+    'tests.cases.metrics',
     'tests.cases.models',
     'tests.cases.query',
     'tests.cases.sets',
