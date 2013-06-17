@@ -11,7 +11,7 @@ from avocado.models import Log, DataField
 class MockHandler(logging.Handler):
     def __init__(self, *args, **kwargs):
         self.reset()
-        super(MockHandler, self).__init__(*args, **kwargs)
+        logging.Handler.__init__(self, *args, **kwargs)
 
     def emit(self, record):
         self.messages[record.levelname.lower()].append(record.getMessage())
