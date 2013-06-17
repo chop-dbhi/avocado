@@ -135,10 +135,15 @@ class AbstractDataQuery(models.Model):
 
     def __init__(self, *args, **kwargs):
         if args and isinstance(args[0], dict):
-            if 'json' in kwargs:
-                raise TypeError("{0}.__init__() got multiple values for keyword argument 'json'".format(self.__class__.__name__))
-            args = list(args)
-            kwargs['json'] = args.pop(0)
+            if 'context_json' in kwargs:
+                raise TypeError("{0}.__init__() got multiple values for keyword argument 'context_json'".format(self.__class__.__name__))
+
+            if 'view_json' in kwargs:
+                raise TypeError("{0}.__init__() got multiple values for keyword argument 'view_json'".format(self.__class__.__name__))
+
+            kwargs['context_json'] = args[0].get('context', None)
+            kwargs['view_json'] = args[0].get('view', None)
+
         super(AbstractDataQuery, self).__init__(*args, **kwargs)
 
     class Meta(object):
