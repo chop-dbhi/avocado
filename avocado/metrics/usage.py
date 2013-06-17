@@ -36,7 +36,7 @@ def log(event, async=True, **kwargs):
 
     if 'request' in kwargs:
         request = kwargs.pop('request')
-        if hasattr(request, 'user'):
+        if hasattr(request, 'user') and request.user.is_authenticated():
             kwargs['user'] = request.user
         if hasattr(request, 'session'):
             kwargs['session_key'] = request.session.session_key
