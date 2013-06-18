@@ -291,9 +291,8 @@ class DataQueryParserTestCase(TestCase):
         exp_attrs = deepcopy(attrs)
         exp_attrs['view'] = None
         
-        self.assertEqual(
-                parsers.dataquery.validate(deepcopy(attrs), tree=Employee), 
-                exp_attrs)
+        self.assertEqual(parsers.dataquery.validate(deepcopy(attrs), 
+            tree=Employee), exp_attrs)
 
         # Only the context
         attrs = {
@@ -304,9 +303,8 @@ class DataQueryParserTestCase(TestCase):
                 'language': 'Name is CEO'
             }
         }
-        self.assertEqual(
-                parsers.dataquery.validate(deepcopy(attrs), tree=Employee), 
-                attrs)
+        self.assertEqual(parsers.dataquery.validate(deepcopy(attrs), 
+            tree=Employee), attrs)
         
         # Only the view
         attrs = {
@@ -317,8 +315,7 @@ class DataQueryParserTestCase(TestCase):
         exp_attrs = {
             'view': None
         }
-        self.assertEqual(
-                parsers.dataquery.validate(attrs, tree=Employee), 
+        self.assertEqual(parsers.dataquery.validate(attrs, tree=Employee), 
                 exp_attrs)
 
     def test_parsed_node(self):
@@ -349,8 +346,7 @@ class DataQueryParserTestCase(TestCase):
         }, tree=Employee)
 
         # Only the one condition is represented
-        self.assertEqual(
-                str(node.datacontext_node.condition), 
+        self.assertEqual(str(node.datacontext_node.condition), 
                 "(AND: ('title__name__exact', u'CEO'))")
     
     def test_apply(self):

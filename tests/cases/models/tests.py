@@ -290,8 +290,7 @@ class DataQueryTestCase(TestCase):
         exp_attrs = deepcopy(attrs)
         exp_attrs['view'] = None
        
-        self.assertEqual(
-                DataQuery.validate(deepcopy(attrs), tree=Employee), 
+        self.assertEqual(DataQuery.validate(deepcopy(attrs), tree=Employee), 
                 exp_attrs)
 
     def test_parse(self):
@@ -311,12 +310,9 @@ class DataQueryTestCase(TestCase):
 
         query = DataQuery(attrs)
         node = query.parse(tree=Employee)
-        self.assertEqual(
-                str(node.datacontext_node.condition),
+        self.assertEqual(str(node.datacontext_node.condition),
                 "(AND: ('title__name__exact', u'CEO'))")
-        self.assertEqual(
-                str(node.dataview_node.ordering), 
-                "[(1, 'desc')]")
+        self.assertEqual(str(node.dataview_node.ordering), "[(1, 'desc')]")
 
     def test_apply(self):
         attrs = { 

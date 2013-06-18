@@ -30,12 +30,11 @@ def validate(attrs, **context):
     ret_attrs = {}
     
     if datacontext_attrs:
-       ret_attrs['context'] = datacontext_parser.validate(
-               datacontext_attrs, **context)
+       ret_attrs['context'] = datacontext_parser.validate(datacontext_attrs, 
+               **context)
 
     if dataview_attrs:
-        ret_attrs['view'] = dataview_parser.validate(
-                dataview_attrs, **context)    
+        ret_attrs['view'] = dataview_parser.validate(dataview_attrs, **context)    
 
     return ret_attrs
 
@@ -45,13 +44,15 @@ def parse(attrs, tree=None, **context):
 
     datacontext_attrs = attrs.get('context', None)
     if datacontext_attrs:
-        datacontext_node = datacontext_parser.parse(datacontext_attrs, tree=tree, **context)
+        datacontext_node = datacontext_parser.parse(datacontext_attrs, 
+                tree=tree, **context)
     else:
         datacontext_node = None
 
     dataview_attrs = attrs.get('view', None)
     if dataview_attrs:
-        dataview_node = dataview_parser.parse(dataview_attrs, tree=tree, **context)
+        dataview_node = dataview_parser.parse(dataview_attrs, tree=tree, 
+                **context)
     else:
         dataview_node = None
 

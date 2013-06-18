@@ -122,15 +122,9 @@ class AbstractDataQuery(models.Model):
     corresponds to all the statements of the SQL query to dictate what info
     to retrieve, how to filter it, and the order to display it in.
     """
-    context_json = jsonfield.JSONField(
-            null=True, 
-            blank=True, 
-            default=dict,
+    context_json = jsonfield.JSONField(null=True, blank=True, default=dict,
             validators=[parsers.datacontext.validate])
-    view_json = jsonfield.JSONField(
-            null=True, 
-            blank=True, 
-            default=dict,
+    view_json = jsonfield.JSONField(null=True, blank=True, default=dict,
             validators=[parsers.dataview.validate])
 
     def __init__(self, *args, **kwargs):
@@ -175,7 +169,5 @@ class AbstractDataQuery(models.Model):
         "Applies this context to a QuerySet."
         if tree is None and queryset is not None:
             tree = queryset.model
-        return self.parse(tree=tree, **context).apply(
-            queryset=queryset, 
-            distinct=distinct,
-            include_pk=include_pk)
+        return self.parse(tree=tree, **context).apply(queryset=queryset, 
+            distinct=distinct, include_pk=include_pk)
