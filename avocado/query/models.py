@@ -151,6 +151,13 @@ class AbstractDataQuery(models.Model):
     def view(self):
         return AbstractDataView(json=self.view_json)
 
+    @property
+    def json(self):
+        return {
+            'context': self.context_json,
+            'view': self.view_json
+        }
+
     @classmethod
     def validate(cls, attrs, **context):
         "Validates `attrs` as a query."

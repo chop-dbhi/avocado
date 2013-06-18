@@ -259,6 +259,8 @@ class DataQueryTestCase(TestCase):
         self.assertEqual(query.context.json, json['context'])
         self.assertEqual(query.view.json, json['view'])
 
+        self.assertEqual(query.json, json)
+
     def test_multiple_json_values(self):
         json = {
             'context': {'field': 'models.title.salary', 'operator': 'gt', 'value': '1000'},
