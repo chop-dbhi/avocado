@@ -13,7 +13,7 @@ from avocado.core.cache import (post_save_cache, pre_delete_uncache,
     cached_property)
 from avocado.conf import settings
 from avocado import managers
-from avocado.query.models import AbstractDataView, AbstractDataContext
+from avocado.query.models import AbstractDataView, AbstractDataContext, AbstractDataQuery
 from avocado.query.translators import registry as translators
 from avocado.query.operators import registry as operators
 from avocado.lexicon.models import Lexicon
@@ -25,7 +25,7 @@ from avocado.queryview import registry as queryviews
 
 
 __all__ = ('DataCategory', 'DataConcept', 'DataField',
-    'DataContext', 'DataView')
+    'DataContext', 'DataView', 'DataQuery')
 
 
 SIMPLE_TYPE_MAP = settings.SIMPLE_TYPE_MAP
@@ -561,6 +561,78 @@ class DataView(AbstractDataView, Base):
     session_key = models.CharField(max_length=40, null=True, blank=True)
 
     objects = managers.DataViewManager()
+
+    def __unicode__(self):
+        toks = []
+
+        # Identifier
+        if self.name:
+            toks.append(self.name)
+        elif self.user_id:
+            toks.append(unicode(self.user))
+        elif self.session_key:
+            toks.append(self.session_key)
+        elif self.pk:
+            toks.append('#{0}'.format(self.pk))
+        else:
+            toks.append('unsaved')
+
+        # State
+        if self.default:
+            toks.append('default template')
+        elif self.template:
+            toks.append('template')
+        elif self.session:
+            toks.append('session')
+        elif self.archived:
+            toks.append('archived')
+        else:
+            toks.append('rogue')
+
+        return u'{0} ({1})'.format(*toks)
+
+    def archive(self):
+        if self.archived:
+            return False
+        backup = self.pk, self.session, self.archived
+        self.pk, self.session, self.archived = None, False, True
+        self.save()
+        self.pk, self.session, self.archived = backup
+        return True
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if self.template and self.default:
+            queryset = self.__class__.objects.filter(template=True, default=True)
+            if self.pk:
+                queryset = queryset.exclude(pk=self.pk)
+            if queryset.exists():
+                raise ValidationError('Only one default template can be defined')
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super(self.__class__, self).save(*args, **kwargs)
+
+
+class DataQuery(AbstractDataQuery, Base):
+    """
+    JSON object representing a complete query. 
+
+    The query is constructed from a context(providing the 'WHERE' statements)
+    and a view(providing the 'SELECT' and 'ORDER BY" statements). This 
+    corresponds to all the statements of the SQL query to dictate what info
+    to retrieve, how to filter it, and the order to display it in.
+    """
+    session = models.BooleanField(default=False)
+    template = models.BooleanField(default=False)
+    default = models.BooleanField(default=False)
+
+    # For authenticated users the `user` can be directly referenced,
+    # otherwise the session key can be used.
+    user = models.ForeignKey(User, null=True, blank=True, related_name='dataquery+')
+    session_key = models.CharField(max_length=40, null=True, blank=True)
+
+    objects = managers.DataQueryManager()
 
     def __unicode__(self):
         toks = []
