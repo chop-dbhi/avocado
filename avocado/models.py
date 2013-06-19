@@ -18,7 +18,7 @@ from avocado.query.translators import registry as translators
 from avocado.query.operators import registry as operators
 from avocado.lexicon.models import Lexicon
 from avocado.sets.models import ObjectSet
-from avocado.metrics.models import Log
+from avocado.events.models import Log
 from avocado.stats.agg import Aggregator
 from avocado.formatters import registry as formatters
 from avocado.queryview import registry as queryviews

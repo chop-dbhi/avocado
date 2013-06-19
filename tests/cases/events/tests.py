@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 from django.contrib.sessions.backends.cache import SessionStore
 from django.http import HttpRequest
-from avocado.metrics import usage
+from avocado.events import usage
 from avocado.models import Log, DataField
 
 
