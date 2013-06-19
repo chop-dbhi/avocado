@@ -65,6 +65,12 @@ def _unique_keys(fields):
     return pairs
 
 
+def process_multiple(func):
+    "Decorator for marking a formatter method to process multiple values."
+    func.process_multiple = True
+    return func
+
+
 class Formatter(object):
     """Provides support for the core data formats with sensible defaults
     for handling converting Python datatypes to their formatted equivalent.
