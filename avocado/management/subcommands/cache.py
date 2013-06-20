@@ -52,6 +52,6 @@ class Command(DataFieldCommand):
                 func()
                 self._progress()
             count += 1
-            log.debug('{0} cache set took {1:,} seconds'.format(f, time.time() - t0))
+            log.debug('{0} cache set took {1} seconds'.format(f, time.time() - t0))
 
         print(u'{0} DataFields have been updated'.format(count))
