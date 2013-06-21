@@ -28,6 +28,7 @@ INSTALLED_APPS = (
     'tests.cases.models',
     'tests.cases.query',
     'tests.cases.sets',
+    'tests.cases.search',
     'tests.cases.stats',
     'tests.cases.subcommands',
 )
@@ -79,6 +80,8 @@ AVOCADO = {
     'HISTORY_ENABLED': True,
     'HISTORY_MAX_SIZE': 50,
     'METADATA_MIGRATION_APP': 'core',
+    'FIELD_SEARCH_ENABLED': True,
+    'CONCEPT_SEARCH_ENABLED': True,
 }
 
 SECRET_KEY = 'acb123'

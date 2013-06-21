@@ -1,0 +1,138 @@
+[
+    {
+        "pk": 1, 
+        "model": "search.office", 
+        "fields": {
+            "location": "3535 Market"
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "search.title", 
+        "fields": {
+            "salary": 15000, 
+            "name": "Programmer", 
+            "boss": false
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "search.title", 
+        "fields": {
+            "salary": 20000, 
+            "name": "Analyst", 
+            "boss": false
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "search.title", 
+        "fields": {
+            "salary": 15000, 
+            "name": "QA", 
+            "boss": false
+        }
+    }, 
+    {
+        "pk": 4, 
+        "model": "search.title", 
+        "fields": {
+            "salary": 200000, 
+            "name": "CEO", 
+            "boss": true
+        }
+    }, 
+    {
+        "pk": 5, 
+        "model": "search.title", 
+        "fields": {
+            "salary": 15000, 
+            "name": "IT", 
+            "boss": false
+        }
+    }, 
+    {
+        "pk": 6, 
+        "model": "search.title", 
+        "fields": {
+            "salary": 10000, 
+            "name": "Guard", 
+            "boss": false
+        }
+    }, 
+    {
+        "pk": 7, 
+        "model": "search.title", 
+        "fields": {
+            "salary": 100000, 
+            "name": "Lawyer", 
+            "boss": false
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "search.employee", 
+        "fields": {
+            "first_name": "Eric", 
+            "last_name": "Smith", 
+            "is_manager": true, 
+            "office": 1, 
+            "title": 1
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "search.employee", 
+        "fields": {
+            "first_name": "Erin", 
+            "last_name": "Jones", 
+            "is_manager": false, 
+            "office": 1, 
+            "title": 2
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "search.employee", 
+        "fields": {
+            "first_name": "Erick", 
+            "last_name": "Smith", 
+            "is_manager": false, 
+            "office": 1, 
+            "title": 1
+        }
+    }, 
+    {
+        "pk": 4, 
+        "model": "search.employee", 
+        "fields": {
+            "first_name": "Aaron", 
+            "last_name": "Harris", 
+            "is_manager": false, 
+            "office": 1, 
+            "title": 2
+        }
+    }, 
+    {
+        "pk": 5, 
+        "model": "search.employee", 
+        "fields": {
+            "first_name": "Zac", 
+            "last_name": "Cook", 
+            "is_manager": false, 
+            "office": 1, 
+            "title": 1
+        }
+    }, 
+    {
+        "pk": 6, 
+        "model": "search.employee", 
+        "fields": {
+            "first_name": "Mel", 
+            "last_name": "Brooks", 
+            "is_manager": false, 
+            "office": 1, 
+            "title": 2
+        }
+    }
+]

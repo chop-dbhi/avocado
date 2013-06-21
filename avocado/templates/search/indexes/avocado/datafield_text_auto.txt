@@ -1,0 +1,1 @@
+{% include "search/indexes/avocado/datafield_text.txt" %}

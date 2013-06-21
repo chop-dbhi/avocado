@@ -99,9 +99,6 @@ class DataConceptTestCase(TestCase):
     def setUp(self):
         management.call_command('avocado', 'init', 'models', quiet=True)
 
-    def test_search(self):
-        management.call_command('rebuild_index', interactive=False)
-
     def test_format(self):
         name_field = DataField.objects.get_by_natural_key('models', 'title', 'name')
         salary_field = DataField.objects.get_by_natural_key('models', 'title', 'salary')

@@ -1,4 +1,9 @@
-{{ object.name }} {{ object.name_plural }} {{ object.description }} {{ object.keywords }}
+{{ object.name }}
+{{ object.name_plural }}
+{{ object.description }}
+{{ object.keywords }}
+{{ object.category }}
+{{ object.model_name }}
 {% if object.enumerable or object.searchable %}
-{% for value in object.mapped_values %}{{ value }} {% endfor %}
+{% for value in object.labels %}{{ value }} {% endfor %}
 {% endif %}

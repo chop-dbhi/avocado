@@ -1,11 +1,15 @@
+import logging
 from django.db import models
 from django.db.models import Q
 from django.db import transaction
-from django.conf import settings
+from django.conf import settings as django_settings
 from django.db.models.manager import ManagerDescriptor
 from django.core.exceptions import ImproperlyConfigured
-from avocado.conf import OPTIONAL_DEPS, requires_dep
+from avocado.conf import OPTIONAL_DEPS, requires_dep, settings
 from avocado.core.managers import PublishedManager, PublishedQuerySet
+
+
+logger = logging.getLogger(__name__)
 
 
 class DataFieldQuerySet(PublishedQuerySet):
@@ -20,7 +24,7 @@ class DataFieldQuerySet(PublishedQuerySet):
 
         # All published concepts associated with the current site
         # (or no site)
-        sites = Q(sites=None) | Q(sites__id=settings.SITE_ID)
+        sites = Q(sites=None) | Q(sites__id=django_settings.SITE_ID)
         published = published.filter(sites)
 
         if user:
@@ -45,7 +49,7 @@ class DataConceptQuerySet(PublishedQuerySet):
 
         # All published concepts associated with the current site
         # (or no site)
-        sites = Q(sites=None) | Q(sites__id=settings.SITE_ID)
+        sites = Q(sites=None) | Q(sites__id=django_settings.SITE_ID)
         published = published.filter(sites)
 
         # Concepts that contain at least one unpublished or archived datafield
@@ -109,10 +113,17 @@ class DataFieldManager(PublishedManager):
         return datafield
 
     @requires_dep('haystack')
-    def search(self, content, queryset=None, max_results=None):
+    def search(self, content, queryset=None, max_results=None, partial=False):
+        if not settings.FIELD_SEARCH_ENABLED:
+            logger.warn('DataField search not enabled')
+            return []
+
         from haystack.query import RelatedSearchQuerySet
-        sqs = RelatedSearchQuerySet().models(self.model).load_all()\
-            .auto_query(content)
+        sqs = RelatedSearchQuerySet().models(self.model).load_all()
+        if partial:
+            sqs = sqs.autocomplete(text_auto=content)
+        else:
+            sqs = sqs.auto_query(content)
         if queryset is not None:
             sqs = sqs.load_all_queryset(self.model, queryset)
         if max_results:
@@ -126,10 +137,17 @@ class DataConceptManager(PublishedManager):
         return DataConceptQuerySet(self.model, using=self._db)
 
     @requires_dep('haystack')
-    def search(self, content, queryset=None, max_results=None):
+    def search(self, content, queryset=None, max_results=None, partial=False):
+        if not settings.CONCEPT_SEARCH_ENABLED:
+            logger.warn('DataConcept search not enabled')
+            return []
+
         from haystack.query import RelatedSearchQuerySet
-        sqs = RelatedSearchQuerySet().models(self.model).load_all()\
-            .auto_query(content)
+        sqs = RelatedSearchQuerySet().models(self.model).load_all()
+        if partial:
+            sqs = sqs.autocomplete(text_auto=content)
+        else:
+            sqs = sqs.auto_query(content)
         if queryset is not None:
             sqs = sqs.load_all_queryset(self.model, queryset)
         if max_results:
@@ -137,13 +155,13 @@ class DataConceptManager(PublishedManager):
         return sqs
 
     @transaction.commit_on_success
-    def create_from_field(self, datafield, save=True, **kwargs):
+    def create_from_field(self, field, save=True, **kwargs):
         """Derives a DataConcept from this DataField's descriptors. Additional
         keyword arguments can be passed in to customize the new DataConcept
         object. The DataConcept can also be optionally saved by setting the
         `save` flag.
         """
-        for key, value, in datafield.descriptors.iteritems():
+        for key, value, in field.descriptors.iteritems():
             kwargs.setdefault(key, value)
 
         concept = self.model(**kwargs)
@@ -151,7 +169,7 @@ class DataConceptManager(PublishedManager):
         if save:
             from avocado.models import DataConceptField
             concept.save()
-            cfield = DataConceptField(field=datafield, concept=concept)
+            cfield = DataConceptField(field=field, concept=concept)
             concept.concept_fields.add(cfield)
         return concept
 

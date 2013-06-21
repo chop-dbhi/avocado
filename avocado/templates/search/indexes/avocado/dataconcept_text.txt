@@ -1,4 +1,8 @@
-{{ object.name }} {{ object.name_plural }} {{ object.description }} {{ object.keywords }}
+{{ object.name }}
+{{ object.name_plural }}
+{{ object.description }}
+{{ object.keywords }}
+{{ object.category }}
 {% for cfield in object.concept_fields.all %}
 {{ cfield }}
 {% with object=cfield.field %}

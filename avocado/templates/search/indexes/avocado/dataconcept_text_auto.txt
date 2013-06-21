@@ -1,0 +1,1 @@
+{% include "search/indexes/avocado/dataconcept_text.txt" %}
