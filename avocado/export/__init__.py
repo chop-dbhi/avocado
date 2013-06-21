@@ -12,7 +12,7 @@ registry.register(CSVExporter, 'csv')
 registry.register(SASExporter, 'sas')
 registry.register(RExporter, 'r')
 registry.register(JSONExporter, 'json')
-registry.register(HTMLExporter, 'html')
+# registry.register(HTMLExporter, 'html')
 
 if OPTIONAL_DEPS['openpyxl']:
     from _excel import ExcelExporter
