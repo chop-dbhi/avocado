@@ -1,13 +1,13 @@
 from django.test import TestCase
 from avocado.models import DataField, DataConcept, DataConceptField, DataView
-from .models import Month, Date
+from ...models import Month, Date
 
 
 class LexiconTestCase(TestCase):
-    fixtures = ['lexicon.json']
+    fixtures = ['month_data.json']
 
     def test_datafield(self):
-        f = DataField(app_name='lexicon', model_name='month', field_name='id')
+        f = DataField(app_name='tests', model_name='month', field_name='id')
         self.assertTrue(f.lexicon)
         self.assertEqual(f.values(), (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12))
         self.assertEqual(f.labels(), (u'January', u'February', u'March',
@@ -16,7 +16,7 @@ class LexiconTestCase(TestCase):
         self.assertEqual(f.codes(), (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11))
 
     def test_foreign_key_datafield(self):
-        f = DataField(app_name='lexicon', model_name='date', field_name='month')
+        f = DataField(app_name='tests', model_name='date', field_name='month')
         self.assertTrue(f.lexicon)
         self.assertEqual(f.model, Month)
         self.assertEqual(f.field, Month._meta.pk)
@@ -27,7 +27,7 @@ class LexiconTestCase(TestCase):
         self.assertEqual(f.codes(), (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11))
 
     def test_dataview_order_by(self):
-        f = DataField(app_name='lexicon', model_name='month', field_name='id')
+        f = DataField(app_name='tests', model_name='month', field_name='id')
         f.save()
 
         c = DataConcept()
@@ -39,4 +39,4 @@ class LexiconTestCase(TestCase):
         v = DataView({'ordering': [[c.pk, 'asc']]})
 
         qs = Month.objects.filter(label__startswith='J').values('id')
-        self.assertEqual(unicode(v.apply(qs).query), 'SELECT "lexicon_month"."id" FROM "lexicon_month" WHERE "lexicon_month"."label" LIKE J% ESCAPE \'\\\'  ORDER BY "lexicon_month"."order" ASC')
+        self.assertEqual(unicode(v.apply(qs).query), 'SELECT "tests_month"."id" FROM "tests_month" WHERE "tests_month"."label" LIKE J% ESCAPE \'\\\'  ORDER BY "tests_month"."order" ASC')

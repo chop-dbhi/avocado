@@ -2,18 +2,18 @@ from django.test import TestCase
 from django.core import management
 from django.core.exceptions import ValidationError
 from avocado.models import DataField
-from ..models import Employee, Project
+from ....models import Employee, Project
 
 
 class BaseTestCase(TestCase):
-    fixtures = ['query.json']
+    fixtures = ['employee_data.json']
 
     def setUp(self):
-        management.call_command('avocado', 'init', 'query', quiet=True)
-        self.is_manager = DataField.objects.get_by_natural_key('query', 'employee', 'is_manager')
-        self.salary = DataField.objects.get_by_natural_key('query', 'title', 'salary')
-        self.first_name = DataField.objects.get_by_natural_key('query', 'employee', 'first_name')
-        self.budget = DataField.objects.get_by_natural_key('query', 'project', 'budget')
+        management.call_command('avocado', 'init', 'tests', quiet=True)
+        self.is_manager = DataField.objects.get_by_natural_key('tests', 'employee', 'is_manager')
+        self.salary = DataField.objects.get_by_natural_key('tests', 'title', 'salary')
+        self.first_name = DataField.objects.get_by_natural_key('tests', 'employee', 'first_name')
+        self.budget = DataField.objects.get_by_natural_key('tests', 'project', 'budget')
 
 
 class TranslatorTestCase(BaseTestCase):

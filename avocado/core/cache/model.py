@@ -71,6 +71,7 @@ class CacheProxy(object):
 
         # Reference to prevent the key from being changed mid-execution
         key = self.cache_key
+        print ("Lookup using cache key of {}".format(key))
 
         data = cache.get(key)
         if data is None:
@@ -89,6 +90,8 @@ class CacheProxy(object):
         "Checks if the data is in the cache."
         if self.func_self is None:
             return False
+        print ("cached() cache_key is {}".format(self.cache_key))
+        print (self.get())
         return self.cache_key in cache
 
 
@@ -107,6 +110,7 @@ def cached_method(func=None, version=None, timeout=NEVER_EXPIRE, key_func=instan
             if not settings.DATA_CACHE_ENABLED:
                 return func(self, *args, **kwargs)
             if cache_proxy.func_self is None:
+                print("Adding cache for " + str(self))
                 cache_proxy.func_self = self
             return cache_proxy.get_or_set(*args, **kwargs)
 

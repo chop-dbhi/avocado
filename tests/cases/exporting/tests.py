@@ -6,19 +6,19 @@ from django.core import management
 from avocado import export
 from avocado.formatters import RawFormatter
 from avocado.models import DataField, DataConcept, DataConceptField, DataView
-from . import models
+from ... import models
 
 __all__ = ['FileExportTestCase', 'ResponseExportTestCase']
 
 
 class ExportTestCase(TestCase):
-    fixtures = ['export.json']
+    fixtures = ['employee_data.json']
 
     def setUp(self):
-        management.call_command('avocado', 'init', 'exporting', quiet=True)
+        management.call_command('avocado', 'init', 'tests', quiet=True)
 
     def test_view(self):
-        salary_field = DataField.objects.get_by_natural_key('exporting', 'title', 'salary')
+        salary_field = DataField.objects.get_by_natural_key('tests', 'title', 'salary')
         salary_concept = DataConcept()
         salary_concept.save()
         DataConceptField(concept=salary_concept, field=salary_field, order=1).save()
@@ -40,19 +40,19 @@ class ExportTestCase(TestCase):
 
 
 class FileExportTestCase(TestCase):
-    fixtures = ['export.json']
+    fixtures = ['employee_data.json']
 
     def setUp(self):
-        management.call_command('avocado', 'init', 'exporting', quiet=True)
-        first_name_field = DataField.objects.get_by_natural_key('exporting', 'employee', 'first_name')
+        management.call_command('avocado', 'init', 'tests', quiet=True)
+        first_name_field = DataField.objects.get_by_natural_key('tests', 'employee', 'first_name')
         first_name_field.description = 'First Name'
-        last_name_field = DataField.objects.get_by_natural_key('exporting', 'employee', 'last_name')
+        last_name_field = DataField.objects.get_by_natural_key('tests', 'employee', 'last_name')
         last_name_field.description = 'Last Name'
-        title_field = DataField.objects.get_by_natural_key('exporting', 'title', 'name')
+        title_field = DataField.objects.get_by_natural_key('tests', 'title', 'name')
         title_field.description = 'Employee Title'
-        salary_field = DataField.objects.get_by_natural_key('exporting', 'title', 'salary')
+        salary_field = DataField.objects.get_by_natural_key('tests', 'title', 'salary')
         salary_field.description = 'Salary'
-        is_manager_field = DataField.objects.get_by_natural_key('exporting', 'employee', 'is_manager')
+        is_manager_field = DataField.objects.get_by_natural_key('tests', 'employee', 'is_manager')
         is_manager_field.description = 'Is a Manager?'
 
         [x.save() for x in [first_name_field, last_name_field, title_field,

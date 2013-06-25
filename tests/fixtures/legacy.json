@@ -1,0 +1,35 @@
+[
+    {
+        "pk": 1,
+        "model": "legacy.field",
+        "fields": {
+            "app_name": "tests",
+            "model_name": "title",
+            "field_name": "name",
+            "enable_choices": false,
+            "is_public": true
+        }
+    },
+    {
+        "pk": 2,
+        "model": "legacy.field",
+        "fields": {
+            "app_name": "tests",
+            "model_name": "title",
+            "field_name": "salary",
+            "enable_choices": true,
+            "is_public": false
+        }
+    },
+    {
+        "pk": 3,
+        "model": "legacy.field",
+        "fields": {
+            "app_name": "invalid",
+            "model_name": "model",
+            "field_name": "field",
+            "enable_choices": true,
+            "is_public": false
+        }
+    }
+]

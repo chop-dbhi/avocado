@@ -1,7 +1,7 @@
 [
     {
         "pk": 1, 
-        "model": "lexicon.month", 
+        "model": "tests.month", 
         "fields": {
             "label": "January",
             "value": "jan",
@@ -11,7 +11,7 @@
     },
     {
         "pk": 2, 
-        "model": "lexicon.month", 
+        "model": "tests.month", 
         "fields": {
             "label": "February",
             "value": "feb",
@@ -21,7 +21,7 @@
     },
     {
         "pk": 3, 
-        "model": "lexicon.month", 
+        "model": "tests.month", 
         "fields": {
             "label": "March",
             "value": "mar",
@@ -31,7 +31,7 @@
     },
     {
         "pk": 4, 
-        "model": "lexicon.month", 
+        "model": "tests.month", 
         "fields": {
             "label": "April",
             "value": "apr",
@@ -41,7 +41,7 @@
     },
     {
         "pk": 5, 
-        "model": "lexicon.month", 
+        "model": "tests.month", 
         "fields": {
             "label": "May",
             "value": "may",
@@ -51,7 +51,7 @@
     },
     {
         "pk": 6, 
-        "model": "lexicon.month", 
+        "model": "tests.month", 
         "fields": {
             "label": "June",
             "value": "jun",
@@ -61,7 +61,7 @@
     },
     {
         "pk": 7, 
-        "model": "lexicon.month", 
+        "model": "tests.month", 
         "fields": {
             "label": "July",
             "value": "jul",
@@ -71,7 +71,7 @@
     },
     {
         "pk": 8, 
-        "model": "lexicon.month", 
+        "model": "tests.month", 
         "fields": {
             "label": "August",
             "value": "aug",
@@ -81,7 +81,7 @@
     },
     {
         "pk": 9, 
-        "model": "lexicon.month", 
+        "model": "tests.month", 
         "fields": {
             "label": "September",
             "value": "sep",
@@ -91,7 +91,7 @@
     },
     {
         "pk": 10, 
-        "model": "lexicon.month", 
+        "model": "tests.month", 
         "fields": {
             "label": "October",
             "value": "oct",
@@ -101,7 +101,7 @@
     },
     {
         "pk": 11, 
-        "model": "lexicon.month", 
+        "model": "tests.month", 
         "fields": {
             "label": "November",
             "value": "nov",
@@ -111,7 +111,7 @@
     },
     {
         "pk": 12, 
-        "model": "lexicon.month", 
+        "model": "tests.month", 
         "fields": {
             "label": "December",
             "value": "dec",

@@ -5,10 +5,10 @@ from avocado.query.validators import Validator, FieldValidator
 
 
 class ValidatorTestCase(TestCase):
-    fixtures = ['validation.json']
+    fixtures = ['employee_data.json']
     
     def setUp(self):
-        management.call_command('avocado', 'init', 'validation', quiet=True)
+        management.call_command('avocado', 'init', 'tests', quiet=True)
 
     def test_valid(self):
         v = Validator({})
@@ -20,7 +20,7 @@ class ValidatorTestCase(TestCase):
 class FieldValidatorTestCase(ValidatorTestCase):
     def setUp(self):
         super(FieldValidatorTestCase, self).setUp()
-        self.field = DataField.objects.get_by_natural_key('validation.title.salary')
+        self.field = DataField.objects.get_by_natural_key('tests.title.salary')
         self.concept = DataConcept(name='Salary', ident='salary')
         self.concept.save()
         DataConceptField(concept=self.concept, field=self.field).save()
@@ -28,7 +28,7 @@ class FieldValidatorTestCase(ValidatorTestCase):
     def test_valid_field_nk(self):
         "Field with natural key"
         data = {
-            'field': 'validation.title.salary',
+            'field': 'tests.title.salary',
         }
 
         v = FieldValidator(data)
@@ -40,7 +40,7 @@ class FieldValidatorTestCase(ValidatorTestCase):
     def test_valid_field_nk_list(self):
         "Field with list-based natural key"
         data = {
-            'field': ['validation', 'title', 'salary'],
+            'field': ['tests', 'title', 'salary'],
         }
 
         v = FieldValidator(data)
@@ -129,7 +129,7 @@ class FieldValidatorTestCase(ValidatorTestCase):
     def test_invalid_field_for_concept(self):
         "Field not contained in concept"
         v = FieldValidator({
-            'field': 'validation.title.name',
+            'field': 'tests.title.name',
             'concept': self.concept.pk,
         })
 

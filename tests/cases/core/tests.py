@@ -172,11 +172,17 @@ class CachedMethodTestCase(TestCase):
         self.assertFalse(f.versioned.cached())
         self.assertFalse(f.unversioned.cached())
 
+        print ("Done first cache check")
+
         self.assertEqual(f.versioned(), [2])
         self.assertEqual(f.unversioned(), [1])
 
+        print ("Done method calls")
+
         self.assertTrue(f.versioned.cached())
         self.assertTrue(f.unversioned.cached())
+
+        print ("Done second cache check")
 
         # Time passes..
         time.sleep(2)
@@ -207,8 +213,8 @@ class BackupTestCase(TransactionTestCase):
         from avocado.core import backup
         from avocado.models import DataField
 
-        management.call_command('avocado', 'init', 'subcommands')
-        self.assertEqual(DataField.objects.count(), 11)
+        management.call_command('avocado', 'init', 'tests')
+        self.assertEqual(DataField.objects.count(), 18)
 
         backup_path = backup.safe_load('0001_avocado_metadata')
 
@@ -220,8 +226,8 @@ class BackupTestCase(TransactionTestCase):
         from avocado.core import backup
         from avocado.models import DataField
 
-        management.call_command('avocado', 'init', 'subcommands')
-        self.assertEqual(DataField.objects.count(), 11)
+        management.call_command('avocado', 'init', 'tests')
+        self.assertEqual(DataField.objects.count(), 18)
 
         backup_path = backup.safe_load('0001_avocado_metadata',
             backup_path='backup.json')

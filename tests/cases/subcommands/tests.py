@@ -6,7 +6,7 @@ from avocado.models import DataContext, DataView
 
 
 class CommandsTestCase(TestCase):
-    fixtures = ['subcommands_legacy.json']
+    fixtures = ['employee_data.json', 'legacy.json']
 
     def setUp(self):
         self.stdout = sys.stdout
@@ -16,10 +16,10 @@ class CommandsTestCase(TestCase):
         sys.stdout = self.stdout
 
     def test_subcommands(self):
-        management.call_command('avocado', 'init', 'subcommands')
-        management.call_command('avocado', 'cache', 'subcommands')
+        management.call_command('avocado', 'init', 'tests')
+        management.call_command('avocado', 'cache', 'tests')
         management.call_command('avocado', 'check')
-        management.call_command('avocado', 'data', 'subcommands', update_data_modified=True)
+        management.call_command('avocado', 'data', 'tests', update_data_modified=True)
 
     def test_legacy(self):
         from avocado.models import DataField
@@ -29,12 +29,12 @@ class CommandsTestCase(TestCase):
         # 2/3 have been migrated
         self.assertEqual(len(fields), 2)
 
-        f1 = DataField.objects.get_by_natural_key('subcommands', 'title', 'name')
+        f1 = DataField.objects.get_by_natural_key('tests', 'title', 'name')
         # Turned on the enumerable flag
         self.assertTrue(f1.enumerable)
         self.assertFalse(f1.published)
 
-        f1 = DataField.objects.get_by_natural_key('subcommands', 'title', 'salary')
+        f1 = DataField.objects.get_by_natural_key('tests', 'title', 'salary')
         # Turned off the enumerable flag
         self.assertFalse(f1.enumerable)
         self.assertFalse(f1.enumerable)

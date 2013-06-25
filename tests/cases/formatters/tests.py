@@ -15,10 +15,10 @@ class FormatterTestCase(TestCase):
     fixtures = ['formatters.json']
 
     def setUp(self):
-        management.call_command('avocado', 'init', 'formatters', quiet=True)
-        name_field = DataField.objects.get_by_natural_key('formatters', 'title', 'name')
-        salary_field = DataField.objects.get_by_natural_key('formatters', 'title', 'salary')
-        boss_field = DataField.objects.get_by_natural_key('formatters', 'title', 'boss')
+        management.call_command('avocado', 'init', 'tests', quiet=True)
+        name_field = DataField.objects.get_by_natural_key('tests', 'title', 'name')
+        salary_field = DataField.objects.get_by_natural_key('tests', 'title', 'salary')
+        boss_field = DataField.objects.get_by_natural_key('tests', 'title', 'boss')
 
         self.concept = concept = DataConcept(name='Title')
         concept.save()
@@ -76,8 +76,8 @@ class FormatterTestCase(TestCase):
         }), fvalues)
 
     def test_unique_keys(self):
-        title_name = DataField.objects.get_by_natural_key('formatters', 'title', 'name')
-        project_name = DataField.objects.get_by_natural_key('formatters', 'project', 'name')
+        title_name = DataField.objects.get_by_natural_key('tests', 'title', 'name')
+        project_name = DataField.objects.get_by_natural_key('tests', 'project', 'name')
 
         concept = DataConcept()
         concept.save()
