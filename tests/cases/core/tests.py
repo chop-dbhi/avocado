@@ -172,17 +172,11 @@ class CachedMethodTestCase(TestCase):
         self.assertFalse(f.versioned.cached())
         self.assertFalse(f.unversioned.cached())
 
-        print ("Done first cache check")
-
         self.assertEqual(f.versioned(), [2])
         self.assertEqual(f.unversioned(), [1])
 
-        print ("Done method calls")
-
         self.assertTrue(f.versioned.cached())
         self.assertTrue(f.unversioned.cached())
-
-        print ("Done second cache check")
 
         # Time passes..
         time.sleep(2)
