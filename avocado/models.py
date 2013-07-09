@@ -106,6 +106,8 @@ class DataField(BasePlural):
 
     objects = managers.DataFieldManager()
 
+    data_version = models.IntegerField(default=1)
+
     class Meta(object):
         unique_together = ('app_name', 'model_name', 'field_name')
         ordering = ('name',)
@@ -260,7 +262,6 @@ class DataField(BasePlural):
 
     # Data-related Cached Properties
     # These may be cached until the underlying data changes
-
     @cached_method(version='data_modified')
     def size(self):
         "Returns the count of distinct values."
@@ -309,40 +310,46 @@ class DataField(BasePlural):
     def groupby(self, *args):
         return Aggregator(self.field).groupby(*args)
 
+    @cached_method(version='data_version')
     def count(self, *args, **kwargs):
         "Returns an the aggregated counts."
         return Aggregator(self.field).count(*args, **kwargs)
 
+    @cached_method(version='data_version')
     def max(self, *args):
         "Returns the maximum value."
         return Aggregator(self.field).max(*args)
 
+    @cached_method(version='data_version')
     def min(self, *args):
         "Returns the minimum value."
         return Aggregator(self.field).min(*args)
 
+    @cached_method(version='data_version')
     def avg(self, *args):
         "Returns the average value. Only applies to quantitative data."
         if self.simple_type == 'number':
             return Aggregator(self.field).avg(*args)
 
+    @cached_method(version='data_version')
     def sum(self, *args):
         "Returns the sum of values. Only applies to quantitative data."
         if self.simple_type == 'number':
             return Aggregator(self.field).sum(*args)
 
+    @cached_method(version='data_version')
     def stddev(self, *args):
         "Returns the standard deviation. Only applies to quantitative data."
         if self.simple_type == 'number':
             return Aggregator(self.field).stddev(*args)
 
+    @cached_method(version='data_version')
     def variance(self, *args):
         "Returns the variance. Only applies to quantitative data."
         if self.simple_type == 'number':
             return Aggregator(self.field).variance(*args)
 
     # Translator Convenience Methods
-
     @property
     def operators(self):
         "Returns the valid operators for this datafield."

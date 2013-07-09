@@ -1,9 +1,11 @@
 import sys
 import unittest
 from django.test import TestCase
+from django.test.utils import override_settings
 from django.core import management
 from django.db import DatabaseError
 from avocado.models import DataField
+from avocado.stats.agg import Aggregator
 
 
 class AggregatorTestCase(TestCase):
@@ -20,25 +22,95 @@ class AggregatorTestCase(TestCase):
         self.assertEqual(self.salary.count(), [{'count': 7}])
         self.assertEqual(self.first_name.count(), [{'count': 6}])
 
+    @override_settings(AVOCADO_DATA_CACHE_ENABLED=True)
+    def test_count_cached(self):
+        from avocado.core.cache import cached_method
+
+        # Should be uncached initially
+        self.assertFalse(self.is_manager.count.cached())
+        # After this, the count should now be cached
+        self.assertEqual(self.is_manager.count(), [{'count': 6}])
+        # Better be cached since we just looked it up
+        self.assertTrue(self.is_manager.count.cached())
+        self.is_manager.count.flush()
+        # We just flushed the cache so it should not be cached anymore
+        self.assertFalse(self.is_manager.count.cached())
+
     def test_max(self):
         self.assertEqual(self.is_manager.max(), [{'max': 1}])
         self.assertEqual(self.salary.max(), [{'max': 200000}])
         self.assertEqual(self.first_name.max(), [{'max': 'Zac'}])
+
+    @override_settings(AVOCADO_DATA_CACHE_ENABLED=True)
+    def test_max_cached(self):
+        from avocado.core.cache import cached_method
+
+        # Should be uncached initially
+        self.assertFalse(self.is_manager.max.cached())
+        # After this, the max should now be cached
+        self.assertEqual(self.is_manager.max(), [{'max': 1}])
+        # Better be cached since we just looked it up
+        self.assertTrue(self.is_manager.max.cached())
+        self.is_manager.max.flush()
+        # We just flushed the cache so it should not be cached anymore
+        self.assertFalse(self.is_manager.max.cached())
 
     def test_min(self):
         self.assertEqual(self.is_manager.min(), [{'min': 0}])
         self.assertEqual(self.salary.min(), [{'min': 10000}])
         self.assertEqual(self.first_name.min(), [{'min': 'Aaron'}])
 
+    @override_settings(AVOCADO_DATA_CACHE_ENABLED=True)
+    def test_min_cached(self):
+        from avocado.core.cache import cached_method
+
+        # Should be uncached initially
+        self.assertFalse(self.is_manager.min.cached())
+        # After this, the min should now be cached
+        self.assertEqual(self.is_manager.min(), [{'min': 0}])
+        # Better be cached since we just looked it up
+        self.assertTrue(self.is_manager.min.cached())
+        self.is_manager.min.flush()
+        # We just flushed the cache so it should not be cached anymore
+        self.assertFalse(self.is_manager.min.cached())
+
     def test_avg(self):
         self.assertEqual(self.is_manager.avg(), None)
         self.assertEqual(self.salary.avg(), [{'avg': 53571.42857142857}])
         self.assertEqual(self.first_name.avg(), None)
 
+    @override_settings(AVOCADO_DATA_CACHE_ENABLED=True)
+    def test_avg_cached(self):
+        from avocado.core.cache import cached_method
+
+        # Should be uncached initially
+        self.assertFalse(self.salary.avg.cached())
+        # After this, the avg should now be cached
+        self.assertEqual(self.salary.avg(), [{'avg': 53571.42857142857}])
+        # Better be cached since we just looked it up
+        self.assertTrue(self.salary.avg.cached())
+        self.salary.avg.flush()
+        # We just flushed the cache so it should not be cached anymore
+        self.assertFalse(self.salary.avg.cached())
+
     def test_sum(self):
         self.assertEqual(self.is_manager.sum(), None)
         self.assertEqual(self.salary.sum(), [{'sum': 375000}])
         self.assertEqual(self.first_name.sum(), None)
+
+    @override_settings(AVOCADO_DATA_CACHE_ENABLED=True)
+    def test_sum_cached(self):
+        from avocado.core.cache import cached_method
+
+        # Should be uncached initially
+        self.assertFalse(self.salary.sum.cached())
+        # After this, the sum should now be cached
+        self.assertEqual(self.salary.sum(), [{'sum': 375000}])
+        # Better be cached since we just looked it up
+        self.assertTrue(self.salary.sum.cached())
+        self.salary.sum.flush()
+        # We just flushed the cache so it should not be cached anymore
+        self.assertFalse(self.salary.sum.cached())
 
     # Python unittest versions before 2.7 do not support expectedFailure so 
     # check for raised exceptions explicitly in earlier versions.
