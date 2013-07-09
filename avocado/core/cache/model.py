@@ -6,7 +6,7 @@ from django.core.cache import cache
 from django.db.models.query import QuerySet
 
 NEVER_EXPIRE = 60 * 60 * 24 * 30 # 30 days
-INSTANCE_CACHE_KEY = u'{0}.{1}:{2}'
+INSTANCE_CACHE_KEY = u'{0}:{1}:{2}'
 PK_LOOKUPS = ('pk', 'pk__exact')
 
 log = logging.getLogger(__name__)
@@ -30,10 +30,10 @@ def instance_cache_key(instance, label=None, version=None):
     opts = instance._meta
     key = INSTANCE_CACHE_KEY.format(opts.app_label, opts.module_name, instance.pk)
 
-    if label:
-        key = u'{0}-{1}'.format(key, label)
     if version:
-        key = u'{0}-{1}'.format(key, version)
+        key = u'{0}:{1}'.format(key, version)
+    if label:
+        key = u'{0}:{1}'.format(key, label)
     return key
 
 
