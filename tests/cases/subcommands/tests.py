@@ -19,7 +19,7 @@ class CommandsTestCase(TestCase):
         management.call_command('avocado', 'init', 'tests')
         management.call_command('avocado', 'cache', 'tests')
         management.call_command('avocado', 'check')
-        management.call_command('avocado', 'data', 'tests', update_data_modified=True)
+        management.call_command('avocado', 'data', 'tests', update_data_version=True)
 
     def test_legacy(self):
         from avocado.models import DataField

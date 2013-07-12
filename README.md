@@ -748,13 +748,13 @@ Finds all models referenced by the app or model ``labels`` and updates data-rela
 **Parameters**
 
 - `labels` - refers to one or more space-separated app, model, or field labels, for example library.book refers the the model Book in the app library.
-- `--modified` - Updates the `data_modified` on `DataField` instances corresponding the labels. This is primarily used for cache invalidation.
+- `--modified` - Updates the `data_version` on `DataField` instances corresponding the labels. This is primarily used for cache invalidation.
 
 **Note, currently `--modified` is the only flag that does anything**
 
 ### cache
 
-Finds all models referenced by the app, model or field `labels` and explicitly updates various cached properties relative to the `data_modified` on `DataField` instances.
+Finds all models referenced by the app, model or field `labels` and explicitly updates various cached properties relative to the `data_version` on `DataField` instances.
 
 ### history
 

@@ -83,12 +83,10 @@ class DataField(BasePlural):
     translator = models.CharField(max_length=100, blank=True, null=True,
         choices=translators.choices)
 
-    # The timestamp of the last time the underlying data for this field
-    # has been modified. This is used for the cache key and for general
-    # reference. The underlying table may not have a timestamp nor is it
-    # optimal to have to query the data for the max `modified` time.
-    data_modified = models.DateTimeField(null=True, help_text='The last time '\
-        ' the underlying data for this field was modified.')
+    # This is used for the cache key to check if the cached values is stale.
+    data_version = models.IntegerField(default=1, help_text='The current '\
+            'version of the underlying data for this field as of the last '\
+            'modification/update.')
 
     group = models.ForeignKey(Group, null=True, blank=True, related_name='fields+')
 
@@ -105,8 +103,6 @@ class DataField(BasePlural):
     order = models.FloatField(null=True, blank=True, db_column='_order')
 
     objects = managers.DataFieldManager()
-
-    data_version = models.IntegerField(default=1)
 
     class Meta(object):
         unique_together = ('app_name', 'model_name', 'field_name')
@@ -262,17 +258,17 @@ class DataField(BasePlural):
 
     # Data-related Cached Properties
     # These may be cached until the underlying data changes
-    @cached_method(version='data_modified')
+    @cached_method(version='data_version')
     def size(self):
         "Returns the count of distinct values."
         return self.values_list().count()
 
-    @cached_method(version='data_modified')
+    @cached_method(version='data_version')
     def values(self):
         "Returns a distinct list of the values."
         return tuple(self.values_list())
 
-    @cached_method(version='data_modified')
+    @cached_method(version='data_version')
     def labels(self):
         """Returns an ordered set of labels corresponding to the values.
         If this field represents to a Lexicon subclass, the `label` field
@@ -286,7 +282,7 @@ class DataField(BasePlural):
         # raw values in memory
         return map(smart_unicode, iter(self.values_list()))
 
-    @cached_method(version='data_modified')
+    @cached_method(version='data_version')
     def codes(self):
         "Returns a distinct set of coded values for this field"
         if self.lexicon:

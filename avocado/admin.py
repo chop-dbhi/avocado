@@ -111,7 +111,7 @@ class DataFieldAdmin(PublishedAdmin):
     list_editable = ('published', 'archived', 'internal', 'enumerable')
 
     search_fields = ('name', 'description', 'keywords')
-    readonly_fields = ('created', 'modified', 'data_modified')
+    readonly_fields = ('created', 'modified', 'data_version')
     actions = ('mark_published', 'mark_unpublished', 'mark_archived',
         'mark_unarchived', 'create_dataconcept_multi',
         'create_dataconcept_single')
@@ -149,7 +149,7 @@ class DataFieldAdmin(PublishedAdmin):
         }),
 
         ('Times of Interest', {
-            'fields': ('created', 'modified', 'data_modified'),
+            'fields': ('created', 'modified'),
         }),
     )
 
