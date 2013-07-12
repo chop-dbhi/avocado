@@ -2,8 +2,9 @@ import os
 import sys
 from django.test import TestCase
 from django.core import management
-from avocado.models import DataContext, DataView
+from avocado.models import DataField, DataContext, DataView
 
+__all__ = ('CommandsTestCase',)
 
 class CommandsTestCase(TestCase):
     fixtures = ['employee_data.json', 'legacy.json']
@@ -19,7 +20,22 @@ class CommandsTestCase(TestCase):
         management.call_command('avocado', 'init', 'tests')
         management.call_command('avocado', 'cache', 'tests')
         management.call_command('avocado', 'check')
+        
+        # Before updating the data, the data_version be at the default value 1
+        self.assertEqual(DataField.objects.filter()[:1].get().data_version, 1)
+
         management.call_command('avocado', 'data', 'tests', update_data_version=True)
+        
+        # After calling the data command with the update_data_version argument
+        # set to True, we should see an incremented data_version of 2
+        self.assertEqual(DataField.objects.filter()[:1].get().data_version, 2)
+        
+        management.call_command('avocado', 'data', 'tests')
+        
+        # Confirm that calling the data command without the optional 
+        # update_data_version argument does not cause the data_version field
+        # to get incremented.
+        self.assertEqual(DataField.objects.filter()[:1].get().data_version, 2)
 
     def test_legacy(self):
         from avocado.models import DataField
