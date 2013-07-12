@@ -14,7 +14,10 @@ Pre-caches data produced by various DataField methods that are data dependent.
 Pass `--flush` to explicitly flush any existing cache for each property.
 """
 
-CACHED_METHODS = ('size', 'values', 'labels', 'codes')
+#TODO: Can/should we make the default methods contained here be all those
+#      with the cached_method decorator an populate this list programatically?
+CACHED_METHODS = ('size', 'values', 'labels', 'codes', 'count', 'max', 'min',
+                  'avg', 'sum', 'stddev', 'variance')
 
 class Command(DataFieldCommand):
     __doc__ = help = _help
