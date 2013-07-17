@@ -11,12 +11,20 @@ class Migration(SchemaMigration):
         # Deleting field 'DataField.data_modified'
         db.delete_column('avocado_datafield', 'data_modified')
 
+        # Adding field 'DataField.data_version'
+        db.add_column('avocado_datafield', 'data_version',
+                      self.gf('django.db.models.fields.IntegerField')(default=1),
+                      keep_default=False)
+
 
     def backwards(self, orm):
         # Adding field 'DataField.data_modified'
         db.add_column('avocado_datafield', 'data_modified',
                       self.gf('django.db.models.fields.DateTimeField')(null=True),
                       keep_default=False)
+
+        # Deleting field 'DataField.data_version'
+        db.delete_column('avocado_datafield', 'data_version')
 
 
     models = {
