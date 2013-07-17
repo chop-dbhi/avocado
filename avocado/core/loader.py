@@ -14,14 +14,14 @@ class NotRegistered(Exception):
 
 class Registry(object):
     "Simple class that keeps track of a set of registered classes."
-    def __init__(self, default=None, register_instance=True):
+    def __init__(self, default=None, name=None, register_instance=True):
         if register_instance and inspect.isclass(default):
             default = default()
         self.register_instance = register_instance
         self.default = default
         self._registry = {}
         if default:
-            self.register(default)
+            self.register(default, name)
 
     def __getitem__(self, name):
         return self._registry.get(name, self.default)
