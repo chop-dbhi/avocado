@@ -8,11 +8,11 @@ class Migration(DataMigration):
 
     def forwards(self, orm):
         "Write your forwards methods here."
-        orm['avocado.DataField'].objects.filter(queryview=None).update(queryable=False)
+        orm['avocado.DataConcept'].objects.filter(queryview=None).update(queryable=False)
 
     def backwards(self, orm):
         "Write your backwards methods here."
-        orm['avocado.DataField'].objects.update(queryable=True)
+        orm['avocado.DataConcept'].objects.filter(queryable=True).update(queryview='QueryView')
 
     models = {
         'auth.group': {
@@ -94,9 +94,9 @@ class Migration(DataMigration):
         'avocado.datacontext': {
             'Meta': {'object_name': 'DataContext'},
             'archived': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'composite': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'count': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'db_column': "'_count'"}),
             'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
+            'default': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'json': ('jsonfield.fields.JSONField', [], {'default': '{}', 'null': 'True', 'blank': 'True'}),
@@ -106,6 +106,7 @@ class Migration(DataMigration):
             'published': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'session': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'session_key': ('django.db.models.fields.CharField', [], {'max_length': '40', 'null': 'True', 'blank': 'True'}),
+            'template': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'datacontext+'", 'null': 'True', 'to': "orm['auth.User']"})
         },
         'avocado.datafield': {
@@ -133,11 +134,30 @@ class Migration(DataMigration):
             'unit': ('django.db.models.fields.CharField', [], {'max_length': '30', 'null': 'True', 'blank': 'True'}),
             'unit_plural': ('django.db.models.fields.CharField', [], {'max_length': '40', 'null': 'True', 'blank': 'True'})
         },
+        'avocado.dataquery': {
+            'Meta': {'object_name': 'DataQuery'},
+            'archived': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'context_json': ('jsonfield.fields.JSONField', [], {'default': '{}', 'null': 'True', 'blank': 'True'}),
+            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
+            'default': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'keywords': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
+            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
+            'published': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'session': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'session_key': ('django.db.models.fields.CharField', [], {'max_length': '40', 'null': 'True', 'blank': 'True'}),
+            'template': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'dataquery+'", 'null': 'True', 'to': "orm['auth.User']"}),
+            'view_json': ('jsonfield.fields.JSONField', [], {'default': '{}', 'null': 'True', 'blank': 'True'})
+        },
         'avocado.dataview': {
             'Meta': {'object_name': 'DataView'},
             'archived': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'count': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'db_column': "'_count'"}),
             'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
+            'default': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'json': ('jsonfield.fields.JSONField', [], {'default': '{}', 'null': 'True', 'blank': 'True'}),
@@ -147,7 +167,19 @@ class Migration(DataMigration):
             'published': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'session': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'session_key': ('django.db.models.fields.CharField', [], {'max_length': '40', 'null': 'True', 'blank': 'True'}),
+            'template': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'dataview+'", 'null': 'True', 'to': "orm['auth.User']"})
+        },
+        'avocado.log': {
+            'Meta': {'object_name': 'Log'},
+            'content_type': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['contenttypes.ContentType']", 'null': 'True', 'blank': 'True'}),
+            'data': ('jsonfield.fields.JSONField', [], {'null': 'True', 'blank': 'True'}),
+            'event': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'object_id': ('django.db.models.fields.PositiveIntegerField', [], {'null': 'True', 'blank': 'True'}),
+            'session_key': ('django.db.models.fields.CharField', [], {'max_length': '40', 'null': 'True', 'blank': 'True'}),
+            'timestamp': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'+'", 'null': 'True', 'to': "orm['auth.User']"})
         },
         'contenttypes.contenttype': {
             'Meta': {'ordering': "('name',)", 'unique_together': "(('app_label', 'model'),)", 'object_name': 'ContentType', 'db_table': "'django_content_type'"},
