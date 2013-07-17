@@ -1,4 +1,5 @@
 import re
+from datetime import datetime
 from django.db import models
 from django.contrib.sites.models import Site
 from django.contrib.auth.models import User, Group
@@ -486,6 +487,7 @@ class DataContext(AbstractDataContext, Base):
     user = models.ForeignKey(User, null=True, blank=True, related_name='datacontext+')
     session_key = models.CharField(max_length=40, null=True, blank=True)
 
+    accessed = models.DateTimeField(default=datetime.now)
     objects = managers.DataContextManager()
 
     def __unicode__(self):
@@ -555,6 +557,7 @@ class DataView(AbstractDataView, Base):
     user = models.ForeignKey(User, null=True, blank=True, related_name='dataview+')
     session_key = models.CharField(max_length=40, null=True, blank=True)
 
+    accessed = models.DateTimeField(default=datetime.now)
     objects = managers.DataViewManager()
 
     def __unicode__(self):
@@ -627,6 +630,7 @@ class DataQuery(AbstractDataQuery, Base):
     user = models.ForeignKey(User, null=True, blank=True, related_name='dataquery+')
     session_key = models.CharField(max_length=40, null=True, blank=True)
 
+    accessed = models.DateTimeField(default=datetime.now)
     objects = managers.DataQueryManager()
 
     def __unicode__(self):
