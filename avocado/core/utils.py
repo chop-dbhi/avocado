@@ -1,4 +1,5 @@
 from django import forms
+from django.db import models
 from django.utils.importlib import import_module
 from avocado.conf import settings
 
@@ -45,13 +46,15 @@ def get_heuristic_flags(field):
     }
 
 
-# BACKPORT: 2.1
 def parse_field_key(key):
     "Returns a field lookup based on a variety of key types."
     if isinstance(key, int):
         return {'pk': key}
     keys = ('app_name', 'model_name', 'field_name')
-    if isinstance(key, basestring):
+    if isinstance(key, models.Field):
+        opts = key.model._meta
+        toks = [opts.app_label, opts.module_name, key.name]
+    elif isinstance(key, basestring):
         toks = key.split('.')
     elif isinstance(key, (list, tuple)):
         toks = key

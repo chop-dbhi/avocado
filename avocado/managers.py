@@ -100,17 +100,25 @@ class DataFieldManager(PublishedManager):
     def get_by_natural_key(self, app_name, model_name=None, field_name=None):
         queryset = self.get_query_set()
         if type(app_name) is int:
-            datafield = queryset.get(id=app_name)
+            return queryset.get(id=app_name)
+
+        # Extract attributes from model field instance
+        if isinstance(app_name, models.Field):
+            field = app_name
+            opts = field.model._meta
+            app_name = opts.app_label
+            model_name = opts.module_name
+            field_name = field.name
+
+        keys = ['app_name', 'model_name', 'field_name']
+
+        if type(app_name) is list:
+            values = app_name
+        elif type(app_name) and '.' in app_name:
+            values = app_name.split('.')
         else:
-            keys = ['app_name', 'model_name', 'field_name']
-            if type(app_name) is list:
-                values = app_name
-            elif type(app_name) and '.' in app_name:
-                values = app_name.split('.')
-            else:
-                values = [app_name, model_name, field_name]
-            datafield = queryset.get(**dict(zip(keys, values)))
-        return datafield
+            values = [app_name, model_name, field_name]
+        return queryset.get(**dict(zip(keys, values)))
 
     @requires_dep('haystack')
     def search(self, content, queryset=None, max_results=None, partial=False):
