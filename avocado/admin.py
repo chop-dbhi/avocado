@@ -209,7 +209,7 @@ class DataConceptAdmin(PublishedAdmin):
         'formatter_name', 'queryable', 'sortable', 'related_datafields')
     list_editable = ('published', 'archived', 'internal', 'category',
         'formatter_name', 'queryable', 'sortable')
-    list_filter = ('published', 'archived', 'category')
+    list_filter = ('published', 'archived', 'category',
         'formatter_name', 'queryable', 'sortable')
     inlines = [DataConceptFieldInlineAdmin]
 
