@@ -1,4 +1,4 @@
-# Avocado
+# Avocado [![Build Status](https://travis-ci.org/cbmi/avocado.png)](https://travis-ci.org/cbmi/avocado)
 
 #### Metadata APIs for Django
 
