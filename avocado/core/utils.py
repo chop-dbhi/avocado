@@ -87,23 +87,18 @@ def generate_random_username(length=30, max_attempts=100):
     raise ValueError('Maximum attempts made to generate username')
 
 
-def create_or_get_email_based_user(email):
+def create_email_based_user(email):
     """
     Creates an inactive user from the email address. These users are
     placeholders for those users that do not have accounts. This is initially
     planned for use in conjunction with adding users to DataQuery.shared_users.
     """
-    try:
-        # If the user exists, just return the user we looked up by email
-        existing_user = User.objects.get(email=email)
-        return existing_user
-    except User.DoesNotExist:
-        username = generate_random_username()
-        email = User.objects.normalize_email(email)
+    username = generate_random_username()
+    email = User.objects.normalize_email(email)
 
-        user = User(username=username, email=email, is_active=False)
-        user.set_unusable_password()
-        user.full_clean()
-        user.save()
+    user = User(username=username, email=email, is_active=False)
+    user.set_unusable_password()
+    user.full_clean()
+    user.save()
 
-        return user
+    return user
