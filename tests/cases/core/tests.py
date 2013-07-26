@@ -259,33 +259,12 @@ class BackupTestCase(TransactionTestCase):
 class EmailBasedUserTestCase(TestCase):
     email = 'email@email.com'
 
-    def test_user_exists(self):
-        # Make sure we are starting with the anticipated number of users.
-        self.assertEqual(User.objects.count(), 1)
-
-        # Update the user's email.
-        User.objects.all().update(email=self.email)
-
-        # Lookup the user by email using the utility method. This should NOT
-        # create a new user.
-        user = utils.create_or_get_email_based_user(self.email)
-
-        # Make sure we got a user back and that the user has the matching
-        # email that we set earlier.
-        self.assertEqual(user.email, self.email)
-
-        # Make sure the user count has stayed the same.
-        self.assertEqual(User.objects.count(), 1)
-
     def test_create_user(self):
         # Make sure we are starting with the anticipated number of users.
         self.assertEqual(User.objects.count(), 1)
 
-        # Lookup the user by email using the utility method. This should
-        # create a new user since the existing user has no email address.
-        user = utils.create_or_get_email_based_user(self.email)
+        user = utils.create_email_based_user(self.email)
 
-        # Make sure the user is new, that is, the user count has increased.
         self.assertEqual(User.objects.count(), 2)
 
         # Make sure the user we got back has the correct email set and that
