@@ -230,6 +230,9 @@ class DataViewTestCase(TestCase):
 
 class DataQueryTestCase(TestCase):
     fixtures = ['query.json']
+    existing_email = 'existing@email.com'
+    emails = [existing_email, 'new1@email.com', 'new2@email.com',
+              'new3@email.com']
 
     def setUp(self):
         management.call_command('avocado', 'init', 'tests', quiet=True)
@@ -348,3 +351,61 @@ class DataQueryTestCase(TestCase):
         self.assertRaises(ValidationError, query2.save)
 
         query.save()
+
+    def test_add_shared_user(self):
+        # Make sure we are starting with the anticipated number of users.
+        self.assertEqual(User.objects.count(), 1)
+
+        # Assign an email to the existing user
+        User.objects.all().update(email=self.existing_email)
+
+        query = DataQuery(template=True, default=True)
+        query.save()
+
+        self.assertEqual(query.shared_users.count(), 0)
+
+        [query.share_with_user(e) for e in self.emails]
+
+        # Check that the user count increased for the email-based users
+        self.assertEqual(User.objects.count(), 4)
+
+        # Check that the users are in the query's shared_users
+        self.assertEqual(query.shared_users.count(), 4)
+
+    def test_duplicate_share(self):
+        query = DataQuery(template=True, default=True)
+        query.save()
+
+        [query.share_with_user(e) for e in self.emails]
+
+        share_count = query.shared_users.count()
+        user_count = User.objects.count()
+
+        # Make sure that requests to share with users that are already shared
+        # with don't cause new user or shared_user entries.
+        [query.share_with_user(e) for e in self.emails]
+
+        self.assertEqual(share_count, query.shared_users.count())
+        self.assertEqual(user_count, User.objects.count())
+
+    def test_no_create_on_share(self):
+        # Make sure we are starting with the anticipated number of users.
+        self.assertEqual(User.objects.count(), 1)
+
+        # Assign an email to the existing user
+        User.objects.all().update(email=self.existing_email)
+
+        query = DataQuery(template=True, default=True)
+        query.save()
+
+        self.assertEqual(query.shared_users.count(), 0)
+
+        # Share with all the emails but, with create_user set to False, the
+        # query should only be shared with the 1 existing user.
+        [query.share_with_user(e, create_user=False) for e in self.emails]
+
+        # Check that the user count increased for the email-based users
+        self.assertEqual(User.objects.count(), 1)
+
+        # Check that the users are in the query's shared_users
+        self.assertEqual(query.shared_users.count(), 1)
