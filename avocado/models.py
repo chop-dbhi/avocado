@@ -632,6 +632,7 @@ class DataQuery(AbstractDataQuery, Base):
 
     accessed = models.DateTimeField(default=datetime.now())
     objects = managers.DataQueryManager()
+    shared_users = models.ManyToManyField(User, related_name='shareddataquery+')
 
     def __unicode__(self):
         toks = []
