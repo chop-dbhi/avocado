@@ -1,8 +1,15 @@
+from random import choice
+from string import ascii_lowercase, digits
 from django import forms
+from django.contrib.auth.models import User
 from django.db import models
 from django.utils.importlib import import_module
 from avocado.conf import settings
 
+
+# 41 characters @ 30 characters per username = 3.16 billion permutations
+# I think that will cover it..
+USERNAME_CHARS = ascii_lowercase + digits + '@.+-_'
 
 def get_form_class(name):
     # Absolute import if a period exists, otherwise assume the
@@ -70,3 +77,33 @@ def parse_field_key(key):
         toks = key
     offset = len(keys) - len(toks)
     return dict(zip(keys[offset:], toks))
+
+
+def generate_random_username(length=30, max_attempts=100):
+    for i in xrange(max_attempts):
+        username = ''.join(choice(USERNAME_CHARS) for i in xrange(length))
+        if not User.objects.filter(username=username).exists():
+            return username
+    raise ValueError('Maximum attempts made to generate username')
+
+
+def create_or_get_email_based_user(email):
+    """
+    Creates an inactive user from the email address. These users are
+    placeholders for those users that do not have accounts. This is initially
+    planned for use in conjunction with adding users to DataQuery.shared_users.
+    """
+    try:
+        # If the user exists, just return the user we looked up by email
+        existing_user = User.objects.get(email=email)
+        return existing_user
+    except User.DoesNotExist:
+        username = generate_random_username()
+        email = User.objects.normalize_email(email)
+
+        user = User(username=username, email=email, is_active=False)
+        user.set_unusable_password()
+        user.full_clean()
+        user.save()
+
+        return user
