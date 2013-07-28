@@ -1,9 +1,11 @@
 import os
 import time
+from django.contrib.auth.models import User
 from django.core import management
 from django.db import models
 from django.test import TestCase, TransactionTestCase
 from django.test.utils import override_settings
+from avocado.core import utils
 from avocado.core.loader import Registry, AlreadyRegistered
 from avocado.core.paginator import BufferedPaginator
 
@@ -252,3 +254,20 @@ class BackupTestCase(TransactionTestCase):
 
     def test_migration(self):
         management.call_command('migrate', 'core')
+
+
+class EmailBasedUserTestCase(TestCase):
+    email = 'email@email.com'
+
+    def test_create_user(self):
+        # Make sure we are starting with the anticipated number of users.
+        self.assertEqual(User.objects.count(), 1)
+
+        user = utils.create_email_based_user(self.email)
+
+        self.assertEqual(User.objects.count(), 2)
+
+        # Make sure the user we got back has the correct email set and that
+        # they are not active.
+        self.assertEqual(user.email, self.email)
+        self.assertFalse(user.is_active)

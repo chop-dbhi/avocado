@@ -632,6 +632,7 @@ class DataQuery(AbstractDataQuery, Base):
 
     accessed = models.DateTimeField(default=datetime.now())
     objects = managers.DataQueryManager()
+    shared_users = models.ManyToManyField(User, related_name='shareddataquery+')
 
     def __unicode__(self):
         toks = []
@@ -684,6 +685,33 @@ class DataQuery(AbstractDataQuery, Base):
         self.clean()
         super(self.__class__, self).save(*args, **kwargs)
 
+
+    def share_with_user(self, email, create_user=True):
+        """
+        Attempts to add a user with the supplied email address to the list of
+        shared users for this query. If create_user is set to True, users will
+        be created for emails that are not already associated with an
+        existing user.
+
+        Returns True if the email was added to the list of shared users and
+        False if the email wasn't added because it already exists or wasn't
+        created.
+        """
+        # If the query is already shared then there is no need to share it
+        # again.
+        if self.shared_users.filter(email=email).exists():
+            return False
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            if not create_user:
+                return False
+            else:
+                user = utils.create_email_based_user(email)
+
+        self.shared_users.add(user)
+        self.save()
 
 # Register instance-level cache invalidation handlers
 post_save.connect(post_save_cache, sender=DataField)
