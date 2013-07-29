@@ -8,8 +8,11 @@ env:
 virtualenv:
     system_site_packages: true
 install:
+    - pip install coveralls
     - pip install -q Django==$DJANGO --use-mirrors
 services:
     - memcache
 script:
     - python setup.py test
+after_success:
+    - coveralls
