@@ -8,9 +8,9 @@ from django.db.models import F
 class Migration(DataMigration):
 
     def forwards(self, orm):
-        orm.DataView.update(accessed=F('modified'))
-        orm.DataContext.update(accessed=F('modified'))
-        orm.DataQuery.update(accessed=F('modified'))
+        orm.DataView.objects.all().update(accessed=F('modified'))
+        orm.DataContext.objects.all().update(accessed=F('modified'))
+        orm.DataQuery.objects.all().update(accessed=F('modified'))
 
     def backwards(self, orm):
         pass
