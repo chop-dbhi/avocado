@@ -409,11 +409,15 @@ class DataConcept(BasePlural):
     order = models.FloatField(null=True, blank=True, db_column='_order')
 
     # An optional formatter which provides custom formatting for this
-    # concept relative to the associated fields. If a formatter is not
-    # defined, this DataConcept is not intended to be exposed since the
-    # underlying data may not be appropriate for client consumption.
+    # concept relative to the associated fields.
     formatter_name = models.CharField('formatter', max_length=100, blank=True,
         null=True, choices=formatters.registry.choices)
+
+    # A flag that denotes this concept is viewable, that is, this the concept
+    # is appropriate to be used as a viewable interface. Non-viewable concepts
+    # can be used to prevent exposing underlying data that may not be
+    # appropriate for client consumption.
+    viewable = models.BooleanField(default=True)
 
     # A flag that denotes this concept is 'queryable' which assumes fields
     # that DO NOT result in a nonsensicle representation of the concept.
