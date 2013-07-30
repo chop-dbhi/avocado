@@ -1,7 +1,9 @@
 [run]
 branch = True
 source = avocado
-
+omit = 
+    */migrations/*
+    
 [report]
 exclude_lines =
     pragma: no cover
