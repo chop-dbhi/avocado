@@ -5,7 +5,7 @@ from avocado.history.models import Revision
 from avocado.conf import settings
 
 
-class RevisionTest(TestCase):
+class ObjectRevisionTest(TestCase):
     def test_get_model_fields(self):
         fields = sorted(history.utils.get_model_fields(DataContext))
         self.assertEqual(fields, [
@@ -39,6 +39,29 @@ class RevisionTest(TestCase):
             'session_key': None,
             'template': False,
         })
+
+    def test_get_for_object(self):
+        c1 = DataContext()
+        c1.save()
+        r1 = Revision.objects.create_revision(c1, fields=['name'])
+
+        c2 = DataContext()
+        c2.save()
+        r2 = Revision.objects.create_revision(c2, fields=['name'])
+
+        # Standard, model extracted from instance
+        self.assertEqual(Revision.objects.get_for_object(c1)[0], r1)
+
+        # Explicity pass model
+        self.assertEqual(Revision.objects.get_for_object(c1, model=DataContext)[0], r1)
+
+        # Pass queryset containing target object
+        queryset = DataContext.objects.filter(pk=c1.pk)
+        self.assertEqual(Revision.objects.get_for_object(c1, model=queryset)[0], r1)
+
+        # Pass queryset *not* containing target object
+        queryset = DataContext.objects.filter(pk=c2.pk)
+        self.assertEqual(list(Revision.objects.get_for_object(c1, model=queryset)), [])
 
     def test_latest_for_object(self):
         c = DataContext()
@@ -114,6 +137,26 @@ class RevisionTest(TestCase):
 
         revision.apply(c)
         self.assertEqual(c.json['value'], 30)
+
+
+class ModelRevisionTestCase(TestCase):
+    def setUp(self):
+        c1 = DataContext({'field': 1, 'operator': 'exact', 'value': 30})
+        c1.save()
+        Revision.objects.create_revision(c1, fields=['json'])
+
+        c2 = DataContext({'field': 2, 'operator': 'in', 'value': [1, 2]})
+        c2.save()
+        Revision.objects.create_revision(c2, fields=['json'])
+
+        self.c1 = c1
+        self.c2 = c2
+
+    def test_get_for_model(self):
+        self.assertEqual(Revision.objects.get_for_model(DataContext).count(), 2)
+
+    def test_latest_for_model(self):
+        self.assertEqual(Revision.objects.latest_for_model(DataContext).object_id, self.c2.pk)
 
 
 class AutoRevisionTest(TestCase):
