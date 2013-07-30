@@ -6,5 +6,5 @@ django-haystack==1.2.7
 jsonfield==0.9.4
 modeltree>=1.1.5
 openpyxl>=1.6,<1.7
-python-memcached==1.48
+python-memcached>=1.48
 ordereddict>=1.1
