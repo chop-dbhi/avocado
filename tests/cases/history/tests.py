@@ -1,12 +1,13 @@
 from django.test import TestCase
 from avocado.models import DataContext
 from avocado import history
-from avocado.history import utils
+from avocado.history.models import Revision
+from avocado.conf import settings
 
 
 class RevisionTest(TestCase):
     def test_get_model_fields(self):
-        fields = sorted(utils.get_model_fields(DataContext))
+        fields = sorted(history.utils.get_model_fields(DataContext))
         self.assertEqual(fields, [
             'archived',
             'count',
@@ -23,8 +24,8 @@ class RevisionTest(TestCase):
 
     def test_get_object_data(self):
         c = DataContext()
-        fields = utils.get_model_fields(DataContext)
-        data = utils.get_object_data(c, fields=fields)
+        fields = history.utils.get_model_fields(DataContext)
+        data = history.utils.get_object_data(c, fields=fields)
         self.assertEqual(data, {
             'archived': False,
             'count': None,
@@ -42,19 +43,19 @@ class RevisionTest(TestCase):
     def test_latest_for_object(self):
         c = DataContext()
         c.save()
-        self.assertEqual(history.Revision.objects.latest_for_object(c), None)
+        self.assertEqual(Revision.objects.latest_for_object(c), None)
 
     def test_object_has_changed(self):
         c = DataContext()
         c.save()
         # No existing revisions, so this is true
-        self.assertTrue(history.Revision.objects.object_has_changed(c))
+        self.assertTrue(Revision.objects.object_has_changed(c))
 
     def test_create_revision(self):
         c = DataContext(name='Test', json={})
         c.save()
 
-        revision = history.Revision.objects.create_revision(c,
+        revision = Revision.objects.create_revision(c,
             fields=['name', 'description', 'json'])
 
         self.assertEqual(revision.data, {
@@ -63,10 +64,33 @@ class RevisionTest(TestCase):
             'json': {}
         })
 
-        revisions = history.Revision.objects.get_for_object(c)
+        revisions = Revision.objects.get_for_object(c)
         self.assertEqual(revisions.count(), 1)
 
-        self.assertFalse(history.Revision.objects.object_has_changed(c))
+        self.assertFalse(Revision.objects.object_has_changed(c))
+
+    def test_cull_for_object(self):
+        c = DataContext(name='Test')
+        c.save()
+
+        Revision.objects.create_revision(c, fields=['name'])
+
+        for i in xrange(1, 100):
+            c.name = 'Test{0}'.format(i)
+            c.save()
+            Revision.objects.create_revision(c, fields=['name'])
+
+        self.assertEqual(Revision.objects.get_for_object(c).count(), 100)
+
+        # Cull down to the maximum size defined in the settings
+        Revision.objects.cull_for_object(c)
+        self.assertEqual(Revision.objects.get_for_object(c).count(),
+            settings.HISTORY_MAX_SIZE)
+
+        # Cull down to an arbitrary size
+        Revision.objects.cull_for_object(c, max_size=20)
+        self.assertEqual(Revision.objects.get_for_object(c).count(), 20)
+
 
     def test_register(self):
         history.register(DataContext, fields=['name', 'description', 'json'])
@@ -83,7 +107,7 @@ class RevisionTest(TestCase):
         c = DataContext({'field': 1, 'operator': 'exact', 'value': 30})
         c.save()
 
-        revision = history.Revision.objects.create_revision(c, fields=['json'])
+        revision = Revision.objects.create_revision(c, fields=['json'])
 
         c.json['value'] = 50
         c.save()
@@ -103,7 +127,7 @@ class AutoRevisionTest(TestCase):
         c = DataContext()
         c.save()
 
-        revisions = history.Revision.objects.get_for_object(c)
+        revisions = Revision.objects.get_for_object(c)
         self.assertEqual(revisions.count(), 1)
 
         # No changes, no new revision

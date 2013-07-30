@@ -1,13 +1,31 @@
+import inspect
 from django.db import models, transaction
 from django.contrib.contenttypes.models import ContentType
+from avocado.conf import settings
 from .utils import get_object_data
 
 
 class RevisionManager(models.Manager):
-    def get_for_object(self, obj):
+    def get_for_object(self, obj, model=None):
         "Returns all revisions for the object."
-        ctype = ContentType.objects.get_for_model(obj)
-        return self.filter(content_type=ctype, object_id=obj.pk)
+        if model:
+            pk = obj
+            if inspect.isclass(model):
+                ctype = ContentType.objects.get_for_model(model)
+            else:
+                ctype = ContentType.objects.get(pk=model)
+        else:
+            pk = obj.pk
+            ctype = ContentType.objects.get_for_model(obj)
+        return self.filter(content_type=ctype, object_id=pk)
+
+    @transaction.commit_on_success
+    def cull_for_object(self, obj, model=None, max_size=None):
+        if max_size is None:
+            max_size = settings.HISTORY_MAX_SIZE
+        revisions = self.get_for_object(obj, model=model)\
+            .order_by('timestamp').values_list('pk', flat=True)
+        self.filter(pk__in=revisions[max_size:]).delete()
 
     def latest_for_object(self, obj):
         "Returns the latest revision for the object."

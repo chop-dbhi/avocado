@@ -1,7 +1,6 @@
 from django.db import models
 from django.db.models.signals import pre_delete, post_save
 from avocado.core.loader import AlreadyRegistered, NotRegistered
-from .models import Revision
 from .receivers import pre_delete_revision, post_save_revision
 from . import utils
 
