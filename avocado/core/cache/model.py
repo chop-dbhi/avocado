@@ -117,7 +117,7 @@ def cached_method(func=None, version=None, timeout=NEVER_EXPIRE, key_func=instan
 
         return inner
 
-    if inspect.ismethod(func):
+    if inspect.isfunction(func):
         return decorator(func)
     return decorator
 
