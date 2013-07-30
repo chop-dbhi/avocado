@@ -204,23 +204,7 @@ class CacheProxyTestCase(TestCase):
 class CachedMethodTestCase(TestCase):
     @override_settings(AVOCADO_DATA_CACHE_ENABLED=True)
     def test(self):
-        from avocado.core.cache import cached_method
-
-        class Foo(models.Model):
-            def get_version(self, label=None):
-                return 1
-
-            @cached_method(timeout=2)
-            def unversioned(self):
-                return [1]
-
-            @cached_method(version='get_version', timeout=2)
-            def versioned(self):
-                return [2]
-
-            @cached_method(version=get_version, timeout=2)
-            def callable_versioned(self):
-                return [3]
+        from .models import Foo
 
         f = Foo()
 
