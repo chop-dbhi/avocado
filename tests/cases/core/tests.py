@@ -157,7 +157,7 @@ class CachedMethodTestCase(TestCase):
         from avocado.core.cache import cached_method
 
         class Foo(models.Model):
-            def get_version(self):
+            def get_version(self, label=None):
                 return 1
 
             @cached_method(timeout=2)
@@ -168,35 +168,47 @@ class CachedMethodTestCase(TestCase):
             def versioned(self):
                 return [2]
 
+            @cached_method(version=get_version, timeout=2)
+            def callable_versioned(self):
+                return [3]
+
         f = Foo()
 
         # Not cached upon initialization
+        self.assertFalse(f.callable_versioned.cached())
         self.assertFalse(f.versioned.cached())
         self.assertFalse(f.unversioned.cached())
 
+        self.assertEqual(f.callable_versioned(), [3])
         self.assertEqual(f.versioned(), [2])
         self.assertEqual(f.unversioned(), [1])
 
+        self.assertTrue(f.callable_versioned.cached())
         self.assertTrue(f.versioned.cached())
         self.assertTrue(f.unversioned.cached())
 
         # Time passes..
         time.sleep(2)
 
+        self.assertFalse(f.callable_versioned.cached())
         self.assertFalse(f.versioned.cached())
         self.assertFalse(f.unversioned.cached())
 
+        self.assertEqual(f.callable_versioned(), [3])
         self.assertEqual(f.versioned(), [2])
         self.assertEqual(f.unversioned(), [1])
 
+        self.assertTrue(f.callable_versioned.cached())
         self.assertTrue(f.versioned.cached())
         self.assertTrue(f.unversioned.cached())
 
-        f.unversioned.flush()
+        f.callable_versioned.flush()
         f.versioned.flush()
+        f.unversioned.flush()
 
-        self.assertFalse(f.unversioned.cached())
+        self.assertFalse(f.callable_versioned.cached())
         self.assertFalse(f.versioned.cached())
+        self.assertFalse(f.unversioned.cached())
 
 
 @override_settings(SOUTH_TESTS_MIGRATE=True)
