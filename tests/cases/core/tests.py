@@ -151,6 +151,56 @@ class BufferedPaginatorTestCase(TestCase):
         self.assertEqual(bp.get_overlap(70, 3), (False, (70, 3), (None, None)))
 
 
+class CacheProxyTestCase(TestCase):
+    class ComplexNumber(models.Model):
+        def __init__(self):
+            from avocado.core.cache.model import CacheProxy
+            from avocado.core.cache import instance_cache_key
+
+            self.id = 100
+
+            self.cache_proxy = CacheProxy(func=self.as_string,
+                version='get_version', timeout=2,
+                key_func=instance_cache_key)
+            self.cache_proxy.func_self = self
+
+        def get_version(self, label=None):
+            return 1
+
+        def as_string(self, *args):
+            return "2+3i"
+
+    @override_settings(AVOCADO_DATA_CACHE_ENABLED=True)
+    def test(self):
+        c = self.ComplexNumber()
+
+        # Should not be cached available or cached initialization
+        self.assertIsNone(c.cache_proxy.get())
+        self.assertFalse(c.cache_proxy.cached())
+
+        self.assertEqual(c.cache_proxy.get_or_set(), '2+3i')
+
+        # Should be cached now
+        self.assertTrue(c.cache_proxy.cached())
+        self.assertEqual(c.cache_proxy.get(), '2+3i')
+
+        time.sleep(2)
+
+        # Make sure the value expired
+        self.assertIsNone(c.cache_proxy.get())
+        self.assertFalse(c.cache_proxy.cached())
+
+    def test_cache_disabled(self):
+        c = self.ComplexNumber()
+        c.cache_proxy.func_self = None
+
+        self.assertIsNone(c.cache_proxy.cache_key)
+        self.assertIsNone(c.cache_proxy.get())
+        self.assertIsNone(c.cache_proxy.get_or_set())
+        self.assertIsNone(c.cache_proxy.flush())
+        self.assertFalse(c.cache_proxy.cached())
+
+
 class CachedMethodTestCase(TestCase):
     @override_settings(AVOCADO_DATA_CACHE_ENABLED=True)
     def test(self):
