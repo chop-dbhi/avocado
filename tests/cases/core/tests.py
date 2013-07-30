@@ -10,7 +10,8 @@ from avocado.core.loader import Registry, AlreadyRegistered
 from avocado.core.paginator import BufferedPaginator
 
 __all__ = ('RegistryTestCase', 'BufferedPaginatorTestCase',
-    'CachedMethodTestCase', 'BackupTestCase')
+    'CachedMethodTestCase', 'CacheProxyTestCase', 'CacheManagerTestCase',
+    'BackupTestCase', 'EmailBasedUserTestCase')
 
 class RegistryTestCase(TestCase):
     def setUp(self):
@@ -199,6 +200,20 @@ class CacheProxyTestCase(TestCase):
         self.assertIsNone(c.cache_proxy.get_or_set())
         self.assertIsNone(c.cache_proxy.flush())
         self.assertFalse(c.cache_proxy.cached())
+
+
+class CacheManagerTestCase(TestCase):
+    @override_settings(AVOCADO_DATA_CACHE_ENABLED=True)
+    def test(self):
+        from .models import Foo
+
+        self.assertEqual(Foo.objects.get_query_set().count(), 0)
+
+        for i in range(10):
+            f = Foo()
+            f.save()
+
+        self.assertEqual(Foo.objects.get_query_set().count(), 10)
 
 
 class CachedMethodTestCase(TestCase):
