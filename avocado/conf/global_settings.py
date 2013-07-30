@@ -61,7 +61,7 @@ INTERNAL_DATATYPE_FORMFIELDS = {
 ENUMERABLE_MAXIMUM = 30
 
 # Flag for enabling the history API
-HISTORY_ENABLED = False
+HISTORY_ENABLED = True
 
 # The maximum size of a user's history. If the value is an integer, this
 # is the maximum number of allowed items in the user's history. Set to

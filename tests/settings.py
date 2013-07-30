@@ -16,7 +16,6 @@ INSTALLED_APPS = (
     'south',
 
     'avocado',
-    'avocado.export',
     'avocado.legacy',
 
     'tests',
@@ -25,6 +24,7 @@ INSTALLED_APPS = (
     'tests.cases.exporting',
     'tests.cases.formatters',
     'tests.cases.events',
+    'tests.cases.history',
     'tests.cases.models',
     'tests.cases.query',
     'tests.cases.sets',
@@ -78,7 +78,7 @@ LOGGING = {
 SOUTH_TESTS_MIGRATE = False
 
 AVOCADO = {
-    'HISTORY_ENABLED': True,
+    'HISTORY_ENABLED': False,
     'HISTORY_MAX_SIZE': 50,
     'METADATA_MIGRATION_APP': 'core',
     'FIELD_SEARCH_ENABLED': True,

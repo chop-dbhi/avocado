@@ -12,7 +12,8 @@ from avocado.core import utils
 from avocado.core.models import Base, BasePlural
 from avocado.core.cache import (post_save_cache, pre_delete_uncache,
     cached_method)
-from avocado import managers
+from avocado.conf import settings
+from avocado import managers, history
 from avocado.query.models import AbstractDataView, AbstractDataContext, AbstractDataQuery
 from avocado.query.translators import registry as translators
 from avocado.query.operators import registry as operators
@@ -491,7 +492,7 @@ class DataContext(AbstractDataContext, Base):
     user = models.ForeignKey(User, null=True, blank=True, related_name='datacontext+')
     session_key = models.CharField(max_length=40, null=True, blank=True)
 
-    accessed = models.DateTimeField(default=datetime.now())
+    accessed = models.DateTimeField(default=datetime.now(), editable=False)
     objects = managers.DataContextManager()
 
     def __unicode__(self):
@@ -561,7 +562,7 @@ class DataView(AbstractDataView, Base):
     user = models.ForeignKey(User, null=True, blank=True, related_name='dataview+')
     session_key = models.CharField(max_length=40, null=True, blank=True)
 
-    accessed = models.DateTimeField(default=datetime.now())
+    accessed = models.DateTimeField(default=datetime.now(), editable=False)
     objects = managers.DataViewManager()
 
     def __unicode__(self):
@@ -634,7 +635,7 @@ class DataQuery(AbstractDataQuery, Base):
     user = models.ForeignKey(User, null=True, blank=True, related_name='dataquery+')
     session_key = models.CharField(max_length=40, null=True, blank=True)
 
-    accessed = models.DateTimeField(default=datetime.now())
+    accessed = models.DateTimeField(default=datetime.now(), editable=False)
     objects = managers.DataQueryManager()
     shared_users = models.ManyToManyField(User, related_name='shareddataquery+')
 
@@ -725,3 +726,9 @@ post_save.connect(post_save_cache, sender=DataCategory)
 pre_delete.connect(pre_delete_uncache, sender=DataField)
 pre_delete.connect(pre_delete_uncache, sender=DataConcept)
 pre_delete.connect(pre_delete_uncache, sender=DataCategory)
+
+# Register with history API
+if settings.HISTORY_ENABLED:
+    history.register(DataContext, fields=('name', 'description', 'json'))
+    history.register(DataView, fields=('name', 'description', 'json'))
+    history.register(DataQuery, fields=('name', 'description', 'context_json', 'view_json'))
