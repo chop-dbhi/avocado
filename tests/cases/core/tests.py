@@ -225,13 +225,16 @@ class CachedMethodTestCase(TestCase):
 
         # Not cached upon initialization
         self.assertFalse(f.callable_versioned.cached())
+        self.assertFalse(f.default_versioned.cached())
         self.assertFalse(f.versioned.cached())
         self.assertFalse(f.unversioned.cached())
 
+        self.assertEqual(f.default_versioned(), [4])
         self.assertEqual(f.callable_versioned(), [3])
         self.assertEqual(f.versioned(), [2])
         self.assertEqual(f.unversioned(), [1])
 
+        self.assertTrue(f.default_versioned.cached())
         self.assertTrue(f.callable_versioned.cached())
         self.assertTrue(f.versioned.cached())
         self.assertTrue(f.unversioned.cached())
@@ -239,6 +242,9 @@ class CachedMethodTestCase(TestCase):
         # Time passes..
         time.sleep(2)
 
+        # default_versioned was created using the default arguments so it should
+        # never expire. All the rest had a timeout.
+        self.assertTrue(f.default_versioned.cached())
         self.assertFalse(f.callable_versioned.cached())
         self.assertFalse(f.versioned.cached())
         self.assertFalse(f.unversioned.cached())
@@ -251,10 +257,12 @@ class CachedMethodTestCase(TestCase):
         self.assertTrue(f.versioned.cached())
         self.assertTrue(f.unversioned.cached())
 
+        f.default_versioned.flush()
         f.callable_versioned.flush()
         f.versioned.flush()
         f.unversioned.flush()
 
+        self.assertFalse(f.default_versioned.cached())
         self.assertFalse(f.callable_versioned.cached())
         self.assertFalse(f.versioned.cached())
         self.assertFalse(f.unversioned.cached())

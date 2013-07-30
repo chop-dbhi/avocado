@@ -19,3 +19,7 @@ class Foo(models.Model):
     @cached_method(version=get_version, timeout=2)
     def callable_versioned(self):
         return [3]
+
+    @cached_method
+    def default_versioned(self):
+        return [4]
