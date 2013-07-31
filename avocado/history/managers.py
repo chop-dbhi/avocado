@@ -46,14 +46,6 @@ class RevisionManager(models.Manager):
 
         return queryset.filter(object_id=pk)
 
-    @transaction.commit_on_success
-    def cull_for_object(self, obj, model=None, max_size=None):
-        if max_size is None:
-            max_size = settings.HISTORY_MAX_SIZE
-        revisions = self.get_for_object(obj, model=model)\
-            .order_by('timestamp').values_list('pk', flat=True)
-        self.filter(pk__in=revisions[max_size:]).delete()
-
     def latest_for_model(self, model):
         "Returns the latest revision across instances for a model."
         try:
@@ -96,3 +88,15 @@ class RevisionManager(models.Manager):
         if revision:
             revision.apply(obj, commit=commit)
         return obj
+
+    @transaction.commit_on_success
+    def cull_for_object(self, obj, model=None, max_size=None):
+        """Culls revisions for an object down to `max_size`.
+
+        `max_size` defaults to the Avocado setting `HISTORY_MAX_SIZE`.
+        """
+        if max_size is None:
+            max_size = settings.HISTORY_MAX_SIZE
+        revisions = self.get_for_object(obj, model=model)\
+            .order_by('timestamp').values_list('pk', flat=True)
+        self.filter(pk__in=revisions[max_size:]).delete()
