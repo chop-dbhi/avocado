@@ -127,6 +127,11 @@ class AbstractDataQuery(models.Model):
     view_json = jsonfield.JSONField(null=True, blank=True, default=dict,
             validators=[parsers.dataview.validate])
 
+    # The count when just the context is applied
+    distinct_count = models.IntegerField(null=True, db_column='_distinct_count')
+    # The count when the context and the view is applied
+    record_count = models.IntegerField(null=True, db_column='_record_count')
+
     def __init__(self, *args, **kwargs):
         if args and isinstance(args[0], dict):
             if 'context_json' in kwargs:
