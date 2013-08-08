@@ -56,6 +56,12 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         "Handles app_label or app_label.model_label formats."
 
+        if not args:
+            # TODO: this should technically retrieve the subcommand name from
+            # the avocado management command class
+            self.print_help(sys.argv[0], 'init')
+            return
+
         if options.get('quiet'):
             self.stdout = sys.stdout
             sys.stdout = open(os.devnull, 'w')
