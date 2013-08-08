@@ -106,12 +106,16 @@ class DataFieldAdmin(PublishedAdmin):
     list_display = ('name', 'published', 'archived', 'internal',
         'orphan_status', 'model_name', 'enumerable',
         'is_lexicon', 'is_objectset', 'related_dataconcepts')
+
     list_filter = ('published', 'archived', 'internal', 'model_name',
         'enumerable', LexiconListFilter, ObjectSetListFilter)
+
     list_editable = ('published', 'archived', 'internal', 'enumerable')
 
     search_fields = ('name', 'description', 'keywords')
+
     readonly_fields = ('created', 'modified', 'data_version')
+
     actions = ('mark_published', 'mark_unpublished', 'mark_archived',
         'mark_unarchived', 'create_dataconcept_multi',
         'create_dataconcept_single')
@@ -206,12 +210,15 @@ class DataConceptFieldInlineAdmin(admin.TabularInline):
 
 class DataConceptAdmin(PublishedAdmin):
     list_display = ('name', 'published', 'archived', 'internal', 'category',
-        'formatter_name', 'viewable', 'queryable', 'sortable',
+        'order', 'formatter_name', 'viewable', 'queryable', 'sortable',
         'related_datafields')
-    list_editable = ('published', 'archived', 'internal', 'category',
+
+    list_editable = ('published', 'archived', 'internal', 'category', 'order',
         'formatter_name', 'viewable', 'queryable', 'sortable')
+
     list_filter = ('published', 'archived', 'category', 'formatter_name',
         'viewable', 'queryable', 'sortable')
+
     inlines = [DataConceptFieldInlineAdmin]
 
     fieldsets = (
@@ -222,6 +229,7 @@ class DataConceptAdmin(PublishedAdmin):
                 'description',
                 'keywords',
                 'category',
+                'order',
                 'published',
                 'archived',
             ),
@@ -255,6 +263,8 @@ class DataCategoryAdmin(admin.ModelAdmin):
     model = DataCategory
 
     list_display = ('name', 'parent', 'order')
+
+    list_editable = ('name', 'parent', 'order')
 
 
 admin.site.register(DataField, DataFieldAdmin)
