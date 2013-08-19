@@ -274,7 +274,7 @@ class DataQueryTestCase(TestCase):
         }
 
         self.assertRaises(TypeError, DataQuery, json, **context_json)
-        self.assertRaises(TypeError, DataQuery, json, **view_json) 
+        self.assertRaises(TypeError, DataQuery, json, **view_json)
 
     def test_validate(self):
         attrs = {
@@ -291,8 +291,8 @@ class DataQueryTestCase(TestCase):
 
         exp_attrs = deepcopy(attrs)
         exp_attrs['view'] = None
-       
-        self.assertEqual(DataQuery.validate(deepcopy(attrs), tree=Employee), 
+
+        self.assertEqual(DataQuery.validate(deepcopy(attrs), tree=Employee),
                 exp_attrs)
 
     def test_parse(self):
@@ -317,7 +317,7 @@ class DataQueryTestCase(TestCase):
         self.assertEqual(str(node.dataview_node.ordering), "[(1, 'desc')]")
 
     def test_apply(self):
-        attrs = { 
+        attrs = {
             'context': {
                 'field': 'tests.title.boss',
                 'operator': 'exact',
@@ -329,8 +329,8 @@ class DataQueryTestCase(TestCase):
         }
         query = DataQuery(attrs)
 
-        self.assertEqual(unicode(query.apply(tree=Employee).query), 'SELECT DISTINCT "tests_employee"."id", "tests_office"."location", "tests_title"."name" FROM "tests_employee" INNER JOIN "tests_office" ON ("tests_employee"."office_id" = "tests_office"."id") LEFT OUTER JOIN "tests_title" ON ("tests_employee"."title_id" = "tests_title"."id") WHERE "tests_title"."boss" = True ')
-      
+        self.assertEqual(unicode(query.apply(tree=Employee).query), 'SELECT DISTINCT "tests_employee"."id", "tests_office"."location", "tests_title"."name" FROM "tests_employee" INNER JOIN "tests_title" ON ("tests_employee"."title_id" = "tests_title"."id") INNER JOIN "tests_office" ON ("tests_employee"."office_id" = "tests_office"."id") WHERE "tests_title"."boss" = True ')
+
         query = DataQuery({'view': {'ordering': [(1, 'desc')]}})
         queryset = Employee.objects.all().distinct()
         self.assertEqual(unicode(query.apply(queryset=queryset).query), 'SELECT DISTINCT "tests_employee"."id", "tests_office"."location", "tests_title"."name" FROM "tests_employee" INNER JOIN "tests_office" ON ("tests_employee"."office_id" = "tests_office"."id") LEFT OUTER JOIN "tests_title" ON ("tests_employee"."title_id" = "tests_title"."id") ORDER BY "tests_office"."location" DESC, "tests_title"."name" DESC')
