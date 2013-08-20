@@ -115,10 +115,10 @@ class AbstractDataView(models.Model):
 
 class AbstractDataQuery(models.Model):
     """
-    JSON object representing a complete query. 
+    JSON object representing a complete query.
 
     The query is constructed from a context(providing the 'WHERE' statements)
-    and a view(providing the 'SELECT' and 'ORDER BY" statements). This 
+    and a view(providing the 'SELECT' and 'ORDER BY" statements). This
     corresponds to all the statements of the SQL query to dictate what info
     to retrieve, how to filter it, and the order to display it in.
     """
@@ -128,9 +128,9 @@ class AbstractDataQuery(models.Model):
             validators=[parsers.dataview.validate])
 
     # The count when just the context is applied
-    distinct_count = models.IntegerField(null=True, db_column='_distinct_count')
+    distinct_count = models.IntegerField(null=True)
     # The count when the context and the view is applied
-    record_count = models.IntegerField(null=True, db_column='_record_count')
+    record_count = models.IntegerField(null=True)
 
     def __init__(self, *args, **kwargs):
         if args and isinstance(args[0], dict):
@@ -181,5 +181,5 @@ class AbstractDataQuery(models.Model):
         "Applies this context to a QuerySet."
         if tree is None and queryset is not None:
             tree = queryset.model
-        return self.parse(tree=tree, **context).apply(queryset=queryset, 
+        return self.parse(tree=tree, **context).apply(queryset=queryset,
             distinct=distinct, include_pk=include_pk)

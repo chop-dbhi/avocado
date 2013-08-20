@@ -10,21 +10,21 @@ class Migration(SchemaMigration):
     def forwards(self, orm):
         # Adding field 'DataQuery.distinct_count'
         db.add_column('avocado_dataquery', 'distinct_count',
-                      self.gf('django.db.models.fields.IntegerField')(null=True, db_column='_distinct_count'),
+                      self.gf('django.db.models.fields.IntegerField')(null=True),
                       keep_default=False)
 
         # Adding field 'DataQuery.record_count'
         db.add_column('avocado_dataquery', 'record_count',
-                      self.gf('django.db.models.fields.IntegerField')(null=True, db_column='_record_count'),
+                      self.gf('django.db.models.fields.IntegerField')(null=True),
                       keep_default=False)
 
 
     def backwards(self, orm):
         # Deleting field 'DataQuery.distinct_count'
-        db.delete_column('avocado_dataquery', '_distinct_count')
+        db.delete_column('avocado_dataquery', 'distinct_count')
 
         # Deleting field 'DataQuery.record_count'
-        db.delete_column('avocado_dataquery', '_record_count')
+        db.delete_column('avocado_dataquery', 'record_count')
 
 
     models = {
