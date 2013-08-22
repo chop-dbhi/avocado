@@ -43,11 +43,12 @@ CACHES = {
 
 SITE_ID = 1
 
-
-HAYSTACK_SITECONF = 'avocado.search_sites'
-HAYSTACK_SEARCH_ENGINE = 'whoosh'
-HAYSTACK_WHOOSH_PATH = os.path.join(os.path.dirname(__file__), 'whoosh.index')
-
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
+        'PATH': os.path.join(os.path.dirname(__file__), 'whoosh.index'),
+    }
+}
 
 ANONYMOUS_USER_ID = -1
 
@@ -81,8 +82,6 @@ AVOCADO = {
     'HISTORY_ENABLED': False,
     'HISTORY_MAX_SIZE': 50,
     'METADATA_MIGRATION_APP': 'core',
-    'FIELD_SEARCH_ENABLED': True,
-    'CONCEPT_SEARCH_ENABLED': True,
     'DATA_CACHE_ENABLED': False,
 }
 
