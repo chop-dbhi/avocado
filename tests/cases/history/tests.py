@@ -91,6 +91,22 @@ class ObjectRevisionTest(TestCase):
         self.assertEqual(revisions.count(), 1)
 
         self.assertFalse(Revision.objects.object_has_changed(c))
+        self.assertEqual(revisions[0].changes, {
+            'name': 'Test',
+            'description': None,
+            'json': {}
+        })
+
+    def test_deleted_revision(self):
+        c = DataContext(name='Test', json={})
+        c.save()
+        fields = ['name', 'description', 'json']
+
+        revision = Revision.objects.create_revision(c,
+            fields=fields, deleted=True)
+
+        self.assertEqual(revision.data, None)
+        self.assertEqual(revision.changes, None)
 
     def test_cull_for_object(self):
         c = DataContext(name='Test')

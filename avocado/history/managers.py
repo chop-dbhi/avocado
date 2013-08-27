@@ -67,16 +67,40 @@ class RevisionManager(models.Manager):
             return True
         return bool(revision.diff(obj, fields=fields))
 
+    @transaction.commit_on_success
     def create_revision(self, obj, fields, model=None, commit=True, deleted=False, **kwargs):
         """Creates a revision for the object.
 
         The previous revision will be compared against to prevent having
         a redundant revision.
         """
-        if deleted or self.object_has_changed(obj, model=model, fields=fields):
-            data = get_object_data(obj, fields)
+        changed = False
+        changes = None
+
+        revision = self.latest_for_object(obj, model=model)
+
+        if not revision or deleted:
+            changed = True
+        else:
+            changes = revision.diff(obj, fields=fields)
+            if changes:
+                changed = True
+
+        if changed:
+            kwargs.setdefault('user', getattr(obj, 'user'))
+            kwargs.setdefault('session_key', getattr(obj, 'session_key'))
+
+            if not deleted:
+                data = get_object_data(obj, fields)
+
+                if not changes:
+                    changes = data
+            else:
+                data = None
+
             revision = self.model(content_object=obj, data=data,
-                deleted=deleted, **kwargs)
+                deleted=deleted, changes=changes, **kwargs)
+
             if commit:
                 revision.save()
             return revision

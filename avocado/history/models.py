@@ -29,6 +29,9 @@ class Revision(models.Model):
     # This revision represents a deleted object
     deleted = models.BooleanField(default=False)
 
+    # The changes from the previous revision
+    changes = jsonfield.JSONField(null=True, blank=True)
+
     objects = RevisionManager()
 
     class Meta(object):
