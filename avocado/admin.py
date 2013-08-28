@@ -264,7 +264,7 @@ class DataCategoryAdmin(admin.ModelAdmin):
 
     list_display = ('name', 'parent', 'order')
 
-    list_editable = ('name', 'parent', 'order')
+    list_editable = ('parent', 'order')
 
 
 admin.site.register(DataField, DataFieldAdmin)
