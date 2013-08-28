@@ -94,7 +94,17 @@ class RevisionManager(models.Manager):
                 data = get_object_data(obj, fields)
 
                 if not changes:
-                    changes = data
+                    changes = {}
+
+                    # We purposefully exclude the old_value key here. Since
+                    # this is the first revision, there is no old_value so we
+                    # will leave it to the clients to check for old_value keys
+                    # before referencing it. A missing old_value key is the
+                    # indication that this is the first revision.
+                    for key in fields:
+                        changes[key] = {
+                            'new_value': data.get(key),
+                        }
             else:
                 data = None
 

@@ -92,9 +92,9 @@ class ObjectRevisionTest(TestCase):
 
         self.assertFalse(Revision.objects.object_has_changed(c))
         self.assertEqual(revisions[0].changes, {
-            'name': 'Test',
-            'description': None,
-            'json': {}
+            'name': {'new_value': 'Test'},
+            'description': {'new_value': None},
+            'json': {'new_value': {}}
         })
 
     def test_deleted_revision(self):
@@ -200,6 +200,14 @@ class AutoRevisionTest(TestCase):
         revisions = Revision.objects.get_for_object(c)
         self.assertEqual(revisions.count(), 1)
 
+        latest_revision = Revision.objects.latest_for_object(c)
+        self.assertFalse('old_value' in latest_revision.changes)
+        self.assertEqual(latest_revision.changes, {
+            'json': {'new_value': {}},
+            'name': {'new_value': None},
+            'description': {'new_value': None}
+        })
+
         c.name = "New Name"
         c.save()
 
@@ -207,4 +215,6 @@ class AutoRevisionTest(TestCase):
         self.assertEqual(revisions.count(), 2)
 
         latest_revision = Revision.objects.latest_for_object(c)
-        self.assertEqual(latest_revision.changes, {'name': {'old_value': None, 'new_value': 'New Name'}})
+        self.assertEqual(latest_revision.changes, {
+            'name': {'old_value': None, 'new_value': 'New Name'}
+        })
