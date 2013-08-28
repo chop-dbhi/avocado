@@ -192,3 +192,19 @@ class AutoRevisionTest(TestCase):
         # No changes, no new revision
         c.save()
         self.assertEqual(revisions.count(), 1)
+
+    def test_change(self):
+        c = DataContext()
+        c.save()
+
+        revisions = Revision.objects.get_for_object(c)
+        self.assertEqual(revisions.count(), 1)
+
+        c.name = "New Name"
+        c.save()
+
+        revisions = Revision.objects.get_for_object(c)
+        self.assertEqual(revisions.count(), 2)
+
+        latest_revision = Revision.objects.latest_for_object(c)
+        self.assertEqual(latest_revision.changes, {'name': {'old_value': None, 'new_value': 'New Name'}})

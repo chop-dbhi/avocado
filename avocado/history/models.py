@@ -51,8 +51,10 @@ class Revision(models.Model):
         return instance
 
     def diff(self, instance, fields=None, reverse=False):
-        """Returns the diff between the revision and the instance, relative
-        to the revision.
+        """
+        Returns the diff between the revision and the instance, relative
+        to the revision. Changed values will include the old and new values
+        under the 'old_value' and 'new_value' keys respectively.
 
         If `reverse` is true, the diff will be relative to the instance.
         If `fields` is not defined, the revision data keys will be used.
@@ -67,8 +69,13 @@ class Revision(models.Model):
         for key in fields:
             if data.get(key) != self.data.get(key):
                 if reverse:
-                    value = data.get(key)
+                    old_value = data.get(key)
+                    new_value = self.data.get(key)
                 else:
-                    value = self.data.get(key)
-                diff[key] = value
+                    old_value = self.data.get(key)
+                    new_value = data.get(key)
+                diff[key] = {
+                    'old_value': old_value,
+                    'new_value': new_value
+                }
         return diff
