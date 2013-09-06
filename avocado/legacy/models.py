@@ -36,7 +36,7 @@ class Field(models.Model):
         return unicode(self.name)
 
     def natural_key(self):
-        return (self.app_name, self.model_name, self.field_name)
+        return self.app_name, self.model_name, self.field_name
 
 
 # Category...
