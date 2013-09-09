@@ -52,8 +52,6 @@ class Command(DataFieldCommand):
             if method not in CACHED_METHODS:
                 raise CommandError('Invalid method {0}. Choices are {1}'.format(method, ', '.join(CACHED_METHODS)))
 
-        fields = fields.filter(enumerable=True)
-
         count = 0
         t0 = time.time()
 
