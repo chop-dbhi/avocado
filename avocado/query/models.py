@@ -146,6 +146,7 @@ class AbstractDataQuery(models.Model):
 
     class Meta(object):
         abstract = True
+        verbose_name_plural = 'data queries'
 
     @property
     def context(self):
