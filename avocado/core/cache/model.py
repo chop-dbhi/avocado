@@ -114,6 +114,7 @@ def cached_method(func=None, version=None, timeout=NEVER_EXPIRE, key_func=instan
         # to prevent mucking the cache_proxy instance directly..
         inner.flush = lambda: cache_proxy.flush()
         inner.cached = lambda: cache_proxy.cached()
+        inner.cache_key = lambda: cache_proxy.cache_key
 
         return inner
 
