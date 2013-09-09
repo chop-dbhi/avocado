@@ -19,7 +19,7 @@ class CommandsTestCase(TestCase):
     def test_subcommands(self):
         management.call_command('avocado', 'init', 'tests')
         management.call_command('avocado', 'cache', 'tests')
-        management.call_command('avocado', 'check')
+        management.call_command('avocado', 'check', output='none')
         management.call_command('avocado', 'history', cull=True)
 
         # Before updating the data, the data_version be at the default value 1

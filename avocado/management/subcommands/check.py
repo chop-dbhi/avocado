@@ -1,6 +1,6 @@
+import sys
 from optparse import make_option
 from django.core.management.base import BaseCommand
-from django.db import transaction
 from django.template import loader, Context
 from django.conf import settings as django_settings
 from avocado.models import DataField
@@ -13,21 +13,21 @@ Performs a series of checks for the setup and installation as well as checks
 for any orphaned data fields.
 """
 
+OUTPUT_CHOICES = ('stdout', 'html', 'none')
+
 class Command(BaseCommand):
     __doc__ = help = _help
 
     option_list = BaseCommand.option_list + (
-        make_option('--output', default='stdout',
-            help='Specify the output type: stdout, html'),
+        make_option('--output', default='stdout', choices=OUTPUT_CHOICES,
+            help='Specify the output type; {0}'.format(', '.join(OUTPUT_CHOICES))),
     )
 
-    @transaction.commit_on_success
     def handle(self, *args, **options):
         output = options.get('output')
 
         unknown_models = []
         unknown_fields = []
-
 
         for f in DataField.objects.iterator():
             if f.model is None:
@@ -47,7 +47,6 @@ class Command(BaseCommand):
             'unknown_fields': unknown_fields,
             'optional_deps': OPTIONAL_DEPS,
             'settings': getattr(django_settings, 'AVOCADO', {}),
-            'export_package_installed': 'avocado.export' in django_settings.INSTALLED_APPS,
             'default_modeltree': default_modeltree,
         }
 
@@ -56,4 +55,9 @@ class Command(BaseCommand):
         elif output == 'html':
             template = loader.get_template('avocado/check.html')
 
-        return template.render(Context(context))
+        if output != 'none':
+            print template.render(Context(context))
+
+        # Exit with non-zero code for any worthy problems
+        if unknown_fields or unknown_models or not default_modeltree:
+            sys.exit(1)

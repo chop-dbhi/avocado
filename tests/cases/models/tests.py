@@ -6,7 +6,7 @@ except ImportError:
 from django.test import TestCase
 from django.core import management
 from django.core.cache import cache
-from django.core.exceptions import ValidationError, ImproperlyConfigured
+from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 from guardian.shortcuts import assign
 from avocado.models import (DataField, DataConcept, DataConceptField,
@@ -334,8 +334,6 @@ class DataQueryTestCase(TestCase):
         query = DataQuery({'view': {'ordering': [(1, 'desc')]}})
         queryset = Employee.objects.all().distinct()
         self.assertEqual(unicode(query.apply(queryset=queryset).query), 'SELECT DISTINCT "tests_employee"."id", "tests_office"."location", "tests_title"."name" FROM "tests_employee" INNER JOIN "tests_office" ON ("tests_employee"."office_id" = "tests_office"."id") LEFT OUTER JOIN "tests_title" ON ("tests_employee"."title_id" = "tests_title"."id") ORDER BY "tests_office"."location" DESC, "tests_title"."name" DESC')
-
-        self.assertRaises(ImproperlyConfigured, query.apply)
 
     def test_clean(self):
         # Save default template

@@ -86,4 +86,10 @@ AVOCADO = {
     'DATA_CACHE_ENABLED': False,
 }
 
+MODELTREES = {
+    'default': {
+        'model': 'tests.Employee',
+    }
+}
+
 SECRET_KEY = 'acb123'

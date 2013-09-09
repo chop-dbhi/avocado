@@ -188,18 +188,6 @@ table td[class*="span"],table th[class*="span"],.row-fluid table td[class*="span
                 </thead>
                 <tbody>
                     <tr>
-                        <td>Export Package</td>
-                        {% if export_package_installed %}
-                        <td class=text-success>Installed</td>
-                        <td class=muted>Check the optional dependencies below
-                            regarding the Openpyxl library for native Excel exports.</td>
-                        {% else %}
-                        <td class=text-error>Not installed</td>
-                        <td class=muted>Install by adding <code>avocado.export</code>
-                            to <code>INSTALLED_APPS</code></td>
-                        {% endif %}
-                    </tr>
-                    <tr>
                         <td>Default ModelTree</td>
                         {% if default_modeltree %}
                         <td class=text-success>Defined</td>
