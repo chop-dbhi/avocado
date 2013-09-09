@@ -3,7 +3,8 @@ from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
-from avocado.models import DataField, DataConcept, DataCategory, DataConceptField
+from avocado.models import (DataField, DataConcept, DataCategory,
+    DataConceptField, DataView, DataContext, DataQuery)
 from avocado.forms import DataFieldAdminForm
 
 
@@ -267,6 +268,22 @@ class DataCategoryAdmin(admin.ModelAdmin):
     list_editable = ('parent', 'order')
 
 
+class DataViewAdmin(admin.ModelAdmin):
+    readonly_fields = ('session_key',)
+
+
+class DataContextAdmin(admin.ModelAdmin):
+    readonly_fields = ('count', 'session_key')
+
+
+class DataQueryAdmin(admin.ModelAdmin):
+    readonly_fields = ('distinct_count', 'record_count')
+
+
 admin.site.register(DataField, DataFieldAdmin)
 admin.site.register(DataConcept, DataConceptAdmin)
 admin.site.register(DataCategory, DataCategoryAdmin)
+
+admin.site.register(DataView, DataViewAdmin)
+admin.site.register(DataContext, DataContextAdmin)
+admin.site.register(DataQuery, DataQueryAdmin)
