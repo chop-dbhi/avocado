@@ -9,7 +9,7 @@ from django.db.models.fields import FieldDoesNotExist
 from django.db.models.signals import post_save, pre_delete
 from django.core.validators import RegexValidator
 from avocado.core import utils
-from avocado.core.models import Base, BasePlural
+from avocado.core.models import Base, BasePlural, PublishArchiveMixin
 from avocado.core.cache import (post_save_cache, pre_delete_uncache,
     cached_method)
 from avocado.conf import settings
@@ -33,7 +33,7 @@ validate_ident = RegexValidator(ident_re, _("Enter a valid 'identifier' " \
     "that is a valid Python variable name."), 'invalid')
 
 
-class DataCategory(Base):
+class DataCategory(Base, PublishArchiveMixin):
     "A high-level organization for data concepts."
     # A reference to a parent for hierarchical categories
     parent = models.ForeignKey('self', null=True, blank=True,
@@ -48,7 +48,7 @@ class DataCategory(Base):
         verbose_name_plural = 'data categories'
 
 
-class DataField(BasePlural):
+class DataField(BasePlural, PublishArchiveMixin):
     """Describes the significance and/or meaning behind some data. In addition,
     it defines the natural key of the Django field that represents the location
     of that data e.g. ``library.book.title``.
@@ -365,7 +365,7 @@ class DataField(BasePlural):
         return trans.validate(self, operator, value, tree, **context)
 
 
-class DataConcept(BasePlural):
+class DataConcept(BasePlural, PublishArchiveMixin):
     """Our acceptance of an ontology is, I think, similar in principle to our
     acceptance of a scientific theory, say a system of physics; we adopt, at
     least insofar as we are reasonable, the simplest conceptual scheme into
@@ -517,21 +517,10 @@ class DataContext(AbstractDataContext, Base):
             toks.append('template')
         elif self.session:
             toks.append('session')
-        elif self.archived:
-            toks.append('archived')
         else:
             toks.append('rogue')
 
         return u'{0} ({1})'.format(*toks)
-
-    def archive(self):
-        if self.archived:
-            return False
-        backup = self.pk, self.session, self.archived
-        self.pk, self.session, self.archived = None, False, True
-        self.save()
-        self.pk, self.session, self.archived = backup
-        return True
 
     def clean(self):
         from django.core.exceptions import ValidationError
@@ -587,21 +576,10 @@ class DataView(AbstractDataView, Base):
             toks.append('template')
         elif self.session:
             toks.append('session')
-        elif self.archived:
-            toks.append('archived')
         else:
             toks.append('rogue')
 
         return u'{0} ({1})'.format(*toks)
-
-    def archive(self):
-        if self.archived:
-            return False
-        backup = self.pk, self.session, self.archived
-        self.pk, self.session, self.archived = None, False, True
-        self.save()
-        self.pk, self.session, self.archived = backup
-        return True
 
     def clean(self):
         from django.core.exceptions import ValidationError
@@ -661,21 +639,10 @@ class DataQuery(AbstractDataQuery, Base):
             toks.append('template')
         elif self.session:
             toks.append('session')
-        elif self.archived:
-            toks.append('archived')
         else:
             toks.append('rogue')
 
         return u'{0} ({1})'.format(*toks)
-
-    def archive(self):
-        if self.archived:
-            return False
-        backup = self.pk, self.session, self.archived
-        self.pk, self.session, self.archived = None, False, True
-        self.save()
-        self.pk, self.session, self.archived = backup
-        return True
 
     def clean(self):
         from django.core.exceptions import ValidationError
