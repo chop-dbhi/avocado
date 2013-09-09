@@ -3,24 +3,32 @@ import time
 import logging
 from optparse import make_option
 from django.core.management.base import BaseCommand, CommandError
+from avocado.models import DataField
 from avocado.management.base import DataFieldCommand
 
 log = logging.getLogger(__name__)
 
+# Get all methods that have a `flush` method for clearing the
+# internal cache.
+CACHED_METHODS = []
 
-_help = """\
+for attr_name in dir(DataField):
+    attr = getattr(DataField, attr_name)
+    # This is crude means of checking for methods that contain a CacheProxy,
+    # however that is the only method used below.
+    if hasattr(attr, 'flush'):
+        CACHED_METHODS.append(attr_name)
+
+CACHED_METHODS = tuple(CACHED_METHODS)
+
+
+__doc__ = """\
 Pre-caches data produced by various DataField methods that are data dependent.
-
-Pass `--flush` to explicitly flush any existing cache for each property.
+Pass `--flush` to explicitly flush any existing cache for each method.
 """
 
-#TODO: Can/should we make the default methods contained here be all those
-#      with the cached_method decorator an populate this list programatically?
-CACHED_METHODS = ('size', 'values', 'labels', 'codes', 'count', 'max', 'min',
-                  'avg', 'sum', 'stddev', 'variance')
-
 class Command(DataFieldCommand):
-    __doc__ = help = _help
+    help = __doc__
 
     option_list = BaseCommand.option_list + (
         make_option('--flush', action='store_true',
@@ -39,6 +47,7 @@ class Command(DataFieldCommand):
         flush = options.get('flush')
         methods = options.get('methods')
 
+        # Validate methods
         for method in methods:
             if method not in CACHED_METHODS:
                 raise CommandError('Invalid method {0}. Choices are {1}'.format(method, ', '.join(CACHED_METHODS)))
@@ -46,15 +55,16 @@ class Command(DataFieldCommand):
         fields = fields.filter(enumerable=True)
 
         count = 0
+        t0 = time.time()
+
         for f in fields:
-            t0 = time.time()
             for method in methods:
                 func = getattr(f, method)
                 if flush:
                     func.flush()
                 func()
-                self._progress()
             count += 1
+            self._progress()
             log.debug('{0} cache set took {1} seconds'.format(f, time.time() - t0))
 
-        print(u'{0} DataFields have been updated'.format(count))
+        print(u'\n{0} fields have been updated ({1} s)'.format(count, round(time.time() - t0, 2)))
