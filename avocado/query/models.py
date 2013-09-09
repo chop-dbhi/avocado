@@ -83,7 +83,6 @@ class AbstractDataView(models.Model):
     """
     json = jsonfield.JSONField(null=True, blank=True, default=dict,
         validators=[parsers.dataview.validate])
-    count = models.IntegerField(null=True, db_column='_count')
 
     def __init__(self, *args, **kwargs):
         if args and isinstance(args[0], dict):
