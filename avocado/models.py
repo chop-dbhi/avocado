@@ -302,7 +302,7 @@ class DataField(BasePlural, PublishArchiveMixin):
     def coded_values(self):
         "Returns a distinct set of coded values for this field."
         if self.lexicon:
-            return zip(self.values, self.codes)
+            return zip(self.values(), self.codes())
 
     # Data Aggregation Properties
     def groupby(self, *args):
