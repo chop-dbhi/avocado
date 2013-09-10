@@ -494,7 +494,7 @@ def find_outliers(points, outlier_threshold=3, normalized=True):
     mean_distance = sum(distances) / float(len(distances))
     
     return [i for i, distance in enumerate(distances) \
-            if (distance / mean_distance) >= outlier_threshold]
+            if mean_distance > 0 and (distance / mean_distance) >= outlier_threshold]
 
 def kmeans_optm(points, k=None, outlier_threshold=3):
     """
