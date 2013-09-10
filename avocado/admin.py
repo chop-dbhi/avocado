@@ -269,15 +269,141 @@ class DataCategoryAdmin(admin.ModelAdmin):
 
 
 class DataViewAdmin(admin.ModelAdmin):
-    readonly_fields = ('session_key',)
+    readonly_fields = ('session_key', 'sql')
+
+    fieldsets = (
+        (None, {
+            'fields': (
+                'name',
+                'description',
+                'keywords',
+            ),
+        }),
+
+        ('User', {
+            'fields': ('user', 'session_key', 'session')
+        }),
+
+        ('Template', {
+            'fields': ('template', 'default')
+        }),
+
+        ('JSON', {
+            'fields': ('json',),
+            'description': 'JSON representation of the view',
+        }),
+
+        ('SQL', {
+            'fields': ('sql',),
+            'description': 'Formatted SQL representation of the view',
+        }),
+    )
+
+    def sql(self, obj):
+        sql = obj.sql()
+        try:
+            import sqlparse
+            sql = sqlparse.format(sql, reindent=True, keyword_case='upper')
+        except ImportError:
+            pass
+        return u'<pre>{0}</pre>'.format(sql)
+    sql.short_description = 'SQL'
+    sql.allow_tags = True
 
 
 class DataContextAdmin(admin.ModelAdmin):
-    readonly_fields = ('count', 'session_key')
+    readonly_fields = ('session_key', 'count', 'sql')
+
+    fieldsets = (
+        (None, {
+            'fields': (
+                'name',
+                'description',
+                'keywords',
+            ),
+        }),
+
+        ('User', {
+            'fields': ('user', 'session_key', 'session')
+        }),
+
+        ('Template', {
+            'fields': ('template', 'default')
+        }),
+
+        ('Stats', {
+            'fields': ('count',)
+        }),
+
+        ('JSON', {
+            'fields': ('json',),
+            'description': 'JSON representation of the context',
+        }),
+
+        ('SQL', {
+            'fields': ('sql',),
+            'description': 'Formatted SQL representation of the context',
+        }),
+    )
+
+    def sql(self, obj):
+        sql = obj.sql()
+        try:
+            import sqlparse
+            sql = sqlparse.format(sql, reindent=True, keyword_case='upper')
+        except ImportError:
+            pass
+        return u'<pre>{0}</pre>'.format(sql)
+    sql.short_description = 'SQL'
+    sql.allow_tags = True
+
 
 
 class DataQueryAdmin(admin.ModelAdmin):
-    readonly_fields = ('distinct_count', 'record_count')
+    readonly_fields = ('distinct_count', 'record_count', 'session_key', 'sql')
+
+    fieldsets = (
+        (None, {
+            'fields': (
+                'name',
+                'description',
+                'keywords',
+            ),
+        }),
+
+        ('User', {
+            'fields': ('user', 'session_key', 'session')
+        }),
+
+        ('Template', {
+            'fields': ('template', 'default')
+        }),
+
+        ('Stats', {
+            'fields': ('distinct_count', 'record_count')
+        }),
+
+        ('JSON', {
+            'fields': ('view_json', 'context_json'),
+            'description': 'JSON representation of the context and view',
+        }),
+
+        ('SQL', {
+            'fields': ('sql',),
+            'description': 'Formatted SQL representation of the query',
+        }),
+    )
+
+    def sql(self, obj):
+        sql = obj.sql()
+        try:
+            import sqlparse
+            sql = sqlparse.format(sql, reindent=True, keyword_case='upper')
+        except ImportError:
+            pass
+        return u'<pre>{0}</pre>'.format(sql)
+    sql.short_description = 'SQL'
+    sql.allow_tags = True
 
 
 admin.site.register(DataField, DataFieldAdmin)

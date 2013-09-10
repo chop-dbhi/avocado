@@ -3,6 +3,10 @@ from django.db import models
 from modeltree.tree import trees
 from . import oldparsers as parsers
 
+def _sql_string(queryset):
+    sql, params = queryset.query.sql_with_params()
+    return sql % tuple([repr(str(x)) for x in params])
+
 
 class AbstractDataContext(models.Model):
     """JSON object representing one or more data field conditions. The data may
@@ -74,6 +78,13 @@ class AbstractDataContext(models.Model):
     def language(self, tree=None, **context):
         return self.parse(tree=tree, **context).language
 
+    def sql(self, *args, **kwargs):
+        """Returns the SQL query string representative of this context.
+
+        This takes the same arguments as `apply()`.
+        """
+        return _sql_string(self.apply(*args, **kwargs))
+
 
 class AbstractDataView(models.Model):
     """JSON object representing one or more data field conditions. The data may
@@ -110,6 +121,13 @@ class AbstractDataView(models.Model):
             tree = queryset.model
         return self.parse(tree=tree, **context).apply(queryset=queryset,
             include_pk=include_pk)
+
+    def sql(self, *args, **kwargs):
+        """Returns the SQL query string representative of this view.
+
+        This takes the same arguments as `apply()`.
+        """
+        return _sql_string(self.apply(*args, **kwargs))
 
 
 class AbstractDataQuery(models.Model):
@@ -174,7 +192,6 @@ class AbstractDataQuery(models.Model):
             'context': self.context_json,
             'view': self.view_json,
         }
-
         return parsers.dataquery.parse(json, tree=tree, **context)
 
     def apply(self, queryset=None, tree=None, distinct=True, include_pk=True, **context):
@@ -183,3 +200,10 @@ class AbstractDataQuery(models.Model):
             tree = queryset.model
         return self.parse(tree=tree, **context).apply(queryset=queryset,
             distinct=distinct, include_pk=include_pk)
+
+    def sql(self, *args, **kwargs):
+        """Returns the SQL query string representative of this query.
+
+        This takes the same arguments as `apply()`.
+        """
+        return _sql_string(self.apply(*args, **kwargs))

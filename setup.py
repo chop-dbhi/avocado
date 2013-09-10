@@ -40,6 +40,8 @@ kwargs = {
         'search': ['django-haystack==1.2.7'],
         # Includes extra exporter dependencies
         'extras': ['openpyxl>=1.6,<1.7'],
+        # Pretty printing of SQL in the admin and for debugging
+        'sql': ['sqlparse'],
     },
 
     # Metadata
