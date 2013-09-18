@@ -487,6 +487,10 @@ class DataContext(AbstractDataContext, Base):
     template = models.BooleanField(default=False)
     default = models.BooleanField(default=False)
 
+    # The parent this instance was derived from
+    parent = models.ForeignKey('self', null=True, blank=True,
+        related_name='forks')
+
     # For authenticated users the `user` can be directly referenced,
     # otherwise the session key can be used.
     user = models.ForeignKey(User, null=True, blank=True, related_name='datacontext+')
@@ -545,6 +549,10 @@ class DataView(AbstractDataView, Base):
     session = models.BooleanField(default=False)
     template = models.BooleanField(default=False)
     default = models.BooleanField(default=False)
+
+    # The parent this instance was derived from
+    parent = models.ForeignKey('self', null=True, blank=True,
+        related_name='forks')
 
     # For authenticated users the `user` can be directly referenced,
     # otherwise the session key can be used.
@@ -607,6 +615,10 @@ class DataQuery(AbstractDataQuery, Base):
     session = models.BooleanField(default=False)
     template = models.BooleanField(default=False)
     default = models.BooleanField(default=False)
+
+    # The parent this instance was derived from
+    parent = models.ForeignKey('self', null=True, blank=True,
+        related_name='forks')
 
     # For authenticated users the `user` can be directly referenced,
     # otherwise the session key can be used.
