@@ -625,7 +625,7 @@ class DataQuery(AbstractDataQuery, Base):
     user = models.ForeignKey(User, null=True, blank=True, related_name='dataquery+')
     session_key = models.CharField(max_length=40, null=True, blank=True)
 
-    accessed = models.DateTimeField(default=datetime.now(), editable=False)
+    accessed = models.DateTimeField(default=datetime.now, editable=False)
     objects = managers.DataQueryManager()
     shared_users = models.ManyToManyField(User, related_name='shareddataquery+')
 
