@@ -62,7 +62,7 @@ class Command(BaseCommand):
             raise CommandError(e.message)
 
         if not os.path.exists(fixture_dir):
-            os.mkdir(fixture_dir)
+            os.makedirs(fixture_dir)
             log.info(u'Created fixture directory: {0}'.format(fixture_dir))
         elif not os.path.isdir(fixture_dir):
             raise CommandError(u'The metadata fixture directory {0}.. is not a directory.'.format(fixture_dir))
