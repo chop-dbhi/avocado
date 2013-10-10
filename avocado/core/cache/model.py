@@ -1,13 +1,10 @@
 import inspect
 import logging
 from functools import wraps
-from django.db import models
 from django.core.cache import cache
-from django.db.models.query import QuerySet
 
 NEVER_EXPIRE = 60 * 60 * 24 * 30  # 30 days
 INSTANCE_CACHE_KEY = u'{0}:{1}:{2}'
-PK_LOOKUPS = ('pk', 'pk__exact')
 
 log = logging.getLogger(__name__)
 
@@ -127,35 +124,3 @@ def cached_method(func=None, version=None, timeout=NEVER_EXPIRE,
     if inspect.isfunction(func):
         return decorator(func)
     return decorator
-
-class CacheQuerySet(QuerySet):
-    def filter(self, *args, **kwargs):
-        """For primary-key-based lookups, instances may be cached to prevent
-        excessive database hits. If this is a primary-key lookup, the cache
-        will be checked and populate the `_result_cache` if available.
-        """
-        clone = super(CacheQuerySet, self).filter(*args, **kwargs)
-
-        pk = None
-        opts = self.model._meta
-        pk_name = opts.pk.name
-
-        # Look for `pk` and the actual name of the primary key field
-        for key in list(PK_LOOKUPS) + [pk_name, u'{0}__exact'.format(pk_name)]:
-            if key in kwargs:
-                pk = kwargs[key]
-                break
-
-        if pk is not None:
-            key = INSTANCE_CACHE_KEY.format(opts.app_label, opts.module_name,
-                                            pk)
-            obj = cache.get(key)
-            if obj is not None:
-                clone._result_cache = [obj]
-
-        return clone
-
-
-class CacheManager(models.Manager):
-    def get_query_set(self):
-        return CacheQuerySet(self.model)
