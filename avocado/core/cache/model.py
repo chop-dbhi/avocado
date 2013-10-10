@@ -128,20 +128,6 @@ def cached_method(func=None, version=None, timeout=NEVER_EXPIRE,
         return decorator(func)
     return decorator
 
-
-def post_save_cache(sender, instance, **kwargs):
-    """General post-save handler for caching model instances. NOTE: This must
-    be used in conjunction with the `pre_delete_uncache` since the cache is set
-    to never expire.
-    """
-    cache.set(instance_cache_key(instance), instance, timeout=NEVER_EXPIRE)
-
-
-def pre_delete_uncache(sender, instance, **kwargs):
-    "General post-delete handler for removing cache for model instances."
-    cache.delete(instance_cache_key(instance))
-
-
 class CacheQuerySet(QuerySet):
     def filter(self, *args, **kwargs):
         """For primary-key-based lookups, instances may be cached to prevent
