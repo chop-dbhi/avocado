@@ -122,7 +122,7 @@ class DataField(BasePlural, PublishArchiveMixin):
             self.field.verbose_name).title()
 
     def __len__(self):
-        return self.size
+        return self.size()
 
     def __nonzero__(self):
         "Takes precedence over __len__, so it is always truthy."
