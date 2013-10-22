@@ -4,7 +4,7 @@ from optparse import make_option
 from django.db.models import (get_model, get_models, get_app, AutoField,
     ForeignKey, OneToOneField, ManyToManyField, FieldDoesNotExist)
 from django.core.management.base import BaseCommand
-from avocado.models import DataField
+from avocado.models import DataField, DataConcept
 from avocado.lexicon.models import Lexicon
 from avocado.sets.models import ObjectSet
 from avocado.core import utils
@@ -21,6 +21,12 @@ class Command(BaseCommand):
     __doc__ = help = _help
 
     option_list = BaseCommand.option_list + (
+        make_option('--no-publish', action='store_false', dest='publish',
+            default=True, help='Prevent publishing fields or concepts.'),
+
+        make_option('--no-concepts', action='store_false', dest='concepts',
+            default=True, help='Prevent creating concepts.'),
+
         make_option('-e', '--include-non-editable', action='store_true',
             dest='include_non_editable', default=False,
             help='Create fields for non-editable fields'),
@@ -196,7 +202,7 @@ class Command(BaseCommand):
         try:
             f = DataField.objects.get(**lookup)
         except DataField.DoesNotExist:
-            f = DataField(published=False, **kwargs)
+            f = DataField(published=options.get('publish'), **kwargs)
 
         if f.pk:
             created = False
@@ -219,4 +225,11 @@ class Command(BaseCommand):
         # Update fields with flags
         f.__dict__.update(utils.get_heuristic_flags(f))
         f.save()
+
+        # Create a concept if one does not already exist for this field
+        if options.get('concepts'):
+            if not DataConcept.objects.filter(concept_fields__field=f).exists():
+                DataConcept.objects.create_from_field(f,
+                        published=options.get('publish'))
+
         return created

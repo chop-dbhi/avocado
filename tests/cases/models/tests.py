@@ -18,7 +18,8 @@ class ModelInstanceCacheTestCase(TestCase):
     fixtures = ['models.json']
 
     def setUp(self):
-        management.call_command('avocado', 'init', 'tests', quiet=True)
+        management.call_command('avocado', 'init', 'tests', publish=False,
+                concepts=False, quiet=True)
         self.is_manager = DataField.objects.get_by_natural_key('tests', 'employee', 'is_manager')
 
     def test_datafield_cache(self):
@@ -42,7 +43,8 @@ class DataFieldTestCase(TestCase):
     fixtures = ['models.json']
 
     def setUp(self):
-        management.call_command('avocado', 'init', 'tests', quiet=True)
+        management.call_command('avocado', 'init', 'tests', publish=False,
+                concepts=False, quiet=True)
         self.is_manager = DataField.objects.get_by_natural_key('tests', 'employee', 'is_manager')
         self.salary = DataField.objects.get_by_natural_key('tests', 'title', 'salary')
         self.first_name = DataField.objects.get_by_natural_key('tests', 'employee', 'first_name')
@@ -70,7 +72,8 @@ class DataFieldManagerTestCase(TestCase):
     fixtures = ['models.json']
 
     def setUp(self):
-        management.call_command('avocado', 'init', 'tests', quiet=True)
+        management.call_command('avocado', 'init', 'tests', publish=False,
+                concepts=False, quiet=True)
         self.is_manager = DataField.objects.get_by_natural_key('tests', 'employee', 'is_manager')
 
     def test_published(self):
@@ -97,7 +100,8 @@ class DataConceptTestCase(TestCase):
     fixtures = ['models.json']
 
     def setUp(self):
-        management.call_command('avocado', 'init', 'tests', quiet=True)
+        management.call_command('avocado', 'init', 'tests', publish=False,
+                concepts=False, quiet=True)
 
     def test_format(self):
         name_field = DataField.objects.get_by_natural_key('tests', 'title', 'name')
@@ -145,7 +149,8 @@ class DataConceptManagerTestCase(TestCase):
     fixtures = ['models.json']
 
     def setUp(self):
-        management.call_command('avocado', 'init', 'tests', quiet=True)
+        management.call_command('avocado', 'init', 'tests', publish=False,
+                concepts=False, quiet=True)
         self.is_manager = DataField.objects.get_by_natural_key('tests', 'employee', 'is_manager')
         self.salary = DataField.objects.get_by_natural_key('tests', 'title', 'salary')
 
@@ -155,7 +160,6 @@ class DataConceptManagerTestCase(TestCase):
         DataConceptField(concept=concept, field=self.is_manager).save()
         DataConceptField(concept=concept, field=self.salary).save()
 
-        # Published, not specific to any user
         self.assertEqual([x.pk for x in DataConcept.objects.published()], [])
 
         self.is_manager.published = True
@@ -235,7 +239,8 @@ class DataQueryTestCase(TestCase):
               'new3@email.com']
 
     def setUp(self):
-        management.call_command('avocado', 'init', 'tests', quiet=True)
+        management.call_command('avocado', 'init', 'tests', publish=False,
+                concepts=False, quiet=True)
         f1 = DataField.objects.get(pk=1)
         f2 = DataField.objects.get(pk=2)
 
