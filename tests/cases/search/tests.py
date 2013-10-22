@@ -8,7 +8,8 @@ class SearchTest(TestCase):
     fixtures = ['search.json']
 
     def setUp(self):
-        management.call_command('avocado', 'init', 'search', quiet=True)
+        management.call_command('avocado', 'init', 'search', concepts=False,
+                published=False, quiet=True)
 
         # Search only applies to published fields...
         fields = DataField.objects.all()

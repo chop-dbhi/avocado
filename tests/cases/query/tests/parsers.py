@@ -217,7 +217,8 @@ class DataViewParserTestCase(TestCase):
     fixtures = ['employee_data.json']
 
     def setUp(self):
-        management.call_command('avocado', 'init', 'tests', quiet=True)
+        management.call_command('avocado', 'init', 'tests', publish=False,
+                concepts=False, quiet=True)
         f1 = DataField.objects.get(pk=1)
         f2 = DataField.objects.get(pk=2)
 
@@ -263,7 +264,8 @@ class DataQueryParserTestCase(TestCase):
     fixtures = ['employee_data.json']
 
     def setUp(self):
-        management.call_command('avocado', 'init', 'tests', quiet=True)
+        management.call_command('avocado', 'init', 'tests', publish=False,
+                concepts=False, quiet=True)
         f1 = DataField.objects.get(pk=1)
         f2 = DataField.objects.get(pk=2)
 

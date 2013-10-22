@@ -2,7 +2,7 @@ import os
 import sys
 from django.test import TestCase
 from django.core import management
-from avocado.models import DataField, DataContext, DataView
+from avocado.models import DataField, DataConcept, DataContext, DataView
 
 __all__ = ('CommandsTestCase',)
 
@@ -37,6 +37,17 @@ class CommandsTestCase(TestCase):
         # incr_version argument does not cause the data_version field
         # to get incremented.
         self.assertEqual(DataField.objects.filter()[:1].get().data_version, 2)
+
+    def test_init(self):
+        management.call_command('avocado', 'init', 'tests')
+        self.assertEqual(DataField.objects.filter(published=True).count(), 18)
+        self.assertEqual(DataConcept.objects.filter(published=True).count(), 18)
+
+    def test_init_previous(self):
+        management.call_command('avocado', 'init', 'tests', publish=False,
+                concepts=False)
+        self.assertEqual(DataField.objects.filter(published=False).count(), 18)
+        self.assertEqual(DataConcept.objects.filter().count(), 0)
 
     def test_legacy(self):
         from avocado.models import DataField
