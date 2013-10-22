@@ -17,6 +17,7 @@ class AbstractDataContext(models.Model):
     json = jsonfield.JSONField(null=True, blank=True, default=dict,
         validators=[parsers.datacontext.validate])
     count = models.IntegerField(null=True, db_column='_count')
+    tree = models.CharField(max_length=100, null=True, blank=True)
 
     def __init__(self, *args, **kwargs):
         if args and isinstance(args[0], dict):
@@ -57,8 +58,9 @@ class AbstractDataContext(models.Model):
     @property
     def model(self):
         "The model this context represents with respect to the count."
-        if self.count is not None:
-            return trees.default.root_model
+        if self.tree in trees:
+            return trees[self.tree].root_model
+        return trees.default.root_model
 
     @classmethod
     def validate(cls, attrs, **context):
@@ -148,6 +150,7 @@ class AbstractDataQuery(models.Model):
     distinct_count = models.IntegerField(null=True)
     # The count when the context and the view is applied
     record_count = models.IntegerField(null=True)
+    tree = models.CharField(max_length=100, null=True, blank=True)
 
     def __init__(self, *args, **kwargs):
         if args and isinstance(args[0], dict):
@@ -180,6 +183,13 @@ class AbstractDataQuery(models.Model):
             'context': self.context_json,
             'view': self.view_json
         }
+
+    @property
+    def model(self):
+        "The model this query represents with respect to the counts."
+        if self.tree in trees:
+            return trees[self.tree].root_model
+        return trees.default.root_model
 
     @classmethod
     def validate(cls, attrs, **context):

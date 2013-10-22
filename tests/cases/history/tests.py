@@ -18,6 +18,7 @@ class ObjectRevisionTest(TestCase):
             'session',
             'session_key',
             'template',
+            'tree',
         ])
 
     def test_get_object_data(self):
@@ -34,6 +35,7 @@ class ObjectRevisionTest(TestCase):
             'session': False,
             'session_key': None,
             'template': False,
+            'tree': None,
         })
 
     def test_get_for_object(self):
