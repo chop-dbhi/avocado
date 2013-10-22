@@ -358,7 +358,6 @@ class DataContextAdmin(admin.ModelAdmin):
     sql.allow_tags = True
 
 
-
 class DataQueryAdmin(admin.ModelAdmin):
     readonly_fields = ('distinct_count', 'record_count', 'session_key', 'sql')
 
@@ -368,6 +367,7 @@ class DataQueryAdmin(admin.ModelAdmin):
                 'name',
                 'description',
                 'keywords',
+                'public',
             ),
         }),
 
