@@ -629,6 +629,11 @@ class DataQuery(AbstractDataQuery, Base):
     objects = managers.DataQueryManager()
     shared_users = models.ManyToManyField(User, related_name='shareddataquery+')
 
+    # Flag indicating whether this is a public query or not. Public queries are
+    # visible to all other users of the system while non-public queries are
+    # only visible to the query owner and those in the shared_users collection.
+    public = models.BooleanField(default=False)
+
     def __unicode__(self):
         toks = []
 
