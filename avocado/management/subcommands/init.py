@@ -229,7 +229,7 @@ class Command(BaseCommand):
         f.save()
 
         # Create a concept if one does not already exist for this field
-        if (options.get('concepts') and
+        if (options.get('concepts') and not
                 DataConcept.objects.filter(concept_fields__field=f).exists()):
             DataConcept.objects.create_from_field(
                 f, published=options.get('publish'))
