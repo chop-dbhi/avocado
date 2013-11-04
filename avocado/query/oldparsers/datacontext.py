@@ -64,13 +64,14 @@ class Node(object):
 class Condition(Node):
     "Contains information for a single query condition."
     def __init__(self, value, operator, id=None, field=None,
-            concept=None, **context):
+                 concept=None, **context):
 
         if field:
             self.field_key = field
         else:
             self.field_key = id
-            warnings.warn('The "id" key has been replaced with "field"', DeprecationWarning)
+            warnings.warn('The "id" key has been replaced with "field"',
+                          DeprecationWarning)
 
         self.concept_key = concept
         self.operator = operator
@@ -81,8 +82,9 @@ class Condition(Node):
     @property
     def _meta(self):
         if not hasattr(self, '__meta'):
-            self.__meta = self.field.translate(operator=self.operator,
-                value=self.value, tree=self.tree, **self.context)
+            self.__meta = self.field.translate(
+                operator=self.operator, value=self.value, tree=self.tree,
+                **self.context)
         return self.__meta
 
     @property
@@ -179,7 +181,8 @@ class Branch(Node):
                 elif _type is dict:
                     extra[key].update(value)
                 else:
-                    raise TypeError('The `.extra()` method only takes list of dicts as keyword values')
+                    raise TypeError('The ".extra()" method only takes list of '
+                                    'dicts as keyword values')
         return extra
 
     @property
@@ -203,7 +206,8 @@ def validate(attrs, **context):
         from avocado.models import DataContext
         try:
             if 'user' in context:
-                cxt = DataContext.objects.get(id=attrs['composite'], user=context['user'])
+                cxt = DataContext.objects.get(
+                    id=attrs['composite'], user=context['user'])
             else:
                 cxt = DataContext.objects.get(id=attrs['composite'])
             validate(cxt.json, **context)
@@ -211,7 +215,8 @@ def validate(attrs, **context):
         except DataContext.DoesNotExist:
             attrs['enabled'] = False
             attrs.setdefault('errors', [])
-            attrs.append(u'DataContext "{0}" does not exist.'.format(attrs['id']))
+            attrs.append(
+                u'DataContext "{0}" does not exist.'.format(attrs['id']))
 
     elif is_condition(attrs):
         from avocado.models import DataField, DataConcept
@@ -255,13 +260,14 @@ def parse(attrs, **context):
     elif is_composite(attrs):
         from avocado.models import DataContext
         if 'user' in context:
-            cxt = DataContext.objects.get(id=attrs['composite'],
-                user=context['user'])
+            cxt = DataContext.objects.get(
+                id=attrs['composite'], user=context['user'])
         else:
             cxt = DataContext.objects.get(id=attrs['composite'])
         return parse(cxt.json, **context)
     elif is_condition(attrs):
-        node = Condition(operator=attrs['operator'], value=attrs['value'],
+        node = Condition(
+            operator=attrs['operator'], value=attrs['value'],
             id=attrs.get('id'), field=attrs.get('field'), **context)
     else:
         node = Branch(type=attrs['type'], **context)

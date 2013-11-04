@@ -10,7 +10,8 @@ class DataFieldAdminForm(forms.ModelForm):
         try:
             models.get_app(app_name)
         except ImproperlyConfigured:
-            raise forms.ValidationError(u'The app "{0}" could not be found'.format(app_name))
+            raise forms.ValidationError(
+                u'The app "{0}" could not be found'.format(app_name))
         return app_name
 
     def clean(self):
@@ -22,11 +23,13 @@ class DataFieldAdminForm(forms.ModelForm):
         model = models.get_model(app_name, model_name)
         if model is None:
             del cleaned_data['model_name']
-            msg = u'The model "{0}" could not be found in the app "{1}"'.format(model_name, app_name)
+            msg = u'The model "{0}" could not be found in the app "{1}"' \
+                .format(model_name, app_name)
             self._errors['model_name'] = self.error_class([msg])
         elif not model._meta.get_field_by_name(field_name):
             del cleaned_data['field_name']
-            msg = u'The model "{0}" does not have a field named "{1}"'.format(model_name, field_name)
+            msg = u'The model "{0}" does not have a field named "{1}"' \
+                .format(model_name, field_name)
             self._errors['field_name'] = self.error_class([msg])
         return cleaned_data
 

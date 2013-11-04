@@ -1,3 +1,3 @@
-from .context import *
-from .view import *
-from .query import *
+from .context import *  # noqa
+from .view import *     # noqa
+from .query import *    # noqa

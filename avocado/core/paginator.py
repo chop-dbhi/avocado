@@ -27,7 +27,8 @@ class BufferedPaginator(Paginator):
     be available at any given time and in most cases the size of `object_list`
     assuming `_count` is greater than `buf_size`..
     """
-    def __init__(self, count, object_list=None, offset=0, buf_size=None, *args, **kwargs):
+    def __init__(self, count, object_list=None, offset=0, buf_size=None,
+                 *args, **kwargs):
         if offset > count:
             raise ValueError('"offset" cannot be greater than the "count"')
 
@@ -111,13 +112,15 @@ class BufferedPaginator(Paginator):
 
         # If the end terminal is within the current range, then there will be a
         # slice of data to be prepended
-        elif self.offset <= (offset + buf_size) <= (self.offset + self.buf_size):
+        elif self.offset <= (offset + buf_size) \
+                <= (self.offset + self.buf_size):
             start_offset = offset
             start_limit = self.offset - start_offset
 
         # Check to see if the current range is within the start and end
         # terminals
-        elif offset <= self.offset and (self.offset + self.buf_size) <= (offset + buf_size):
+        elif offset <= self.offset \
+                and (self.offset + self.buf_size) <= (offset + buf_size):
             start_offset = offset
             start_limit = self.offset - start_offset
             end_offset = (self.offset + self.buf_size) + 1
@@ -186,13 +189,16 @@ class BufferedPage(Page):
             for i in range(1, self.number):
                 pages.append(i)
 
-        # if there is still a gap until `self.paginator.num_pages' is reached, add trailing pages
-        if (self.number + first_last_count + before_after_count) < self.paginator.num_pages:
+        # If there is still a gap until `self.paginator.num_pages' is
+        # reached, add trailing pages
+        if (self.number + first_last_count + before_after_count) \
+                < self.paginator.num_pages:
             for i in range(self.number, self.number + before_after_count + 1):
                 pages.append(i)
 
             pages.append(None)
-            for i in range(self.paginator.num_pages + 1 - first_last_count, self.paginator.num_pages + 1):
+            for i in range(self.paginator.num_pages + 1 - first_last_count,
+                           self.paginator.num_pages + 1):
                 pages.append(i)
 
         else:

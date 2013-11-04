@@ -1,10 +1,11 @@
 from django.db.models import Q
 from avocado.models import DataField
 
+
 def get_fields_by_label(labels):
     """Constructs a DataField QuerySet given a list of labels.
 
-    The label format can be <app>, <app.model> or <app.model.field>. 
+    The label format can be <app>, <app.model> or <app.model.field>.
     """
     conditions = []
 
@@ -14,7 +15,8 @@ def get_fields_by_label(labels):
         # Specific field
         if len(labels) == 3:
             app, model, field = labels
-            conditions.append(Q(app_name=app, model_name=model, field_name=field))
+            conditions.append(
+                Q(app_name=app, model_name=model, field_name=field))
         # All fields for a model
         elif len(labels) == 2:
             app, model = labels

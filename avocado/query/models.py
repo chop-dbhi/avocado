@@ -3,6 +3,7 @@ from django.db import models
 from modeltree.tree import trees
 from . import oldparsers as parsers
 
+
 def _sql_string(queryset):
     sql, params = queryset.query.sql_with_params()
     return sql % tuple([repr(str(x)) for x in params])
@@ -15,14 +16,16 @@ class AbstractDataContext(models.Model):
     This corresponds to the `WHERE` statements in a SQL query.
     """
     json = jsonfield.JSONField(null=True, blank=True, default=dict,
-        validators=[parsers.datacontext.validate])
+                               validators=[parsers.datacontext.validate])
     count = models.IntegerField(null=True, db_column='_count')
     tree = models.CharField(max_length=100, null=True, blank=True)
 
     def __init__(self, *args, **kwargs):
         if args and isinstance(args[0], dict):
             if 'json' in kwargs:
-                raise TypeError("{0}.__init__() got multiple values for keyword argument 'json'".format(self.__class__.__name__))
+                raise TypeError("{0}.__init__() got multiple values for "
+                                "keyword argument 'json'"
+                                .format(self.__class__.__name__))
             args = list(args)
             kwargs['json'] = args.pop(0)
         super(AbstractDataContext, self).__init__(*args, **kwargs)
@@ -95,12 +98,14 @@ class AbstractDataView(models.Model):
     This corresponds to the `SELECT` and `ORDER BY` statements in a SQL query.
     """
     json = jsonfield.JSONField(null=True, blank=True, default=dict,
-        validators=[parsers.dataview.validate])
+                               validators=[parsers.dataview.validate])
 
     def __init__(self, *args, **kwargs):
         if args and isinstance(args[0], dict):
             if 'json' in kwargs:
-                raise TypeError("{0}.__init__() got multiple values for keyword argument 'json'".format(self.__class__.__name__))
+                raise TypeError("{0}.__init__() got multiple values for "
+                                "keyword argument 'json'"
+                                .format(self.__class__.__name__))
             args = list(args)
             kwargs['json'] = args.pop(0)
         super(AbstractDataView, self).__init__(*args, **kwargs)
@@ -121,8 +126,8 @@ class AbstractDataView(models.Model):
         "Applies this context to a QuerySet."
         if tree is None and queryset is not None:
             tree = queryset.model
-        return self.parse(tree=tree, **context).apply(queryset=queryset,
-            include_pk=include_pk)
+        return self.parse(tree=tree, **context) \
+            .apply(queryset=queryset, include_pk=include_pk)
 
     def sql(self, *args, **kwargs):
         """Returns the SQL query string representative of this view.
@@ -141,10 +146,12 @@ class AbstractDataQuery(models.Model):
     corresponds to all the statements of the SQL query to dictate what info
     to retrieve, how to filter it, and the order to display it in.
     """
-    context_json = jsonfield.JSONField(null=True, blank=True, default=dict,
-            validators=[parsers.datacontext.validate])
-    view_json = jsonfield.JSONField(null=True, blank=True, default=dict,
-            validators=[parsers.dataview.validate])
+    context_json = jsonfield.JSONField(
+        null=True, blank=True, default=dict,
+        validators=[parsers.datacontext.validate])
+    view_json = jsonfield.JSONField(
+        null=True, blank=True, default=dict,
+        validators=[parsers.dataview.validate])
 
     # The count when just the context is applied
     distinct_count = models.IntegerField(null=True)
@@ -155,10 +162,14 @@ class AbstractDataQuery(models.Model):
     def __init__(self, *args, **kwargs):
         if args and isinstance(args[0], dict):
             if 'context_json' in kwargs:
-                raise TypeError("{0}.__init__() got multiple values for keyword argument 'context_json'".format(self.__class__.__name__))
+                raise TypeError("{0}.__init__() got multiple values for "
+                                "keyword argument 'context_json'"
+                                .format(self.__class__.__name__))
 
             if 'view_json' in kwargs:
-                raise TypeError("{0}.__init__() got multiple values for keyword argument 'view_json'".format(self.__class__.__name__))
+                raise TypeError("{0}.__init__() got multiple values for "
+                                "keyword argument 'view_json'"
+                                .format(self.__class__.__name__))
 
             kwargs['context_json'] = args[0].get('context', None)
             kwargs['view_json'] = args[0].get('view', None)
@@ -204,12 +215,13 @@ class AbstractDataQuery(models.Model):
         }
         return parsers.dataquery.parse(json, tree=tree, **context)
 
-    def apply(self, queryset=None, tree=None, distinct=True, include_pk=True, **context):
+    def apply(self, queryset=None, tree=None, distinct=True, include_pk=True,
+              **context):
         "Applies this context to a QuerySet."
         if tree is None and queryset is not None:
             tree = queryset.model
-        return self.parse(tree=tree, **context).apply(queryset=queryset,
-            distinct=distinct, include_pk=include_pk)
+        return self.parse(tree=tree, **context) \
+            .apply(queryset=queryset, distinct=distinct, include_pk=include_pk)
 
     def sql(self, *args, **kwargs):
         """Returns the SQL query string representative of this query.

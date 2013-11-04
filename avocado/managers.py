@@ -29,8 +29,8 @@ class DataFieldQuerySet(PublishedQuerySet):
 
         if user:
             if not OPTIONAL_DEPS['guardian']:
-                raise ImproperlyConfigured('django-guardian must installed ' \
-                    'for object-level permissions.')
+                raise ImproperlyConfigured('django-guardian must installed '
+                                           'for object-level permissions.')
             from guardian.shortcuts import get_objects_for_user
             published = get_objects_for_user(user, perm, published)
         return published.distinct()
@@ -58,8 +58,8 @@ class DataConceptQuerySet(PublishedQuerySet):
         fields_q = Q(archived=True) | Q(published=False)
         if user:
             if not OPTIONAL_DEPS['guardian']:
-                raise ImproperlyConfigured('django-guardian must installed ' \
-                    'for object-level permissions.')
+                raise ImproperlyConfigured('django-guardian must installed '
+                                           'for object-level permissions.')
             from guardian.shortcuts import get_objects_for_user
             # If a user is specified, they must also have a permission for
             # accessing the data fields. All data fields that the user does

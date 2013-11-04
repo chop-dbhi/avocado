@@ -21,12 +21,12 @@ class QueryProcessor(object):
     def get_queryset(self, queryset=None, **kwargs):
         "Returns a queryset based on the context and view."
         if self.context:
-            queryset = self.context.apply(queryset=queryset,
-                tree=self.tree)
+            queryset = \
+                self.context.apply(queryset=queryset, tree=self.tree)
 
         if self.view:
             queryset = self.view.apply(queryset=queryset, tree=self.tree,
-                include_pk=self.include_pk)
+                                       include_pk=self.include_pk)
 
         if queryset is None:
             queryset = trees[self.tree].get_queryset().values('pk')

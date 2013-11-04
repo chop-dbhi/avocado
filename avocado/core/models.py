@@ -87,8 +87,8 @@ class PublishArchiveMixin(models.Model):
     """
     published = models.BooleanField(default=False)
 
-    archived = models.BooleanField(default=False,
-        help_text=u'Note: archived takes precedence over being published')
+    archived = models.BooleanField(default=False, help_text=u'Note: archived '
+                                   'takes precedence over being published')
 
     objects = PublishedManager()
 
@@ -98,6 +98,6 @@ class PublishArchiveMixin(models.Model):
     def save(self, *args, **kwargs):
         if self.archived and self.published:
             self.published = False
-            log.debug(u'{0} is published, but is being archived. It has ' \
-                'been unpublished'.format(self))
+            log.debug(u'{0} is published, but is being archived. It has '
+                      'been unpublished'.format(self))
         super(PublishArchiveMixin, self).save(*args, **kwargs)

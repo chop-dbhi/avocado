@@ -22,8 +22,8 @@ class ObjectSet(models.Model):
     # In cases where an object set has been created as a result of a
     # data context, a reference can be stored for performing updates
     # as more data is added.
-    context = models.OneToOneField('avocado.DataContext', null=True,
-        blank=True, editable=False)
+    context = models.OneToOneField(
+        'avocado.DataContext', null=True, blank=True, editable=False)
 
     # Stored count of the set size. Since most operations are incremental
     # and are applied with objects in memory, this is a more efficient
@@ -120,8 +120,9 @@ class ObjectSet(models.Model):
 
     def _check_type(self, obj):
         if not isinstance(obj, self._object_class):
-            raise TypeError(u"Only objects of type '{0}' can be added to the "\
-                "set".format(self._object_class.__name__))
+            raise TypeError(
+                u"Only objects of type '{0}' can be added to the set"
+                .format(self._object_class.__name__))
 
     def _add(self, obj, added):
         """Check for an existing object that has been removed and mark
@@ -137,8 +138,8 @@ class ObjectSet(models.Model):
             _obj.removed = False
             _obj.added = added
         except self._set_object_class.DoesNotExist:
-            _obj = self._set_object_class(set_object=obj, object_set=self,
-                added=added)
+            _obj = self._set_object_class(
+                set_object=obj, object_set=self, added=added)
         _obj.save()
         return True
 
@@ -157,8 +158,9 @@ class ObjectSet(models.Model):
         loaded = 0
         for obj in iter(objs):
             self._check_type(obj)
-            _objs.append(self._set_object_class(object_set=self,
-                set_object=obj, added=added))
+            _objs.append(
+                self._set_object_class(
+                    object_set=self, set_object=obj, added=added))
             loaded += 1
         self._set_object_class.objects.bulk_create(_objs)
         self.count += loaded
@@ -190,8 +192,8 @@ class ObjectSet(models.Model):
             except self._set_object_class.DoesNotExist:
                 removed = 0
         else:
-            removed = self._set_objects.filter(set_object=obj,
-                object_set=self).update(removed=True)
+            removed = self._set_objects.filter(
+                set_object=obj, object_set=self).update(removed=True)
         if removed:
             self.count -= 1
             self.modified = datetime.now()

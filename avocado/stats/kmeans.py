@@ -2,6 +2,7 @@ import math
 import random
 from collections import defaultdict
 
+
 def std_dev(values):
     """
     Computes the standard deviation of the 'values' list.
@@ -25,6 +26,7 @@ def std_dev(values):
 
     return math.sqrt(sum(square_differences) / float(len(square_differences)))
 
+
 def is_iterable(obj):
     """
     Returns True if 'obj' is iterable and False otherwise.
@@ -39,6 +41,7 @@ def is_iterable(obj):
     """
     return hasattr(obj, '__iter__') or hasattr(obj, '__getitem__')
 
+
 def divide_by_scalar(lst, s):
     """
     Divides each element in 'lst' by the scalar 's'.
@@ -47,6 +50,7 @@ def divide_by_scalar(lst, s):
     at the same position in 'lst' divided by 's'.
     """
     return [l / float(s) for l in lst]
+
 
 def divide_lists(lst_numer, lst_denom):
     """
@@ -75,6 +79,7 @@ def divide_lists(lst_numer, lst_denom):
     """
     indexes = range(len(lst_denom))
     return [[n[i] / float(lst_denom[i]) for i in indexes] for n in lst_numer]
+
 
 def normalize(points):
     """
@@ -148,6 +153,7 @@ def normalize(points):
     else:
         return divide_lists(points, std)
 
+
 def is_nested(points):
     """
     Returns True if points is a nested iterable and False if not.
@@ -176,6 +182,7 @@ def is_nested(points):
         return is_iterable(points[0])
 
     return False
+
 
 def get_dimension(points):
     """
@@ -221,6 +228,7 @@ def get_dimension(points):
 
     return dimension
 
+
 def sqr_euclidean_dist(point1, point2):
     """
     Calculates the square Euclidean distance between all dimension of 2 points.
@@ -254,6 +262,7 @@ def sqr_euclidean_dist(point1, point2):
 
     return (point1 - point2) ** 2
 
+
 def index_of_min(values):
     """
     Finds and returns the index of the smallest item in the 'values' list.
@@ -270,6 +279,7 @@ def index_of_min(values):
             min_index = i
 
     return min_index
+
 
 def compute_clusters(points, centroids):
     """
@@ -305,22 +315,25 @@ def compute_clusters(points, centroids):
     cluster_indexes = range(len(centroids))
 
     if d != get_dimension(centroids):
-        raise ValueError("points and centroids must have the same dimension(found {} and {} respectively)".format(d, get_dimension(centroids)))
+        raise ValueError('Points and centroids must have the same '
+                         'dimension(found {0} and {1} respectively)'.format(
+                             d, get_dimension(centroids)))
 
     clusters = [0] * n
     min_distances = [0] * n
     for i in range(n):
         # Compute the squared Euclidean distance between this point and each
         # of the centroids.
-        distances = [sqr_euclidean_dist(points[i], centroids[j]) \
-                for j in cluster_indexes]
+        distances = [sqr_euclidean_dist(points[i], centroids[j])
+                     for j in cluster_indexes]
 
         # Sum across all dimensions of each distance measure. If we only have
         # one dimension then this is simply the distance list itself.
         if d == 1 and not is_nested(centroids):
             distance_totals = distances
         else:
-            distance_totals = [sum(distances[j]) for j in range(len(distances))]
+            distance_totals = \
+                [sum(distances[j]) for j in range(len(distances))]
 
         # Find the index containing the minimum distance.
         clusters[i] = index_of_min(distance_totals)
@@ -330,7 +343,8 @@ def compute_clusters(points, centroids):
     # Do the square root now to get the Euclidean distance. We don't do this
     # in the loop so that we can save time by not taking the square root of
     # non-minimal distances.
-    return clusters, [math.sqrt(d) for d in min_distances]
+    return clusters, [math.sqrt(dist) for dist in min_distances]
+
 
 def dimension_mean(points):
     """
@@ -357,6 +371,7 @@ def dimension_mean(points):
     dimensions = zip(*points)
 
     return [sum(d) / float(len(d)) for d in dimensions]
+
 
 def kmeans(points, k_or_centroids, threshold=1e-5):
     """
@@ -409,7 +424,7 @@ def kmeans(points, k_or_centroids, threshold=1e-5):
 
         # Compute the difference in mean distance between this clustering step
         # and the last one.
-        if previous_mean_distance != None:
+        if previous_mean_distance is not None:
             mean_difference = previous_mean_distance - mean_distance
 
         # The following is the update step of the k-means algorithm where the
@@ -420,8 +435,8 @@ def kmeans(points, k_or_centroids, threshold=1e-5):
             for i in range(num_centroids):
                 # Get all the points that are currently members of this
                 # centroid's cluster.
-                members = [p for c, p in \
-                        zip(centroid_indexes, points) if c == i]
+                members = \
+                    [p for c, p in zip(centroid_indexes, points) if c == i]
 
                 # If the cluster has any points in it then update the centroid
                 # of that cluster to be a point represented by the mean of all
@@ -432,14 +447,15 @@ def kmeans(points, k_or_centroids, threshold=1e-5):
                     centroids[i] = None
 
             # Remove centroids of empty clusters.
-            centroids = [centroids[i] for i in \
-                    range(len(centroids)) if centroids[i]]
+            centroids = \
+                [centroids[i] for i in range(len(centroids)) if centroids[i]]
 
         # Store this mean distance so we can access it in the next loop and
         # diff against this iterations mean distance.
         previous_mean_distance = mean_distance
 
     return centroids, previous_mean_distance
+
 
 def find_outliers(points, outlier_threshold=3, normalized=True):
     """
@@ -484,15 +500,17 @@ def find_outliers(points, outlier_threshold=3, normalized=True):
     if d == 1 and not is_nested(points):
         centroids = [sorted(points)[midpoint_index]]
     else:
-        centroids = [[sorted(d)[midpoint_index] for d in dimensions]]
+        centroids = [[sorted(dim)[midpoint_index] for dim in dimensions]]
 
     # Calculate the distance from every point to the centroid.
     _, distances = compute_clusters(points, kmeans(points, centroids)[0])
 
     mean_distance = sum(distances) / float(len(distances))
 
-    return [i for i, distance in enumerate(distances) \
-            if mean_distance > 0 and (distance / mean_distance) >= outlier_threshold]
+    return [i for i, distance in enumerate(distances)
+            if (mean_distance > 0 and
+                (distance / mean_distance) >= outlier_threshold)]
+
 
 def kmeans_optm(points, k=None, outlier_threshold=3):
     """
@@ -520,8 +538,8 @@ def kmeans_optm(points, k=None, outlier_threshold=3):
     clustering due to increased likelihood of convergence.
 
     Referenes:
-        Number of clusters - http://en.wikipedia.org/wiki/Determining_the_number_of_clusters_in_a_data_set#Rule_of_thumb
-        Improved k-means initial centroids - http://www.ijcsit.com/docs/vol1issue2/ijcsit2010010214.pdf
+        Number of clusters - http://en.wikipedia.org/wiki/Determining_the_number_of_clusters_in_a_data_set#Rule_of_thumb # noqa
+        Improved k-means initial centroids - http://www.ijcsit.com/docs/vol1issue2/ijcsit2010010214.pdf # noqa
 
     See:
         find_outliers()
@@ -564,7 +582,7 @@ def kmeans_optm(points, k=None, outlier_threshold=3):
         # Organize the points list as a list where each row is a list of
         # valuesof the same dimension.
         dimensions = zip(*points)
-        std = [std_dev(d) for d in dimensions]
+        std = [std_dev(dim) for dim in dimensions]
 
     norm_points = normalize(points)
 
@@ -578,8 +596,8 @@ def kmeans_optm(points, k=None, outlier_threshold=3):
         # Sort the points by dimension and then return the dimension based
         # list back to the original point form so the sorted list has n
         # records and m dimensions just like the original points list.
-        sorted_dimensions = [sorted(d) for d in norm_dimensions]
-        sorted_points = [list(d) for d in zip(*sorted_dimensions)]
+        sorted_dimensions = [sorted(dim) for dim in norm_dimensions]
+        sorted_points = [list(dim) for dim in zip(*sorted_dimensions)]
 
     step = n / k
     offset = step / 2
@@ -598,7 +616,8 @@ def kmeans_optm(points, k=None, outlier_threshold=3):
     if d == 1 and not is_nested(points):
         denorm_centroids = [c * std for c in centroids]
     else:
-        denorm_centroids = [[d * s for d, s in zip(c, std)] for c in centroids]
+        denorm_centroids = \
+            [[dim * s for dim, s in zip(c, std)] for c in centroids]
 
     return {
         'centroids': denorm_centroids,
@@ -606,6 +625,7 @@ def kmeans_optm(points, k=None, outlier_threshold=3):
         'distances': distances,
         'outliers': outliers,
     }
+
 
 def weighted_counts(points, counts, k):
     """

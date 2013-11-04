@@ -20,7 +20,7 @@ class Revision(models.Model):
 
     # The user that created the revision
     user = models.ForeignKey(User, null=True, blank=True,
-        related_name='+revision')
+                             related_name='+revision')
     session_key = models.CharField(max_length=40, null=True, blank=True)
 
     # The timestamp of the revision

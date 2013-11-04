@@ -13,6 +13,7 @@ subclass `model`. The distinct list of values for `field`
 will be queried and loaded into the table.
 """
 
+
 class Command(BaseCommand):
     __doc__ = help = _help
 
@@ -22,18 +23,21 @@ class Command(BaseCommand):
         model = get_model(*model_label.split('.'))
 
         if model is None:
-            raise CommandError(u'Not model named {0} was found'.format(model_label))
+            raise CommandError(
+                u'Not model named {0} was found'.format(model_label))
 
         toks = field_label.split('.')
         if len(toks) != 3:
-            raise CommandError(u'{0} is not a valid field identifier. Use a ' \
-                '"." delimited notation, e.g. "app.model.field"'.format(field_label))
+            raise CommandError(u'{0} is not a valid field identifier. Use a '
+                               '"." delimited notation, e.g. "app.model.field"'
+                               .format(field_label))
 
         # Not required to be persisted to the database..
         f = DataField(app_name=toks[0], model_name=toks[1], field_name=toks[2])
 
         if not f.field:
-            raise CommandError(u'The field {0} could not be found.'.format(field_label))
+            raise CommandError(
+                u'The field {0} could not be found.'.format(field_label))
 
         count = 0
         values = list(f.values())

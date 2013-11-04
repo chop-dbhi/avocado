@@ -1,5 +1,4 @@
 import logging
-from datetime import datetime
 from django.db.models import F
 from optparse import make_option
 from avocado.management.base import DataFieldCommand
@@ -12,13 +11,14 @@ various cache that depends on this field to be refreshed the next time it is
 requested. To pre-cache, use the `avocado cache` command.
 """
 
+
 class Command(DataFieldCommand):
     help = __doc__
 
     option_list = DataFieldCommand.option_list + (
-        make_option('-i', '--incr', action='store_true',
-            dest='incr_version', default=False,
-            help='Increment `data_version` on `DataField` instances'),
+        make_option('-i', '--incr', action='store_true', dest='incr_version',
+                    default=False, help='Increment `data_version` on '
+                    '`DataField` instances'),
     )
 
     def handle_fields(self, fields, **options):
@@ -34,5 +34,5 @@ class Command(DataFieldCommand):
         updated = fields.update(data_version=F('data_version') + 1)
 
         print(u'{0} fields have been updated. Cached methods will '
-            'lazily refresh their cache the next time they are '
-            'accessed.'.format(updated))
+              'lazily refresh their cache the next time they are '
+              'accessed.'.format(updated))

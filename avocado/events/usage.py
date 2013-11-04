@@ -21,7 +21,7 @@ def _log(instance=None, model=None, **kwargs):
     try:
         message = Log(**kwargs)
         message.save()
-    except Exception as e:
+    except Exception:
         logger.exception('Error logging usage')
 
 

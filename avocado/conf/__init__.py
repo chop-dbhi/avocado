@@ -35,6 +35,7 @@ class LazySettings(LazyObject):
 
 settings = LazySettings()
 
+
 @receiver(setting_changed)
 def test_setting_changed_handler(**kwargs):
     if kwargs['setting'] == 'AVOCADO':
@@ -98,7 +99,7 @@ class Haystack(Dependency):
     # and returns the error for downstream use.
     def _test(self):
         try:
-            import haystack
+            import haystack     # noqa
         except (ImportError, ImproperlyConfigured), e:
             return e
 
@@ -116,7 +117,8 @@ class Haystack(Dependency):
 class Openpyxl(Dependency):
     """Avocado comes with an export package for supporting various means of
     exporting data into different formats. One of those formats is the native
-    Microsoft Excel .xlsx format. To support that, the openpyxl library is used.
+    Microsoft Excel .xlsx format. To support that, the openpyxl library is
+    used.
 
     Install by doing `pip install openpyxl`.
     """
@@ -125,7 +127,7 @@ class Openpyxl(Dependency):
 
     def test_install(self):
         try:
-            import openpyxl
+            import openpyxl     # noqa
         except ImportError:
             return False
 
@@ -142,7 +144,7 @@ class Guardian(Dependency):
 
     def test_install(self):
         try:
-            import guardian
+            import guardian     # noqa
         except ImportError:
             return False
 
@@ -163,7 +165,9 @@ def requires_dep(lib):
         def wrapper(*args, **kwargs):
             dep = OPTIONAL_DEPS[lib]
             if not dep:
-                raise ImproperlyConfigured(u'{0} must be installed to use this feature.\n\n{1}'.format(lib, dep.__doc__))
+                raise ImproperlyConfigured(
+                    u'{0} must be installed to use this feature.\n\n{1}'
+                    .format(lib, dep.__doc__))
             return f(*args, **kwargs)
         return wrapper
     return decorator

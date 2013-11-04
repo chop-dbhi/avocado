@@ -42,9 +42,9 @@ class Node(object):
             return OrderedDict()
         # Concept fields that are sorted by concept then order, but are not
         # in the original order defined in `ids`
-        cfields = list(DataConceptField.objects.filter(concept__pk__in=ids)\
-            .select_related()\
-            .order_by('concept', 'order'))
+        cfields = list(DataConceptField.objects.filter(concept__pk__in=ids)
+                       .select_related()
+                       .order_by('concept', 'order'))
 
         # Order concept fields relative to `ids`
         cfields.sort(key=lambda o: ids.index(o.concept.pk))
@@ -70,7 +70,8 @@ class Node(object):
             ids += list(zip(*self.ordering)[0])
 
         # Flatten the grouped fields
-        fields = [i for l in self._get_fields_for_concepts(ids).values() for i in l]
+        fields = \
+            [i for l in self._get_fields_for_concepts(ids).values() for i in l]
 
         model_fields = []
 
@@ -149,7 +150,7 @@ class Node(object):
     @property
     def columns(self):
         warnings.warn('This property has been deprecated, used '
-            'get_concepts_for_select() instead', DeprecationWarning)
+                      'get_concepts_for_select() instead', DeprecationWarning)
         return self.get_concepts_for_select()
 
 
@@ -163,7 +164,8 @@ def validate(attrs, **context):
     ordering = attrs.get('ordering', [])
 
     if columns:
-        if len(set(columns)) != DataConcept.objects.filter(pk__in=columns).count():
+        num_concepts = DataConcept.objects.filter(pk__in=columns).count()
+        if len(set(columns)) != num_concepts:
             raise ValidationError('One or more concepts do not exist')
 
     if ordering:

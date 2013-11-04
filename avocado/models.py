@@ -10,34 +10,37 @@ from django.db.models.signals import post_save, pre_delete
 from django.core.validators import RegexValidator
 from avocado.core import utils
 from avocado.core.models import Base, BasePlural, PublishArchiveMixin
-from avocado.core.cache import (post_save_cache, pre_delete_uncache,
-    cached_method)
+from avocado.core.cache import post_save_cache, pre_delete_uncache, \
+    cached_method
 from avocado.conf import settings
 from avocado import managers, history
-from avocado.query.models import AbstractDataView, AbstractDataContext, AbstractDataQuery
+from avocado.query.models import AbstractDataView, AbstractDataContext, \
+    AbstractDataQuery
 from avocado.query.translators import registry as translators
 from avocado.query.operators import registry as operators
 from avocado.lexicon.models import Lexicon
 from avocado.sets.models import ObjectSet
-from avocado.events.models import Log
 from avocado.stats.agg import Aggregator
 from avocado import formatters
 
 
 __all__ = ('DataCategory', 'DataConcept', 'DataField',
-    'DataContext', 'DataView', 'DataQuery')
+           'DataContext', 'DataView', 'DataQuery')
 
 
 ident_re = re.compile(r'^[a-zA-Z][a-zA-Z0-9_]*$')
-validate_ident = RegexValidator(ident_re, _("Enter a valid 'identifier' " \
-    "that is a valid Python variable name."), 'invalid')
+validate_ident = RegexValidator(
+    ident_re,
+    _("Enter a valid 'identifier' " "that is a valid Python variable name."),
+    'invalid')
 
 
 class DataCategory(Base, PublishArchiveMixin):
     "A high-level organization for data concepts."
     # A reference to a parent for hierarchical categories
-    parent = models.ForeignKey('self', null=True, blank=True,
-        related_name='children', limit_choices_to={'parent__isnull': True},
+    parent = models.ForeignKey(
+        'self', null=True, blank=True, related_name='children',
+        limit_choices_to={'parent__isnull': True},
         help_text='Sub-categories are limited to one-level deep')
     order = models.FloatField(null=True, blank=True, db_column='_order')
 
@@ -57,9 +60,9 @@ class DataField(BasePlural, PublishArchiveMixin):
     model_name = models.CharField(max_length=200)
     field_name = models.CharField(max_length=200)
 
-    internal = models.BooleanField(default=False,
-        help_text='Flag for internal use and does not abide by the published' \
-            'and archived rules.')
+    internal = models.BooleanField(
+        default=False, help_text='Flag for internal use and does not abide by '
+        'the published and archived rules.')
 
     # An optional unit for this field's data. In some cases databases may have
     # a separate column which denotes the unit for another column, but this is
@@ -83,14 +86,15 @@ class DataField(BasePlural, PublishArchiveMixin):
     # An optional translator which customizes input query conditions
     # to a format which is suitable for the database.
     translator = models.CharField(max_length=100, blank=True, null=True,
-        choices=translators.choices)
+                                  choices=translators.choices)
 
     # This is used for the cache key to check if the cached values is stale.
-    data_version = models.IntegerField(default=1, help_text='The current '\
-            'version of the underlying data for this field as of the last '\
-            'modification/update.')
+    data_version = models.IntegerField(
+        default=1, help_text='The current version of the underlying data for '
+        'this field as of the last modification/update.')
 
-    group = models.ForeignKey(Group, null=True, blank=True, related_name='fields+')
+    group = models.ForeignKey(Group, null=True, blank=True,
+                              related_name='fields+')
 
     # Certain fields may not be relevant or appropriate for all
     # sites being deployed. This is primarily for preventing exposure of
@@ -119,7 +123,7 @@ class DataField(BasePlural, PublishArchiveMixin):
         if self.lexicon or self.objectset:
             return self.model._meta.verbose_name
         return u'{0} {1}'.format(self.model._meta.verbose_name,
-            self.field.verbose_name).title()
+                                 self.field.verbose_name).title()
 
     def __len__(self):
         return self.size()
@@ -212,7 +216,6 @@ class DataField(BasePlural, PublishArchiveMixin):
     def searchable(self):
         "Returns true if a text-field and is not an enumerable field."
         return self.simple_type == 'string' and not self.enumerable
-
 
     # Convenience Methods
     # Easier access to the underlying data for this data field
@@ -352,7 +355,8 @@ class DataField(BasePlural, PublishArchiveMixin):
     def operators(self):
         "Returns the valid operators for this datafield."
         trans = translators[self.translator]
-        return [(x, operators[x].verbose_name) for x in trans.get_operators(self)]
+        return [(x, operators[x].verbose_name) for x
+                in trans.get_operators(self)]
 
     def translate(self, operator=None, value=None, tree=None, **context):
         "Convenince method for performing a translation on a query condition."
@@ -375,13 +379,14 @@ class DataConcept(BasePlural, PublishArchiveMixin):
         -- Willard Van Orman Quine
     """
 
-    ident = models.CharField(max_length=100, null=True,
-        blank=True, validators=[validate_ident],
+    ident = models.CharField(
+        max_length=100, null=True, blank=True, validators=[validate_ident],
         help_text='Unique identifier that can be used for programmatic access')
 
-    internal = models.BooleanField(default=False,
-        help_text='Flag for internal use and does not abide by the published' \
-            'and archived rules.')
+    internal = models.BooleanField(
+        default=False,
+        help_text='Flag for internal use and does not abide by the published '
+        'and archived rules.')
 
     # Although a category does not technically need to be defined, this more
     # for workflow reasons than for when the concept is published. Automated
@@ -393,10 +398,10 @@ class DataConcept(BasePlural, PublishArchiveMixin):
     # The associated fields for this concept. fields can be
     # associated with multiple concepts, thus the M2M
     fields = models.ManyToManyField(DataField, through='DataConceptField',
-        related_name='concepts')
+                                    related_name='concepts')
 
     group = models.ForeignKey(Group, null=True, blank=True,
-        related_name='concepts+')
+                              related_name='concepts+')
 
     # Certain concepts may not be relevant or appropriate for all
     # sites being deployed. This is primarily for preventing exposure of
@@ -411,8 +416,9 @@ class DataConcept(BasePlural, PublishArchiveMixin):
 
     # An optional formatter which provides custom formatting for this
     # concept relative to the associated fields.
-    formatter_name = models.CharField('formatter', max_length=100, blank=True,
-        null=True, choices=formatters.registry.choices)
+    formatter_name = models.CharField(
+        'formatter', max_length=100, blank=True, null=True,
+        choices=formatters.registry.choices)
 
     # A flag that denotes this concept is viewable, that is, this the concept
     # is appropriate to be used as a viewable interface. Non-viewable concepts
@@ -489,11 +495,12 @@ class DataContext(AbstractDataContext, Base):
 
     # The parent this instance was derived from
     parent = models.ForeignKey('self', null=True, blank=True,
-        related_name='forks')
+                               related_name='forks')
 
     # For authenticated users the `user` can be directly referenced,
     # otherwise the session key can be used.
-    user = models.ForeignKey(User, null=True, blank=True, related_name='datacontext+')
+    user = models.ForeignKey(User, null=True, blank=True,
+                             related_name='datacontext+')
     session_key = models.CharField(max_length=40, null=True, blank=True)
 
     accessed = models.DateTimeField(default=datetime.now(), editable=False)
@@ -529,11 +536,13 @@ class DataContext(AbstractDataContext, Base):
     def clean(self):
         from django.core.exceptions import ValidationError
         if self.template and self.default:
-            queryset = self.__class__.objects.filter(template=True, default=True)
+            queryset = self.__class__.objects.filter(
+                template=True, default=True)
             if self.pk:
                 queryset = queryset.exclude(pk=self.pk)
             if queryset.exists():
-                raise ValidationError('Only one default template can be defined')
+                raise ValidationError('Only one default template can be '
+                                      'defined')
 
     def save(self, *args, **kwargs):
         self.clean()
@@ -552,11 +561,12 @@ class DataView(AbstractDataView, Base):
 
     # The parent this instance was derived from
     parent = models.ForeignKey('self', null=True, blank=True,
-        related_name='forks')
+                               related_name='forks')
 
     # For authenticated users the `user` can be directly referenced,
     # otherwise the session key can be used.
-    user = models.ForeignKey(User, null=True, blank=True, related_name='dataview+')
+    user = models.ForeignKey(User, null=True, blank=True,
+                             related_name='dataview+')
     session_key = models.CharField(max_length=40, null=True, blank=True)
 
     accessed = models.DateTimeField(default=datetime.now(), editable=False)
@@ -592,11 +602,13 @@ class DataView(AbstractDataView, Base):
     def clean(self):
         from django.core.exceptions import ValidationError
         if self.template and self.default:
-            queryset = self.__class__.objects.filter(template=True, default=True)
+            queryset = self.__class__.objects.filter(
+                template=True, default=True)
             if self.pk:
                 queryset = queryset.exclude(pk=self.pk)
             if queryset.exists():
-                raise ValidationError('Only one default template can be defined')
+                raise ValidationError('Only one default template can be '
+                                      'defined')
 
     def save(self, *args, **kwargs):
         self.clean()
@@ -617,17 +629,19 @@ class DataQuery(AbstractDataQuery, Base):
     default = models.BooleanField(default=False)
 
     # The parent this instance was derived from
-    parent = models.ForeignKey('self', null=True, blank=True,
-        related_name='forks')
+    parent = models.ForeignKey(
+        'self', null=True, blank=True, related_name='forks')
 
     # For authenticated users the `user` can be directly referenced,
     # otherwise the session key can be used.
-    user = models.ForeignKey(User, null=True, blank=True, related_name='dataquery+')
+    user = models.ForeignKey(
+        User, null=True, blank=True, related_name='dataquery+')
     session_key = models.CharField(max_length=40, null=True, blank=True)
 
     accessed = models.DateTimeField(default=datetime.now, editable=False)
     objects = managers.DataQueryManager()
-    shared_users = models.ManyToManyField(User, related_name='shareddataquery+')
+    shared_users = models.ManyToManyField(
+        User, related_name='shareddataquery+')
 
     # Flag indicating whether this is a public query or not. Public queries are
     # visible to all other users of the system while non-public queries are
@@ -664,16 +678,17 @@ class DataQuery(AbstractDataQuery, Base):
     def clean(self):
         from django.core.exceptions import ValidationError
         if self.template and self.default:
-            queryset = self.__class__.objects.filter(template=True, default=True)
+            queryset = self.__class__.objects.filter(
+                template=True, default=True)
             if self.pk:
                 queryset = queryset.exclude(pk=self.pk)
             if queryset.exists():
-                raise ValidationError('Only one default template can be defined')
+                raise ValidationError('Only one default template can be '
+                                      'defined')
 
     def save(self, *args, **kwargs):
         self.clean()
         super(self.__class__, self).save(*args, **kwargs)
-
 
     def share_with_user(self, email, create_user=True):
         """
@@ -715,4 +730,5 @@ pre_delete.connect(pre_delete_uncache, sender=DataCategory)
 if settings.HISTORY_ENABLED:
     history.register(DataContext, fields=('name', 'description', 'json'))
     history.register(DataView, fields=('name', 'description', 'json'))
-    history.register(DataQuery, fields=('name', 'description', 'context_json', 'view_json'))
+    history.register(
+        DataQuery, fields=('name', 'description', 'context_json', 'view_json'))

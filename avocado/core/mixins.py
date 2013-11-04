@@ -2,6 +2,7 @@ from django.db import models
 from django.utils.importlib import import_module
 from avocado.conf import settings
 
+
 def import_mixin(app_label):
     if app_label in settings.MIXINS:
         path = settings.MIXINS[app_label].split('.')
@@ -12,6 +13,7 @@ def import_mixin(app_label):
         Mixin = models.Model
 
     return Mixin
+
 
 def create_mixin(name, module, bases=None, attrs=None, meta=None):
     "Creates an abstract model class based on the provided information."
@@ -37,10 +39,11 @@ def create_mixin(name, module, bases=None, attrs=None, meta=None):
     # create the class, which automatically triggers ModelBase processing
     return type(name, bases, attrs)
 
+
 def create_model(name, module, bases=None, fields=None, options=None):
     "Creates a non-abstract model class based on the provided information."
     options = options or {}
     options['abstract'] = False
 
     return create_mixin(name, module, bases=bases, fields=fields,
-        options=options)
+                        options=options)

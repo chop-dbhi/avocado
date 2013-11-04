@@ -26,7 +26,7 @@ class BaseOperator(object):
     @property
     def operator(self):
         warn('self.operator is deprecated, use self.lookup instead',
-            DeprecationWarning)
+             DeprecationWarning)
         return self.lookup
 
     def coerce_to_unicode(self, value):

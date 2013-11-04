@@ -156,7 +156,8 @@ class Formatter(object):
             if getattr(method, 'process_multiple', False):
                 try:
                     output = method(values, fields=self.fields,
-                        concept=self.concept, process_multiple=True, **context)
+                                    concept=self.concept,
+                                    process_multiple=True, **context)
                     if not isinstance(output, dict):
                         return OrderedDict([(self.concept.name, output)])
                     return output
@@ -164,7 +165,8 @@ class Formatter(object):
                 except Exception:
                     if self.concept and self.concept not in self._errors:
                         self._errors[self.concept] = None
-                        log.warning(u'Multi-value formatter error', exc_info=True)
+                        log.warning(u'Multi-value formatter error',
+                                    exc_info=True)
                     preferred_formats.pop(0)
 
         # The output is independent of the input. Formatters may output more
@@ -178,7 +180,7 @@ class Formatter(object):
                 field = self.fields[key] if self.fields else None
                 try:
                     fvalue = method(value, field=field, concept=self.concept,
-                        process_multiple=False, **context)
+                                    process_multiple=False, **context)
                     if isinstance(fvalue, dict):
                         output.update(fvalue)
                     else:
@@ -187,7 +189,8 @@ class Formatter(object):
                 except Exception:
                     if field and field not in self._errors:
                         self._errors[field] = None
-                        log.warning(u'Single-value formatter error', exc_info=True)
+                        log.warning(u'Single-value formatter error',
+                                    exc_info=True)
         return output
 
     def __contains__(self, choice):
@@ -208,7 +211,8 @@ class Formatter(object):
         # If value is native True or False value, return it
         if type(value) is bool:
             return value
-        raise FormatterException(u'Cannot convert {0} to boolean'.format(value))
+        raise FormatterException(
+            u'Cannot convert {0} to boolean'.format(value))
 
     def to_number(self, value, **context):
         # Attempts to convert a number. Starting with ints and floats

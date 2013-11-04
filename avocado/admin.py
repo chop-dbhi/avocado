@@ -3,8 +3,8 @@ from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
-from avocado.models import (DataField, DataConcept, DataCategory,
-    DataConceptField, DataView, DataContext, DataQuery)
+from avocado.models import DataField, DataConcept, DataCategory, \
+    DataConceptField, DataView, DataContext, DataQuery
 from avocado.forms import DataFieldAdminForm
 
 
@@ -26,7 +26,7 @@ class PublishedAdmin(admin.ModelAdmin):
 
     # Actions to toggle published and archived status
     actions = ('mark_published', 'mark_unpublished', 'mark_archived',
-        'mark_unarchived')
+               'mark_unarchived')
 
     # Override to make the description consistent with the rest of
     # the actions
@@ -105,11 +105,11 @@ class DataFieldAdmin(PublishedAdmin):
     form = DataFieldAdminForm
 
     list_display = ('name', 'published', 'archived', 'internal',
-        'orphan_status', 'model_name', 'enumerable',
-        'is_lexicon', 'is_objectset', 'related_dataconcepts')
+                    'orphan_status', 'model_name', 'enumerable',
+                    'is_lexicon', 'is_objectset', 'related_dataconcepts')
 
     list_filter = ('published', 'archived', 'internal', 'model_name',
-        'enumerable', LexiconListFilter, ObjectSetListFilter)
+                   'enumerable', LexiconListFilter, ObjectSetListFilter)
 
     list_editable = ('published', 'archived', 'internal', 'enumerable')
 
@@ -118,8 +118,8 @@ class DataFieldAdmin(PublishedAdmin):
     readonly_fields = ('created', 'modified', 'data_version')
 
     actions = ('mark_published', 'mark_unpublished', 'mark_archived',
-        'mark_unarchived', 'create_dataconcept_multi',
-        'create_dataconcept_single')
+               'mark_unarchived', 'create_dataconcept_multi',
+               'create_dataconcept_single')
 
     fieldsets = (
         (None, {
@@ -137,8 +137,8 @@ class DataFieldAdmin(PublishedAdmin):
 
         ('Internal Use', {
             'fields': ('internal',),
-            'description': 'Flag as internal if this concept is is intended '\
-                'for programmatic access only.',
+            'description': 'Flag as internal if this concept is is intended '
+                           'for programmatic access only.',
         }),
 
         ('Query Modifiers', {
@@ -147,8 +147,9 @@ class DataFieldAdmin(PublishedAdmin):
 
         ('Data Source', {
             'description': ('These fields should not be altered in-place. '
-                'If where this field is located has changed, change these '
-                ' values and create a new field by using "Save as new".'),
+                            'If where this field is located has changed, '
+                            'change these values and create a new field by '
+                            'using "Save as new".'),
             'classes': ('collapse',),
             'fields': ('app_name', 'model_name', 'field_name'),
         }),
@@ -177,7 +178,8 @@ class DataFieldAdmin(PublishedAdmin):
     def related_dataconcepts(self, obj):
         queryset = obj.concepts.only('id', 'name')
         reverse_name = 'admin:avocado_dataconcept_change'
-        urlize = lambda x: u'<a href="{0}">{1}</a>'.format(reverse(reverse_name, args=[x.id]), x.name)
+        urlize = lambda x: u'<a href="{0}">{1}</a>'.format(
+            reverse(reverse_name, args=[x.id]), x.name)
         return '<br>'.join(map(urlize, queryset)) or None
     related_dataconcepts.short_description = 'Related Data Concepts'
     related_dataconcepts.allow_tags = True
@@ -191,7 +193,7 @@ class DataFieldAdmin(PublishedAdmin):
     def create_dataconcept_single(self, request, queryset):
         fields = list(queryset)
 
-        # In case only a single field is selected with this action, directly map
+        # If only a single field is selected with this action, directly map
         if len(fields) == 1:
             DataConcept.objects.create_from_field(fields[0])
             return
@@ -202,7 +204,8 @@ class DataFieldAdmin(PublishedAdmin):
         concept.save()
         for i, datafield in enumerate(queryset):
             DataConceptField(concept=concept, field=datafield, order=i).save()
-    create_dataconcept_single.short_description = 'Create Data Concept for Selected'
+    create_dataconcept_single.short_description = \
+        'Create Data Concept for Selected'
 
 
 class DataConceptFieldInlineAdmin(admin.TabularInline):
@@ -211,14 +214,14 @@ class DataConceptFieldInlineAdmin(admin.TabularInline):
 
 class DataConceptAdmin(PublishedAdmin):
     list_display = ('name', 'published', 'archived', 'internal', 'category',
-        'order', 'formatter_name', 'viewable', 'queryable', 'sortable',
-        'related_datafields')
+                    'order', 'formatter_name', 'viewable', 'queryable',
+                    'sortable', 'related_datafields')
 
     list_editable = ('published', 'archived', 'internal', 'category', 'order',
-        'formatter_name', 'viewable', 'queryable', 'sortable')
+                     'formatter_name', 'viewable', 'queryable', 'sortable')
 
     list_filter = ('published', 'archived', 'category', 'formatter_name',
-        'viewable', 'queryable', 'sortable')
+                   'viewable', 'queryable', 'sortable')
 
     inlines = [DataConceptFieldInlineAdmin]
 
@@ -238,8 +241,8 @@ class DataConceptAdmin(PublishedAdmin):
 
         ('Internal Use', {
             'fields': ('internal', 'ident'),
-            'description': 'Flag as internal if this concept is is intended '\
-                'for programmatic access only.',
+            'description': 'Flag as internal if this concept is is intended '
+                           'for programmatic access only.',
         }),
 
         ('Modifiers', {
@@ -254,7 +257,8 @@ class DataConceptAdmin(PublishedAdmin):
     def related_datafields(self, obj):
         queryset = obj.fields.only('id', 'name')
         reverse_name = 'admin:avocado_datafield_change'
-        urlize = lambda x: u'<a href="{0}">{1}</a>'.format(reverse(reverse_name, args=[x.id]), x.name)
+        urlize = lambda x: u'<a href="{0}">{1}</a>'.format(
+            reverse(reverse_name, args=[x.id]), x.name)
         return '<br>'.join(map(urlize, queryset)) or None
     related_datafields.short_description = 'Related Data Fields'
     related_datafields.allow_tags = True

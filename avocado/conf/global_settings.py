@@ -35,11 +35,16 @@ SIMPLE_TYPES = {
 OPERATORS = {
     'key': ('exact', '-exact', 'in', '-in'),
     'boolean': ('exact', '-exact', 'in', '-in'),
-    'date': ('exact', '-exact', 'in', '-in', 'lt', 'lte', 'gt', 'gte', 'range', '-range'),
-    'number': ('exact', '-exact', 'in', '-in', 'lt', 'lte', 'gt', 'gte', 'range', '-range'),
-    'string': ('exact', '-exact', 'iexact', '-iexact', 'in', '-in', 'icontains', '-icontains'),
-    'datetime': ('exact', '-exact', 'in', '-in', 'lt', 'lte', 'gt', 'gte', 'range', '-range'),
-    'time': ('exact', '-exact', 'in', '-in', 'lt', 'lte', 'gt', 'gte', 'range', '-range'),
+    'date': ('exact', '-exact', 'in', '-in', 'lt', 'lte', 'gt', 'gte',
+             'range', '-range'),
+    'number': ('exact', '-exact', 'in', '-in', 'lt', 'lte', 'gt', 'gte',
+               'range', '-range'),
+    'string': ('exact', '-exact', 'iexact', '-iexact', 'in', '-in',
+               'icontains', '-icontains'),
+    'datetime': ('exact', '-exact', 'in', '-in', 'lt', 'lte', 'gt', 'gte',
+                 'range', '-range'),
+    'time': ('exact', '-exact', 'in', '-in', 'lt', 'lte', 'gt', 'gte',
+             'range', '-range'),
 }
 
 # A general mapping of formfield overrides for all subclasses. the mapping is
@@ -96,5 +101,5 @@ VALIDATION_ERRORS = {}
 VALIDATION_WARNINGS = {}
 
 # Toggle whether DataField instances should cache the underlying data
-# for their most common data access methods. 
+# for their most common data access methods.
 DATA_CACHE_ENABLED = False
