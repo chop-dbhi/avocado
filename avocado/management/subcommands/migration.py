@@ -69,9 +69,8 @@ class Command(BaseCommand):
             os.makedirs(fixture_dir)
             log.info(u'Created fixture directory: {0}'.format(fixture_dir))
         elif not os.path.isdir(fixture_dir):
-            raise CommandError(
-                u'The metadata fixture directory {0}.. is not a directory.'
-                .format(fixture_dir))
+            raise CommandError(u'The metadata fixture directory {0}.. is not '
+                               'a directory.'.format(fixture_dir))
 
         # Only allow valid names
         if re.search('[^_\w]', migration_suffix):

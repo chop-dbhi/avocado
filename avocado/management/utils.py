@@ -15,8 +15,8 @@ def get_fields_by_label(labels):
         # Specific field
         if len(labels) == 3:
             app, model, field = labels
-            conditions.append(
-                Q(app_name=app, model_name=model, field_name=field))
+            conditions.append(Q(app_name=app, model_name=model,
+                                field_name=field))
         # All fields for a model
         elif len(labels) == 2:
             app, model = labels

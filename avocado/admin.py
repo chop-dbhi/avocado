@@ -178,8 +178,8 @@ class DataFieldAdmin(PublishedAdmin):
     def related_dataconcepts(self, obj):
         queryset = obj.concepts.only('id', 'name')
         reverse_name = 'admin:avocado_dataconcept_change'
-        urlize = lambda x: u'<a href="{0}">{1}</a>'.format(
-            reverse(reverse_name, args=[x.id]), x.name)
+        urlize = lambda x: u'<a href="{0}">{1}</a>'.format(reverse(
+            reverse_name, args=[x.id]), x.name)
         return '<br>'.join(map(urlize, queryset)) or None
     related_dataconcepts.short_description = 'Related Data Concepts'
     related_dataconcepts.allow_tags = True
@@ -204,8 +204,8 @@ class DataFieldAdmin(PublishedAdmin):
         concept.save()
         for i, datafield in enumerate(queryset):
             DataConceptField(concept=concept, field=datafield, order=i).save()
-    create_dataconcept_single.short_description = \
-        'Create Data Concept for Selected'
+    create_dataconcept_single.short_description = 'Create Data Concept for ' \
+        'Selected'
 
 
 class DataConceptFieldInlineAdmin(admin.TabularInline):
@@ -257,8 +257,8 @@ class DataConceptAdmin(PublishedAdmin):
     def related_datafields(self, obj):
         queryset = obj.fields.only('id', 'name')
         reverse_name = 'admin:avocado_datafield_change'
-        urlize = lambda x: u'<a href="{0}">{1}</a>'.format(
-            reverse(reverse_name, args=[x.id]), x.name)
+        urlize = lambda x: u'<a href="{0}">{1}</a>'.format(reverse(
+            reverse_name, args=[x.id]), x.name)
         return '<br>'.join(map(urlize, queryset)) or None
     related_datafields.short_description = 'Related Data Fields'
     related_datafields.allow_tags = True

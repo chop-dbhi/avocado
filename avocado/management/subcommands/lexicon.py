@@ -23,8 +23,8 @@ class Command(BaseCommand):
         model = get_model(*model_label.split('.'))
 
         if model is None:
-            raise CommandError(
-                u'Not model named {0} was found'.format(model_label))
+            raise CommandError(u'Not model named {0} was found'.format(
+                model_label))
 
         toks = field_label.split('.')
         if len(toks) != 3:
@@ -36,8 +36,8 @@ class Command(BaseCommand):
         f = DataField(app_name=toks[0], model_name=toks[1], field_name=toks[2])
 
         if not f.field:
-            raise CommandError(
-                u'The field {0} could not be found.'.format(field_label))
+            raise CommandError(u'The field {0} could not be found.'.format(
+                field_label))
 
         count = 0
         values = list(f.values())

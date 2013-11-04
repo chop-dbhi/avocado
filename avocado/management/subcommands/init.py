@@ -73,11 +73,10 @@ class Command(BaseCommand):
             sys.stdout = open(os.devnull, 'w')
 
         if options.get('force'):
-            resp = raw_input(
-                'Forcing a init will update metadata for '
-                'existing fields. Are you sure you want to do this?\n'
-                'This will overwrite any previous changes made. Type "yes" '
-                'to continue: ')
+            resp = raw_input('Forcing a init will update metadata for '
+                             'existing fields. Are you sure you want to do '
+                             'this?\n This will overwrite any previous '
+                             'changes made. Type "yes" to continue: ')
             if resp.lower() != 'yes':
                 print 'Initialization operation cancelled'
                 return

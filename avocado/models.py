@@ -29,19 +29,19 @@ __all__ = ('DataCategory', 'DataConcept', 'DataField',
 
 
 ident_re = re.compile(r'^[a-zA-Z][a-zA-Z0-9_]*$')
-validate_ident = RegexValidator(
-    ident_re,
-    _("Enter a valid 'identifier' " "that is a valid Python variable name."),
-    'invalid')
+validate_ident = RegexValidator(ident_re, _("Enter an 'identifier' that is a "
+                                "valid Python variable name."),
+                                'invalid')
 
 
 class DataCategory(Base, PublishArchiveMixin):
     "A high-level organization for data concepts."
     # A reference to a parent for hierarchical categories
-    parent = models.ForeignKey(
-        'self', null=True, blank=True, related_name='children',
-        limit_choices_to={'parent__isnull': True},
-        help_text='Sub-categories are limited to one-level deep')
+    parent = models.ForeignKey('self', null=True, blank=True,
+                               related_name='children',
+                               limit_choices_to={'parent__isnull': True},
+                               help_text='Sub-categories are limited to '
+                               'one-level deep')
     order = models.FloatField(null=True, blank=True, db_column='_order')
 
     objects = managers.DataCategoryManager()
@@ -60,9 +60,9 @@ class DataField(BasePlural, PublishArchiveMixin):
     model_name = models.CharField(max_length=200)
     field_name = models.CharField(max_length=200)
 
-    internal = models.BooleanField(
-        default=False, help_text='Flag for internal use and does not abide by '
-        'the published and archived rules.')
+    internal = models.BooleanField(default=False, help_text='Flag for '
+                                   'internal use and does not abide by the '
+                                   'published and archived rules.')
 
     # An optional unit for this field's data. In some cases databases may have
     # a separate column which denotes the unit for another column, but this is
@@ -89,9 +89,10 @@ class DataField(BasePlural, PublishArchiveMixin):
                                   choices=translators.choices)
 
     # This is used for the cache key to check if the cached values is stale.
-    data_version = models.IntegerField(
-        default=1, help_text='The current version of the underlying data for '
-        'this field as of the last modification/update.')
+    data_version = models.IntegerField(default=1, help_text='The current '
+                                       'version of the underlying data for '
+                                       'this field as of the last '
+                                       'modification/update.')
 
     group = models.ForeignKey(Group, null=True, blank=True,
                               related_name='fields+')
@@ -379,14 +380,14 @@ class DataConcept(BasePlural, PublishArchiveMixin):
         -- Willard Van Orman Quine
     """
 
-    ident = models.CharField(
-        max_length=100, null=True, blank=True, validators=[validate_ident],
-        help_text='Unique identifier that can be used for programmatic access')
+    ident = models.CharField(max_length=100, null=True, blank=True,
+                             validators=[validate_ident], help_text='Unique '
+                             'identifier that can be used for programmatic '
+                             'access')
 
-    internal = models.BooleanField(
-        default=False,
-        help_text='Flag for internal use and does not abide by the published '
-        'and archived rules.')
+    internal = models.BooleanField(default=False, help_text='Flag for '
+                                   'internal use and does not abide by '
+                                   'the published and archived rules.')
 
     # Although a category does not technically need to be defined, this more
     # for workflow reasons than for when the concept is published. Automated
@@ -416,9 +417,9 @@ class DataConcept(BasePlural, PublishArchiveMixin):
 
     # An optional formatter which provides custom formatting for this
     # concept relative to the associated fields.
-    formatter_name = models.CharField(
-        'formatter', max_length=100, blank=True, null=True,
-        choices=formatters.registry.choices)
+    formatter_name = models.CharField('formatter', max_length=100, blank=True,
+                                      null=True,
+                                      choices=formatters.registry.choices)
 
     # A flag that denotes this concept is viewable, that is, this the concept
     # is appropriate to be used as a viewable interface. Non-viewable concepts
@@ -536,8 +537,8 @@ class DataContext(AbstractDataContext, Base):
     def clean(self):
         from django.core.exceptions import ValidationError
         if self.template and self.default:
-            queryset = self.__class__.objects.filter(
-                template=True, default=True)
+            queryset = self.__class__.objects.filter(template=True,
+                                                     default=True)
             if self.pk:
                 queryset = queryset.exclude(pk=self.pk)
             if queryset.exists():
@@ -602,8 +603,8 @@ class DataView(AbstractDataView, Base):
     def clean(self):
         from django.core.exceptions import ValidationError
         if self.template and self.default:
-            queryset = self.__class__.objects.filter(
-                template=True, default=True)
+            queryset = self.__class__.objects.filter(template=True,
+                                                     default=True)
             if self.pk:
                 queryset = queryset.exclude(pk=self.pk)
             if queryset.exists():
@@ -629,19 +630,19 @@ class DataQuery(AbstractDataQuery, Base):
     default = models.BooleanField(default=False)
 
     # The parent this instance was derived from
-    parent = models.ForeignKey(
-        'self', null=True, blank=True, related_name='forks')
+    parent = models.ForeignKey('self', null=True, blank=True,
+                               related_name='forks')
 
     # For authenticated users the `user` can be directly referenced,
     # otherwise the session key can be used.
-    user = models.ForeignKey(
-        User, null=True, blank=True, related_name='dataquery+')
+    user = models.ForeignKey(User, null=True, blank=True,
+                             related_name='dataquery+')
     session_key = models.CharField(max_length=40, null=True, blank=True)
 
     accessed = models.DateTimeField(default=datetime.now, editable=False)
     objects = managers.DataQueryManager()
-    shared_users = models.ManyToManyField(
-        User, related_name='shareddataquery+')
+    shared_users = models.ManyToManyField(User,
+                                          related_name='shareddataquery+')
 
     # Flag indicating whether this is a public query or not. Public queries are
     # visible to all other users of the system while non-public queries are
@@ -678,8 +679,8 @@ class DataQuery(AbstractDataQuery, Base):
     def clean(self):
         from django.core.exceptions import ValidationError
         if self.template and self.default:
-            queryset = self.__class__.objects.filter(
-                template=True, default=True)
+            queryset = self.__class__.objects.filter(template=True,
+                                                     default=True)
             if self.pk:
                 queryset = queryset.exclude(pk=self.pk)
             if queryset.exists():
@@ -730,5 +731,5 @@ pre_delete.connect(pre_delete_uncache, sender=DataCategory)
 if settings.HISTORY_ENABLED:
     history.register(DataContext, fields=('name', 'description', 'json'))
     history.register(DataView, fields=('name', 'description', 'json'))
-    history.register(
-        DataQuery, fields=('name', 'description', 'context_json', 'view_json'))
+    history.register(DataQuery, fields=('name', 'description', 'context_json',
+                                        'view_json'))

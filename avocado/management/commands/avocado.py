@@ -37,8 +37,8 @@ class Command(BaseCommand):
 
     def get_subcommand(self, name):
         try:
-            module = import_module(
-                u'avocado.management.subcommands.{0}'.format(name))
+            module = import_module(u'avocado.management.subcommands.{0}'
+                                   .format(name))
             return module.Command()
         except KeyError:
             raise CommandError(u'Unknown subcommand: avocado {0}'.format(name))

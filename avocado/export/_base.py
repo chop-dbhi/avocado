@@ -24,8 +24,8 @@ class BaseExporter(object):
             self.add_formatter(concept)
 
     def __repr__(self):
-        return u'<{0}: {1}/{2}>'.format(
-            self.__class__.__name__, len(self.params), self.row_length)
+        return u'<{0}: {1}/{2}>'.format(self.__class__.__name__,
+                                        len(self.params), self.row_length)
 
     def add_formatter(self, formatter, length=None, index=None):
         if isinstance(formatter, DataConcept):
@@ -55,8 +55,8 @@ class BaseExporter(object):
     def _format_row(self, row, **kwargs):
         for formatter, length in self.params:
             values, row = row[:length], row[length:]
-            yield formatter(
-                values, preferred_formats=self.preferred_formats, **kwargs)
+            yield formatter(values, preferred_formats=self.preferred_formats,
+                            **kwargs)
 
     def read(self, iterable, force_distinct=True, *args, **kwargs):
         """Takes an iterable that produces rows to be formatted.

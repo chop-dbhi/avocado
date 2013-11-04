@@ -10,8 +10,8 @@ class Aggregator(object):
     def __init__(self, field, model=None):
         if not isinstance(field, models.Field):
             if not model:
-                raise TypeError(
-                    'Field instance or field name and model class required')
+                raise TypeError('Field instance or field name and model class '
+                                'required')
             field_name = field
             field = model._meta.get_field_by_name(field_name)[0]
         else:

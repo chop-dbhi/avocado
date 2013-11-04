@@ -10,8 +10,8 @@ class DataFieldAdminForm(forms.ModelForm):
         try:
             models.get_app(app_name)
         except ImproperlyConfigured:
-            raise forms.ValidationError(
-                u'The app "{0}" could not be found'.format(app_name))
+            raise forms.ValidationError(u'The app "{0}" could not be found'
+                                        .format(app_name))
         return app_name
 
     def clean(self):

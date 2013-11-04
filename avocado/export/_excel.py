@@ -2,8 +2,8 @@ from django.http import HttpResponse
 from django.core.exceptions import ImproperlyConfigured
 from avocado.conf import OPTIONAL_DEPS
 if not OPTIONAL_DEPS['openpyxl']:
-    raise ImproperlyConfigured(
-        'openpyxl must be installed to use this exporter.')
+    raise ImproperlyConfigured('openpyxl must be installed to use this '
+                               'exporter.')
 
 from openpyxl import Workbook
 from _base import BaseExporter

@@ -12,8 +12,8 @@ def register(model, fields=None, exclude=None):
     versioned on save and delete operations.
     """
     if model in registry:
-        raise AlreadyRegistered(
-            u'The model {0} is already registered'.format(model.__name__))
+        raise AlreadyRegistered(u'The model {0} is already registered'.format(
+            model.__name__))
 
     if not fields:
         fields = utils.get_model_fields(model)
@@ -42,8 +42,8 @@ def register(model, fields=None, exclude=None):
 def unregister(model):
     "Unregisters a model from versioning."
     if model not in registry:
-        raise NotRegistered(
-            u'The model {0} is not registered'.format(model.__name__))
+        raise NotRegistered(u'The model {0} is not registered'.format(
+            model.__name__))
     cache = registry.pop(model)
     pre_delete.disconnect(sender=model, dispatch_uid=cache['dispatch_uid'])
     post_save.disconnect(sender=model, dispatch_uid=cache['dispatch_uid'])

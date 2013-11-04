@@ -82,9 +82,9 @@ class Condition(Node):
     @property
     def _meta(self):
         if not hasattr(self, '__meta'):
-            self.__meta = self.field.translate(
-                operator=self.operator, value=self.value, tree=self.tree,
-                **self.context)
+            self.__meta = self.field.translate(operator=self.operator,
+                                               value=self.value,
+                                               tree=self.tree, **self.context)
         return self.__meta
 
     @property
@@ -206,8 +206,8 @@ def validate(attrs, **context):
         from avocado.models import DataContext
         try:
             if 'user' in context:
-                cxt = DataContext.objects.get(
-                    id=attrs['composite'], user=context['user'])
+                cxt = DataContext.objects.get(id=attrs['composite'],
+                                              user=context['user'])
             else:
                 cxt = DataContext.objects.get(id=attrs['composite'])
             validate(cxt.json, **context)
@@ -215,8 +215,8 @@ def validate(attrs, **context):
         except DataContext.DoesNotExist:
             attrs['enabled'] = False
             attrs.setdefault('errors', [])
-            attrs.append(
-                u'DataContext "{0}" does not exist.'.format(attrs['id']))
+            attrs.append(u'DataContext "{0}" does not exist.'.format(
+                attrs['id']))
 
     elif is_condition(attrs):
         from avocado.models import DataField, DataConcept
@@ -260,15 +260,15 @@ def parse(attrs, **context):
     elif is_composite(attrs):
         from avocado.models import DataContext
         if 'user' in context:
-            cxt = DataContext.objects.get(
-                id=attrs['composite'], user=context['user'])
+            cxt = DataContext.objects.get(id=attrs['composite'],
+                                          user=context['user'])
         else:
             cxt = DataContext.objects.get(id=attrs['composite'])
         return parse(cxt.json, **context)
     elif is_condition(attrs):
-        node = Condition(
-            operator=attrs['operator'], value=attrs['value'],
-            id=attrs.get('id'), field=attrs.get('field'), **context)
+        node = Condition(operator=attrs['operator'], value=attrs['value'],
+                         id=attrs.get('id'), field=attrs.get('field'),
+                         **context)
     else:
         node = Branch(type=attrs['type'], **context)
         node.children = map(lambda x: parse(x, **context), attrs['children'])

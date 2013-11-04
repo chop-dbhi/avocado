@@ -165,9 +165,9 @@ def requires_dep(lib):
         def wrapper(*args, **kwargs):
             dep = OPTIONAL_DEPS[lib]
             if not dep:
-                raise ImproperlyConfigured(
-                    u'{0} must be installed to use this feature.\n\n{1}'
-                    .format(lib, dep.__doc__))
+                raise ImproperlyConfigured(u'{0} must be installed to use '
+                                           'this feature.\n\n{1}'.format(
+                                               lib, dep.__doc__))
             return f(*args, **kwargs)
         return wrapper
     return decorator

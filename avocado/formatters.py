@@ -211,8 +211,8 @@ class Formatter(object):
         # If value is native True or False value, return it
         if type(value) is bool:
             return value
-        raise FormatterException(
-            u'Cannot convert {0} to boolean'.format(value))
+        raise FormatterException(u'Cannot convert {0} to boolean'.format(
+            value))
 
     def to_number(self, value, **context):
         # Attempts to convert a number. Starting with ints and floats

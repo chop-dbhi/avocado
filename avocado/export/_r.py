@@ -64,8 +64,8 @@ class RExporter(BaseExporter):
             for cfield in cfields:
                 field = cfield.field
                 name = self._format_name(field.field_name)
-                labels.append(u'attr(data${0}, "label") = "{1}"'
-                              .format(name, unicode(cfield)))
+                labels.append(u'attr(data${0}, "label") = "{1}"'.format(
+                    name, unicode(cfield)))
 
                 if field.lexicon:
                     codes = self._code_values(name, field)

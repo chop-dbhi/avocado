@@ -80,8 +80,9 @@ class Command(BaseCommand):
 
         for lf in legacy.Field.objects.iterator():
             try:
-                f = DataField.objects.get_by_natural_key(
-                    lf.app_name, lf.model_name, lf.field_name)
+                f = DataField.objects.get_by_natural_key(lf.app_name,
+                                                         lf.model_name,
+                                                         lf.field_name)
             except DataField.DoesNotExist:
                 f = DataField(app_name=lf.app_name, model_name=lf.model_name,
                               field_name=lf.field_name)
@@ -139,8 +140,8 @@ class Command(BaseCommand):
         total_migrated = 0
 
         for lc in model.objects.iterator():
-            field_nks = list(lc.fields.values(
-                'app_name', 'model_name', 'field_name').distinct())
+            field_nks = list(lc.fields.values('app_name', 'model_name',
+                                              'field_name').distinct())
             field_cond = Q()
 
             for f in field_nks:
@@ -239,9 +240,9 @@ class Command(BaseCommand):
                 # concept fields
                 for lcf in lcfs:
                     f = lcf_map[lcf.pk]
-                    cfs.append(
-                        DataConceptField(concept=c, field=f, name=lcf.name,
-                                         order=lcf.order))
+                    cfs.append(DataConceptField(concept=c, field=f,
+                                                name=lcf.name,
+                                                order=lcf.order))
 
             # Save concept fields
             for cf in cfs:
