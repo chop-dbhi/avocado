@@ -57,7 +57,8 @@ class Registry(object):
         if default:
             self.default = self._registry[name] = obj
         elif name in self._registry:
-            raise AlreadyRegistered(u'The object "{0}" is already registered'.format(name))
+            raise AlreadyRegistered(u'The object "{0}" is already '
+                                    'registered'.format(name))
         self._registry[name] = obj
 
     def unregister(self, name):

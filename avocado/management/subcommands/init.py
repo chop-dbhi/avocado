@@ -1,8 +1,8 @@
 import os
 import sys
 from optparse import make_option
-from django.db.models import (get_model, get_models, get_app, AutoField,
-    ForeignKey, OneToOneField, ManyToManyField, FieldDoesNotExist)
+from django.db.models import get_model, get_models, get_app, AutoField, \
+    ForeignKey, OneToOneField, ManyToManyField, FieldDoesNotExist
 from django.core.management.base import BaseCommand
 from avocado.models import DataField, DataConcept
 from avocado.lexicon.models import Lexicon
@@ -22,30 +22,30 @@ class Command(BaseCommand):
 
     option_list = BaseCommand.option_list + (
         make_option('--no-publish', action='store_false', dest='publish',
-            default=True, help='Prevent publishing fields or concepts.'),
+                    default=True, help='Prevent publishing fields or '
+                    'concepts.'),
 
         make_option('--no-concepts', action='store_false', dest='concepts',
-            default=True, help='Prevent creating concepts.'),
+                    default=True, help='Prevent creating concepts.'),
 
         make_option('-e', '--include-non-editable', action='store_true',
-            dest='include_non_editable', default=False,
-            help='Create fields for non-editable fields'),
+                    dest='include_non_editable', default=False, help='Create '
+                    'fields for non-editable fields'),
 
         make_option('-k', '--include-keys', action='store_true',
-            dest='include_keys', default=False,
-            help='Create fields for primary and foreign key fields'),
+                    dest='include_keys', default=False, help='Create fields '
+                    'for primary and foreign key fields'),
 
-        make_option('-f', '--force', action='store_true',
-            dest='force', default=False,
-            help='Forces an update on existing field metadata'),
+        make_option('-f', '--force', action='store_true', dest='force',
+                    default=False, help='Forces an update on existing field '
+                    'metadata'),
 
-        make_option('-q', '--quiet', action='store_true',
-            dest='quiet', default=False,
-            help='Do not print any output'),
+        make_option('-q', '--quiet', action='store_true', dest='quiet',
+                    default=False, help='Do not print any output'),
 
         make_option('--prepend-model-name', action='store_true',
-            dest='prepend_model_name', default=False,
-            help='Prepend the model name to the field name')
+                    dest='prepend_model_name', default=False, help='Prepend '
+                    'the model name to the field name')
     )
 
     # These are ignored since these join fields will be determined at runtime
@@ -74,9 +74,9 @@ class Command(BaseCommand):
 
         if options.get('force'):
             resp = raw_input('Forcing a init will update metadata for '
-                'existing fields. Are you sure you want to do this?\n'
-                'This will overwrite any previous changes made. Type "yes" '
-                'to continue: ')
+                             'existing fields. Are you sure you want to do '
+                             'this?\n This will overwrite any previous '
+                             'changes made. Type "yes" to continue: ')
             if resp.lower() != 'yes':
                 print 'Initialization operation cancelled'
                 return
@@ -110,7 +110,8 @@ class Command(BaseCommand):
                     try:
                         field = model._meta.get_field_by_name(field_name)[0]
                     except FieldDoesNotExist:
-                        print u'Cannot find field "{0}", skipping...'.format(label)
+                        print(u'Cannot find field "{0}", skipping...'
+                              .format(label))
                         continue
                     pending_fields = [(field, model_name, app_name)]
 
@@ -207,8 +208,8 @@ class Command(BaseCommand):
         if f.pk:
             created = False
             if not force:
-                print u'({0}) {1}.{2} already exists. Skipping...'.format(app_name,
-                    model_name, field.name)
+                print(u'({0}) {1}.{2} already exists. Skipping...'
+                      .format(app_name, model_name, field.name))
                 return
             # Only overwrite if the source value is not falsy
             f.__dict__.update([(k, v) for k, v in kwargs.items()])
@@ -227,9 +228,9 @@ class Command(BaseCommand):
         f.save()
 
         # Create a concept if one does not already exist for this field
-        if options.get('concepts'):
-            if not DataConcept.objects.filter(concept_fields__field=f).exists():
-                DataConcept.objects.create_from_field(f,
-                        published=options.get('publish'))
+        if (options.get('concepts') and not
+                DataConcept.objects.filter(concept_fields__field=f).exists()):
+            DataConcept.objects.create_from_field(
+                f, published=options.get('publish'))
 
         return created

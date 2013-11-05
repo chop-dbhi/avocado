@@ -5,7 +5,7 @@ from django.db import models
 from django.core.cache import cache
 from django.db.models.query import QuerySet
 
-NEVER_EXPIRE = 60 * 60 * 24 * 30 # 30 days
+NEVER_EXPIRE = 60 * 60 * 24 * 30  # 30 days
 INSTANCE_CACHE_KEY = u'{0}:{1}:{2}'
 PK_LOOKUPS = ('pk', 'pk__exact')
 
@@ -28,7 +28,8 @@ def instance_cache_key(instance, label=None, version=None):
 
     # Construct cache key
     opts = instance._meta
-    key = INSTANCE_CACHE_KEY.format(opts.app_label, opts.module_name, instance.pk)
+    key = INSTANCE_CACHE_KEY.format(opts.app_label, opts.module_name,
+                                    instance.pk)
 
     if version:
         key = u'{0}:{1}'.format(key, version)
@@ -53,16 +54,19 @@ class CacheProxy(object):
         return self.key_func(self.func_self, self.func_name, self.version)
 
     def _set(self, key, data):
-        log.debug('Compute property cache "{0}" on "{1}"'.format(self.func_name, self.func_self))
+        log.debug('Compute property cache "{0}" on "{1}"'.format(
+            self.func_name, self.func_self))
         if data is not None:
             cache.set(key, data, timeout=self.timeout)
-            log.debug('Set property cache "{0}" on "{1}"'.format(self.func_name, self.func_self))
+            log.debug('Set property cache "{0}" on "{1}"'.format(
+                self.func_name, self.func_self))
 
     def get(self):
         if self.func_self is None:
             return
         data = cache.get(self.cache_key)
-        log.debug('Get property cache "{0}" on "{1}"'.format(self.func_name, self.func_self))
+        log.debug('Get property cache "{0}" on "{1}"'.format(self.func_name,
+                  self.func_self))
         return data
 
     def get_or_set(self, *args, **kwargs):
@@ -83,7 +87,8 @@ class CacheProxy(object):
         if self.func_self is None:
             return
         cache.delete(self.cache_key)
-        log.debug('Delete property cache "{0}" on "{1}"'.format(self.func_name, self.func_self))
+        log.debug('Delete property cache "{0}" on "{1}"'.format(
+            self.func_name, self.func_self))
 
     def cached(self):
         "Checks if the data is in the cache."
@@ -92,7 +97,8 @@ class CacheProxy(object):
         return self.cache_key in cache
 
 
-def cached_method(func=None, version=None, timeout=NEVER_EXPIRE, key_func=instance_cache_key):
+def cached_method(func=None, version=None, timeout=NEVER_EXPIRE,
+                  key_func=instance_cache_key):
     "Wraps a method and caches the output indefinitely."
     from avocado.conf import settings
 
@@ -155,7 +161,8 @@ class CacheQuerySet(QuerySet):
                 break
 
         if pk is not None:
-            key = INSTANCE_CACHE_KEY.format(opts.app_label, opts.module_name, pk)
+            key = INSTANCE_CACHE_KEY.format(opts.app_label, opts.module_name,
+                                            pk)
             obj = cache.get(key)
             if obj is not None:
                 clone._result_cache = [obj]

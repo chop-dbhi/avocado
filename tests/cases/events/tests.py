@@ -5,7 +5,8 @@ from django.contrib.auth.models import User
 from django.contrib.sessions.backends.cache import SessionStore
 from django.http import HttpRequest
 from avocado.events import usage
-from avocado.models import Log, DataField
+from avocado.events.models import Log
+from avocado.models import DataField
 
 
 class MockHandler(logging.Handler):

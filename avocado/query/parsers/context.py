@@ -19,21 +19,25 @@ def has_keys(data, keys):
             return False
     return True
 
+
 def is_branch(data):
     "Validates required structure for a branch node."
     return has_keys(data, ('type', 'children'))
+
 
 def is_condition(data):
     "Validates required structure for a condition node."
     return has_keys(data, keys=('operator', 'value'))
 
+
 def is_composite(data):
     "Validates required structure for a composite node."
     return 'composite' in data
 
+
 def get_parser(data):
     if not data or not isinstance(data, dict):
-      return
+        return
     if is_composite(data):
         return CompositeParser
     elif is_condition(data):
@@ -133,7 +137,8 @@ class ConditionParser(FieldValidator):
         # Double check this is also registered (in case the above
         # operators are not built-ins)
         if operator not in operators.registry:
-            log.error('Operator {0} locally defined, but not in the registry'.format(operator))
+            log.error('Operator {0} locally defined, but not in the registry'
+                      .format(operator))
             self.error('invalid_operator')
 
         return operators.registry.get(operator)

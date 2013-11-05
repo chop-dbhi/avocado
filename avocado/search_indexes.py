@@ -1,5 +1,5 @@
 from haystack import site
-from haystack.indexes import *
+from haystack.indexes import CharField, EdgeNgramField, SearchIndex
 from avocado.conf import settings
 from avocado.models import DataConcept, DataField
 

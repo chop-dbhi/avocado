@@ -2,7 +2,8 @@ from django.http import HttpResponse
 from django.core.exceptions import ImproperlyConfigured
 from avocado.conf import OPTIONAL_DEPS
 if not OPTIONAL_DEPS['openpyxl']:
-    raise ImproperlyConfigured('openpyxl must be installed to use this exporter.')
+    raise ImproperlyConfigured('openpyxl must be installed to use this '
+                               'exporter.')
 
 from openpyxl import Workbook
 from _base import BaseExporter
@@ -45,18 +46,18 @@ class ExcelExporter(BaseExporter):
 
         # Create the Data Dictionary Worksheet
         ws_dict.append(('Field Name', 'Data Type', 'Description',
-            'Concept Name', 'Concept Discription'))
+                        'Concept Name', 'Concept Discription'))
 
         for c in self.concepts:
             cfields = c.concept_fields.select_related('field')
             for cfield in cfields:
                 field = cfield.field
                 ws_dict.append((field.field_name, field.simple_type,
-                    field.description, c.name, c.description))
+                                field.description, c.name, c.description))
 
         # This hacked up implementation is due to `save_virtual_workbook`
         # not behaving correctly. This function should handle the work
-        # https://bitbucket.org/ericgazoni/openpyxl/src/94b05cf9defb9787b4dfbf9e8dca7ba6e0b33d56/openpyxl/writer/excel.py?at=default#cl-154
+        # https://bitbucket.org/ericgazoni/openpyxl/src/94b05cf9defb9787b4dfbf9e8dca7ba6e0b33d56/openpyxl/writer/excel.py?at=default#cl-154     # noqa
         # however, no data is actually being saved to the worksheets..
         if isinstance(buff, HttpResponse):
             _buff = self.get_file_obj()

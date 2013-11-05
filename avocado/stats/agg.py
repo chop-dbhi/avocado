@@ -10,7 +10,8 @@ class Aggregator(object):
     def __init__(self, field, model=None):
         if not isinstance(field, models.Field):
             if not model:
-                raise TypeError('Field instance or field name and model class required')
+                raise TypeError('Field instance or field name and model class '
+                                'required')
             field_name = field
             field = model._meta.get_field_by_name(field_name)[0]
         else:
@@ -215,8 +216,8 @@ class Aggregator(object):
         "Performs a COUNT aggregation."
         distinct = kwargs.get('distinct', False)
         if distinct:
-            aggregates = {'distinct_count': Count(self.field_name,
-                distinct=distinct)}
+            aggregates = {
+                'distinct_count': Count(self.field_name, distinct=distinct)}
         else:
             aggregates = {'count': Count(self.field_name)}
         return self._aggregate(*groupby, **aggregates)

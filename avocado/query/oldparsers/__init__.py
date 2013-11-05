@@ -1,3 +1,3 @@
-from . import datacontext
-from . import dataview
-from . import dataquery
+from . import datacontext   # noqa
+from . import dataview      # noqa
+from . import dataquery     # noqa

@@ -72,8 +72,8 @@ class Translator(object):
 
         # Ensure the operator is allowed
         if operator.uid not in allowed_operators:
-            raise ValidationError(u'Operator "{0}" cannot be used for ' \
-                'this translator'.format(operator))
+            raise ValidationError(u'Operator "{0}" cannot be used for '
+                                  'this translator'.format(operator))
 
         return operator
 
@@ -183,7 +183,8 @@ class Translator(object):
 
             # Process a normal value
             if value is not None:
-                condition = tree.query_condition(field.field, operator.lookup, value)
+                condition = \
+                    tree.query_condition(field.field, operator.lookup, value)
 
             # Reset value to None for `null` processing
             value = None
@@ -238,7 +239,7 @@ class Translator(object):
         _value = self._normalize_value(field, value)
         if not operator.is_valid(_value):
             raise ValidationError(u'"{0}" is not valid for the operator '
-                '"{1}"'.format(value, operator))
+                                  '"{1}"'.format(value, operator))
 
         return operator, value
 
@@ -255,7 +256,8 @@ class Translator(object):
         It should be noted that no checks are performed to prevent the same
         name being used for annotations.
         """
-        operator, value = self.validate(field, roperator, rvalue, tree, **kwargs)
+        operator, value = \
+            self.validate(field, roperator, rvalue, tree, **kwargs)
         condition = self._condition(field, operator, value, tree)
         language = self.language(field, operator, value, **kwargs)
 

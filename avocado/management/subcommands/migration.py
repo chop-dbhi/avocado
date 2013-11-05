@@ -37,20 +37,24 @@ _help = """\
 Simple utility for dumping Avocado metadata.
 """
 
+
 class Command(BaseCommand):
     __doc__ = help = _help
 
     option_list = BaseCommand.option_list + (
         make_option('--database', action='store', dest='database',
-            default=DEFAULT_DB_ALIAS, help='Nominates a specific database to dump '
-                'fixtures from. Defaults to the "default" database.'),
+                    default=DEFAULT_DB_ALIAS, help='Nominates a specific '
+                    'database to dump fixtures from. Defaults to the '
+                    '"default" database.'),
         make_option('--backup-path', action='store', dest='backup_path',
-            help='Define a non-temporary path for the migration backup.'),
-        make_option('--no-fake', action='store_false',
-            help='Prevents the new migration from being immediately faked in the database.')
+                    help='Define a non-temporary path for the migration '
+                    'backup.'),
+        make_option('--no-fake', action='store_false', help='Prevents the new '
+                    'migration from being immediately faked in the database.')
     )
 
-    def handle(self, migration_suffix=METADATA_MIGRATION_SUFFIX, fixture_suffix=METADATA_FIXTURE_SUFFIX, **options):
+    def handle(self, migration_suffix=METADATA_MIGRATION_SUFFIX,
+               fixture_suffix=METADATA_FIXTURE_SUFFIX, **options):
         database = options.get('database')
         verbosity = options.get('verbosity')
         backup_path = options.get('backup_path')
@@ -65,11 +69,13 @@ class Command(BaseCommand):
             os.makedirs(fixture_dir)
             log.info(u'Created fixture directory: {0}'.format(fixture_dir))
         elif not os.path.isdir(fixture_dir):
-            raise CommandError(u'The metadata fixture directory {0}.. is not a directory.'.format(fixture_dir))
+            raise CommandError(u'The metadata fixture directory {0}.. is not '
+                               'a directory.'.format(fixture_dir))
 
         # Only allow valid names
         if re.search('[^_\w]', migration_suffix):
-            raise CommandError('Migration names should contain only alphanumeric characters and underscores.')
+            raise CommandError('Migration names should contain only '
+                               'alphanumeric characters and underscores.')
 
         fixture_name = backup.next_fixture_name(fixture_suffix, fixture_dir)
         backup.create_fixture(fixture_name, using=database)
@@ -77,17 +83,21 @@ class Command(BaseCommand):
         if verbosity > 1:
             log.info(u'Created fixture {0}'.format(fixture_name))
 
-        # Get the Migrations for this app (creating the migrations dir if needed)
+        # Get the Migrations for this app(creating the migration dir if needed)
         migrations = migration.Migrations(settings.METADATA_MIGRATION_APP,
-            force_creation=True, verbose_creation=verbosity > 0)
+                                          force_creation=True,
+                                          verbose_creation=verbosity > 0)
 
         # See what filename is next in line. We assume they use numbers.
         next_filename = migrations.next_filename(migration_suffix)
- 
-        file_contents = METADATA_MIGRATION_TEMPLATE.format(fixture_name=repr(fixture_name),
-            backup_path=(backup_path and repr(backup_path) or backup_path), using=repr(database))
 
-        fp = open(os.path.join(migrations.migrations_dir(), next_filename), 'w')
+        file_contents = METADATA_MIGRATION_TEMPLATE.format(
+            fixture_name=repr(fixture_name),
+            backup_path=(backup_path and repr(backup_path) or backup_path),
+            using=repr(database))
+
+        fp = \
+            open(os.path.join(migrations.migrations_dir(), next_filename), 'w')
         fp.write(file_contents)
         fp.close()
         log.info(u'Created migration {0}'.format(next_filename))
@@ -95,10 +105,12 @@ class Command(BaseCommand):
         if not no_fake:
             # Clear and reload migrations..
             [migrations.pop() for _ in xrange(len(migrations))]
-            migrations._load_migrations_module(migrations.application.migrations)
+            migrations._load_migrations_module(
+                migrations.application.migrations)
 
             # Fake migrations up to the current created one..
             management.call_command('migrate', settings.METADATA_MIGRATION_APP,
-                os.path.splitext(next_filename)[0], fake=True, database=database)
+                                    os.path.splitext(next_filename)[0],
+                                    fake=True, database=database)
 
             log.info('Faked migrations up to the current one')

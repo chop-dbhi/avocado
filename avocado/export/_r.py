@@ -51,7 +51,8 @@ class RExporter(BaseExporter):
             level += ' ,'
         return factor, level
 
-    def write(self, iterable, buff=None, template_name='export/script.R', *args, **kwargs):
+    def write(self, iterable, buff=None, template_name='export/script.R',
+              *args, **kwargs):
         zip_file = ZipFile(self.get_file_obj(buff), 'w')
 
         factors = []      # field names
@@ -63,7 +64,8 @@ class RExporter(BaseExporter):
             for cfield in cfields:
                 field = cfield.field
                 name = self._format_name(field.field_name)
-                labels.append(u'attr(data${0}, "label") = "{1}"'.format(name, unicode(cfield)))
+                labels.append(u'attr(data${0}, "label") = "{1}"'.format(
+                    name, unicode(cfield)))
 
                 if field.lexicon:
                     codes = self._code_values(name, field)

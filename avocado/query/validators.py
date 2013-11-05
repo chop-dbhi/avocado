@@ -12,7 +12,7 @@ class Validator(object):
     warning_messages = {}
 
     fields = ()
-    
+
     def __init__(self, data, **context):
         # Copy of the input data, this will be updated as necessary reflecting
         # errors, warnings, and other changes.
@@ -31,18 +31,19 @@ class Validator(object):
         self.warnings = []
 
     def _validate(self):
-      """Performs valiation of fields defined in `fields`. Output will
-      added to `cleaned_data`. Calls to `error` will prevent the output
-      from being added.
-      """
-      for field in self.fields:
-          method_name = 'validate_{0}'.format(field)
-          if hasattr(self, method_name):
-              try:
-                  result = getattr(self, method_name)()
-                  self.cleaned_data[field] = result
-              except ValidationError:
-                  pass
+        """
+        Performs valiation of fields defined in `fields`. Output will added to
+        `cleaned_data`. Calls to `error` will prevent the output from being
+        added.
+        """
+        for field in self.fields:
+            method_name = 'validate_{0}'.format(field)
+            if hasattr(self, method_name):
+                try:
+                    result = getattr(self, method_name)()
+                    self.cleaned_data[field] = result
+                except ValidationError:
+                    pass
 
     def _post_validate(self):
         """Performs post-validation. If errors or warnings are present, the
@@ -127,9 +128,11 @@ class FieldValidator(Validator):
     error_messages = {
         'field_required': 'field required',
         'field_does_not_exist': 'the field does not exist',
-        'field_does_not_exist_for_concept': 'the field does not exist for the specified concept',
+        'field_does_not_exist_for_concept': 'the field does not exist for the '
+                                            'specified concept',
         'ambiguous_field': 'the field lookup is ambiguous',
-        'ambiguous_field_for_concept': 'the field lookup for the specified is ambiguous',
+        'ambiguous_field_for_concept': 'the field lookup for the specified is '
+                                       'ambiguous',
         'concept_does_not_exist': 'the concept does not exist',
     }
 
@@ -159,9 +162,10 @@ class FieldValidator(Validator):
         except DataConcept.DoesNotExist:
             self.error('concept_does_not_exist')
 
-
     def validate_field(self):
-        """Validation and clean the field.
+        """
+        Validate and clean the field.
+
         If a concept is also available, it will accessible via `self.concept`.
         """
         field = self.data.get('field')

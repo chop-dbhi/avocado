@@ -6,4 +6,4 @@ register = template.Library()
 
 @register.simple_tag
 def colorize(value, *opts, **kwargs):
-    return termcolors.colorize(value, opts=opts, **kwargs) 
+    return termcolors.colorize(value, opts=opts, **kwargs)

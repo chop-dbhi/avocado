@@ -17,7 +17,7 @@ def get_object_data(instance, fields):
     "Returns a dict of field data."
     data = {}
     for name in fields:
-        f = _validate_field(instance._meta.get_field(name))
+        _validate_field(instance._meta.get_field(name))
         data[name] = deepcopy(getattr(instance, name))
     return data
 
@@ -43,7 +43,6 @@ def validate_fields(model, fields, exclude):
     "Validates all fields exist and are supported for versioning."
     fields = fields or []
     exclude = exclude or []
-    opts = model._meta
 
     for name in list(fields) + list(exclude):
         _validate_field(model._meta.get_field(name))

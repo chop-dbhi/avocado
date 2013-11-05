@@ -11,6 +11,7 @@ from avocado.conf import settings
 # I think that will cover it..
 USERNAME_CHARS = ascii_lowercase + digits + '@.+-_'
 
+
 def get_form_class(name):
     # Absolute import if a period exists, otherwise assume the
     # name refers to a built-in Django class
@@ -30,6 +31,7 @@ def get_internal_type(field):
     if datatype.endswith('field'):
         datatype = datatype[:-5]
     return datatype
+
 
 def get_simple_type(internal):
     """Returns a simple type mapped from the internal type."
@@ -54,7 +56,8 @@ def get_heuristic_flags(field):
     # TextFields are typically used for free text
     enumerable = False
 
-    if field.internal_type != 'text' and field.simple_type in ('string', 'boolean') \
+    if field.internal_type != 'text' \
+            and field.simple_type in ('string', 'boolean') \
             and field.size() <= settings.ENUMERABLE_MAXIMUM:
         enumerable = True
 

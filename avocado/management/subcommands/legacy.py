@@ -3,33 +3,39 @@ from django.db import transaction
 from django.db.models import Q
 from django.core.management.base import BaseCommand
 from avocado.core import utils
-from avocado.models import DataField, DataCategory, DataConcept, DataConceptField
+from avocado.models import DataField, DataCategory, DataConcept, \
+    DataConceptField
 from avocado.legacy import models as legacy
 
 
 class Command(BaseCommand):
-    help = "Utilities for migrating Avocado 1.x metadata to the Avocado 2.x data model."
+    help = "Utilities for migrating Avocado 1.x metadata to the Avocado 2.x "
+    "data model."
 
     option_list = BaseCommand.option_list + (
-        make_option('-f', '--force', action='store_true',
-            dest='force', default=False,
-            help='During a migration, force an update to existing data.'),
+        make_option('-f', '--force', action='store_true', dest='force',
+                    default=False, help='During a migration, force an update '
+                    'to existing data.'),
 
-        make_option('--no-input', action='store_true',
-            dest='no_input', default=False,
-            help='Prevents user prompts and performs the default bahavior'),
+        make_option('--no-input', action='store_true', dest='no_input',
+                    default=False, help='Prevents user prompts and performs '
+                    'the default bahavior'),
 
         make_option('--no-fields', action='store_false', dest='fields',
-            default=True, help='Do migrate legacy Field instances to DataField'),
+                    default=True, help='Do migrate legacy Field instances to '
+                    'DataField'),
 
         make_option('--no-columns', action='store_false', dest='columns',
-            default=True, help='Do migrate legacy Column instances to DataConcept'),
+                    default=True, help='Do migrate legacy Column instances to '
+                    'DataConcept'),
 
         make_option('--no-criteria', action='store_false', dest='criteria',
-            default=True, help='Do migrate legacy Criterion instances to DataConcept'),
+                    default=True, help='Do migrate legacy Criterion instances '
+                    'to DataConcept'),
 
         make_option('--no-categories', action='store_false', dest='categories',
-            default=True, help='Do migrate legacy Category instances to DataCategory'),
+                    default=True, help='Do migrate legacy Category instances '
+                    'to DataCategory'),
     )
 
     def _migrate_categories(self, **options):
@@ -53,7 +59,8 @@ class Command(BaseCommand):
                 try:
                     p = DataCategory.objects.get(name=lc.parent.name)
                 except DataCategory.DoesNotExist:
-                    print 'Parent category "{0}" does not exist for "{1}". Skipping...'.format(lc.parent.name, lc.name)
+                    print('Parent category "{0}" does not exist for "{1}". '
+                          'Skipping...'.format(lc.parent.name, lc.name))
                     continue
             else:
                 p = None
@@ -74,13 +81,14 @@ class Command(BaseCommand):
         for lf in legacy.Field.objects.iterator():
             try:
                 f = DataField.objects.get_by_natural_key(lf.app_name,
-                    lf.model_name, lf.field_name)
+                                                         lf.model_name,
+                                                         lf.field_name)
             except DataField.DoesNotExist:
                 f = DataField(app_name=lf.app_name, model_name=lf.model_name,
-                    field_name=lf.field_name)
+                              field_name=lf.field_name)
 
-            qualified_name = u'({0}) {1}.{2}'.format(f.app_name, f.model_name,
-                f.field_name)
+            qualified_name = \
+                u'({0}) {1}.{2}'.format(f.app_name, f.model_name, f.field_name)
 
             if f.pk and not force:
                 print u'{0} already exists. Skipping...'.format(qualified_name)
@@ -107,12 +115,14 @@ class Command(BaseCommand):
             if not no_input and f.enumerable != lf.enable_choices:
                 if lf.enable_choices:
                     override = raw_input(u'"{0}" is marked as enumerable, but '
-                        'does not qualify to be enumerable. Override? '
-                        '[y/N] '.format(qualified_name))
+                                         'does not qualify to be enumerable. '
+                                         'Override? [y/N] '
+                                         .format(qualified_name))
                 else:
                     override = raw_input(u'"{0}" is not marked as enumerable, '
-                        'but qualifies to be enumerable. Override? '
-                        '[y/N] '.format(qualified_name))
+                                         'but qualifies to be enumerable. '
+                                         'Override? [y/N] '
+                                         .format(qualified_name))
 
                 if override.lower() == 'y':
                     f.enumerable = lf.enable_choices
@@ -125,13 +135,13 @@ class Command(BaseCommand):
         print u'Fields migrated:\t{0}'.format(total_migrated)
 
     def _migrate_concept(self, model, migrate_func, **options):
-        force = options.get('force')
         no_input = options.get('no_input')
 
         total_migrated = 0
 
         for lc in model.objects.iterator():
-            field_nks = list(lc.fields.values('app_name', 'model_name', 'field_name').distinct())
+            field_nks = list(lc.fields.values('app_name', 'model_name',
+                                              'field_name').distinct())
             field_cond = Q()
 
             for f in field_nks:
@@ -141,7 +151,8 @@ class Command(BaseCommand):
 
             # Mismatch of fields from new to old
             if len(fields) != len(field_nks):
-                print 'One or more fields mismatched for "{0}". Skipping...'.format(lc)
+                print('One or more fields mismatched for "{0}". '
+                      'Skipping...'.format(lc))
                 continue
 
             matches = DataConcept.objects.filter(name=lc.name)
@@ -149,13 +160,14 @@ class Command(BaseCommand):
             # Filter concepts by existence of fields
             for f in fields:
                 matches = matches.filter(fields__app_name=f.app_name,
-                    fields__model_name=f.model_name,
-                    fields__field_name=f.field_name)
+                                         fields__model_name=f.model_name,
+                                         fields__field_name=f.field_name)
 
             num = len(matches)
 
             if num > 1:
-                print '{0} have the same name and fields. Skipping...'.format(num)
+                print('{0} have the same name and fields. '
+                      'Skipping...'.format(num))
                 continue
 
             if num == 1:
@@ -165,7 +177,8 @@ class Command(BaseCommand):
                 if not no_input:
                     override = True
                     while True:
-                        response = raw_input(u'Match found for "{0}". Override? [n/Y] '.format(c))
+                        response = raw_input(u'Match found for "{0}". '
+                                             'Override? [n/Y] '.format(c))
                         if not response:
                             break
                         if response.lower() == 'n':
@@ -183,7 +196,8 @@ class Command(BaseCommand):
 
             # This looks odd, but this handles choosing the longer of the two
             # descriptions for criterion and column if both exist.
-            if not c.description or lc.description and len(lc.description) > len(c.description):
+            if not c.description or lc.description and \
+                    len(lc.description) > len(c.description):
                 c.description = lc.description
 
             if lc.category:
@@ -191,8 +205,8 @@ class Command(BaseCommand):
                     kwargs = {
                         'name__iexact': lc.category.name,
                     }
-                    # Filter by parent if one exists since categories with the same
-                    # name can exists as sub-categories.
+                    # Filter by parent if one exists since categories with the
+                    # same name can exists as sub-categories.
                     if lc.category.parent_id:
                         kwargs['parent__name'] = lc.category.parent.name
                     c.category = DataCategory.objects.get(**kwargs)
@@ -210,7 +224,8 @@ class Command(BaseCommand):
             if not existing:
                 lcfs = list(lc.conceptfields.select_related('field'))
 
-                # Dict of legacy concept fields to the new field it corresponds to
+                # Dict of legacy concept fields to the new field it
+                # corresponds to
                 lcf_map = {}
 
                 for lcf in lcfs:
@@ -226,7 +241,8 @@ class Command(BaseCommand):
                 for lcf in lcfs:
                     f = lcf_map[lcf.pk]
                     cfs.append(DataConceptField(concept=c, field=f,
-                        name=lcf.name, order=lcf.order))
+                                                name=lcf.name,
+                                                order=lcf.order))
 
             # Save concept fields
             for cf in cfs:

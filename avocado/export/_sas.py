@@ -79,7 +79,8 @@ class SASExporter(BaseExporter):
         values = u'{0} {1}'.format(value, '\t'.join(codes))
         return value_format, values
 
-    def write(self, iterable, buff=None, template_name='export/script.sas', *args, **kwargs):
+    def write(self, iterable, buff=None, template_name='export/script.sas',
+              *args, **kwargs):
         zip_file = ZipFile(self.get_file_obj(buff), 'w')
 
         formats = []            # sas formats for all fields

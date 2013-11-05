@@ -22,7 +22,8 @@ class RevisionManager(models.Manager):
             model = queryset.model
 
             kwargs = {
-                'object_id__in': queryset.values_list('pk', flat=True).order_by(),
+                'object_id__in':
+                queryset.values_list('pk', flat=True).order_by(),
                 'content_type': ContentType.objects.get_for_model(model),
             }
         else:
@@ -42,9 +43,10 @@ class RevisionManager(models.Manager):
             return queryset.filter(object_id=obj.pk)
 
         if queryset is None:
-            raise ValueError('A model or queryset must be supplied if a primary key is used')
+            raise ValueError('A model or queryset must be supplied if a '
+                             'primary key is used')
 
-        return queryset.filter(object_id=pk)
+        return queryset.filter(object_id=obj.pk)
 
     def latest_for_model(self, model):
         "Returns the latest revision across instances for a model."
@@ -68,7 +70,8 @@ class RevisionManager(models.Manager):
         return bool(revision.diff(obj, fields=fields))
 
     @transaction.commit_on_success
-    def create_revision(self, obj, fields, model=None, commit=True, deleted=False, **kwargs):
+    def create_revision(self, obj, fields, model=None, commit=True,
+                        deleted=False, **kwargs):
         """Creates a revision for the object.
 
         The previous revision will be compared against to prevent having
@@ -109,7 +112,7 @@ class RevisionManager(models.Manager):
                 data = None
 
             revision = self.model(content_object=obj, data=data,
-                deleted=deleted, changes=changes, **kwargs)
+                                  deleted=deleted, changes=changes, **kwargs)
 
             if commit:
                 revision.save()

@@ -1,2 +1,2 @@
-from . import kmeans
-from . import agg
+from . import kmeans    # noqa
+from . import agg       # noqa
