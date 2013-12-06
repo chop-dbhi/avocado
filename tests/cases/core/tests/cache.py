@@ -72,6 +72,7 @@ class CachedMethodTestCase(TestCase):
     @override_settings(AVOCADO_DATA_CACHE_ENABLED=True)
     def test(self):
         f = Foo()
+        f.save()
 
         # Not cached upon initialization
         self.assertFalse(f.callable_versioned.cached())
@@ -116,3 +117,31 @@ class CachedMethodTestCase(TestCase):
         self.assertFalse(f.callable_versioned.cached())
         self.assertFalse(f.versioned.cached())
         self.assertFalse(f.unversioned.cached())
+
+
+class TestIssue136(TestCase):
+    def setUp(self):
+        self.f1 = Foo(value=1)
+        self.f1.save()
+
+        self.f2 = Foo(value=100)
+        self.f2.save()
+
+        self.f1.default_versioned.flush()
+        self.f2.default_versioned.flush()
+
+    @override_settings(AVOCADO_DATA_CACHE_ENABLED=False)
+    def test_control(self):
+        self.assertEqual(self.f1.default_versioned(), [1])
+        self.assertEqual(self.f2.default_versioned(), [100])
+
+        self.assertFalse(self.f1.default_versioned.cached())
+        self.assertFalse(self.f2.default_versioned.cached())
+
+    @override_settings(AVOCADO_DATA_CACHE_ENABLED=True)
+    def test_bug(self):
+        self.assertEqual(self.f1.default_versioned(), [1])
+        self.assertEqual(self.f2.default_versioned(), [100])
+
+        self.assertTrue(self.f1.default_versioned.cached())
+        self.assertTrue(self.f2.default_versioned.cached())
