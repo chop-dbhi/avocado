@@ -4,11 +4,12 @@ from .model import CACHE_KEY_FUNC
 
 PK_LOOKUPS = ('pk', 'pk__exact')
 
+
 class CacheQuerySet(QuerySet):
     def filter(self, *args, **kwargs):
         """For primary-key-based lookups, instances may be cached to prevent
         excessive database hits. If this is a primary-key lookup, the cache
-        will be checked and populate the `_result_cache` if available.
+        will be checked and populated in the `_result_cache` if available.
         """
         clone = super(CacheQuerySet, self).filter(*args, **kwargs)
 

@@ -1,6 +1,7 @@
 from django.db import models
 from avocado.core.cache import cached_method, CacheManager
 
+
 class Foo(models.Model):
     objects = CacheManager()
 
