@@ -4,36 +4,37 @@ from functools import wraps
 from django.core.cache import cache
 
 NEVER_EXPIRE = 60 * 60 * 24 * 30  # 30 days
-INSTANCE_CACHE_KEY = u'{0}:{1}:{2}'
+CACHE_KEY_FUNC = lambda l: ':'.join([str(x) for x in l])
 
 log = logging.getLogger(__name__)
 
 
 def instance_cache_key(instance, label=None, version=None):
-    "Creates a cache key for the instance with an optional label and token."
+    """Creates a cache key for the instance with an optional label and version.
+    The instance is uniquely defined based on the app, model and primary key of
+    the instance.
 
-    # If this is a function, pass `label' and `self` in as arguments
-    if callable(version):
+    A `label` is used to differentiate cache for an instance.
+
+    The `version` can be a scalar (i.e. a string or int), a function, instance
+    property or method.
+    """
+    if version is None:
+        version = '-'
+    elif callable(version):
         version = version(instance, label=label)
-    elif version is not None:
-        _version = getattr(instance, version)
-        # Call if a method
-        if callable(_version):
-            version = _version()
-        else:
-            version = _version
+    elif hasattr(instance, version):
+        version = getattr(instance, version)
+        if callable(version):
+            version = version()
 
-    # Construct cache key
     opts = instance._meta
-    key = INSTANCE_CACHE_KEY.format(opts.app_label, opts.module_name,
-                                    instance.pk)
+    key = [opts.app_label, opts.module_name, instance.pk, version]
 
-    if version:
-        key = u'{0}:{1}'.format(key, version)
-    if label:
-        key = u'{0}:{1}'.format(key, label)
-    return key
+    if label is not None:
+        key.append(label)
 
+    return CACHE_KEY_FUNC(key)
 
 class CacheProxy(object):
     def __init__(self, func, version, timeout, key_func):
