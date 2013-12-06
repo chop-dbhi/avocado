@@ -62,7 +62,7 @@ class Command(DataFieldCommand):
             for method in methods:
                 func = getattr(f, method)
                 if flush:
-                    func.flush()
+                    func.flush(f)
                 func()
             count += 1
             self._progress()

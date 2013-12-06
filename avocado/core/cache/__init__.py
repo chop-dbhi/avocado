@@ -1,1 +1,5 @@
-from .model import instance_cache_key, post_save_cache, pre_delete_uncache, cached_method, CacheQuerySet, CacheManager  # noqa
+from .model import instance_cache_key, cached_method  # noqa
+from .receivers import post_save_cache, pre_delete_uncache  # noqa
+from .managers import CacheManager  # noqa
+from .query import CacheQuerySet  # noqa
+from .proxy import CacheProxy  # noqa
