@@ -96,10 +96,11 @@ class Command(BaseCommand):
             backup_path=(backup_path and repr(backup_path) or backup_path),
             using=repr(database))
 
-        fp = \
-            open(os.path.join(migrations.migrations_dir(), next_filename), 'w')
-        fp.write(file_contents)
-        fp.close()
+        file_path = os.path.join(migrations.migrations_dir(), next_filename)
+
+        with open(file_path, 'w') as fout:
+            fout.write(file_contents)
+
         log.info(u'Created migration {0}'.format(next_filename))
 
         if not no_fake:

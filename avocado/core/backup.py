@@ -4,6 +4,7 @@ import sys
 import tempfile
 import logging
 from django.core import serializers, management
+from django.core.exceptions import ImproperlyConfigured
 from django.db import models, transaction, router, DEFAULT_DB_ALIAS, \
     DatabaseError, IntegrityError
 from avocado.models import DataField, DataConcept, DataConceptField, \
@@ -16,6 +17,17 @@ MIGRATION_MODEL_LABELS = ('avocado.datafield', 'avocado.dataconcept',
                           'avocado.dataconceptfield', 'avocado.datacategory')
 
 log = logging.getLogger(__name__)
+
+
+def _check_app():
+    from avocado.conf import settings
+    app_name = settings.METADATA_MIGRATION_APP
+    if not app_name or not models.get_app(app_name.split('.')[-1]):
+        raise ImproperlyConfigured('{0} is not a valid app name. The '
+                                   'backup/migration API requires '
+                                   'METADATA_MIGRATION_APP to be a valid '
+                                   'app name to be used.'
+                                   .format(settings.METADATA_MIGRATION_APP))
 
 
 def _fixture_filenames(dirname):
@@ -43,10 +55,12 @@ def full_fixture_path(name):
 
 def get_fixture_dir():
     from avocado.conf import settings
+    _check_app()
+
     fixture_dir = settings.METADATA_FIXTURE_DIR
     if fixture_dir:
         return fixture_dir
-    app = models.get_app(settings.METADATA_MIGRATION_APP)
+    app = models.get_app(settings.METADATA_MIGRATION_APP.split('.')[-1])
     if hasattr(app, '__path__'):
         # It's a 'models/' subpackage
         app_dir = os.path.dirname(os.path.dirname(app.__file__))
@@ -117,6 +131,8 @@ def safe_load(name, backup_path=None, using=DEFAULT_DB_ALIAS):
     the new fixture and falls back to the backup fixture if the load fails for
     any reason.
     """
+    _check_app()
+
     with transaction.commit_manually(using):
         # Create the backup fixture
         if backup_path:
