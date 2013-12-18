@@ -295,10 +295,10 @@ class DataQueryTestCase(TestCase):
         }
 
         exp_attrs = deepcopy(attrs)
-        exp_attrs['view'] = None
+        exp_attrs['view'] = [{'concept': 1}]
 
         self.assertEqual(DataQuery.validate(deepcopy(attrs), tree=Employee),
-                exp_attrs)
+                         exp_attrs)
 
     def test_parse(self):
         attrs = {
