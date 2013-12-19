@@ -98,7 +98,7 @@ class DataContextParserTestCase(TestCase):
         self.assertFalse(attrs['enabled'])
 
         # Object must be a dict
-        self.assertRaises(ValidationError, parsers.datacontext.validate, None)
+        self.assertRaises(ValidationError, parsers.datacontext.validate, 1)
 
         # Invalid logical operator
         attrs = parsers.datacontext.validate({'type': 'foo', 'children': []})
@@ -218,7 +218,7 @@ class DataViewParserTestCase(TestCase):
 
     def setUp(self):
         management.call_command('avocado', 'init', 'tests', publish=False,
-                concepts=False, quiet=True)
+                                concepts=False, quiet=True)
         f1 = DataField.objects.get(pk=1)
         f2 = DataField.objects.get(pk=2)
 
@@ -230,13 +230,40 @@ class DataViewParserTestCase(TestCase):
 
     def test_valid(self):
         # Single by id
+        self.assertEqual(parsers.dataview.validate([
+            {'concept': 1}
+        ], tree=Employee), [{'concept': 1}])
+
+        self.assertEqual(parsers.dataview.validate([
+            {'concept': 1, 'sort': 'desc'}
+        ], tree=Employee), [{'concept': 1, 'sort': 'desc'}])
+
+    def test_valid_legacy(self):
+        # Single by id
         self.assertEqual(parsers.dataview.validate({
             'columns': [1],
-        }, tree=Employee), None)
+        }, tree=Employee), [{'concept': 1}])
 
         self.assertEqual(parsers.dataview.validate({
             'ordering': [(1, 'desc')],
-        }, tree=Employee), None)
+        }, tree=Employee), [{
+            'visible': False,
+            'concept': 1,
+            'sort': 'desc',
+            'sort_index': 0,
+        }])
+
+    def test_invalid(self):
+        # Non-existent data field
+        facets = parsers.dataview.validate({'columns': [999]})
+        self.assertFalse(facets[0]['enabled'])
+        self.assertTrue(facets[0]['errors'])
+
+        # Invalid ordering
+        facets = parsers.dataview.validate({
+            'ordering': [[1, 'foo']],
+        })
+        self.assertTrue(facets[0]['warnings'])
 
     def test_apply(self):
         node = parsers.dataview.parse({
@@ -255,6 +282,9 @@ class DataViewParserTestCase(TestCase):
         }, tree=Employee)
         self.assertEqual(unicode(node.apply(Employee.objects.distinct()).query), 'SELECT DISTINCT "tests_employee"."id", "tests_office"."location", "tests_title"."name" FROM "tests_employee" INNER JOIN "tests_office" ON ("tests_employee"."office_id" = "tests_office"."id") LEFT OUTER JOIN "tests_title" ON ("tests_employee"."title_id" = "tests_title"."id")')
 
+        # Due to the use of distinct, the concept fields appear in the SELECT
+        # statement at this point. This is not a bug, but a requirement of SQL.
+        # These columns are stripped downstream by the exporter.
         node = parsers.dataview.parse({
             'ordering': [(1, 'desc')],
         }, tree=Employee)
@@ -285,16 +315,15 @@ class DataQueryParserTestCase(TestCase):
                 'value': 'CEO',
                 'language': 'Name is CEO'
             },
-            'view': {
-                'columns': [1],
-            }
+            'view': [{
+                'concept': 1,
+            }],
         }
 
         exp_attrs = deepcopy(attrs)
-        exp_attrs['view'] = None
 
-        self.assertEqual(parsers.dataquery.validate(deepcopy(attrs),
-            tree=Employee), exp_attrs)
+        self.assertEqual(parsers.dataquery.validate(attrs, tree=Employee),
+                         exp_attrs)
 
         # Only the context
         attrs = {
@@ -309,8 +338,8 @@ class DataQueryParserTestCase(TestCase):
         exp_attrs = deepcopy(attrs)
         exp_attrs['view'] = None
 
-        self.assertEqual(parsers.dataquery.validate(deepcopy(attrs),
-            tree=Employee), exp_attrs)
+        self.assertEqual(parsers.dataquery.validate(attrs, tree=Employee),
+                         exp_attrs)
 
         # Only the view
         attrs = {
@@ -318,12 +347,18 @@ class DataQueryParserTestCase(TestCase):
                 'ordering': [(1, 'desc')],
             }
         }
+
         exp_attrs = {
-            'context': {},
-            'view': None
+            'context': None,
+            'view': [{
+                'visible': False,
+                'concept': 1,
+                'sort': 'desc',
+                'sort_index': 0
+            }],
         }
         self.assertEqual(parsers.dataquery.validate(attrs, tree=Employee),
-                exp_attrs)
+                         exp_attrs)
 
     def test_parsed_node(self):
         # Make sure no context or view subnodes are created

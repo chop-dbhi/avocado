@@ -1,4 +1,4 @@
-import warnings
+from warnings import warn
 from modeltree.tree import trees
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from avocado.core import utils
@@ -70,8 +70,8 @@ class Condition(Node):
             self.field_key = field
         else:
             self.field_key = id
-            warnings.warn('The "id" key has been replaced with "field"',
-                          DeprecationWarning)
+            warn('The "id" key has been replaced with "field"',
+                 DeprecationWarning)
 
         self.concept_key = concept
         self.operator = operator
@@ -194,13 +194,18 @@ class Branch(Node):
 
 
 def validate(attrs, **context):
+    if not attrs:
+        return None
+
     if type(attrs) is not dict:
         raise ValidationError('Object must be of type dict')
 
-    if not attrs:
-        return attrs
-
     enabled = attrs.pop('enabled', None)
+
+    attrs.pop('errors', None)
+    attrs.pop('warnings', None)
+    errors = []
+    warnings = []
 
     if is_composite(attrs):
         from avocado.models import DataContext
@@ -213,10 +218,9 @@ def validate(attrs, **context):
             validate(cxt.json, **context)
             attrs['language'] = cxt.name
         except DataContext.DoesNotExist:
-            attrs['enabled'] = False
-            attrs.setdefault('errors', [])
-            attrs.append(u'DataContext "{0}" does not exist.'.format(
-                attrs['id']))
+            enabled = False
+            errors.append(u'DataContext "{0}" does not exist.'
+                          .format(attrs['id']))
 
     elif is_condition(attrs):
         from avocado.models import DataField, DataConcept
@@ -234,22 +238,26 @@ def validate(attrs, **context):
             node = parse(attrs, **context)
             attrs['language'] = node.language['language']
         except ObjectDoesNotExist:
-            attrs['enabled'] = False
-            attrs.setdefault('errors', [])
-            attrs['errors'].append('Field does not exist')
+            enabled = False
+            errors.append('Field does not exist')
 
     elif is_branch(attrs):
         if attrs['type'] not in LOGICAL_OPERATORS:
-            attrs['enabled'] = False
+            enabled = False
         else:
             map(lambda x: validate(x, **context), attrs['children'])
     else:
-        attrs['enabled'] = False
+        enabled = False
 
     # If this condition was originally disabled, ensure that decision is
     # persisted
     if enabled is False:
         attrs['enabled'] = False
+
+    if errors:
+        attrs['errors'] = errors
+    if warnings:
+        attrs['warnings'] = warnings
 
     return attrs
 
