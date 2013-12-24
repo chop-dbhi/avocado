@@ -153,7 +153,8 @@ class DataConceptManagerTestCase(TestCase):
                 concepts=False, quiet=True)
         self.is_manager = DataField.objects.get_by_natural_key('tests', 'employee', 'is_manager')
         self.salary = DataField.objects.get_by_natural_key('tests', 'title', 'salary')
-        self.category = DataCategory(published=False).save()
+        DataCategory(published=False).save()
+        self.category = DataCategory.objects.get(pk=1)
 
     def test_published(self):
         concept = DataConcept(published=True)
