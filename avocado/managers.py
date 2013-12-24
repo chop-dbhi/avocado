@@ -52,6 +52,11 @@ class DataConceptQuerySet(PublishedQuerySet):
         sites = Q(sites=None) | Q(sites__id=django_settings.SITE_ID)
         published = published.filter(sites)
 
+        # All published concepts with a non-empty category must have the
+        # category published as well in order for it to be visible.
+        category_published = Q(category=None) | Q(category__published=True)
+        published = published.filter(category_published)
+
         # Concepts that contain at least one unpublished or archived datafield
         # are removed from the set to prevent exposing unprepared data
         from avocado.models import DataField
