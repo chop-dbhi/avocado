@@ -10,7 +10,7 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 from guardian.shortcuts import assign
 from avocado.models import (DataField, DataConcept, DataConceptField,
-    DataContext, DataView, DataQuery)
+    DataContext, DataView, DataQuery, DataCategory)
 from ...models import Employee
 
 
@@ -153,6 +153,7 @@ class DataConceptManagerTestCase(TestCase):
                 concepts=False, quiet=True)
         self.is_manager = DataField.objects.get_by_natural_key('tests', 'employee', 'is_manager')
         self.salary = DataField.objects.get_by_natural_key('tests', 'title', 'salary')
+        self.category = DataCategory(published=False).save()
 
     def test_published(self):
         concept = DataConcept(published=True)
@@ -168,6 +169,17 @@ class DataConceptManagerTestCase(TestCase):
         self.salary.save()
 
         # Now published, it will appear
+        self.assertEqual([x.pk for x in DataConcept.objects.published()], [1])
+
+        # Set the category to be an unpublished category and it should no
+        # longer appear.
+        concept.category = self.category
+        concept.save()
+        self.assertEqual([x.pk for x in DataConcept.objects.published()], [])
+
+        # Publish the category and the concept should appear again
+        self.category.published = True
+        self.category.save()
         self.assertEqual([x.pk for x in DataConcept.objects.published()], [1])
 
         user1 = User.objects.create_user('user1', 'user1')
