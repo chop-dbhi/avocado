@@ -201,6 +201,11 @@ class DataConceptManagerTestCase(TestCase):
         # `user2` is not assigned
         self.assertEqual([x.pk for x in DataConcept.objects.published(user2)], [])
 
+        # Remove the fields from the concept and it should no longer appear
+        # as published.
+        DataConceptField.objects.filter(concept=concept).delete()
+        self.assertEqual([x.pk for x in DataConcept.objects.published()], [])
+
 
 class DataContextTestCase(TestCase):
     def test_init(self):

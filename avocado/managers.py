@@ -41,6 +41,8 @@ class DataConceptQuerySet(PublishedQuerySet):
         """Concepts can be restricted to one or more sites, so the published
         method is extended to support filtering by site. In addition, concepts
         should not be visible if their associated fields are not all available.
+        Also, concepts with an unpublished category are not visible. Finally,
+        concepts with no fields are not considered visible.
         """
         published = super(DataConceptQuerySet, self).published()
 
@@ -74,7 +76,8 @@ class DataConceptQuerySet(PublishedQuerySet):
             fields_q = fields_q | Q(pk__in=restricted_fields)
 
         shadowed = DataField.objects.filter(fields_q)
-        concepts = published.exclude(fields__in=shadowed).distinct()
+        concepts = published.exclude(fields__in=shadowed) \
+            .exclude(fields=None).distinct()
         return concepts
 
 
