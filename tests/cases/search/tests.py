@@ -21,10 +21,12 @@ class FieldSearchTest(SearchTest):
 
     def test_field_match(self):
         "Search on field-level properties (e.g. name)"
-        location = DataField.objects.get_by_natural_key('search.office.location')
+        location = DataField.objects\
+            .get_by_natural_key('search.office.location')
         boss = DataField.objects.get_by_natural_key('search.title.boss')
         salary = DataField.objects.get_by_natural_key('search.title.salary')
-        is_manager = DataField.objects.get_by_natural_key('search.employee.is_manager')
+        is_manager = DataField.objects\
+            .get_by_natural_key('search.employee.is_manager')
 
         search = DataField.objects.search
 
@@ -35,15 +37,24 @@ class FieldSearchTest(SearchTest):
 
     def test_model_match(self):
         "Search on model-level properties (e.g. name)"
-        office_fields = sorted(list(DataField.objects.filter(model_name='office').values_list('pk', flat=True)))
-        title_fields = sorted(list(DataField.objects.filter(model_name='title').values_list('pk', flat=True)))
-        employee_fields = sorted(list(DataField.objects.filter(model_name='employee').values_list('pk', flat=True)))
+        office_fields = sorted(list(DataField.objects
+                                    .filter(model_name='office')
+                                    .values_list('pk', flat=True)))
+        title_fields = sorted(list(DataField.objects
+                                   .filter(model_name='title')
+                                   .values_list('pk', flat=True)))
+        employee_fields = sorted(list(DataField.objects
+                                      .filter(model_name='employee')
+                                      .values_list('pk', flat=True)))
 
         search = DataField.objects.search
 
-        self.assertEqual(sorted([x.object.pk for x in search('office')]), office_fields)
-        self.assertEqual(sorted([x.object.pk for x in search('title')]), title_fields)
-        self.assertEqual(sorted([x.object.pk for x in search('employee')]), employee_fields)
+        self.assertEqual(sorted([x.object.pk for x in search('office')]),
+                         office_fields)
+        self.assertEqual(sorted([x.object.pk for x in search('title')]),
+                         title_fields)
+        self.assertEqual(sorted([x.object.pk for x in search('employee')]),
+                         employee_fields)
 
     def test_data(self):
         "Test search via the data itself."
@@ -83,15 +94,24 @@ class ConceptSearchTest(SearchTest):
 
     def test_model_match(self):
         "Search on model-level properties (e.g. name)"
-        office_concepts = sorted(list(DataConcept.objects.filter(fields__model_name='office').values_list('pk', flat=True)))
-        title_concepts = sorted(list(DataConcept.objects.filter(fields__model_name='title').values_list('pk', flat=True)))
-        employee_concepts = sorted(list(DataConcept.objects.filter(fields__model_name='employee').values_list('pk', flat=True)))
+        office_concepts = sorted(list(DataConcept.objects
+                                      .filter(fields__model_name='office')
+                                      .values_list('pk', flat=True)))
+        title_concepts = sorted(list(DataConcept.objects
+                                     .filter(fields__model_name='title')
+                                     .values_list('pk', flat=True)))
+        employee_concepts = sorted(list(DataConcept.objects
+                                        .filter(fields__model_name='employee')
+                                        .values_list('pk', flat=True)))
 
         search = DataConcept.objects.search
 
-        self.assertEqual(sorted([x.object.pk for x in search('office')]), office_concepts)
-        self.assertEqual(sorted([x.object.pk for x in search('title')]), title_concepts)
-        self.assertEqual(sorted([x.object.pk for x in search('employee')]), employee_concepts)
+        self.assertEqual(sorted([x.object.pk for x in search('office')]),
+                         office_concepts)
+        self.assertEqual(sorted([x.object.pk for x in search('title')]),
+                         title_concepts)
+        self.assertEqual(sorted([x.object.pk for x in search('employee')]),
+                         employee_concepts)
 
     def test_data(self):
         "Test search via the data itself."
@@ -105,4 +125,5 @@ class ConceptSearchTest(SearchTest):
                         self.assertTrue(c in [x.object for x in DataConcept.objects.search(v)])
 
     def test_partial(self):
-        self.assertEqual(len(DataConcept.objects.search('Eri', partial=True)), 1)
+        results = DataConcept.objects.search('Eri', partial=True)
+        self.assertEqual(len(results), 1)
