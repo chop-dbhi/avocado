@@ -2,14 +2,47 @@ import logging
 from django.db import models
 from django.db.models import Q
 from django.db import transaction
-from django.conf import settings as django_settings
+from django.conf import settings
 from django.db.models.manager import ManagerDescriptor
 from django.core.exceptions import ImproperlyConfigured
-from avocado.conf import OPTIONAL_DEPS, requires_dep, settings
+from avocado.conf import OPTIONAL_DEPS, requires_dep
 from avocado.core.managers import PublishedManager, PublishedQuerySet
 
 
 logger = logging.getLogger(__name__)
+
+
+class DataSearchMixin(models.Manager):
+    @requires_dep('haystack')
+    def search(self, content, queryset=None, max_results=None, partial=False,
+               using=None):
+        from haystack.query import RelatedSearchQuerySet
+        from haystack.inputs import AutoQuery
+        # Limit to the model bound to this manager, e.g. DataConcept.
+        # `load_all` ensures a single database hit when loading the objects
+        # that match
+        sqs = RelatedSearchQuerySet().models(self.model).load_all()
+
+        # If a non-default backend is being used, set which backend is to
+        # be used.
+        if using is not None:
+            sqs = sqs.using(using)
+
+        if partial:
+            # Autocomplete only works with N-gram fields
+            sqs = sqs.autocomplete(text_auto=content)
+        else:
+            # Automatically handles advanced search syntax for negations and
+            # quoted strings
+            sqs = sqs.filter(text=AutoQuery(content))
+
+        if queryset is not None:
+            sqs = sqs.load_all_queryset(self.model, queryset)
+
+        if max_results:
+            return sqs[:max_results]
+
+        return sqs
 
 
 class DataFieldQuerySet(PublishedQuerySet):
@@ -24,7 +57,7 @@ class DataFieldQuerySet(PublishedQuerySet):
 
         # All published concepts associated with the current site
         # (or no site)
-        sites = Q(sites=None) | Q(sites__id=django_settings.SITE_ID)
+        sites = Q(sites=None) | Q(sites__id=settings.SITE_ID)
         published = published.filter(sites)
 
         if user:
@@ -51,7 +84,7 @@ class DataConceptQuerySet(PublishedQuerySet):
 
         # All published concepts associated with the current site
         # (or no site)
-        sites = Q(sites=None) | Q(sites__id=django_settings.SITE_ID)
+        sites = Q(sites=None) | Q(sites__id=settings.SITE_ID)
         published = published.filter(sites)
 
         # All published concepts with a non-empty category must have the
@@ -94,7 +127,7 @@ class DataFieldManagerDescriptor(ManagerDescriptor):
         return super(DataFieldManagerDescriptor, self).__get__(instance, type)
 
 
-class DataFieldManager(PublishedManager):
+class DataFieldManager(PublishedManager, DataSearchMixin):
     "Manager for the `DataField` model."
 
     def contribute_to_class(self, model, name):
@@ -128,47 +161,11 @@ class DataFieldManager(PublishedManager):
             values = [app_name, model_name, field_name]
         return queryset.get(**dict(zip(keys, values)))
 
-    @requires_dep('haystack')
-    def search(self, content, queryset=None, max_results=None, partial=False):
-        if not settings.FIELD_SEARCH_ENABLED:
-            logger.warn('DataField search not enabled')
-            return []
 
-        from haystack.query import RelatedSearchQuerySet
-        sqs = RelatedSearchQuerySet().models(self.model).load_all()
-        if partial:
-            sqs = sqs.autocomplete(text_auto=content)
-        else:
-            sqs = sqs.auto_query(content)
-        if queryset is not None:
-            sqs = sqs.load_all_queryset(self.model, queryset)
-        if max_results:
-            return sqs[:max_results]
-        return sqs
-
-
-class DataConceptManager(PublishedManager):
+class DataConceptManager(PublishedManager, DataSearchMixin):
     "Manager for the `DataConcept` model."
     def get_query_set(self):
         return DataConceptQuerySet(self.model, using=self._db)
-
-    @requires_dep('haystack')
-    def search(self, content, queryset=None, max_results=None, partial=False):
-        if not settings.CONCEPT_SEARCH_ENABLED:
-            logger.warn('DataConcept search not enabled')
-            return []
-
-        from haystack.query import RelatedSearchQuerySet
-        sqs = RelatedSearchQuerySet().models(self.model).load_all()
-        if partial:
-            sqs = sqs.autocomplete(text_auto=content)
-        else:
-            sqs = sqs.auto_query(content)
-        if queryset is not None:
-            sqs = sqs.load_all_queryset(self.model, queryset)
-        if max_results:
-            return sqs[:max_results]
-        return sqs
 
     @transaction.commit_on_success
     def create_from_field(self, field, save=True, **kwargs):

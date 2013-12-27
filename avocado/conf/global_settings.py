@@ -92,10 +92,6 @@ QUERY_PROCESSORS = {
     'default': 'avocado.query.pipeline.QueryProcessor',
 }
 
-# Toggles for enabling search
-CONCEPT_SEARCH_ENABLED = True
-FIELD_SEARCH_ENABLED = False
-
 # Custom validation error and warnings messages
 VALIDATION_ERRORS = {}
 VALIDATION_WARNINGS = {}
