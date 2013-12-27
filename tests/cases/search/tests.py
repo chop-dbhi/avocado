@@ -58,14 +58,16 @@ class FieldSearchTest(SearchTest):
 
     def test_data(self):
         "Test search via the data itself."
-        fields = DataField.objects.all()
+        values = [
+            ('Jones', [6]),
+            ('Programmer', [2]),
+            ('Erick', [5]),
+            ('CEO', [2]),
+        ]
 
-        # Ensure all enumerable, searchable fields match for every value
-        # they contain
-        for f in fields:
-            if f.simple_type != 'boolean' and f.enumerable or f.searchable:
-                for v in f.values():
-                    self.assertTrue(f in [x.object for x in DataField.objects.search(v)])
+        for v, ids in values:
+            results = DataField.objects.search(v)
+            self.assertEqual(ids, sorted([r.object.pk for r in results]))
 
     def test_partial(self):
         self.assertEqual(len(DataField.objects.search('Eri', partial=True)), 1)
@@ -115,14 +117,17 @@ class ConceptSearchTest(SearchTest):
 
     def test_data(self):
         "Test search via the data itself."
-        concepts = DataConcept.objects.all()
 
-        # Ensure each concept match for a values for each associated field
-        for c in concepts:
-            for f in c.fields.all():
-                if f.simple_type != 'boolean' and f.enumerable or f.searchable:
-                    for v in f.values():
-                        self.assertTrue(c in [x.object for x in DataConcept.objects.search(v)])
+        values = [
+            ('Jones', [6]),
+            ('Programmer', [2]),
+            ('Erick', [5]),
+            ('CEO', [2]),
+        ]
+
+        for v, ids in values:
+            results = DataConcept.objects.search(v)
+            self.assertEqual(ids, sorted([r.object.pk for r in results]))
 
     def test_partial(self):
         results = DataConcept.objects.search('Eri', partial=True)
