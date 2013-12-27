@@ -2,7 +2,7 @@ import warnings
 from avocado.conf import dep_supported, raise_dep_error
 
 if not dep_supported('objectset'):
-    raise raise_dep_error('objectset')
+    raise_dep_error('objectset')
 
 from objectset.models import Objectset, SetObject  # noqa
 
