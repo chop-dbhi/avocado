@@ -17,7 +17,7 @@ class FieldSearchTest(SearchTest):
     def test_empty(self):
         self.assertEqual(len(DataField.objects.published()), 12)
         self.assertEqual(RelatedSearchQuerySet().models(DataField).count(), 12)
-        self.assertEqual(len(DataField.objects.search('')), 12)
+        self.assertEqual(len(DataField.objects.search('')), 0)
 
     def test_field_match(self):
         "Search on field-level properties (e.g. name)"
@@ -61,6 +61,12 @@ class FieldSearchTest(SearchTest):
 
 
 class ConceptSearchTest(SearchTest):
+    def test_empty(self):
+        self.assertEqual(len(DataConcept.objects.published()), 12)
+        self.assertEqual(RelatedSearchQuerySet().models(DataConcept).count(),
+                         12)
+        self.assertEqual(len(DataConcept.objects.search('')), 0)
+
     def test_field_match(self):
         "Search on field-level properties (e.g. name)"
         location = DataConcept.objects.get(name='Location')
