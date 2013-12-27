@@ -4,9 +4,9 @@ from optparse import make_option
 from django.db.models import get_model, get_models, get_app, AutoField, \
     ForeignKey, OneToOneField, ManyToManyField, FieldDoesNotExist
 from django.core.management.base import BaseCommand
+from avocado.conf import dep_supported
 from avocado.models import DataField, DataConcept
 from avocado.lexicon.models import Lexicon
-from avocado.sets.models import ObjectSet
 from avocado.core import utils
 
 
@@ -127,7 +127,11 @@ class Command(BaseCommand):
 
             for model in pending_models:
                 lexicon = issubclass(model, Lexicon)
-                objectset = issubclass(model, ObjectSet)
+                if dep_supported('objectset'):
+                    from objectset.models import ObjectSet
+                    objectset = issubclass(model, ObjectSet)
+                else:
+                    objectset = False
 
                 model_name = model._meta.object_name.lower()
 
@@ -172,9 +176,15 @@ class Command(BaseCommand):
         if isinstance(field, ManyToManyField):
             return
 
+        if dep_supported('objectset'):
+            from objectset.models import ObjectSet
+            objectset = issubclass(field.model, ObjectSet)
+        else:
+            objectset = False
+
         # Lexicons and ObjectSets are represented via their primary key, so
         # these may pass
-        if not issubclass(field.model, (Lexicon, ObjectSet)):
+        if not objectset and not issubclass(field.model, Lexicon):
             # Check for primary key, and foreign key fields
             if isinstance(field, self.key_field_types) and not include_keys:
                 return

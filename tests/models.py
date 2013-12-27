@@ -1,6 +1,6 @@
 from django.db import models
 from avocado.lexicon.models import Lexicon
-from avocado.sets.models import ObjectSet, SetObject
+from objectset.models import ObjectSet, SetObject
 
 
 class Office(models.Model):
@@ -53,7 +53,9 @@ class Record(models.Model):
 
 class RecordSet(ObjectSet):
     set_object_rel = 'records'
+    label_field = 'name'
 
+    name = models.CharField(max_length=20)
     records = models.ManyToManyField(Record, through='RecordSetObject')
 
 

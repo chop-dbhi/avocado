@@ -12,14 +12,13 @@ from avocado.core import utils
 from avocado.core.models import Base, BasePlural, PublishArchiveMixin
 from avocado.core.cache import post_save_cache, pre_delete_uncache, \
     cached_method
-from avocado.conf import settings
+from avocado.conf import settings, dep_supported
 from avocado import managers, history
 from avocado.query.models import AbstractDataView, AbstractDataContext, \
     AbstractDataQuery
 from avocado.query.translators import registry as translators
 from avocado.query.operators import registry as operators
 from avocado.lexicon.models import Lexicon
-from avocado.sets.models import ObjectSet
 from avocado.stats.agg import Aggregator
 from avocado import formatters
 
@@ -172,8 +171,17 @@ class DataField(BasePlural, PublishArchiveMixin):
     def field(self):
         "Returns the field object this datafield represents."
         model = self.model
-        if model and issubclass(model, (Lexicon, ObjectSet)):
-            return model._meta.pk
+
+        if model:
+            if issubclass(model, Lexicon):
+                return model._meta.pk
+
+            if dep_supported('objectset'):
+                from objectset.models import ObjectSet
+
+                if issubclass(model, ObjectSet):
+                    return model._meta.pk
+
         return self.real_field
 
     @property
@@ -210,8 +218,13 @@ class DataField(BasePlural, PublishArchiveMixin):
         is the pk field. All other fields on the class are treated as
         normal datafields.
         """
-        return self.model and issubclass(self.model, ObjectSet) \
-            and self.field == self.model._meta.pk
+        if dep_supported('objectset'):
+            from objectset.models import ObjectSet
+
+            return self.model and issubclass(self.model, ObjectSet) \
+                and self.field == self.model._meta.pk
+
+        return False
 
     @property
     def searchable(self):
@@ -283,7 +296,11 @@ class DataField(BasePlural, PublishArchiveMixin):
         if self.lexicon:
             return tuple(self.model.objects.values_list('label', flat=True))
         if self.objectset:
-            return tuple(self.model.objects.values_list('name', flat=True))
+            if hasattr(self.model, 'label_field'):
+                field = self.model.label_field
+            else:
+                field = 'pk'
+            return tuple(self.model.objects.values_list(field, flat=True))
         # Unicode each value, use an iterator here to prevent loading the
         # raw values in memory
         return map(smart_unicode, iter(self.values_list()))

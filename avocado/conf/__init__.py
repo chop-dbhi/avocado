@@ -149,13 +149,41 @@ class Guardian(Dependency):
             return False
 
 
+class Objectset(Dependency):
+    """django-objectset provides a set-like abstract model for Django and
+    makes it trivial to creates sets of objects using common set operations.
+
+    Install by doing `pip install django-objectset`. Define models that
+    subclass `objectset.models.ObjectSet`.
+    """
+
+    name = 'objectset'
+
+    def test_install(self):
+        try:
+            import objectset  # noqa
+        except ImportError:
+            return False
+
+
 # Keep track of the officially supported apps and libraries used for various
 # features.
 OPTIONAL_DEPS = {
     'haystack': Haystack(),
     'openpyxl': Openpyxl(),
     'guardian': Guardian(),
+    'objectset': Objectset(),
 }
+
+
+def dep_supported(lib):
+    return bool(OPTIONAL_DEPS[lib])
+
+
+def raise_dep_error(lib):
+    dep = OPTIONAL_DEPS[lib]
+    raise ImproperlyConfigured(u'{0} must be installed to use '
+                               'this feature.\n\n{1}'.format(lib, dep.__doc__))
 
 
 def requires_dep(lib):
@@ -165,9 +193,7 @@ def requires_dep(lib):
         def wrapper(*args, **kwargs):
             dep = OPTIONAL_DEPS[lib]
             if not dep:
-                raise ImproperlyConfigured(u'{0} must be installed to use '
-                                           'this feature.\n\n{1}'.format(
-                                               lib, dep.__doc__))
+                raise_dep_error(lib)
             return f(*args, **kwargs)
         return wrapper
     return decorator
