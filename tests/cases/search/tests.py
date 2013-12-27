@@ -37,15 +37,13 @@ class FieldSearchTest(SearchTest):
 
     def test_model_match(self):
         "Search on model-level properties (e.g. name)"
-        office_fields = sorted(list(DataField.objects
-                                    .filter(model_name='office')
-                                    .values_list('pk', flat=True)))
-        title_fields = sorted(list(DataField.objects
-                                   .filter(model_name='title')
-                                   .values_list('pk', flat=True)))
-        employee_fields = sorted(list(DataField.objects
-                                      .filter(model_name='employee')
-                                      .values_list('pk', flat=True)))
+        office_fields = sorted(DataField.objects.filter(model_name='office')
+                               .values_list('pk', flat=True))
+        title_fields = sorted(DataField.objects.filter(model_name='title')
+                              .values_list('pk', flat=True))
+        employee_fields = sorted(DataField.objects
+                                 .filter(model_name='employee')
+                                 .values_list('pk', flat=True))
 
         search = DataField.objects.search
 
@@ -96,15 +94,15 @@ class ConceptSearchTest(SearchTest):
 
     def test_model_match(self):
         "Search on model-level properties (e.g. name)"
-        office_concepts = sorted(list(DataConcept.objects
-                                      .filter(fields__model_name='office')
-                                      .values_list('pk', flat=True)))
-        title_concepts = sorted(list(DataConcept.objects
-                                     .filter(fields__model_name='title')
-                                     .values_list('pk', flat=True)))
-        employee_concepts = sorted(list(DataConcept.objects
-                                        .filter(fields__model_name='employee')
-                                        .values_list('pk', flat=True)))
+        office_concepts = sorted(DataConcept.objects
+                                 .filter(fields__model_name='office')
+                                 .values_list('pk', flat=True))
+        title_concepts = sorted(DataConcept.objects
+                                .filter(fields__model_name='title')
+                                .values_list('pk', flat=True))
+        employee_concepts = sorted(DataConcept.objects
+                                   .filter(fields__model_name='employee')
+                                   .values_list('pk', flat=True))
 
         search = DataConcept.objects.search
 
