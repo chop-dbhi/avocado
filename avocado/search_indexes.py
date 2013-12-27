@@ -13,29 +13,22 @@ if not getattr(settings, 'CONCEPT_SEARCH_ENABLED', True) or \
                   'HAYSTACK_CONNECTIONS entry in settings.')
 
 
-class DataConceptIndex(indexes.SearchIndex, indexes.Indexable):
+class DataIndex(indexes.SearchIndex):
     text = indexes.CharField(document=True, use_template=True)
     text_auto = indexes.EdgeNgramField(use_template=True)
 
+    def index_queryset(self, using=None):
+        return self.get_model().objects.published()
+
+    def load_all_queryset(self):
+        return self.index_queryset()
+
+
+class DataConceptIndex(DataIndex, indexes.Indexable):
     def get_model(self):
         return DataConcept
 
-    def index_queryset(self, using=None):
-        return self.get_model().objects.published()
 
-    def load_all_queryset(self):
-        return self.index_queryset()
-
-
-class DataFieldIndex(indexes.SearchIndex, indexes.Indexable):
-    text = indexes.CharField(document=True, use_template=True)
-    text_auto = indexes.EdgeNgramField(use_template=True)
-
+class DataFieldIndex(DataIndex, indexes.Indexable):
     def get_model(self):
         return DataField
-
-    def index_queryset(self, using=None):
-        return self.get_model().objects.published()
-
-    def load_all_queryset(self):
-        return self.index_queryset()
