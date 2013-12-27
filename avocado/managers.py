@@ -129,19 +129,34 @@ class DataFieldManager(PublishedManager):
         return queryset.get(**dict(zip(keys, values)))
 
     @requires_dep('haystack')
-    def search(self, content, queryset=None, max_results=None, partial=False, using=None):
+    def search(self, content, queryset=None, max_results=None, partial=False,
+               using=None):
         from haystack.query import RelatedSearchQuerySet
+        from haystack.inputs import AutoQuery
+        # Limit to the model bound to this manager, e.g. DataConcept.
+        # `load_all` ensures a single database hit when loading the objects
+        # that match
         sqs = RelatedSearchQuerySet().models(self.model).load_all()
+
+        # If a non-default backend is being used, set which backend is to
+        # be used.
         if using is not None:
             sqs = sqs.using(using)
+
         if partial:
+            # Autocomplete only works with N-gram fields
             sqs = sqs.autocomplete(text_auto=content)
         else:
-            sqs = sqs.auto_query(content)
+            # Automatically handles advanced search syntax for negations and
+            # quoted strings
+            sqs = sqs.filter(text=AutoQuery(content))
+
         if queryset is not None:
             sqs = sqs.load_all_queryset(self.model, queryset)
+
         if max_results:
             return sqs[:max_results]
+
         return sqs
 
 
@@ -151,19 +166,34 @@ class DataConceptManager(PublishedManager):
         return DataConceptQuerySet(self.model, using=self._db)
 
     @requires_dep('haystack')
-    def search(self, content, queryset=None, max_results=None, partial=False, using=None):
+    def search(self, content, queryset=None, max_results=None, partial=False,
+               using=None):
         from haystack.query import RelatedSearchQuerySet
+        from haystack.inputs import AutoQuery
+        # Limit to the model bound to this manager, e.g. DataConcept.
+        # `load_all` ensures a single database hit when loading the objects
+        # that match
         sqs = RelatedSearchQuerySet().models(self.model).load_all()
+
+        # If a non-default backend is being used, set which backend is to
+        # be used.
         if using is not None:
             sqs = sqs.using(using)
+
         if partial:
+            # Autocomplete only works with N-gram fields
             sqs = sqs.autocomplete(text_auto=content)
         else:
-            sqs = sqs.auto_query(content)
+            # Automatically handles advanced search syntax for negations and
+            # quoted strings
+            sqs = sqs.filter(text=AutoQuery(content))
+
         if queryset is not None:
             sqs = sqs.load_all_queryset(self.model, queryset)
+
         if max_results:
             return sqs[:max_results]
+
         return sqs
 
     @transaction.commit_on_success
