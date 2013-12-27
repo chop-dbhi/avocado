@@ -78,7 +78,7 @@ class Command(BaseCommand):
                              'this?\n This will overwrite any previous '
                              'changes made. Type "yes" to continue: ')
             if resp.lower() != 'yes':
-                print 'Initialization operation cancelled'
+                print('Initialization operation cancelled')
                 return
 
         for label in args:
@@ -102,7 +102,8 @@ class Command(BaseCommand):
                 model = get_model(app_name, model_name)
 
                 if model is None:
-                    print u'Cannot find model "{0}", skipping...'.format(label)
+                    print(u'Cannot find model "{0}", skipping...'
+                          .format(label))
                     continue
 
                 # Specific field
@@ -121,7 +122,7 @@ class Command(BaseCommand):
             else:
                 app = get_app(app_name)
                 if app is None:
-                    print u'Cannot find app "{0}", skipping...'.format(label)
+                    print(u'Cannot find app "{0}", skipping...'.format(label))
                     continue
                 pending_models.extend(get_models(app))
 
@@ -154,14 +155,14 @@ class Command(BaseCommand):
                     updated += 1
 
             if added == 1:
-                print u'1 field added for {0}'.format(label)
+                print(u'1 field added for {0}'.format(label))
             elif added > 1:
-                print u'{0} fields added for {1}'.format(added, label)
+                print(u'{0} fields added for {1}'.format(added, label))
 
             if updated == 1:
-                print u'1 field updated for {0}'.format(label)
+                print(u'1 field updated for {0}'.format(label))
             elif updated > 1:
-                print u'{0} fields updated for {1}'.format(updated, label)
+                print(u'{0} fields updated for {1}'.format(updated, label))
 
         if options.get('quiet'):
             sys.stdout = self.stdout
@@ -187,11 +188,15 @@ class Command(BaseCommand):
         if not objectset and not issubclass(field.model, Lexicon):
             # Check for primary key, and foreign key fields
             if isinstance(field, self.key_field_types) and not include_keys:
+                print(u'({0}) {1}.{2} is a primary or foreign key. Skipping...'
+                      .format(app_name, model_name, field.name))
                 return
 
             # Ignore non-editable fields since in most cases they are for
             # managment purposes
             if not field.editable and not include_non_editable:
+                print(u'({0}) {1}.{2} is not editable. Skipping...'
+                      .format(app_name, model_name, field.name))
                 return
 
         # All but the field name is case-insensitive, do initial lookup
