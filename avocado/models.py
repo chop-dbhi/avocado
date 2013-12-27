@@ -171,13 +171,17 @@ class DataField(BasePlural, PublishArchiveMixin):
     def field(self):
         "Returns the field object this datafield represents."
         model = self.model
+
         if model:
             if issubclass(model, Lexicon):
                 return model._meta.pk
+
             if dep_supported('objectset'):
                 from objectset.models import ObjectSet
+
                 if issubclass(model, ObjectSet):
                     return model._meta.pk
+
         return self.real_field
 
     @property
@@ -216,8 +220,10 @@ class DataField(BasePlural, PublishArchiveMixin):
         """
         if dep_supported('objectset'):
             from objectset.models import ObjectSet
+
             return self.model and issubclass(self.model, ObjectSet) \
                 and self.field == self.model._meta.pk
+
         return False
 
     @property
