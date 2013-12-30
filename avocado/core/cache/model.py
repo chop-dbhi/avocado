@@ -49,7 +49,7 @@ def cached_method(func=None, version=None, timeout=NEVER_EXPIRE,
             # This check is here to be ensure transparency of the augmented
             # methods below. The agumented methods will be a no-op since the
             # `func_self` will never be set as long as this condition is true.
-            if not settings.DATA_CACHE_ENABLED:
+            if not settings.DATA_CACHE_ENABLED or args or kwargs:
                 return func(self, *args, **kwargs)
             return cache_proxy.get_or_set(self, *args, **kwargs)
 
