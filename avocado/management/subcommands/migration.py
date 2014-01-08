@@ -35,6 +35,15 @@ log = logging.getLogger(__name__)
 
 _help = """\
 Simple utility for dumping Avocado metadata.
+
+The migration command requires the METADATA_MIGRATION_APP setting be defined in the AVOCADO dict:
+
+AVOCADO = {
+    'METADATA_MIGRATION_APP': 'someapp',
+    ...
+}
+
+See https://github.com/cbmi/avocado/wiki/Managing-your-metadata.\
 """
 
 
