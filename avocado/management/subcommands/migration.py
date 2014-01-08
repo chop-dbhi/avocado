@@ -49,7 +49,7 @@ class Command(BaseCommand):
         make_option('--backup-path', action='store', dest='backup_path',
                     help='Define a non-temporary path for the migration '
                     'backup.'),
-        make_option('--no-fake', action='store_false', help='Prevents the new '
+        make_option('--no-fake', action='store_true', help='Prevents the new '
                     'migration from being immediately faked in the database.')
     )
 
