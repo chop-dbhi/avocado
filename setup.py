@@ -54,7 +54,7 @@ kwargs = {
     'description': 'Metadata APIs for Django',
     'license': 'BSD',
     'keywords': 'query metadata harvest orm',
-    'url': 'http://cbmi.github.com/avocado/',
+    'url': 'http://github.com/cbmi/avocado',
     'classifiers': [
         'Development Status :: 5 - Production/Stable',
         'License :: OSI Approved :: BSD License',
