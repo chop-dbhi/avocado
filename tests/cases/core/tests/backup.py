@@ -7,6 +7,13 @@ from django.test.utils import override_settings
 TEST_APP_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 
+def _get_migrations():
+    from south.models import MigrationHistory
+    return list(MigrationHistory.objects.all()
+                .order_by('id')
+                .values_list('migration', flat=True))
+
+
 @override_settings(SOUTH_TESTS_MIGRATE=True)
 class BackupTestCase(TransactionTestCase):
     def test_fixture_dir(self):
@@ -55,6 +62,7 @@ class BackupTestCase(TransactionTestCase):
 
     def test_migration_call(self):
         from avocado.core import backup
+        from south import migration
         management.call_command('avocado', 'migration')
         migration_dir = os.path.join(TEST_APP_DIR, 'migrations')
         self.assertTrue(os.path.exists(os.path.join(migration_dir,
@@ -63,6 +71,35 @@ class BackupTestCase(TransactionTestCase):
                                '0002_avocado_metadata_migration.py'))
         os.remove(os.path.join(backup.get_fixture_dir(),
                                '0002_avocado_metadata.json'))
+        # TransactionTestCase rolls back the database after each test case,
+        # but South does not know this, courtesy of caching in
+        # migration.Migrations.
+        migration.Migrations._clear_cache()
+
+    def test_migration_call_no_fake(self):
+        # This test superficially looks like it tests the --no-fake switch,
+        # but it doesn't fully succeed, because the Django managemement
+        # API can't duplicate the behavior of command line boolean switches.
+        # The --no-fake switch bug (#171) can't be tested via the internal
+        # API.  In fact, any test case for a boolean switch has to
+        # execute a shell command.  That opens a can of worms, because
+        # to perform a migration in a shell command, we would have to replace
+        # TransactionTestCase with TestCase, which would require substantial
+        # changes to this test class.  This is an awful lot of work for one
+        # trivial bug fix.
+        from avocado.core import backup
+        from south import migration
+        management.call_command('avocado', 'migration', no_fake=True)
+        migrations = _get_migrations()
+        self.assertEqual(migrations, [])
+        migration_dir = os.path.join(TEST_APP_DIR, 'migrations')
+        self.assertTrue(os.path.exists(os.path.join(migration_dir,
+                                       '0002_avocado_metadata_migration.py')))
+        os.remove(os.path.join(migration_dir,
+                               '0002_avocado_metadata_migration.py'))
+        os.remove(os.path.join(backup.get_fixture_dir(),
+                               '0002_avocado_metadata.json'))
+        migration.Migrations._clear_cache()
 
     def test_migration(self):
         management.call_command('migrate', 'core')
