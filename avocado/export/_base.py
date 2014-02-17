@@ -68,7 +68,8 @@ class BaseExporter(object):
         If `offset` is defined, only rows that are produced after the offset
         index are returned.
 
-        If `limit` is defined, only rows up the
+        If `limit` is defined, once the limit has been reached (or the
+        iterator is exhausted), the loop will exit.
         """
         emitted = 0
         unique_rows = set()
