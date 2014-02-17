@@ -74,4 +74,8 @@ class BaseExporter(object):
             yield self._format_row(_row, **kwargs)
 
     def write(self, iterable, *args, **kwargs):
-        raise NotImplemented
+        for row_gen in self.read(iterable, *args, **kwargs):
+            row = []
+            for data in row_gen:
+                row.extend(data.values())
+            yield tuple(row)
