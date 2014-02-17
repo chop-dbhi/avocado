@@ -46,7 +46,7 @@ class DataCategory(Base, PublishArchiveMixin):
     objects = managers.DataCategoryManager()
 
     class Meta(object):
-        ordering = ('-parent__id', 'order', 'name')
+        ordering = ('parent__order', 'parent__name', 'order', 'name')
         verbose_name_plural = 'data categories'
 
 
@@ -112,7 +112,7 @@ class DataField(BasePlural, PublishArchiveMixin):
 
     class Meta(object):
         unique_together = ('app_name', 'model_name', 'field_name')
-        ordering = ('name',)
+        ordering = ('category__order', 'category__name', 'order', 'name')
         permissions = (
             ('view_datafield', 'Can view datafield'),
         )
@@ -473,7 +473,7 @@ class DataConcept(BasePlural, PublishArchiveMixin):
 
     class Meta(object):
         app_label = 'avocado'
-        ordering = ('order',)
+        ordering = ('category__order', 'category__name', 'order', 'name')
         permissions = (
             ('view_dataconcept', 'Can view dataconcept'),
         )
@@ -492,7 +492,7 @@ class DataConceptField(models.Model):
     modified = models.DateTimeField(auto_now=True)
 
     class Meta(object):
-        ordering = ('order',)
+        ordering = ('order', 'name')
 
     def __unicode__(self):
         return unicode(self.name or self.field.name)

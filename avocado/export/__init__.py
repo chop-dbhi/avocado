@@ -1,5 +1,6 @@
 from avocado.core import loader
 from avocado.conf import OPTIONAL_DEPS
+from _base import BaseExporter  # noqa
 from _csv import CSVExporter
 from _sas import SASExporter
 from _r import RExporter

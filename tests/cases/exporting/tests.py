@@ -8,7 +8,8 @@ from avocado.formatters import RawFormatter
 from avocado.models import DataField, DataConcept, DataConceptField, DataView
 from ... import models
 
-__all__ = ['FileExportTestCase', 'ResponseExportTestCase']
+__all__ = ['FileExportTestCase', 'ResponseExportTestCase',
+           'ForceDistinctRegressionTestCase']
 
 
 class ExportTestCase(TestCase):
@@ -175,3 +176,79 @@ class ResponseExportTestCase(FileExportTestCase):
 </table>""")
         exporter.write(self.query, template=template, buff=response)
         self.assertEqual(len(response.content), 494)
+
+
+class ForceDistinctRegressionTestCase(TestCase):
+    fixtures = ['employee_data.json']
+
+    def setUp(self):
+        management.call_command('avocado', 'init', 'tests', quiet=True)
+
+        self.first_name = DataField.objects.get(field_name='first_name')\
+            .concepts.all()[0]
+        self.last_name = DataField.objects.get(field_name='last_name')\
+            .concepts.all()[0]
+        self.project_name = DataField.objects\
+            .get(model_name='project', field_name='name')\
+            .concepts.all()[0]
+        self.title_name = DataField.objects\
+            .get(model_name='title', field_name='name')\
+            .concepts.all()[0]
+
+        e1 = models.Employee.objects.get(pk=1)
+        e2 = models.Employee.objects.get(pk=2)
+
+        p1 = models.Project(name='P1', manager=e1)
+        p1.save()
+
+        p2 = models.Project(name='P2', manager=e2)
+        p2.save()
+
+        p1.employees = [e1, e2]
+        p2.employees = [e1, e2]
+
+    def test_sort_flat(self):
+        "Sorts on a non-reverse foreign key property."
+        view = DataView(json=[
+            {'concept': self.first_name.pk},
+            {'concept': self.last_name.pk},
+            {'concept': self.title_name.pk, 'sort': 'desc', 'visible': False},
+        ])
+
+        queryset = view.apply()
+
+        exporter = export.BaseExporter(view)
+        exporter.params.insert(0, (RawFormatter(keys=['pk']), 1))
+        exporter.row_length += 1
+
+        self.assertEqual(list(exporter.write(queryset.raw())), [
+            (1, u'Eric', u'Smith'),
+            (3, u'Erick', u'Smith'),
+            (5, u'Zac', u'Cook'),
+            (2, u'Erin', u'Jones'),
+            (4, u'Aaron', u'Harris'),
+            (6, u'Mel', u'Brooks'),
+        ])
+
+    def test_sort_related(self):
+        "Sorts on a reverse foreign key property."
+        view = DataView(json=[
+            {'concept': self.first_name.pk},
+            {'concept': self.last_name.pk},
+            {'concept': self.project_name.pk, 'sort': 'asc', 'visible': False},
+        ])
+
+        queryset = view.apply()
+
+        exporter = export.BaseExporter(view)
+        exporter.params.insert(0, (RawFormatter(keys=['pk']), 1))
+        exporter.row_length += 1
+
+        self.assertEqual(list(exporter.write(queryset.raw())), [
+            (3, u'Erick', u'Smith'),
+            (4, u'Aaron', u'Harris'),
+            (5, u'Zac', u'Cook'),
+            (6, u'Mel', u'Brooks'),
+            (1, u'Eric', u'Smith'),
+            (2, u'Erin', u'Jones')
+        ])
