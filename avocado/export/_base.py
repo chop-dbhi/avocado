@@ -58,15 +58,26 @@ class BaseExporter(object):
             yield formatter(values, preferred_formats=self.preferred_formats,
                             **kwargs)
 
-    def read(self, iterable, force_distinct=True, *args, **kwargs):
+    def read(self, iterable, force_distinct=True, offset=None, limit=None,
+             *args, **kwargs):
         """Takes an iterable that produces rows to be formatted.
 
         If `force_distinct` is true, rows will be filtered based on the slice
         of the row that is going to be formatted.
+
+        If `offset` is defined, only rows that are produced after the offset
+        index are returned.
+
+        If `limit` is defined, once the limit has been reached (or the
+        iterator is exhausted), the loop will exit.
         """
+        emitted = 0
         unique_rows = set()
 
-        for row in iterable:
+        for i, row in enumerate(iterable):
+            if limit is not None and emitted >= limit:
+                break
+
             _row = row[:self.row_length]
 
             if force_distinct:
@@ -77,7 +88,9 @@ class BaseExporter(object):
 
                 unique_rows.add(_row_hash)
 
-            yield self._format_row(_row, **kwargs)
+            if offset is None or i >= offset:
+                emitted += 1
+                yield self._format_row(_row, **kwargs)
 
     def write(self, iterable, *args, **kwargs):
         for row_gen in self.read(iterable, *args, **kwargs):
