@@ -17,27 +17,30 @@ class ExportTestCase(TestCase):
 
     def setUp(self):
         management.call_command('avocado', 'init', 'tests', quiet=True)
-
-    def test_view(self):
-        salary_field = DataField.objects.get_by_natural_key('tests', 'title', 'salary')
-        salary_concept = DataConcept()
-        salary_concept.save()
-        DataConceptField(concept=salary_concept, field=salary_field, order=1).save()
+        salary_concept = DataField.objects.get(field_name='salary').concepts.all()[0]
 
         view = DataView(json={'ordering': [[salary_concept.pk, 'desc']]})
-        query = view.apply(tree=models.Employee).raw()
-
+        self.query = view.apply(tree=models.Employee).raw()
         # Ick..
-        exporter = export.CSVExporter(view)
-        exporter.params.insert(0, (RawFormatter(keys=['pk']), 1))
-        exporter.row_length += 1
+        self.exporter = export.BaseExporter(view)
+        self.exporter.params.insert(0, (RawFormatter(keys=['pk']), 1))
+        self.exporter.row_length += 1
 
-        buff = exporter.write(query)
-        buff.seek(0)
+    def test(self):
+        rows = list(self.exporter.write(self.query))
+        self.assertEqual([r[0] for r in rows], [2, 4, 6, 1, 3, 5])
 
-        lines = buff.read().splitlines()
-        # Skip the header
-        self.assertEqual([int(x) for x in lines[1:]], [2, 4, 6, 1, 3, 5])
+    def test_offset(self):
+        rows = list(self.exporter.write(self.query, offset=2))
+        self.assertEqual([r[0] for r in rows], [6, 1, 3, 5])
+
+    def test_limit(self):
+        rows = list(self.exporter.write(self.query, limit=2))
+        self.assertEqual([r[0] for r in rows], [2, 4])
+
+    def test_limit_offset(self):
+        rows = list(self.exporter.write(self.query, offset=2, limit=2))
+        self.assertEqual([r[0] for r in rows], [6, 1])
 
 
 class FileExportTestCase(TestCase):
