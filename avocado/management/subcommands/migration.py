@@ -35,6 +35,16 @@ log = logging.getLogger(__name__)
 
 _help = """\
 Simple utility for dumping Avocado metadata.
+
+The migation command requires that the METADATA_MIGRATION_APP setting be
+defined in the AVOCADO dict:
+
+AVOCADO = {
+    'METADATA_MIGRATION_APP': 'someapp',
+    ...
+}
+
+See https://github.com/cbmi/avocado/wiki/Managing-your-metadata.\
 """
 
 
@@ -49,7 +59,7 @@ class Command(BaseCommand):
         make_option('--backup-path', action='store', dest='backup_path',
                     help='Define a non-temporary path for the migration '
                     'backup.'),
-        make_option('--no-fake', action='store_false', help='Prevents the new '
+        make_option('--no-fake', action='store_true', help='Prevents the new '
                     'migration from being immediately faked in the database.')
     )
 
