@@ -250,7 +250,5 @@ class ForceDistinctRegressionTestCase(TestCase):
             (5, u'Zac', u'Cook'),
             (6, u'Mel', u'Brooks'),
             (1, u'Eric', u'Smith'),
-            (2, u'Erin', u'Jones'),
-            (1, u'Eric', u'Smith'),
             (2, u'Erin', u'Jones')
         ])

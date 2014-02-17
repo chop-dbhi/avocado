@@ -62,15 +62,21 @@ class BaseExporter(object):
         """Takes an iterable that produces rows to be formatted.
 
         If `force_distinct` is true, rows will be filtered based on the slice
-        of the row that is *up* for to be formatted. Note, this assumes the
-        rows are ordered.
+        of the row that is going to be formatted.
         """
-        last_row = None
+        unique_rows = set()
+
         for row in iterable:
             _row = row[:self.row_length]
-            if force_distinct and _row == last_row:
-                continue
-            last_row = _row
+
+            if force_distinct:
+                _row_hash = hash(tuple(_row))
+
+                if _row_hash in unique_rows:
+                    continue
+
+                unique_rows.add(_row_hash)
+
             yield self._format_row(_row, **kwargs)
 
     def write(self, iterable, *args, **kwargs):
