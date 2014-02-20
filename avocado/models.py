@@ -270,8 +270,12 @@ class DataField(BasePlural, PublishArchiveMixin):
                 return self.model.objects.filter(**kwargs)\
                     .values_list('label', flat=True)[0]
             if self.objectset:
+                if hasattr(self.model, 'label_field'):
+                    field = self.model.label_field
+                else:
+                    field = 'pk'
                 return self.model.objects.filter(**kwargs)\
-                    .values_list('name', flat=True)[0]
+                    .values_list(field, flat=True)[0]
             return smart_unicode(value)
         return dict(self.choices()).get(value, smart_unicode(value))
 
