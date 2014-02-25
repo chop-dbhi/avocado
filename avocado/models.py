@@ -26,6 +26,7 @@ from avocado.query.operators import registry as operators
 from avocado.lexicon.models import Lexicon
 from avocado.stats.agg import Aggregator
 from avocado import formatters
+from avocado.data import interfaces
 
 
 __all__ = ('DataCategory', 'DataConcept', 'DataField',
@@ -127,6 +128,10 @@ class DataField(BasePlural, PublishArchiveMixin):
     translator = models.CharField(max_length=100, blank=True, null=True,
                                   choices=translators.choices)
 
+    # Associate a specific interface class to this field
+    interface_name = models.CharField(max_length=100, blank=True, null=True,
+                                      choices=interfaces.registry.choices)
+
     # This is used for the cache key to check if the cached values is stale.
     data_version = models.IntegerField(default=1, help_text='The current '
                                        'version of the underlying data for '
@@ -209,7 +214,16 @@ class DataField(BasePlural, PublishArchiveMixin):
 
         return cls(**defaults)
 
+    def __init__(self, *args, **kwargs):
+        super(DataField, self).__init__(*args, **kwargs)
+
+        # To prevent having an object.__getattribute__ circus below..
+        self._model = None
+        self._interface = None
+
     def __unicode__(self):
+        if self.field:
+            return unicode(self.interface)
         if self.name:
             return self.name
         return u'{0} {1}'.format(self.model._meta.verbose_name,
@@ -221,6 +235,27 @@ class DataField(BasePlural, PublishArchiveMixin):
     def __nonzero__(self):
         "Takes precedence over __len__, so it is always truthy."
         return True
+
+    def __getattr__(self, attr):
+        "Implement to fallback to using the interface for this instance."
+        # No private or magic methods allowed
+        if not attr.startswith('_'):
+            try:
+                return getattr(self.interface, attr)
+            except AttributeError:
+                pass
+        raise AttributeError("'{0}' object has no attribute '{1}'"
+                             .format(type(self).__name__, attr))
+
+    @property
+    def interface(self):
+        if self._interface is None and self.field:
+            if self.interface_name:
+                klass = interfaces.registry.get(self.interface_name)
+            else:
+                klass = interfaces.get_interface(self.field)
+            self._interface = klass(self)
+        return self._interface
 
     # The natural key should be used any time fields are being exported
     # for integration in another system. It makes it trivial to map to new
