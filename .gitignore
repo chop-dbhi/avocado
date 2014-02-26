@@ -9,6 +9,7 @@ docs/build
 MANIFEST
 dist
 docs/_build
+htmlcov
 
 # test output
 csv_export.csv

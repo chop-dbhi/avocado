@@ -2,6 +2,7 @@
 branch = True
 source = avocado
 omit = 
+    */admin.py
     */migrations/*
     
 [report]
