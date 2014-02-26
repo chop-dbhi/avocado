@@ -44,6 +44,22 @@ def get_simple_type(internal):
     return settings.SIMPLE_TYPES.get(internal, internal)
 
 
+def is_enumerable(field):
+    internal_type = get_internal_type(field)
+    simple_type = get_simple_type(internal_type)
+
+    if internal_type == 'text' or simple_type not in ('string', 'boolean'):
+        return False
+
+    count = field.model.objects.values_list(field.name).distinct().count()
+    return count <= settings.ENUMERABLE_MAXIMUM
+
+
+def is_searchable(field):
+    simple_type = get_simple_type(field)
+    return simple_type == 'string' and not is_enumerable(field)
+
+
 def get_heuristic_flags(field):
     # TODO add better conditions for determining how to set the
     # flags for most appropriate interface.
@@ -54,15 +70,8 @@ def get_heuristic_flags(field):
     # For strings and booleans, set the enumerable flag by default
     # it below the enumerable threshold
     # TextFields are typically used for free text
-    enumerable = False
-
-    if field.internal_type != 'text' \
-            and field.simple_type in ('string', 'boolean') \
-            and field.size() <= settings.ENUMERABLE_MAXIMUM:
-        enumerable = True
-
     return {
-        'enumerable': enumerable,
+        'enumerable': is_enumerable(field),
     }
 
 
@@ -70,7 +79,9 @@ def parse_field_key(key):
     "Returns a field lookup based on a variety of key types."
     if isinstance(key, int):
         return {'pk': key}
+
     keys = ('app_name', 'model_name', 'field_name')
+
     if isinstance(key, models.Field):
         opts = key.model._meta
         toks = [opts.app_label, opts.module_name, key.name]
@@ -78,6 +89,7 @@ def parse_field_key(key):
         toks = key.split('.')
     elif isinstance(key, (list, tuple)):
         toks = key
+
     offset = len(keys) - len(toks)
     return dict(zip(keys[offset:], toks))
 

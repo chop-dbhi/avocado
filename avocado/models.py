@@ -1,10 +1,6 @@
 import re
 from warnings import warn
 from datetime import datetime
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
 from django.db import models
 from django.contrib.sites.models import Site
 from django.contrib.auth.models import User, Group
@@ -14,6 +10,7 @@ from django.db.models.fields import FieldDoesNotExist
 from django.db.models.signals import post_save, pre_delete
 from django.core.validators import RegexValidator
 from avocado.core import utils
+from avocado.core.structures import ChoicesDict
 from avocado.core.models import Base, BasePlural, PublishArchiveMixin
 from avocado.core.cache import post_save_cache, pre_delete_uncache, \
     cached_method
@@ -275,6 +272,19 @@ class DataField(BasePlural, PublishArchiveMixin):
         return self.real_field
 
     @property
+    def lexicon(self):
+        return is_lexicon(self)
+
+    @property
+    def objectset(self):
+        return is_objectset(self)
+
+    @property
+    def value_field_name(self):
+        "Alias for field name."
+        return self.field_name
+
+    @property
     def value_field(self):
         "Alias for field."
         return self.field
@@ -380,9 +390,12 @@ class DataField(BasePlural, PublishArchiveMixin):
     @property
     def searchable(self):
         "Returns true if a text-field and is not an enumerable field."
-        search_field = self.search_field
-        return utils.get_simple_type(search_field) == 'string' \
-            and not self.enumerable
+        # Optimized shortcut to prevent database hit for enumerable check..
+        if self.search_field == self.field:
+            simple_type = utils.get_simple_type(self.field)
+            return simple_type == 'string' and not self.enumerable
+
+        return utils.is_searchable(self.search_field)
 
     # Convenience Methods
     # Easier access to the underlying data for this data field
@@ -416,7 +429,7 @@ class DataField(BasePlural, PublishArchiveMixin):
 
     def search(self, query):
         "Rudimentary search for string-based values."
-        if self.searchable:
+        if utils.get_simple_type(self.search_field) == 'string':
             field_name = self.search_field.name
             filters = {u'{0}__icontains'.format(field_name): query}
             return self.values_list().filter(**filters)
@@ -464,17 +477,17 @@ class DataField(BasePlural, PublishArchiveMixin):
 
     def value_labels(self):
         "Returns a distinct set of value/label pairs for this field."
-        return OrderedDict(zip(self.values(), self.labels()))
+        return ChoicesDict(zip(self.values(), self.labels()))
 
     def coded_labels(self):
         "Returns a distinct set of code/label pairs for this field."
         if self.code_field:
-            return OrderedDict(zip(self.codes(), self.labels()))
+            return ChoicesDict(zip(self.codes(), self.labels()))
 
     def coded_values(self):
         "Returns a distinct set of value/code pairs for this field."
         if self.code_field:
-            return OrderedDict(zip(self.values(), self.codes()))
+            return ChoicesDict(zip(self.values(), self.codes()))
 
     # Alias since it's common parlance in Django
     choices = value_labels

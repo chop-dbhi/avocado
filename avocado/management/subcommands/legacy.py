@@ -108,8 +108,7 @@ class Command(BaseCommand):
 
             print u'Migrated "{0}"'.format(qualified_name)
 
-            flags = utils.get_heuristic_flags(f)
-            f.__dict__.update(flags)
+            f.__dict__.update(utils.get_heuristic_flags(f.field))
 
             # Disagreement with enumerable status
             if not no_input and f.enumerable != lf.enable_choices:

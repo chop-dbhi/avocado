@@ -253,7 +253,7 @@ class Command(BaseCommand):
                 f.name = field.verbose_name.title()
 
         # Update fields with flags
-        f.__dict__.update(utils.get_heuristic_flags(f))
+        f.__dict__.update(utils.get_heuristic_flags(field))
         f.save()
 
         # Create a concept if one does not already exist for this field
