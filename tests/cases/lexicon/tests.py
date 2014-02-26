@@ -8,7 +8,6 @@ class LexiconTestCase(TestCase):
 
     def test_datafield(self):
         f = DataField(app_name='tests', model_name='month', field_name='id')
-        self.assertTrue(f.lexicon)
         self.assertEqual(f.values(), (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12))
         self.assertEqual(f.labels(), (u'January', u'February', u'March',
             u'April', u'May', u'June', u'July', u'August', u'September',
@@ -17,7 +16,6 @@ class LexiconTestCase(TestCase):
 
     def test_foreign_key_datafield(self):
         f = DataField(app_name='tests', model_name='date', field_name='month')
-        self.assertTrue(f.lexicon)
         self.assertEqual(f.model, Month)
         self.assertEqual(f.field, Month._meta.pk)
         self.assertEqual(f.values(), (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12))

@@ -67,7 +67,7 @@ class RExporter(BaseExporter):
                 labels.append(u'attr(data${0}, "label") = "{1}"'.format(
                     name, unicode(cfield)))
 
-                if field.lexicon:
+                if field.code_field:
                     codes = self._code_values(name, field)
                     factors.append(codes[0])
                     levels.append(codes[1])
