@@ -128,6 +128,7 @@ class Command(BaseCommand):
 
             for model in pending_models:
                 lexicon = issubclass(model, Lexicon)
+
                 if dep_supported('objectset'):
                     from objectset.models import ObjectSet
                     objectset = issubclass(model, ObjectSet)
@@ -183,9 +184,11 @@ class Command(BaseCommand):
         else:
             objectset = False
 
+        lexicon = issubclass(field.model, Lexicon)
+
         # Lexicons and ObjectSets are represented via their primary key, so
         # these may pass
-        if not objectset and not issubclass(field.model, Lexicon):
+        if not objectset and not lexicon:
             # Check for primary key, and foreign key fields
             if isinstance(field, self.key_field_types) and not include_keys:
                 print(u'({0}) {1}.{2} is a primary or foreign key. Skipping...'
@@ -214,6 +217,17 @@ class Command(BaseCommand):
             'model_name': model_name.lower(),
             'field_name': field.name,
         }
+
+        if lexicon:
+            kwargs.update({
+                'label_field_name': 'label',
+                'order_field_name': 'order',
+                'code_field_name': 'code',
+            })
+        elif objectset and hasattr(field.model, 'label_field'):
+            kwargs.update({
+                'label_field_name': field.model.label_field
+            })
 
         try:
             f = DataField.objects.get(**lookup)

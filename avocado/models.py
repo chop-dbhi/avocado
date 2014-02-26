@@ -1,5 +1,10 @@
 import re
+from warnings import warn
 from datetime import datetime
+try:
+    from collections import OrderedDict
+except ImportError:
+    from ordereddict import OrderedDict
 from django.db import models
 from django.contrib.sites.models import Site
 from django.contrib.auth.models import User, Group
@@ -33,6 +38,36 @@ validate_ident = RegexValidator(ident_re, _("Enter an 'identifier' that is a "
                                 'invalid')
 
 
+def is_lexicon(f):
+    """Returns true if the model is a subclass of Lexicon and this
+    is the pk field. All other fields on the class are treated as
+    normal datafields.
+    """
+    warn('Lexicon detection in the DataField API is deprecated and '
+         'will be removed in 2.4. Set the alternate fields explicitly '
+         'on the field instance', DeprecationWarning)
+    return f.model and issubclass(f.model, Lexicon) \
+        and f.field == f.model._meta.pk
+
+
+def is_objectset(f):
+    """Returns true if the model is a subclass of ObjectSet and this
+    is the pk field. All other fields on the class are treated as
+    normal datafields.
+    """
+    warn('ObjectSet detection in the DataField API is deprecated and '
+         'will be removed in 2.4. Set the alternate fields explicitly '
+         'on the field instance', DeprecationWarning)
+
+    if dep_supported('objectset'):
+        from objectset.models import ObjectSet
+
+        return f.model and issubclass(f.model, ObjectSet) \
+            and f.field == f.model._meta.pk
+
+    return False
+
+
 class DataCategory(Base, PublishArchiveMixin):
     "A high-level organization for data concepts."
     # A reference to a parent for hierarchical categories
@@ -55,13 +90,18 @@ class DataField(BasePlural, PublishArchiveMixin):
     it defines the natural key of the Django field that represents the location
     of that data e.g. ``library.book.title``.
     """
+    # App/model/field represent the natural key of this field based on
+    # Django's methods of distinguishing models.
     app_name = models.CharField(max_length=200)
     model_name = models.CharField(max_length=200)
     field_name = models.CharField(max_length=200)
 
-    internal = models.BooleanField(default=False, help_text='Flag for '
-                                   'internal use and does not abide by the '
-                                   'published and archived rules.')
+    # Supplementary fields that respresent alternate representations
+    # of the base field
+    label_field_name = models.CharField(max_length=200, null=True)
+    search_field_name = models.CharField(max_length=200, null=True)
+    order_field_name = models.CharField(max_length=200, null=True)
+    code_field_name = models.CharField(max_length=200, null=True)
 
     # An optional unit for this field's data. In some cases databases may have
     # a separate column which denotes the unit for another column, but this is
@@ -107,6 +147,10 @@ class DataField(BasePlural, PublishArchiveMixin):
 
     # The order of this datafield with respect to the category (if defined).
     order = models.FloatField(null=True, blank=True, db_column='_order')
+
+    internal = models.BooleanField(default=False, help_text='Flag for '
+                                   'internal use and does not abide by the '
+                                   'published and archived rules.')
 
     objects = managers.DataFieldManager()
 
@@ -168,8 +212,6 @@ class DataField(BasePlural, PublishArchiveMixin):
     def __unicode__(self):
         if self.name:
             return self.name
-        if self.lexicon or self.objectset:
-            return self.model._meta.verbose_name
         return u'{0} {1}'.format(self.model._meta.verbose_name,
                                  self.field.verbose_name).title()
 
@@ -233,6 +275,90 @@ class DataField(BasePlural, PublishArchiveMixin):
         return self.real_field
 
     @property
+    def value_field(self):
+        "Alias for field."
+        return self.field
+
+    @property
+    def label_field(self):
+        "Returns the label field object for this datafield."
+        model = self.model
+
+        if model:
+            field_name = None
+
+            if self.label_field_name:
+                field_name = self.label_field_name
+            elif is_lexicon(self):
+                field_name = 'label'
+            elif is_objectset(self):
+                if hasattr(self.model, 'label_field'):
+                    field_name = self.model.label_field
+                else:
+                    field_name = 'pk'
+
+            if field_name:
+                try:
+                    return model._meta.get_field(field_name)
+                except FieldDoesNotExist:
+                    pass
+
+        return self.field
+
+    @property
+    def search_field(self):
+        "Returns the search field object for this datafield."
+        model = self.model
+
+        if model and self.search_field_name:
+            try:
+                return model._meta.get_field(self.search_field_name)
+            except FieldDoesNotExist:
+                pass
+
+        return self.label_field
+
+    @property
+    def order_field(self):
+        "Returns the order field object for this datafield."
+        model = self.model
+
+        if model:
+            field_name = None
+
+            if self.order_field_name:
+                field_name = self.order_field_name
+            elif is_lexicon(self):
+                field_name = 'order'
+
+            if field_name:
+                try:
+                    return model._meta.get_field(field_name)
+                except FieldDoesNotExist:
+                    pass
+
+        return self.field
+
+    @property
+    def code_field(self):
+        "Returns the code field object for this datafield."
+        model = self.model
+
+        if model:
+            field_name = None
+
+            if self.code_field_name:
+                field_name = self.code_field_name
+            elif is_lexicon(self):
+                field_name = 'code'
+
+            if field_name:
+                try:
+                    return model._meta.get_field(field_name)
+                except FieldDoesNotExist:
+                    pass
+
+    @property
     def nullable(self):
         "Returns whether this field can contain NULL values."
         return self.field.null
@@ -252,50 +378,46 @@ class DataField(BasePlural, PublishArchiveMixin):
         return utils.get_simple_type(self.field)
 
     @property
-    def lexicon(self):
-        """Returns true if the model is a subclass of Lexicon and this
-        is the pk field. All other fields on the class are treated as
-        normal datafields.
-        """
-        return self.model and issubclass(self.model, Lexicon) \
-            and self.field == self.model._meta.pk
-
-    @property
-    def objectset(self):
-        """Returns true if the model is a subclass of ObjectSet and this
-        is the pk field. All other fields on the class are treated as
-        normal datafields.
-        """
-        if dep_supported('objectset'):
-            from objectset.models import ObjectSet
-
-            return self.model and issubclass(self.model, ObjectSet) \
-                and self.field == self.model._meta.pk
-
-        return False
-
-    @property
     def searchable(self):
         "Returns true if a text-field and is not an enumerable field."
-        return self.simple_type == 'string' and not self.enumerable
+        search_field = self.search_field
+        return utils.simple_type(search_field) == 'string' \
+            and not self.enumerable
 
     # Convenience Methods
     # Easier access to the underlying data for this data field
 
     def values_list(self):
         "Returns a `ValuesListQuerySet` of values for this field."
-        if self.lexicon or self.objectset:
-            return self.model.objects.values_list('pk', flat=True)
-        return self.model.objects.values_list(self.field_name, flat=True)\
-            .order_by(self.field_name).distinct()
+        value_field = self.value_field.name
+        order_field = self.order_field.name
+
+        return self.model.objects.values_list(value_field, flat=True)\
+            .order_by(order_field).distinct()
+
+    def labels_list(self):
+        "Returns a `ValuesListQuerySet` of labels for this field."
+        label_field = self.label_field.name
+        order_field = self.order_field.name
+
+        return self.model.objects.values_list(label_field, flat=True)\
+            .order_by(order_field).distinct()
+
+    def codes_list(self):
+        "Returns a `ValuesListQuerySet` of labels for this field."
+        if not self.code_field:
+            return
+
+        code_field = self.code_field.name
+        order_field = self.order_field.name
+
+        return self.model.objects.values_list(code_field, flat=True)\
+            .order_by(order_field).distinct()
 
     def search(self, query):
         "Rudimentary search for string-based values."
-        if self.simple_type == 'string' or self.lexicon:
-            if self.lexicon:
-                field_name = 'value'
-            else:
-                field_name = self.field_name
+        if self.searchable:
+            field_name = self.search_field.name
             filters = {u'{0}__icontains'.format(field_name): query}
             return self.values_list().filter(**filters)
 
@@ -309,23 +431,13 @@ class DataField(BasePlural, PublishArchiveMixin):
         return plural
 
     def get_label(self, value):
-        """Gets the label for a particular raw data value.
-        If this is classified as `searchable`, a database hit will occur.
-        """
-        if self.searchable:
-            kwargs = {self.field_name: value}
-            if self.lexicon:
-                return self.model.objects.filter(**kwargs)\
-                    .values_list('label', flat=True)[0]
-            if self.objectset:
-                if hasattr(self.model, 'label_field'):
-                    field = self.model.label_field
-                else:
-                    field = 'pk'
-                return self.model.objects.filter(**kwargs)\
-                    .values_list(field, flat=True)[0]
-            return smart_unicode(value)
-        return dict(self.choices()).get(value, smart_unicode(value))
+        "Get the corresponding label to a value."
+        labels = self.value_labels()
+
+        if value in labels:
+            return labels[value]
+
+        return smart_unicode(value)
 
     # Data-related Cached Properties
     # These may be cached until the underlying data changes
@@ -336,46 +448,37 @@ class DataField(BasePlural, PublishArchiveMixin):
 
     @cached_method(version='data_version')
     def values(self):
-        "Returns a distinct list of the values."
+        "Returns a distinct list of values."
         return tuple(self.values_list())
 
     @cached_method(version='data_version')
     def labels(self):
-        """Returns an ordered set of labels corresponding to the values.
-        If this field represents to a Lexicon subclass, the `label` field
-        will be used, otherwise the values will simply be unicoded.
-        """
-        if self.lexicon:
-            return tuple(self.model.objects.values_list('label', flat=True))
-        if self.objectset:
-            if hasattr(self.model, 'label_field'):
-                field = self.model.label_field
-            else:
-                field = 'pk'
-            return tuple(self.model.objects.values_list(field, flat=True))
-        # Unicode each value, use an iterator here to prevent loading the
-        # raw values in memory
-        return map(smart_unicode, iter(self.values_list()))
+        "Returns a distinct list of labels."
+        return tuple(self.labels_list())
 
     @cached_method(version='data_version')
     def codes(self):
         "Returns a distinct set of coded values for this field"
-        if self.lexicon:
-            return tuple(self.model.objects.values_list('code', flat=True))
+        if self.code_field:
+            return tuple(self.codes_list())
 
-    def choices(self):
-        "Returns a distinct set of choices for this field."
-        return zip(self.values(), self.labels())
+    def value_labels(self):
+        "Returns a distinct set of value/label pairs for this field."
+        return OrderedDict(zip(self.values(), self.labels()))
 
-    def coded_choices(self):
-        "Returns a distinct set of coded choices for this field."
-        if self.lexicon:
-            return zip(self.codes(), self.labels())
+    def coded_labels(self):
+        "Returns a distinct set of code/label pairs for this field."
+        if self.code_field:
+            return OrderedDict(zip(self.codes(), self.labels()))
 
     def coded_values(self):
-        "Returns a distinct set of coded values for this field."
-        if self.lexicon:
-            return zip(self.values(), self.codes())
+        "Returns a distinct set of value/code pairs for this field."
+        if self.code_field:
+            return OrderedDict(zip(self.values(), self.codes()))
+
+    # Alias since it's common parlance in Django
+    choices = value_labels
+    coded_choices = coded_labels
 
     # Data Aggregation Properties
     def groupby(self, *args):

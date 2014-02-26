@@ -1,8 +1,6 @@
 from django.db import transaction
 from django.contrib import admin
-from django.contrib.admin import SimpleListFilter
 from django.core.urlresolvers import reverse
-from django.utils.translation import ugettext_lazy as _
 from avocado.models import DataField, DataConcept, DataCategory, \
     DataConceptField, DataView, DataContext, DataQuery
 from avocado.forms import DataFieldAdminForm
@@ -53,63 +51,15 @@ class PublishedAdmin(admin.ModelAdmin):
     mark_unarchived.short_description = 'Unarchive'
 
 
-class LexiconListFilter(SimpleListFilter):
-    title = _('lexicon')
-
-    parameter_name = 'lexicon'
-
-    def lookups(self, request, model_admin):
-        return (
-            ('1', _('Yes')),
-            ('0', _('No')),
-        )
-
-    def queryset(self, request, queryset):
-        value = self.value()
-
-        if value:
-            subquery = queryset.only('app_name', 'model_name', 'field_name')
-            ids = [x.pk for x in subquery if x.lexicon]
-            if value == '1':
-                queryset = queryset.filter(id__in=ids)
-            else:
-                queryset = queryset.exclude(id__in=ids)
-            return queryset
-
-
-class ObjectSetListFilter(SimpleListFilter):
-    title = _('objectset')
-
-    parameter_name = 'objectset'
-
-    def lookups(self, request, model_admin):
-        return (
-            ('1', _('Yes')),
-            ('0', _('No')),
-        )
-
-    def queryset(self, request, queryset):
-        value = self.value()
-
-        if value:
-            subquery = queryset.only('app_name', 'model_name', 'field_name')
-            ids = [x.pk for x in subquery if x.objectset]
-            if value == '1':
-                queryset = queryset.filter(id__in=ids)
-            else:
-                queryset = queryset.exclude(id__in=ids)
-            return queryset
-
-
 class DataFieldAdmin(PublishedAdmin):
     form = DataFieldAdminForm
 
     list_display = ('name', 'published', 'archived', 'internal',
                     'orphan_status', 'model_name', 'enumerable',
-                    'is_lexicon', 'is_objectset', 'related_dataconcepts')
+                    'related_dataconcepts')
 
     list_filter = ('published', 'archived', 'internal', 'model_name',
-                   'enumerable', LexiconListFilter, ObjectSetListFilter)
+                   'enumerable')
 
     list_editable = ('published', 'archived', 'internal', 'enumerable')
 
@@ -166,14 +116,6 @@ class DataFieldAdmin(PublishedAdmin):
             return 'Unknown Model Field'
         return 'OK'
     orphan_status.short_description = 'Orphan Status'
-
-    def is_lexicon(self, obj):
-        return obj.lexicon
-    is_lexicon.short_description = 'Is Lexicon'
-
-    def is_objectset(self, obj):
-        return obj.objectset
-    is_objectset.short_description = 'Is ObjectSet'
 
     def related_dataconcepts(self, obj):
         queryset = obj.concepts.only('id', 'name')

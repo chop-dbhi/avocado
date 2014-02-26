@@ -31,9 +31,11 @@ class Node(object):
     def ordering(self):
         ids = []
         length = len(self.facets)
+
         for facet in self.facets:
             if facet.get('enabled') is False:
                 continue
+
             if facet.get('sort') in SORT_DIRECTIONS:
                 # If sort is not defined, default to length of facets
                 ids.append((
@@ -41,6 +43,7 @@ class Node(object):
                     facet['concept'],
                     facet['sort'],
                 ))
+
         # Sort relative to sort index
         ids.sort(key=lambda x: x[0])
         # Return only the concept id and sort direction
@@ -60,8 +63,10 @@ class Node(object):
     def _get_fields_for_concepts(self, ids):
         "Returns an ordered list of fields for concept `ids`."
         from avocado.models import DataConceptField
+
         if not ids:
             return OrderedDict()
+
         # Concept fields that are sorted by concept then order, but are not
         # in the original order defined in `ids`
         cfields = list(DataConceptField.objects.filter(concept__pk__in=ids)
@@ -73,11 +78,15 @@ class Node(object):
 
         # Construct an ordered dict of fields by their concept
         groups = OrderedDict()
+
         for cf in cfields:
             pk = cf.concept.pk
+
             if pk not in groups:
                 groups[pk] = []
+
             groups[pk].append(cf.field)
+
         return groups
 
     def _get_select(self, distinct):
@@ -89,6 +98,7 @@ class Node(object):
         # this by removing redundant rows relative to the *original* columns.
         ids = list(self.concept_ids)
         ordering = self.ordering
+
         if ordering and distinct:
             ids += list(zip(*ordering)[0])
 
@@ -99,10 +109,8 @@ class Node(object):
         model_fields = []
 
         for f in fields:
-            if f.lexicon:
-                model_fields.append(f.model._meta.get_field('label'))
-            else:
-                model_fields.append(f.field)
+            model_fields.append(f.label_field)
+
         return model_fields
 
     def _get_order_by(self):
@@ -117,13 +125,7 @@ class Node(object):
 
             for pk, direction in ordering:
                 for f in groups[pk]:
-                    # Special case for Lexicon-based models, order by their
-                    # model-defined `order` field.
-                    if f.lexicon:
-                        field = f.model._meta.get_field('order')
-                        lookup = tree.query_string_for_field(field)
-                    else:
-                        lookup = tree.query_string_for_field(f.field)
+                    lookup = tree.query_string_for_field(f.order_field)
 
                     if direction.lower() == 'desc':
                         order_by.append('-' + lookup)
