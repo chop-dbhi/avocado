@@ -381,7 +381,7 @@ class DataField(BasePlural, PublishArchiveMixin):
     def searchable(self):
         "Returns true if a text-field and is not an enumerable field."
         search_field = self.search_field
-        return utils.simple_type(search_field) == 'string' \
+        return utils.get_simple_type(search_field) == 'string' \
             and not self.enumerable
 
     # Convenience Methods
