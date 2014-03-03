@@ -119,6 +119,8 @@ class DataField(BasePlural, PublishArchiveMixin):
     # no full text data.
     enumerable = models.BooleanField(default=False)
 
+    type = models.CharField(max_length=100, blank=True, null=True)
+
     # An optional translator which customizes input query conditions
     # to a format which is suitable for the database.
     translator = models.CharField(max_length=100, blank=True, null=True,

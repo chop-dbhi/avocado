@@ -69,6 +69,7 @@ class DataFieldAdminForm(forms.ModelForm):
         field_name = cleaned_data.get('field_name')
 
         model = models.get_model(app_name, model_name)
+
         if model is None:
             del cleaned_data['model_name']
             msg = u'The model "{0}" could not be found in the app "{1}"' \
@@ -79,6 +80,7 @@ class DataFieldAdminForm(forms.ModelForm):
             msg = u'The model "{0}" does not have a field named "{1}"' \
                 .format(model_name, field_name)
             self._errors['field_name'] = self.error_class([msg])
+
         return cleaned_data
 
     class Meta(object):
@@ -88,14 +90,14 @@ class DataFieldAdminForm(forms.ModelForm):
 class DataFieldAdmin(PublishedAdmin):
     form = DataFieldAdminForm
 
-    list_display = ('name', 'published', 'archived', 'internal',
+    list_display = ('name', 'published', 'archived', 'internal', 'type',
                     'orphan_status', 'model_name', 'enumerable',
                     'related_dataconcepts')
 
-    list_filter = ('published', 'archived', 'internal', 'model_name',
+    list_filter = ('published', 'archived', 'internal', 'model_name', 'type',
                    'enumerable')
 
-    list_editable = ('published', 'archived', 'internal', 'enumerable')
+    list_editable = ('published', 'archived', 'internal', 'enumerable', 'type')
 
     search_fields = ('name', 'description', 'keywords')
 
@@ -125,8 +127,8 @@ class DataFieldAdmin(PublishedAdmin):
                            'for programmatic access only.',
         }),
 
-        ('Query Modifiers', {
-            'fields': ('translator', 'enumerable')
+        ('Modifiers', {
+            'fields': ('translator', 'enumerable', 'type')
         }),
 
         ('Data Source', {
