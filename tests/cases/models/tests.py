@@ -15,8 +15,6 @@ from ...models import Employee
 
 
 class ModelInstanceCacheTestCase(TestCase):
-    fixtures = ['models.json']
-
     def setUp(self):
         management.call_command('avocado', 'init', 'tests', publish=False,
                 concepts=False, quiet=True)
@@ -40,8 +38,6 @@ class ModelInstanceCacheTestCase(TestCase):
 
 
 class DataFieldTestCase(TestCase):
-    fixtures = ['models.json']
-
     def setUp(self):
         management.call_command('avocado', 'init', 'tests', publish=False,
                 concepts=False, quiet=True)
@@ -69,8 +65,6 @@ class DataFieldTestCase(TestCase):
 
 
 class DataFieldManagerTestCase(TestCase):
-    fixtures = ['models.json']
-
     def setUp(self):
         management.call_command('avocado', 'init', 'tests', publish=False,
                 concepts=False, quiet=True)
@@ -97,8 +91,6 @@ class DataFieldManagerTestCase(TestCase):
 
 
 class DataConceptTestCase(TestCase):
-    fixtures = ['models.json']
-
     def setUp(self):
         management.call_command('avocado', 'init', 'tests', publish=False,
                 concepts=False, quiet=True)
@@ -146,8 +138,6 @@ class DataConceptTestCase(TestCase):
 
 
 class DataConceptManagerTestCase(TestCase):
-    fixtures = ['models.json']
-
     def setUp(self):
         management.call_command('avocado', 'init', 'tests', publish=False,
                 concepts=False, quiet=True)
