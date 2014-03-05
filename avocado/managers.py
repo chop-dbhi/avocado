@@ -182,7 +182,7 @@ class DataConceptManager(PublishedManager, DataSearchMixin):
         if save:
             from avocado.models import DataConceptField
             concept.save()
-            cfield = DataConceptField(field=field, concept=concept)
+            cfield = DataConceptField(field=field, concept=concept, order=0)
             concept.concept_fields.add(cfield)
         return concept
 

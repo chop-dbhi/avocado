@@ -225,8 +225,8 @@ class DataViewParserTestCase(TestCase):
         c1 = DataConcept()
         c1.save()
 
-        DataConceptField(concept=c1, field=f1).save()
-        DataConceptField(concept=c1, field=f2).save()
+        DataConceptField(concept=c1, field=f1, order=0).save()
+        DataConceptField(concept=c1, field=f2, order=1).save()
 
     def test_valid(self):
         # Single by id
@@ -302,8 +302,8 @@ class DataQueryParserTestCase(TestCase):
         c1 = DataConcept()
         c1.save()
 
-        DataConceptField(concept=c1, field=f1).save()
-        DataConceptField(concept=c1, field=f2).save()
+        DataConceptField(concept=c1, field=f1, order=0).save()
+        DataConceptField(concept=c1, field=f2, order=1).save()
 
     def test_valid(self):
         self.assertEqual(parsers.dataquery.validate({}, tree=Employee), None)

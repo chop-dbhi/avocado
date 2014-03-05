@@ -159,8 +159,8 @@ class DataConceptManagerTestCase(TestCase):
     def test_published(self):
         concept = DataConcept(published=True)
         concept.save()
-        DataConceptField(concept=concept, field=self.is_manager).save()
-        DataConceptField(concept=concept, field=self.salary).save()
+        DataConceptField(concept=concept, field=self.is_manager, order=0).save()
+        DataConceptField(concept=concept, field=self.salary, order=1).save()
 
         self.assertEqual([x.pk for x in DataConcept.objects.published()], [])
 
@@ -265,8 +265,8 @@ class DataQueryTestCase(TestCase):
         c1 = DataConcept()
         c1.save()
 
-        DataConceptField(concept=c1, field=f1).save()
-        DataConceptField(concept=c1, field=f2).save()
+        DataConceptField(concept=c1, field=f1, order=1).save()
+        DataConceptField(concept=c1, field=f2, order=2).save()
 
     def test_init(self):
         json = {
