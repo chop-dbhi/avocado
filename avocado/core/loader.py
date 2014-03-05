@@ -39,10 +39,7 @@ class Registry(object):
             return self[name]
         return self.default
 
-    def register(self, obj, name=None, default=False):
-        """Registers a class or instance with an optional name. The class
-        name will be used if not supplied.
-        """
+    def _register(self, obj, name=None, default=False):
         if default and not name:
             name = 'Default'
 
@@ -60,6 +57,35 @@ class Registry(object):
             raise AlreadyRegistered(u'The object "{0}" is already '
                                     'registered'.format(name))
         self._registry[name] = obj
+
+    def register(self, obj, name=None, default=False):
+        """Registers a class or instance with an optional name. The class
+        name will be used if not supplied. This method can be used as a
+        decorator:
+
+            @loader.register
+            class MyClass(object):
+                pass
+
+        or:
+
+            @loader.register('My Class', default=True)
+            class MyClass(object):
+                pass
+        """
+
+        # No reliable way to check for registered class/instance, so
+        # the first non-required argument is checked for. If this is
+        # the case, shift the arguments
+        if isinstance(obj, (str, unicode)):
+            default, name = name, obj
+
+            def func(obj, name=name, default=default):
+                self._register(obj, name, default)
+
+            return func
+
+        self._register(obj, name, default)
 
     def unregister(self, name):
         """Unregisters an object.
