@@ -122,6 +122,6 @@ class Command(BaseCommand):
             # Fake migrations up to the current created one..
             management.call_command('migrate', settings.METADATA_MIGRATION_APP,
                                     os.path.splitext(next_filename)[0],
-                                    fake=True, database=database)
+                                    fake=True, database=database, verbosity=0)
 
             log.info('Faked migrations up to the current one')
