@@ -31,24 +31,27 @@ class RExporter(BaseExporter):
 
         return name
 
-    def _code_values(self, name, field):
+    def _code_values(self, name, field, coded_labels):
         "If the field can be coded return the r factor and level for it."
         data_field = u'data${0}'.format(name)
 
         factor = u'{0}.factor = factor({0},levels=c('.format(data_field)
         level = u'levels({0}.factor)=c('.format(data_field)
 
-        values_len = len(field.codes)
+        last = len(coded_labels) - 1
 
-        for i, (code, label) in enumerate(field.coded_choices()):
+        for i, (code, label) in enumerate(coded_labels):
             factor += str(code)
             level += u'"{0}"'.format(str(label))
-            if i == values_len - 1:
-                factor += '))\n'
-                level += ')\n'
-                continue
-            factor += ' ,'
-            level += ' ,'
+
+            # Do not apply on the final loop
+            if i < last:
+                factor += ' ,'
+                level += ' ,'
+
+        factor += '))\n'
+        level += ')\n'
+
         return factor, level
 
     def write(self, iterable, buff=None, template_name='export/script.R',
@@ -61,14 +64,17 @@ class RExporter(BaseExporter):
 
         for c in self.concepts:
             cfields = c.concept_fields.all()
+
             for cfield in cfields:
                 field = cfield.field
                 name = self._format_name(field.field_name)
                 labels.append(u'attr(data${0}, "label") = "{1}"'.format(
                     name, unicode(cfield)))
 
-                if field.code_field:
-                    codes = self._code_values(name, field)
+                coded_labels = field.coded_labels()
+
+                if coded_labels:
+                    codes = self._code_values(name, field, coded_labels)
                     factors.append(codes[0])
                     levels.append(codes[1])
 

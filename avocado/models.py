@@ -504,13 +504,17 @@ class DataField(BasePlural, PublishArchiveMixin):
 
     def coded_labels(self):
         "Returns a distinct set of code/label pairs for this field."
-        if self.code_field:
-            return ChoicesDict(zip(self.codes(), self.labels()))
+        codes = self.codes()
+
+        if codes is not None:
+            return ChoicesDict(zip(codes, self.labels()))
 
     def coded_values(self):
-        "Returns a distinct set of value/code pairs for this field."
-        if self.code_field:
-            return ChoicesDict(zip(self.values(), self.codes()))
+        "Returns a distinct set of code/value pairs for this field."
+        codes = self.codes()
+
+        if codes is not None:
+            return ChoicesDict(zip(codes, self.values()))
 
     # Alias since it's common parlance in Django
     choices = value_labels
