@@ -86,6 +86,28 @@ class DataFieldSupplementaryTestCase(TestCase):
         self.assertEqual(list(self.f.coded_values())[0], (2, 'Analyst'))
         self.assertEqual(list(self.f.coded_labels())[0], (2, 'Analyst'))
 
+    def test_predefined_choices(self):
+        choices = (
+            ('Programmer', 'Programmer'),
+            ('Analyst', 'Analyst'),
+            ('QA', 'QA'),
+            ('CEO', 'CEO'),
+            ('IT', 'IT'),
+            ('Guard', 'Guard'),
+            ('Lawyer', 'Lawyer'),
+        )
+
+        # Manually set choices for test..
+        self.f.field._choices = choices
+
+        self.assertEqual(list(self.f.values())[0], 'Programmer')
+        self.assertEqual(list(self.f.labels())[0], 'Programmer')
+        self.assertEqual(list(self.f.codes())[0], 0)
+
+        self.assertEqual(list(self.f.value_labels())[0], ('Programmer', 'Programmer'))
+        self.assertEqual(list(self.f.coded_values())[0], (0, 'Programmer'))
+        self.assertEqual(list(self.f.coded_labels())[0], (0, 'Programmer'))
+
 
 class DataFieldManagerTestCase(TestCase):
     def setUp(self):

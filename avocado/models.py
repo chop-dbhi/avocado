@@ -475,26 +475,45 @@ class DataField(BasePlural, PublishArchiveMixin):
 
         return smart_unicode(value)
 
+    def _has_predefined_choices(self):
+        """Returns true if the base field has pre-defined choices and no
+        alternative label field has been defined.
+        """
+        return bool(tuple(self.field.choices))
+
     # Data-related Cached Properties
     # These may be cached until the underlying data changes
     @cached_method(version='data_version')
     def size(self):
         "Returns the count of distinct values."
+        if self._has_predefined_choices():
+            return len(self.field.choices)
+
         return self.values_list().count()
 
     @cached_method(version='data_version')
     def values(self):
         "Returns a distinct list of values."
+        if self._has_predefined_choices():
+            return tuple(zip(*self.field.choices)[0])
+
         return tuple(self.values_list())
 
     @cached_method(version='data_version')
     def labels(self):
         "Returns a distinct list of labels."
+        if self._has_predefined_choices():
+            labels = zip(*self.field.choices)[1]
+            return tuple(smart_unicode(l) for l in labels)
+
         return tuple(smart_unicode(l) for l in self.labels_list())
 
     @cached_method(version='data_version')
     def codes(self):
         "Returns a distinct set of coded values for this field"
+        if self._has_predefined_choices():
+            return tuple(range(self.size()))
+
         if self.code_field:
             return tuple(self.codes_list())
 
