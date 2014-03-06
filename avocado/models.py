@@ -402,23 +402,37 @@ class DataField(BasePlural, PublishArchiveMixin):
     # Convenience Methods
     # Easier access to the underlying data for this data field
 
-    def values_list(self):
+    def values_list(self, order=True, distinct=True):
         "Returns a `ValuesListQuerySet` of values for this field."
         value_field = self.value_field.name
         order_field = self.order_field.name
 
-        return self.model.objects.values_list(value_field, flat=True)\
-            .order_by(order_field).distinct()
+        queryset = self.model.objects.values_list(value_field, flat=True)
 
-    def labels_list(self):
+        if order:
+            queryset = queryset.order_by(order_field)
+
+        if distinct:
+            return queryset.distinct()
+
+        return queryset
+
+    def labels_list(self, order=True, distinct=True):
         "Returns a `ValuesListQuerySet` of labels for this field."
         label_field = self.label_field.name
         order_field = self.order_field.name
 
-        return self.model.objects.values_list(label_field, flat=True)\
-            .order_by(order_field).distinct()
+        queryset = self.model.objects.values_list(label_field, flat=True)
 
-    def codes_list(self):
+        if order:
+            queryset = queryset.order_by(order_field)
+
+        if distinct:
+            return queryset.distinct()
+
+        return queryset
+
+    def codes_list(self, order=True, distinct=True):
         "Returns a `ValuesListQuerySet` of labels for this field."
         if not self.code_field:
             return
@@ -426,8 +440,15 @@ class DataField(BasePlural, PublishArchiveMixin):
         code_field = self.code_field.name
         order_field = self.order_field.name
 
-        return self.model.objects.values_list(code_field, flat=True)\
-            .order_by(order_field).distinct()
+        queryset = self.model.objects.values_list(code_field, flat=True)
+
+        if order:
+            queryset = queryset.order_by(order_field)
+
+        if distinct:
+            return queryset.distinct()
+
+        return queryset
 
     def search(self, query):
         "Rudimentary search for string-based values."
