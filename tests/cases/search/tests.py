@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.core import management
 from haystack.query import RelatedSearchQuerySet
-from avocado.models import DataField, DataConcept
+from avocado.models import DataField, DataConcept, DataCategory
 
 
 class SearchTest(TestCase):
@@ -9,6 +9,17 @@ class SearchTest(TestCase):
 
     def setUp(self):
         management.call_command('avocado', 'init', 'search', quiet=True)
+
+        # Create categories for test purposes
+        parent = DataCategory(name='Harvest', published=True)
+        parent.save()
+
+        category = DataCategory(name='Avocado', parent=parent, published=True)
+        category.save()
+
+        DataField.objects.update(category=category)
+        DataConcept.objects.update(category=category)
+
         management.call_command('rebuild_index', interactive=False,
                                 verbosity=0)
 
@@ -53,6 +64,15 @@ class FieldSearchTest(SearchTest):
                          title_fields)
         self.assertEqual(sorted([x.object.pk for x in search('employee')]),
                          employee_fields)
+
+    def test_category(self):
+        count = DataField.objects.count()
+
+        search = DataField.objects.search('avocado')
+        self.assertEqual(len(search), count)
+
+        search = DataField.objects.search('harvest')
+        self.assertEqual(len(search), count)
 
     def test_data(self):
         "Test search via the data itself."
@@ -112,6 +132,15 @@ class ConceptSearchTest(SearchTest):
                          title_concepts)
         self.assertEqual(sorted([x.object.pk for x in search('employee')]),
                          employee_concepts)
+
+    def test_category(self):
+        count = DataConcept.objects.count()
+
+        search = DataConcept.objects.search('avocado')
+        self.assertEqual(len(search), count)
+
+        search = DataConcept.objects.search('harvest')
+        self.assertEqual(len(search), count)
 
     def test_data(self):
         "Test search via the data itself."

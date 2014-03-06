@@ -2,6 +2,6 @@
 {{ object.get_plural_name|default:"" }}
 {{ object.description|default:"" }}
 {{ object.keywords|default:"" }}
-{{ object.category|default:"" }}
+{% if object.category %}{% include "search/indexes/avocado/datacategory_text.txt" with object=object.category %}{% endif %}
 {% for cfield in object.concept_fields.all %}{{ cfield }}{% include "search/indexes/avocado/datafield_text.txt" with object=cfield.field %}
 {% endfor %}
