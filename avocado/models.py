@@ -469,7 +469,7 @@ class DataField(BasePlural, PublishArchiveMixin):
     @cached_method(version='data_version')
     def labels(self):
         "Returns a distinct list of labels."
-        return tuple(self.labels_list())
+        return tuple(smart_unicode(l) for l in self.labels_list())
 
     @cached_method(version='data_version')
     def codes(self):
