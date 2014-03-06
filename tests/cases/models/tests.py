@@ -64,6 +64,29 @@ class DataFieldTestCase(TestCase):
         self.assertEqual(self.first_name.nullable, False)
 
 
+class DataFieldSupplementaryTestCase(TestCase):
+    fixtures = ['employee_data.json']
+
+    def setUp(self):
+        self.f = DataField.init('tests.title.name')
+
+    def test_default(self):
+        self.assertEqual(list(self.f.values())[0], 'Analyst')
+        self.assertEqual(list(self.f.labels())[0], 'Analyst')
+        self.assertEqual(self.f.codes(), None)
+
+        self.assertEqual(list(self.f.value_labels())[0], ('Analyst', 'Analyst'))
+        self.assertEqual(self.f.coded_values(), None)
+        self.assertEqual(self.f.coded_labels(), None)
+
+    def test_code_field(self):
+        self.f.code_field_name = 'id'
+
+        self.assertEqual(list(self.f.codes())[0], 2)
+        self.assertEqual(list(self.f.coded_values())[0], (2, 'Analyst'))
+        self.assertEqual(list(self.f.coded_labels())[0], (2, 'Analyst'))
+
+
 class DataFieldManagerTestCase(TestCase):
     def setUp(self):
         management.call_command('avocado', 'init', 'tests', publish=False,
