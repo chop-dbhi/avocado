@@ -5,7 +5,7 @@ from django.db.models import get_model, get_models, get_app, AutoField, \
     ForeignKey, OneToOneField, ManyToManyField, FieldDoesNotExist
 from django.core.management.base import BaseCommand
 from avocado.conf import dep_supported
-from avocado.models import DataField, DataConcept
+from avocado.models import DataField, DataConcept, DataCategory
 from avocado.lexicon.models import Lexicon
 from avocado.core import utils
 
@@ -45,7 +45,12 @@ class Command(BaseCommand):
 
         make_option('--prepend-model-name', action='store_true',
                     dest='prepend_model_name', default=False, help='Prepend '
-                    'the model name to the field name')
+                    'the model name to the field name'),
+
+        make_option('--categories', action='store_true',
+                    dest='categories', default=False, help='Create/link '
+                    'categories for each model and associate contained '
+                    'fields and concepts.'),
     )
 
     # These are ignored since these join fields will be determined at runtime
@@ -173,6 +178,9 @@ class Command(BaseCommand):
         force = options.get('force')
         include_non_editable = options.get('include_non_editable')
         prepend_model_name = options.get('prepend_model_name')
+        create_concepts = options.get('concepts')
+        auto_publish = options.get('publish')
+        create_categories = options.get('categories')
 
         # M2Ms do not make any sense here..
         if isinstance(field, ManyToManyField):
@@ -254,12 +262,28 @@ class Command(BaseCommand):
 
         # Update fields with flags
         f.__dict__.update(utils.get_heuristic_flags(field))
+
+        # Create category based on the model name and associate
+        # it to the field.
+        if create_categories:
+            category, _ = DataCategory.objects\
+                .get_or_create(name=f.model._meta.verbose_name.title(),
+                               published=auto_publish)
+            f.category = category
+        else:
+            category = None
+
         f.save()
 
         # Create a concept if one does not already exist for this field
-        if (options.get('concepts') and not
-                DataConcept.objects.filter(concept_fields__field=f).exists()):
-            DataConcept.objects.create_from_field(
-                f, published=options.get('publish'))
+        if create_concepts and not DataConcept.objects\
+                .filter(fields=f).exists():
+
+            kwargs = {
+                'published': auto_publish,
+                'category': category,
+            }
+
+            DataConcept.objects.create_from_field(f, **kwargs)
 
         return created

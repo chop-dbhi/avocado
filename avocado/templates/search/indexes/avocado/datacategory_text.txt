@@ -1,0 +1,4 @@
+{{ object.name|default:"" }}
+{{ object.description|default:"" }}
+{{ object.keywords|default:"" }}
+{% if object.parent and depth != 1 %}{% include "search/indexes/avocado/datacategory_text.txt" with object=object.parent depth=1 %}{% endif %}

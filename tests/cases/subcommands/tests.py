@@ -2,9 +2,10 @@ import os
 import sys
 from django.test import TestCase
 from django.core import management
-from avocado.models import DataField, DataConcept, DataContext, DataView
+from avocado.models import DataField, DataConcept, DataCategory
 
 __all__ = ('CommandsTestCase',)
+
 
 class CommandsTestCase(TestCase):
     fixtures = ['employee_data.json', 'legacy.json']
@@ -40,14 +41,27 @@ class CommandsTestCase(TestCase):
 
     def test_init(self):
         management.call_command('avocado', 'init', 'tests')
-        self.assertEqual(DataField.objects.filter(published=True).count(), 18)
-        self.assertEqual(DataConcept.objects.filter(published=True).count(), 18)
+
+        fields = DataField.objects.filter(published=True)
+        concepts = DataConcept.objects.filter(published=True)
+
+        self.assertEqual(fields.count(), 18)
+        self.assertEqual(concepts.count(), 18)
+
+    def test_init_categories(self):
+        management.call_command('avocado', 'init', 'tests.employee',
+                                categories=True)
+
+        self.assertTrue(DataCategory.objects.filter(name='Employee',
+                                                    published=True).exists())
 
     def test_init_previous(self):
         management.call_command('avocado', 'init', 'tests', publish=False,
-                concepts=False)
-        self.assertEqual(DataField.objects.filter(published=False).count(), 18)
-        self.assertEqual(DataConcept.objects.filter().count(), 0)
+                                concepts=False)
+
+        fields = DataField.objects.filter(published=False)
+        self.assertEqual(fields.count(), 18)
+        self.assertEqual(DataConcept.objects.count(), 0)
 
     def test_legacy(self):
         from avocado.models import DataField
