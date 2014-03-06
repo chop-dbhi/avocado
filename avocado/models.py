@@ -479,7 +479,7 @@ class DataField(BasePlural, PublishArchiveMixin):
         """Returns true if the base field has pre-defined choices and no
         alternative label field has been defined.
         """
-        return bool(tuple(self.field.choices))
+        return bool(self.field.choices)
 
     # Data-related Cached Properties
     # These may be cached until the underlying data changes
