@@ -247,9 +247,9 @@ class DataConceptAdmin(PublishedAdmin):
 class DataCategoryAdmin(admin.ModelAdmin):
     model = DataCategory
 
-    list_display = ('name', 'parent', 'order')
+    list_display = ('name', 'parent', 'order', 'published')
 
-    list_editable = ('parent', 'order')
+    list_editable = ('parent', 'order', 'published')
 
 
 class DataViewAdmin(admin.ModelAdmin):
