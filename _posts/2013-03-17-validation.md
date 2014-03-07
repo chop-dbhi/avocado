@@ -12,24 +12,23 @@ date: 2013-03-17 00:05:00
 
 ## Process
 
-- New or modified nodes are validated
-    - Invalid nodes are not saved
-    - The node's natural language representation is computed and saved for future reference
-        - This enables presenting the node as it was defined at the time of save in case the underlying data or fields have changed in the mean time
-- Existing nodes are re-validated upon use
-    - Invalid nodes are flagged `enabled = False` to prevent returning an empty or erroneous result set
-    - Validation warnings and errors will be annotated on the node directly for client use
-- Disabled nodes due to warnings can be forced to be used by setting `enabled = True`, nodes with validation _errors_ however cannot be enabled
+**Nodes should always be validated prior to use.**
+
+- Nodes are validated and annotated with `warnings` and `errors` if any are determined
+- A node is considered _invalid_ if any errors or warnings are associated with it.
+- Nodes that are explicitly marked `enabled = False` prior to validation will be ignored.
+    - This enables the client to toggle/keep around a slew of nodes that may be invalid or not applicable without impacting the validation and ultimately the query.
+- The entire tree/structure is considered invalid if it contains at least one invalid node that is not disabled
+- Invalid nodes due to warnings can be forced to be used by setting `enabled = True`, however nodes with errors can never be enabled
     - Until the node is changed or removed, this flag will remain so the node does not get redundantly validated
+- The node's natural language representation is annotated for future reference in case the underlying data changes prior to the next access
 
-## Client Considerations
+## Client Usage
 
-- show error and warning messages per concept/field
-- provide remediation options
-    - confirm removal for each node with validation errors
-        - this will remove the node permanently from the tree
-    - for nodes with only warnings, the node can be re-enabled
-        - certain use cases may deal with volatile data and the data may be valid _eventually_
+- Node structure is passed to the validator
+    - Optionally save the structure (with validation annotations)
+    - If the node is valid, continue post-validation, such as execution of a query
+    - If the node is not valid, return the structure with annotations for remediation
 
 ## Specification
 
@@ -42,13 +41,13 @@ These are considered the _common_ attributes across validation. The way they are
 - `concept`
     - An integer representing the primary key identifier of the `DataConcept` the field is contained in. Clients that take advantage of concepts will likely need to supply this in order to correctly repopulate and/or organize data on the client.
 - `language`
-    - A read-only string that is a natural language representation of the node. This is annotated server-side and is used for information purposes and future validation purposes.
+    - A string that is a natural language representation of the node. This is annotated server-side and is used for information purposes.
 - `enabled`
-    -  A boolean that is used during re-validation of the node on the server. If the node is no longer valid due to data changes or the field is not longer available, this flag is set to `false`. Clients may provide the option to override this auto-disabling policy for nodes with only warnings (not errors) by changing the flag to `True`. This is preferred over removing the flag to prevent the re-validation process happening subsequent times. Nodes with errors are recommended to be removed.
+    -  A boolean that is used during validation of a node on the server. Invalid nodes will have this flag set to `False`. Clients may set this flag to `True` for invalid nodes only with warnings. Setting the flag to `True` for nodes with errors will have no effect.
 - `warnings`
-    - A read-only array of warnings that result during re-validation of the node. These are considered warnings since there is no harm in applying the node.
+    - A read-only array of warnings that result during validation of the node. Warnings are considered unharmful if the corresponding node is applied and should not cause downstream errors.
 - `errors`
-    - A read-only array of errors that result during re-validation of the node. Errors are different from warnings in that the node is considered _broken_ and cannot be enabled. Clients may choose to remove the node from the tree or leave it for historical reasons.
+    - A read-only array of errors that result during validation of the node. Errors _are_ considered harmful as they cause errors downstream.
 
 ### Warnings
 
