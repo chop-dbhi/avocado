@@ -937,11 +937,11 @@ class DataQuery(AbstractDataQuery, Base):
         """
         # If the query is already shared then there is no need to share it
         # again.
-        if self.shared_users.filter(email=email).exists():
+        if self.shared_users.filter(email__iexact=email).exists():
             return False
 
         try:
-            user = User.objects.get(email=email)
+            user = User.objects.get(email__iexact=email)
         except User.DoesNotExist:
             if not create_user:
                 return False
