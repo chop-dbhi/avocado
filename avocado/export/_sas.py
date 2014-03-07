@@ -41,13 +41,17 @@ class SASExporter(BaseExporter):
         punc = punctuation.replace('_', '')
         name = str(name).translate(None, punc)
         name = name.replace(' ', '_')
+
         if name[0].isdigit():
             name = '_' + name
+
         if len(name) < 30:
             return name
+
         self.num_lg_names += 1
         sas_name = name[:20]
         sas_name += u'_lg_{0}'.format(self.num_lg_names)
+
         return sas_name
 
     def _get_formats(self, sas_name, datafield):
@@ -63,9 +67,10 @@ class SASExporter(BaseExporter):
 
         sas_informat = u'{0:<10}{1:>10}'.format(sas_name, informat)
         sas_format = u'{0:<10}{1:>10}'.format(sas_name, s_format)
+
         return sas_format, sas_informat
 
-    def _code_values(self, name, field):
+    def _code_values(self, name, field, coded_labels):
         """If field can be coded return the value dictionary
         and the format name for the dictionary
         """
@@ -73,7 +78,8 @@ class SASExporter(BaseExporter):
         value = u'{0}_f'.format(name)
 
         codes = []
-        for i, (code, label) in enumerate(field.coded_choices()):
+
+        for i, (code, label) in enumerate(coded_labels):
             codes.append(u'{0}="{1}"'.format(code, label))
 
         values = u'{0} {1}'.format(value, '\t'.join(codes))
@@ -81,6 +87,7 @@ class SASExporter(BaseExporter):
 
     def write(self, iterable, buff=None, template_name='export/script.sas',
               *args, **kwargs):
+
         zip_file = ZipFile(self.get_file_obj(buff), 'w')
 
         formats = []            # sas formats for all fields
@@ -107,10 +114,13 @@ class SASExporter(BaseExporter):
                 else:
                     inputs.append(name)
 
+                coded_labels = field.coded_labels()
+
                 # If a field can be coded create a SAS PROC Format statement
                 # that creates a value dictionary
-                if field.code_field:
-                    value_format, value = self._code_values(name, field)
+                if coded_labels:
+                    value_format, value = self._code_values(name, field,
+                                                            coded_labels)
                     value_formats.append(value_format)
                     values.append(value)
 

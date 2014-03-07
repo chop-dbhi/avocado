@@ -402,23 +402,37 @@ class DataField(BasePlural, PublishArchiveMixin):
     # Convenience Methods
     # Easier access to the underlying data for this data field
 
-    def values_list(self):
+    def values_list(self, order=True, distinct=True):
         "Returns a `ValuesListQuerySet` of values for this field."
         value_field = self.value_field.name
         order_field = self.order_field.name
 
-        return self.model.objects.values_list(value_field, flat=True)\
-            .order_by(order_field).distinct()
+        queryset = self.model.objects.values_list(value_field, flat=True)
 
-    def labels_list(self):
+        if order:
+            queryset = queryset.order_by(order_field)
+
+        if distinct:
+            return queryset.distinct()
+
+        return queryset
+
+    def labels_list(self, order=True, distinct=True):
         "Returns a `ValuesListQuerySet` of labels for this field."
         label_field = self.label_field.name
         order_field = self.order_field.name
 
-        return self.model.objects.values_list(label_field, flat=True)\
-            .order_by(order_field).distinct()
+        queryset = self.model.objects.values_list(label_field, flat=True)
 
-    def codes_list(self):
+        if order:
+            queryset = queryset.order_by(order_field)
+
+        if distinct:
+            return queryset.distinct()
+
+        return queryset
+
+    def codes_list(self, order=True, distinct=True):
         "Returns a `ValuesListQuerySet` of labels for this field."
         if not self.code_field:
             return
@@ -426,8 +440,15 @@ class DataField(BasePlural, PublishArchiveMixin):
         code_field = self.code_field.name
         order_field = self.order_field.name
 
-        return self.model.objects.values_list(code_field, flat=True)\
-            .order_by(order_field).distinct()
+        queryset = self.model.objects.values_list(code_field, flat=True)
+
+        if order:
+            queryset = queryset.order_by(order_field)
+
+        if distinct:
+            return queryset.distinct()
+
+        return queryset
 
     def search(self, query):
         "Rudimentary search for string-based values."
@@ -454,26 +475,45 @@ class DataField(BasePlural, PublishArchiveMixin):
 
         return smart_unicode(value)
 
+    def _has_predefined_choices(self):
+        """Returns true if the base field has pre-defined choices and no
+        alternative label field has been defined.
+        """
+        return bool(self.field.choices)
+
     # Data-related Cached Properties
     # These may be cached until the underlying data changes
     @cached_method(version='data_version')
     def size(self):
         "Returns the count of distinct values."
+        if self._has_predefined_choices():
+            return len(self.field.choices)
+
         return self.values_list().count()
 
     @cached_method(version='data_version')
     def values(self):
         "Returns a distinct list of values."
+        if self._has_predefined_choices():
+            return tuple(zip(*self.field.choices)[0])
+
         return tuple(self.values_list())
 
     @cached_method(version='data_version')
     def labels(self):
         "Returns a distinct list of labels."
-        return tuple(self.labels_list())
+        if self._has_predefined_choices():
+            labels = zip(*self.field.choices)[1]
+            return tuple(smart_unicode(l) for l in labels)
+
+        return tuple(smart_unicode(l) for l in self.labels_list())
 
     @cached_method(version='data_version')
     def codes(self):
         "Returns a distinct set of coded values for this field"
+        if self._has_predefined_choices():
+            return tuple(range(self.size()))
+
         if self.code_field:
             return tuple(self.codes_list())
 
@@ -483,13 +523,17 @@ class DataField(BasePlural, PublishArchiveMixin):
 
     def coded_labels(self):
         "Returns a distinct set of code/label pairs for this field."
-        if self.code_field:
-            return ChoicesDict(zip(self.codes(), self.labels()))
+        codes = self.codes()
+
+        if codes is not None:
+            return ChoicesDict(zip(codes, self.labels()))
 
     def coded_values(self):
-        "Returns a distinct set of value/code pairs for this field."
-        if self.code_field:
-            return ChoicesDict(zip(self.values(), self.codes()))
+        "Returns a distinct set of code/value pairs for this field."
+        codes = self.codes()
+
+        if codes is not None:
+            return ChoicesDict(zip(codes, self.values()))
 
     # Alias since it's common parlance in Django
     choices = value_labels

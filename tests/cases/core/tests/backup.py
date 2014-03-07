@@ -25,7 +25,7 @@ class BackupTestCase(TransactionTestCase):
         from avocado.core import backup
         from avocado.models import DataField
 
-        management.call_command('avocado', 'init', 'tests')
+        management.call_command('avocado', 'init', 'tests', quiet=True)
         self.assertEqual(DataField.objects.count(), 18)
 
         backup_path = backup.safe_load('0001_avocado_metadata')
@@ -38,7 +38,7 @@ class BackupTestCase(TransactionTestCase):
         from avocado.core import backup
         from avocado.models import DataField
 
-        management.call_command('avocado', 'init', 'tests')
+        management.call_command('avocado', 'init', 'tests', quiet=True)
         self.assertEqual(DataField.objects.count(), 18)
 
         backup_path = backup.safe_load('0001_avocado_metadata',
@@ -63,7 +63,7 @@ class BackupTestCase(TransactionTestCase):
     def test_migration_call(self):
         from avocado.core import backup
         from south import migration
-        management.call_command('avocado', 'migration')
+        management.call_command('avocado', 'migration', quiet=True)
         migration_dir = os.path.join(TEST_APP_DIR, 'migrations')
         self.assertTrue(os.path.exists(os.path.join(migration_dir,
                                        '0002_avocado_metadata_migration.py')))
@@ -89,7 +89,8 @@ class BackupTestCase(TransactionTestCase):
         # trivial bug fix.
         from avocado.core import backup
         from south import migration
-        management.call_command('avocado', 'migration', no_fake=True)
+        management.call_command('avocado', 'migration', no_fake=True,
+                                quiet=True)
         migrations = _get_migrations()
         self.assertEqual(migrations, [])
         migration_dir = os.path.join(TEST_APP_DIR, 'migrations')
@@ -102,7 +103,7 @@ class BackupTestCase(TransactionTestCase):
         migration.Migrations._clear_cache()
 
     def test_migration(self):
-        management.call_command('migrate', 'core')
+        management.call_command('migrate', 'core', verbosity=0)
 
     def test_missing_setting(self):
         from avocado.conf import settings
