@@ -11,6 +11,21 @@ env:
 virtualenv:
     system_site_packages: true
 
+services:
+    - memcache
+
+before_install:
+    - env | sort
+    - sudo apt-get update -qq
+    - sudo apt-get install -qq python-yaml
+    - git remote add upstream git://github.com/cbmi/avocado.git
+    - upstream=master;
+      if [ "$TRAVIS_PULL_REQUEST" != false ]; then
+          upstream=$TRAVIS_BRANCH;
+      fi;
+      git fetch --append --no-tags upstream refs/heads/$upstream:refs/remotes/upstream/$upstream
+    - /usr/bin/python bin/check_signoff.py
+
 install:
     - pip install -q coveralls Django==$DJANGO --use-mirrors
     - pip install -r requirements.txt
@@ -18,9 +33,6 @@ install:
 
 before_script:
     flake8
-
-services:
-    - memcache
 
 script:
     - coverage run test_suite.py
