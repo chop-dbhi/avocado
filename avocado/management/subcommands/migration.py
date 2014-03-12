@@ -19,6 +19,10 @@ from south.v2 import DataMigration
 
 class Migration(DataMigration):
 
+    depends_on = (
+       ("avocado", "{latest_avocado_migration}"),
+    )
+
     def forwards(self, orm):
         "Perform a 'safe' load using Avocado's backup utilities."
         from avocado.core import backup
@@ -93,6 +97,11 @@ class Command(BaseCommand):
         if verbosity > 1:
             log.info(u'Created fixture {0}'.format(fixture_name))
 
+        # Get the last migration for avocado to insert it as a dependency
+        avocado_migrations = migration.Migrations('avocado',
+                                                  force_creation=False)
+        avocado_migration_name = avocado_migrations[-1].name()
+
         # Get the Migrations for this app(creating the migration dir if needed)
         migrations = migration.Migrations(settings.METADATA_MIGRATION_APP,
                                           force_creation=True,
@@ -102,6 +111,7 @@ class Command(BaseCommand):
         next_filename = migrations.next_filename(migration_suffix)
 
         file_contents = METADATA_MIGRATION_TEMPLATE.format(
+            latest_avocado_migration=avocado_migration_name,
             fixture_name=repr(fixture_name),
             backup_path=(backup_path and repr(backup_path) or backup_path),
             using=repr(database))
