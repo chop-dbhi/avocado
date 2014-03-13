@@ -61,21 +61,24 @@ class Revision(models.Model):
         """
         diff = {}
 
-        if not fields:
-            fields = self.data.keys()
+        current = get_object_data(instance, fields=fields)
+        previous = self.data or {}
 
-        data = get_object_data(instance, fields=fields)
+        if not fields:
+            fields = previous.keys()
 
         for key in fields:
-            if data.get(key) != self.data.get(key):
+            if current.get(key) != previous.get(key):
                 if reverse:
-                    old_value = data.get(key)
-                    new_value = self.data.get(key)
+                    old_value = current.get(key)
+                    new_value = previous.get(key)
                 else:
-                    old_value = self.data.get(key)
-                    new_value = data.get(key)
+                    old_value = previous.get(key)
+                    new_value = current.get(key)
+
                 diff[key] = {
                     'old_value': old_value,
                     'new_value': new_value
                 }
+
         return diff
