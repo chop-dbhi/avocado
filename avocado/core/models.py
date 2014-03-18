@@ -31,7 +31,7 @@ class Base(models.Model):
         abstract = True
 
     def __unicode__(self):
-        return unicode(self.name)
+        return self.name
 
     @property
     def descriptors(self):
@@ -39,7 +39,7 @@ class Base(models.Model):
         This is used for performing text indexing for model instances.
         """
         return {
-            'name': self.name,
+            'name': unicode(self),
             'description': self.description,
             'keywords': self.keywords,
         }
@@ -59,20 +59,22 @@ class BasePlural(Base):
     @property
     def descriptors(self):
         return {
-            'name': self.name,
-            'name_plural': self.name_plural,
+            'name': unicode(self),
+            'name_plural': self.get_plural_name(),
             'description': self.description,
             'keywords': self.keywords,
         }
 
     def get_plural_name(self):
         if self.name_plural:
-            plural = self.name_plural
-        elif self.name and not self.name.endswith('s'):
-            plural = self.name + 's'
-        else:
-            plural = self.name
-        return plural
+            return self.name_plural
+
+        name = unicode(self)
+
+        if not name.endswith('s'):
+            return name + 's'
+
+        return name
 
 
 class PublishArchiveMixin(models.Model):

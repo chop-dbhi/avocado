@@ -711,10 +711,18 @@ class DataConceptField(models.Model):
         ordering = ('order', 'name')
 
     def __unicode__(self):
-        return unicode(self.name or self.field.name)
+        return self.name or unicode(self.field)
 
     def get_plural_name(self):
-        return self.name_plural or self.field.get_plural_name()
+        if self.name_plural:
+            return self.name_plural
+
+        if self.name:
+            if not self.name.endswith('s'):
+                return self.name + 's'
+            return self.name
+
+        return self.field.get_plural_name()
 
 
 class DataContext(AbstractDataContext, Base):
