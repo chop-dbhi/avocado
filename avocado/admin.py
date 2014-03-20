@@ -121,6 +121,20 @@ class DataFieldAdmin(PublishedAdmin):
             ),
         }),
 
+        ('Reference Field', {
+            'fields': ('app_name', 'model_name', 'field_name'),
+            'description': 'The reference field of this DataField. See the '
+                           'available supplementary to alter the behavior in '
+                           'API.',
+        }),
+
+        ('Supplementary Fields', {
+            'fields': ('label_field_name', 'search_field_name',
+                       'code_field_name', 'order_field_name'),
+            'description': 'Fields that can be defined to alter the behavior '
+                           'of the DataField API.',
+        }),
+
         ('Internal Use', {
             'fields': ('internal',),
             'description': 'Flag as internal if this concept is is intended '
@@ -129,15 +143,6 @@ class DataFieldAdmin(PublishedAdmin):
 
         ('Modifiers', {
             'fields': ('translator', 'enumerable', 'type')
-        }),
-
-        ('Data Source', {
-            'description': ('These fields should not be altered in-place. '
-                            'If where this field is located has changed, '
-                            'change these values and create a new field by '
-                            'using "Save as new".'),
-            'classes': ('collapse',),
-            'fields': ('app_name', 'model_name', 'field_name'),
         }),
 
         ('Times of Interest', {

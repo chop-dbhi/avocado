@@ -95,10 +95,20 @@ class DataField(BasePlural, PublishArchiveMixin):
 
     # Supplementary fields that respresent alternate representations
     # of the base field
-    label_field_name = models.CharField(max_length=200, null=True)
-    search_field_name = models.CharField(max_length=200, null=True)
-    order_field_name = models.CharField(max_length=200, null=True)
-    code_field_name = models.CharField(max_length=200, null=True)
+    label_field_name = models.CharField(max_length=200, null=True, blank=True,
+                                        help_text='Label field to the '
+                                                  'reference field')
+    search_field_name = models.CharField(max_length=200, null=True, blank=True,
+                                         help_text='Search field to the '
+                                                   'reference field')
+
+    order_field_name = models.CharField(max_length=200, null=True, blank=True,
+                                        help_text='Order field to the '
+                                                  'reference field')
+
+    code_field_name = models.CharField(max_length=200, null=True, blank=True,
+                                       help_text='Order field to the '
+                                                 'reference field')
 
     # An optional unit for this field's data. In some cases databases may have
     # a separate column which denotes the unit for another column, but this is
@@ -119,7 +129,10 @@ class DataField(BasePlural, PublishArchiveMixin):
     # no full text data.
     enumerable = models.BooleanField(default=False)
 
-    type = models.CharField(max_length=100, blank=True, null=True)
+    type = models.CharField(max_length=100, blank=True, null=True,
+                            help_text='Logical type of this field. Typically '
+                                      'used downstream for defining behavior '
+                                      'and semantics around the field.')
 
     # An optional translator which customizes input query conditions
     # to a format which is suitable for the database.
