@@ -595,6 +595,21 @@ class DataField(BasePlural, PublishArchiveMixin):
         if self.simple_type == 'number':
             return Aggregator(self.field).variance(*args)
 
+    @cached_method(version='data_version')
+    def sparsity(self, *args, **kwargs):
+        "Returns the ratio of null values in the population."
+        queryset = self.model.objects.all()
+        count = queryset.count()
+
+        # No data, 100% sparsity
+        if count == 0:
+            return 1.0
+
+        isnull = '{0}__isnull'.format(self.value_field_name)
+        nulls = queryset.filter(**{isnull: True}).count()
+
+        return nulls / float(count)
+
     # Translator Convenience Methods
     @property
     def operators(self):

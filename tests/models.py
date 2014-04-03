@@ -31,7 +31,7 @@ class Meeting(models.Model):
 class Project(models.Model):
     name = models.CharField(max_length=50)
     employees = models.ManyToManyField(Employee)
-    manager = models.OneToOneField(Employee, related_name='managed_projects')
+    manager = models.ForeignKey(Employee, related_name='managed_projects')
     due_date = models.DateField(null=True)
     budget = models.DecimalField(max_digits=7, decimal_places=2, null=True)
 

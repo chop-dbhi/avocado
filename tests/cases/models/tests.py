@@ -11,7 +11,7 @@ from django.contrib.auth.models import User
 from guardian.shortcuts import assign
 from avocado.models import (DataField, DataConcept, DataConceptField,
     DataContext, DataView, DataQuery, DataCategory)
-from ...models import Employee
+from ...models import Employee, Project
 
 
 class ModelInstanceCacheTestCase(TestCase):
@@ -62,6 +62,20 @@ class DataFieldTestCase(TestCase):
         self.assertTrue(self.first_name.field)
         self.assertEqual(self.first_name.simple_type, 'string')
         self.assertEqual(self.first_name.nullable, False)
+
+
+class DataFieldMethodsTestCase(TestCase):
+    fixtures = ['employee_data.json']
+
+    def setUp(self):
+        management.call_command('avocado', 'init', 'tests', publish=False,
+                concepts=False, quiet=True)
+        self.budget = DataField.objects.get_by_natural_key('tests', 'project', 'budget')
+        self.due_date = DataField.objects.get_by_natural_key('tests', 'project', 'due_date')
+
+    def test_sparsity(self):
+        self.assertEqual(self.budget.sparsity(), 0.5)
+        self.assertEqual(self.due_date.sparsity(), 1)
 
 
 class DataFieldSupplementaryTestCase(TestCase):
