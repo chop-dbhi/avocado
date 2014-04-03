@@ -1,138 +1,155 @@
 [
     {
-        "pk": 1, 
-        "model": "tests.office", 
+        "pk": 1,
+        "model": "tests.office",
         "fields": {
             "location": "3535 Market"
         }
-    }, 
+    },
     {
-        "pk": 1, 
-        "model": "tests.title", 
+        "pk": 1,
+        "model": "tests.title",
         "fields": {
-            "salary": 15000, 
-            "name": "Programmer", 
+            "salary": 15000,
+            "name": "Programmer",
             "boss": false
         }
-    }, 
+    },
     {
-        "pk": 2, 
-        "model": "tests.title", 
+        "pk": 2,
+        "model": "tests.title",
         "fields": {
-            "salary": 20000, 
-            "name": "Analyst", 
+            "salary": 20000,
+            "name": "Analyst",
             "boss": false
         }
-    }, 
+    },
     {
-        "pk": 3, 
-        "model": "tests.title", 
+        "pk": 3,
+        "model": "tests.title",
         "fields": {
-            "salary": 15000, 
-            "name": "QA", 
+            "salary": 15000,
+            "name": "QA",
             "boss": false
         }
-    }, 
+    },
     {
-        "pk": 4, 
-        "model": "tests.title", 
+        "pk": 4,
+        "model": "tests.title",
         "fields": {
-            "salary": 200000, 
-            "name": "CEO", 
+            "salary": 200000,
+            "name": "CEO",
             "boss": true
         }
-    }, 
+    },
     {
-        "pk": 5, 
-        "model": "tests.title", 
+        "pk": 5,
+        "model": "tests.title",
         "fields": {
-            "salary": 15000, 
-            "name": "IT", 
+            "salary": 15000,
+            "name": "IT",
             "boss": false
         }
-    }, 
+    },
     {
-        "pk": 6, 
-        "model": "tests.title", 
+        "pk": 6,
+        "model": "tests.title",
         "fields": {
-            "salary": 10000, 
-            "name": "Guard", 
+            "salary": 10000,
+            "name": "Guard",
             "boss": false
         }
-    }, 
+    },
     {
-        "pk": 7, 
-        "model": "tests.title", 
+        "pk": 7,
+        "model": "tests.title",
         "fields": {
-            "salary": 100000, 
-            "name": "Lawyer", 
+            "salary": 100000,
+            "name": "Lawyer",
             "boss": false
         }
-    }, 
+    },
     {
-        "pk": 1, 
-        "model": "tests.employee", 
+        "pk": 1,
+        "model": "tests.employee",
         "fields": {
-            "first_name": "Eric", 
-            "last_name": "Smith", 
-            "is_manager": true, 
-            "office": 1, 
+            "first_name": "Eric",
+            "last_name": "Smith",
+            "is_manager": true,
+            "office": 1,
             "title": 1
         }
-    }, 
+    },
     {
-        "pk": 2, 
-        "model": "tests.employee", 
+        "pk": 2,
+        "model": "tests.employee",
         "fields": {
-            "first_name": "Erin", 
-            "last_name": "Jones", 
-            "is_manager": false, 
-            "office": 1, 
+            "first_name": "Erin",
+            "last_name": "Jones",
+            "is_manager": false,
+            "office": 1,
             "title": 2
         }
-    }, 
+    },
     {
-        "pk": 3, 
-        "model": "tests.employee", 
+        "pk": 3,
+        "model": "tests.employee",
         "fields": {
-            "first_name": "Erick", 
-            "last_name": "Smith", 
-            "is_manager": false, 
-            "office": 1, 
+            "first_name": "Erick",
+            "last_name": "Smith",
+            "is_manager": false,
+            "office": 1,
             "title": 1
         }
-    }, 
+    },
     {
-        "pk": 4, 
-        "model": "tests.employee", 
+        "pk": 4,
+        "model": "tests.employee",
         "fields": {
-            "first_name": "Aaron", 
-            "last_name": "Harris", 
-            "is_manager": false, 
-            "office": 1, 
+            "first_name": "Aaron",
+            "last_name": "Harris",
+            "is_manager": false,
+            "office": 1,
             "title": 2
         }
-    }, 
+    },
     {
-        "pk": 5, 
-        "model": "tests.employee", 
+        "pk": 5,
+        "model": "tests.employee",
         "fields": {
-            "first_name": "Zac", 
-            "last_name": "Cook", 
-            "is_manager": false, 
-            "office": 1, 
+            "first_name": "Zac",
+            "last_name": "Cook",
+            "is_manager": false,
+            "office": 1,
             "title": 1
         }
-    }, 
+    },
     {
-        "pk": 6, 
-        "model": "tests.employee", 
+        "pk": 6,
+        "model": "tests.employee",
         "fields": {
-            "first_name": "Mel", 
-            "last_name": "Brooks", 
-            "is_manager": false, 
-            "office": 1, 
+            "first_name": "Mel",
+            "last_name": "Brooks",
+            "is_manager": false,
+            "office": 1,
             "title": 2
+        }
+    },
+    {
+        "pk": 1,
+        "model": "tests.project",
+        "fields": {
+            "name": "Project X",
+            "manager": 1,
+            "budget": 5000
+        }
+    },
+    {
+        "pk": 2,
+        "model": "tests.project",
+        "fields": {
+            "name": "Project Y",
+            "manager": 5
         }
     }
 ]
