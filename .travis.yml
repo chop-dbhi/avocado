@@ -34,8 +34,8 @@ install:
 
 before_script:
     - flake8
-    - mysql -e 'create database avocado_tests;'
-    - psql -c 'create database avocado_tests'
+    - mysql -u travis -e 'create database avocado_tests;'
+    - psql -U postgres -c 'create database avocado_tests'
 
 script:
     - coverage run test_suite.py
