@@ -1,11 +1,28 @@
 import os
 
 DATABASES = {
-    'default': {
+    'sqlite': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(os.path.dirname(__file__), 'tests.db'),
+        'NAME': os.path.join(os.path.dirname(__file__), 'avocado_tests.db'),
+    },
+    'mysql': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'avocado_tests',
+        'USER': 'travis',
+        'HOST': '127.0.0.1',
+    },
+    'postgresql': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'avocado_tests',
+        'USER': 'postgres',
+        'HOST': '127.0.0.1',
     }
 }
+
+# Get the selected database as an environment variable.
+BACKEND = os.environ.get('DATABASE', 'sqlite')
+
+DATABASES['default'] = DATABASES[BACKEND]
 
 INSTALLED_APPS = (
     'django.contrib.sites',
@@ -36,8 +53,8 @@ INSTALLED_APPS = (
 
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION': '127.0.0.1:11211',
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'avocado-tests',
     }
 }
 

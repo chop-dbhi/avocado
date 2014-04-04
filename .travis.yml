@@ -5,14 +5,15 @@ python:
     - "2.7"
 
 env:
-    - DJANGO=1.4.10
-    - DJANGO=1.5.5
+    - DJANGO=1.4.10 DATABASE=sqlite
+    - DJANGO=1.4.10 DATABASE=postgresql
+    - DJANGO=1.4.10 DATABASE=mysql
+    - DJANGO=1.5.5 DATABASE=sqlite
+    - DJANGO=1.5.5 DATABASE=postgresql
+    - DJANGO=1.5.5 DATABASE=mysql
 
 virtualenv:
     system_site_packages: true
-
-services:
-    - memcache
 
 before_install:
     - env | sort
@@ -32,7 +33,9 @@ install:
     - pip install flake8
 
 before_script:
-    flake8
+    - flake8
+    - mysql -e 'create database avocado_tests;'
+    - psql -c 'create database avocado_tests'
 
 script:
     - coverage run test_suite.py
