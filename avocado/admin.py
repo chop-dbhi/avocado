@@ -212,6 +212,9 @@ class DataConceptAdmin(PublishedAdmin):
     list_filter = ('published', 'archived', 'category', 'type',
                    'formatter_name', 'viewable', 'queryable', 'sortable')
 
+    ordering = ('archived', '-published', 'category__parent__order',
+                'category__order', 'order', 'name')
+
     inlines = [DataConceptFieldInlineAdmin]
 
     fieldsets = (
@@ -265,6 +268,8 @@ class DataCategoryAdmin(admin.ModelAdmin):
     list_display = ('name', 'parent', 'order', 'published')
 
     list_editable = ('parent', 'order', 'published')
+
+    ordering = ('archived', '-published', 'parent__order', 'order', 'name')
 
 
 class DataViewAdmin(admin.ModelAdmin):
