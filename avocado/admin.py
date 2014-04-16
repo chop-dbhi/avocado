@@ -159,11 +159,16 @@ class DataFieldAdmin(PublishedAdmin):
     orphan_status.short_description = 'Orphan Status'
 
     def related_dataconcepts(self, obj):
+        site = self.admin_site
         queryset = obj.concepts.only('id', 'name')
-        reverse_name = 'admin:avocado_dataconcept_change'
+        reverse_name = '{0}:avocado_dataconcept_change'.format(site.name)
+
         urlize = lambda x: u'<a href="{0}">{1}</a>'.format(reverse(
-            reverse_name, args=[x.id]), x.name)
+            reverse_name, args=[x.id]), x.name, namespace=site.name,
+            app_name=site.app_name)
+
         return '<br>'.join(map(urlize, queryset)) or None
+
     related_dataconcepts.short_description = 'Related Data Concepts'
     related_dataconcepts.allow_tags = True
 
@@ -240,11 +245,16 @@ class DataConceptAdmin(PublishedAdmin):
     )
 
     def related_datafields(self, obj):
+        site = self.admin_site
         queryset = obj.fields.only('id', 'name')
-        reverse_name = 'admin:avocado_datafield_change'
+        reverse_name = '{0}:avocado_datafield_change'.format(site.name)
+
         urlize = lambda x: u'<a href="{0}">{1}</a>'.format(reverse(
-            reverse_name, args=[x.id]), x.name)
+            reverse_name, args=[x.id]), x.name, namespace=site.name,
+            app_name=site.app_name)
+
         return '<br>'.join(map(urlize, queryset)) or None
+
     related_datafields.short_description = 'Related Data Fields'
     related_datafields.allow_tags = True
 
