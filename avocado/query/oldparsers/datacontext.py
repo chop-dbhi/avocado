@@ -248,6 +248,7 @@ def validate(attrs, **context):
             map(lambda x: validate(x, **context), attrs['children'])
     else:
         enabled = False
+        errors.append('Unknown node type')
 
     # If this condition was originally disabled, ensure that decision is
     # persisted
