@@ -99,3 +99,11 @@ VALIDATION_WARNINGS = {}
 # Toggle whether DataField instances should cache the underlying data
 # for their most common data access methods.
 DATA_CACHE_ENABLED = True
+
+# These settings affect how queries can be shared between users.
+# A user is able to enter either a username or an email of another user
+# they wish to share the query with. To limit to only one type of sharing
+# set the appropriate setting to True and all others to false.
+SHARE_BY_USERNAME = True
+SHARE_BY_EMAIL = True
+SHARE_BY_USERNAME_CASE_SENSITIVE = True
