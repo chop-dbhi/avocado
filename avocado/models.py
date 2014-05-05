@@ -1,4 +1,5 @@
 import re
+import logging
 from warnings import warn
 from datetime import datetime
 from django.db import models
@@ -6,9 +7,11 @@ from django.contrib.sites.models import Site
 from django.contrib.auth.models import User, Group
 from django.utils.encoding import smart_unicode
 from django.utils.translation import ugettext_lazy as _
+from django.db.models import Q
 from django.db.models.fields import FieldDoesNotExist
 from django.db.models.signals import post_save, pre_delete
 from django.core.validators import RegexValidator
+from django.core.exceptions import ValidationError
 from avocado.core import utils
 from avocado.core.structures import ChoicesDict
 from avocado.core.models import Base, BasePlural, PublishArchiveMixin
@@ -27,6 +30,8 @@ from avocado import formatters
 
 __all__ = ('DataCategory', 'DataConcept', 'DataField',
            'DataContext', 'DataView', 'DataQuery')
+
+log = logging.getLogger(__name__)
 
 
 ident_re = re.compile(r'^[a-zA-Z][a-zA-Z0-9_]*$')
@@ -960,32 +965,67 @@ class DataQuery(AbstractDataQuery, Base):
         self.clean()
         super(self.__class__, self).save(*args, **kwargs)
 
-    def share_with_user(self, email, create_user=True):
+    def share_with_user(self, username_or_email, create_user=True):
         """
-        Attempts to add a user with the supplied email address to the list of
-        shared users for this query. If create_user is set to True, users will
-        be created for emails that are not already associated with an
-        existing user.
+        Attempts to add a user with the supplied email address or username
+        to the list of shared users for this query. If create_user is set to
+        True, users will be created for emails that are not already associated
+        with an existing user. New users are not created for a provided
+        username if it cannot be found.
 
-        Returns True if the email was added to the list of shared users and
-        False if the email wasn't added because it already exists or wasn't
-        created.
+        Returns True if the email/username was added to the list of shared
+        users and False if the email/username wasn't added because it already
+        exists or wasn't created.
         """
-        # If the query is already shared then there is no need to share it
-        # again.
-        if self.shared_users.filter(email__iexact=email).exists():
+
+        # If both share setttings are set to false, nothing can be done
+        if not settings.SHARE_BY_USERNAME and not settings.SHARE_BY_EMAIL:
+            log.warning('Cannot share with any user because SHARE_BY_USERNAME'
+                        ' and SHARE_BY_EMAIL are both set to False.')
             return False
 
-        try:
-            user = User.objects.get(email__iexact=email)
-        except User.DoesNotExist:
-            if not create_user:
-                return False
-            else:
-                user = utils.create_email_based_user(email)
+        # If the query is already shared then there is no need to share it
+        # again.
+        if self.shared_users.filter(
+                Q(email__iexact=username_or_email) |
+                Q(username__iexact=username_or_email)).exists():
+            return False
 
-        self.shared_users.add(user)
-        self.save()
+        user = None
+
+        # Create a Q() object to build our query
+        q = Q()
+
+        if settings.SHARE_BY_USERNAME:
+            if settings.SHARE_BY_USERNAME_CASE_SENSITIVE:
+                q |= Q(username=username_or_email)
+            else:
+                q |= Q(username__iexact=username_or_email)
+
+        if settings.SHARE_BY_EMAIL:
+            q |= Q(email__iexact=username_or_email)
+
+        # Try to retrive a user. If this fails, create a new user with the
+        # email address
+        try:
+            user = User.objects.get(q)
+        except User.DoesNotExist:
+            log.warning('Cannot find user with '.format(username_or_email))
+
+        if not user and create_user:
+            try:
+                user = utils.create_email_based_user(username_or_email)
+            except ValidationError:
+                log.warning('Could not create user with email. "{0}" is not a '
+                            'valid email.'.format(username_or_email))
+
+        # If a user was found/created, add that user to shared users
+        if user:
+            self.shared_users.add(user)
+            self.save()
+            return True
+
+        return False
 
 # Register instance-level cache invalidation handlers
 post_save.connect(post_save_cache, sender=DataField)
