@@ -40,7 +40,7 @@ OPERATORS = {
     'number': ('exact', '-exact', 'in', '-in', 'lt', 'lte', 'gt', 'gte',
                'range', '-range'),
     'string': ('exact', '-exact', 'iexact', '-iexact', 'in', '-in',
-               'icontains', '-icontains'),
+               'icontains', '-icontains', 'iregex', '-iregex'),
     'datetime': ('exact', '-exact', 'in', '-in', 'lt', 'lte', 'gt', 'gte',
                  'range', '-range'),
     'time': ('exact', '-exact', 'in', '-in', 'lt', 'lte', 'gt', 'gte',
