@@ -168,6 +168,28 @@ class NotInsensitiveContains(InsensitiveContains):
     negated = True
 
 
+class Regex(StringOperator):
+    lookup = 'regex'
+    short_name = '=~'
+    verbose_name = 'matches'
+
+
+class InsensitiveRegex(Regex):
+    lookup = 'iregex'
+
+
+class NotRegex(Regex):
+    short_name = '!=~'
+    versbose_name = 'does not match'
+    negated = True
+
+
+class NotInsensitiveRegex(InsensitiveRegex):
+    short_name = '!=~'
+    verbose_name = 'does not match'
+    negated = True
+
+
 # Numerical and lexicographical lookups
 class LessThan(SimpleTypeOperator):
     lookup = 'lt'
@@ -242,6 +264,10 @@ registry.register(InsensitiveContains, InsensitiveContains.uid)
 registry.register(InsensitiveNotExact, InsensitiveNotExact.uid)
 registry.register(NotContains, NotContains.uid)
 registry.register(NotInsensitiveContains, NotInsensitiveContains.uid)
+registry.register(Regex, Regex.uid)
+registry.register(NotRegex, NotRegex.uid)
+registry.register(InsensitiveRegex, InsensitiveRegex.uid)
+registry.register(NotInsensitiveRegex, NotInsensitiveRegex.uid)
 
 # Null
 registry.register(Null, Null.uid)
