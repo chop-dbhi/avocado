@@ -147,7 +147,8 @@ class Translator(object):
         assumption is wrong.
         """
 
-        return tree.query_condition(field.model._meta.pk, 'isnull', False)
+        return tree.query_condition(field.model._meta.pk, 'isnull', False,
+                                    model=field.model)
 
     def _condition(self, field, operator, value, tree):
         """Builds a `Q` object for `field` relative to `tree`.
@@ -184,7 +185,8 @@ class Translator(object):
             # Process a normal value
             if value is not None:
                 condition = \
-                    tree.query_condition(field.field, operator.lookup, value)
+                    tree.query_condition(field.field, operator.lookup, value,
+                                         model=field.model)
 
             # Reset value to None for `null` processing
             value = None
@@ -196,7 +198,8 @@ class Translator(object):
             if value is None:
                 value = True
             # Read the _get_not_null_pk docs for more info
-            null_condition = tree.query_condition(field.field, 'isnull', value)
+            null_condition = tree.query_condition(field.field, 'isnull', value,
+                                                  model=field.model)
 
             if field.model is not tree.root_model:
                 null_condition = null_condition & \
