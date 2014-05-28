@@ -125,7 +125,8 @@ class Node(object):
 
             for pk, direction in ordering:
                 for f in groups[pk]:
-                    lookup = tree.query_string_for_field(f.order_field)
+                    lookup = tree.query_string_for_field(f.order_field,
+                                                         model=f.model)
 
                     if direction.lower() == 'desc':
                         order_by.append('-' + lookup)
