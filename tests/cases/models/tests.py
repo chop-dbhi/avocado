@@ -563,6 +563,7 @@ class DataQueryTestCase(TestCase):
                 'field': 'tests.title.name',
                 'operator': 'exact',
                 'value': 'CEO',
+                'cleaned_value': {'value': 'CEO', 'label': 'CEO'},
                 'language': 'Name is CEO'
             },
             'view': {

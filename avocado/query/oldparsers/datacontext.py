@@ -1,7 +1,10 @@
 from warnings import warn
-from modeltree.tree import trees
-from django.core.exceptions import ValidationError, ObjectDoesNotExist
+from django.db import models
 from avocado.core import utils
+from modeltree.tree import trees
+from django.db.models.query import QuerySet
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
+from django.utils.encoding import smart_unicode
 
 AND = 'AND'
 OR = 'OR'
@@ -237,6 +240,53 @@ def validate(attrs, **context):
             field.validate(operator=attrs['operator'], value=attrs['value'])
             node = parse(attrs, **context)
             attrs['language'] = node.language['language']
+
+            value = node._meta['cleaned_data']['value']
+            cleaned = None
+
+            if field.enumerable or field.simple_type == 'key':
+                value_labels = field.value_labels()
+
+                if isinstance(value, QuerySet):
+                    cleaned = [{
+                        'value': val.pk,
+                        'label': value_labels[val.pk]
+                    } for val in value]
+                elif isinstance(value, (list, tuple)):
+                    cleaned = []
+
+                    for val in value:
+                        if val in value_labels:
+                            label = value_labels[val]
+                        else:
+                            label = smart_unicode(val)
+
+                        cleaned.append({
+                            'value': val,
+                            'label': label
+                        })
+                elif isinstance(value, models.Model):
+                    # Values represented by django models
+                    # have only one particular label.
+                    cleaned = {
+                        'value': value.pk,
+                        'label': value_labels[value.pk]
+                    }
+                else:
+                    # Handle single, non-model values.
+                    if value in value_labels:
+                        label = value_labels[value]
+                    else:
+                        label = smart_unicode(value)
+
+                cleaned = {
+                    'value': value,
+                    'label': label,
+                }
+
+            if cleaned:
+                attrs['cleaned_value'] = cleaned
+
         except ObjectDoesNotExist:
             enabled = False
             errors.append('Field does not exist')
