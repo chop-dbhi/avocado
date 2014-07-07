@@ -140,6 +140,15 @@ class Aggregator(object):
             clone._groupby = groupby
         return clone
 
+    def _aggregate_value(self, key, *groupby, **aggregates):
+        agg = self._aggregate(*groupby, **aggregates)
+
+        for a in agg:
+            if key in a:
+                return a[key]
+
+        return None
+
     def apply(self, queryset):
         clone = self._clone()
         clone._queryset = queryset
@@ -234,39 +243,47 @@ class Aggregator(object):
     def count(self, *groupby, **kwargs):
         "Performs a COUNT aggregation."
         distinct = kwargs.get('distinct', False)
+
         if distinct:
-            aggregates = {
-                'distinct_count': Count(self.field_name, distinct=distinct)}
+            key = 'distinct_count'
         else:
-            aggregates = {'count': Count(self.field_name)}
-        return self._aggregate(*groupby, **aggregates)
+            key = 'count'
+
+        aggregates = {key: Count(self.field_name, distinct=distinct)}
+        return self._aggregate_value(key, *groupby, **aggregates)
 
     def sum(self, *groupby):
         "Performs an SUM aggregation."
-        aggregates = {'sum': Sum(self.field_name)}
-        return self._aggregate(*groupby, **aggregates)
+        key = 'sum'
+        aggregates = {key: Sum(self.field_name)}
+        return self._aggregate_value(key, *groupby, **aggregates)
 
     def avg(self, *groupby):
         "Performs an AVG aggregation."
-        aggregates = {'avg': Avg(self.field_name)}
-        return self._aggregate(*groupby, **aggregates)
+        key = 'avg'
+        aggregates = {key: Avg(self.field_name)}
+        return self._aggregate_value(key, *groupby, **aggregates)
 
     def min(self, *groupby):
         "Performs an MIN aggregation."
-        aggregates = {'min': Min(self.field_name)}
-        return self._aggregate(*groupby, **aggregates)
+        key = 'min'
+        aggregates = {key: Min(self.field_name)}
+        return self._aggregate_value(key, *groupby, **aggregates)
 
     def max(self, *groupby):
         "Performs an MAX aggregation."
-        aggregates = {'max': Max(self.field_name)}
-        return self._aggregate(*groupby, **aggregates)
+        key = 'max'
+        aggregates = {key: Max(self.field_name)}
+        return self._aggregate_value(key, *groupby, **aggregates)
 
     def stddev(self, *groupby):
         "Performs an STDDEV aggregation."
-        aggregates = {'stddev': StdDev(self.field_name)}
-        return self._aggregate(*groupby, **aggregates)
+        key = 'stddev'
+        aggregates = {key: StdDev(self.field_name)}
+        return self._aggregate_value(key, *groupby, **aggregates)
 
     def variance(self, *groupby):
         "Performs an VARIANCE aggregation."
-        aggregates = {'variance': Variance(self.field_name)}
-        return self._aggregate(*groupby, **aggregates)
+        key = 'variance'
+        aggregates = {key: Variance(self.field_name)}
+        return self._aggregate_value(key, *groupby, **aggregates)
