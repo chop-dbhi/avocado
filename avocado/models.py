@@ -1,5 +1,6 @@
 import re
 import logging
+import random
 from warnings import warn
 from datetime import datetime
 from django.db import models
@@ -632,6 +633,12 @@ class DataField(BasePlural, PublishArchiveMixin):
         "Convenince method for performing a translation on a query condition."
         trans = translators[self.translator]
         return trans.validate(self, operator, value, tree, **context)
+
+    def random(self, k):
+        """
+        Returns a k length list of values of this datafield's value population.
+        """
+        return random.sample(self.values(), k)
 
 
 class DataConcept(BasePlural, PublishArchiveMixin):

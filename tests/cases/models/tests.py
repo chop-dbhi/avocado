@@ -124,6 +124,14 @@ class DataFieldSupplementaryTestCase(TestCase):
         self.assertEqual(list(self.f.coded_values())[0], (0, 'Programmer'))
         self.assertEqual(list(self.f.coded_labels())[0], (0, 'Programmer'))
 
+    def test_random(self):
+        values = self.f.values()
+        random_values = self.f.random(3)
+
+        self.assertEqual(len(random_values), 3)
+
+        for val in random_values:
+            self.assertTrue(val in values)
 
 class DataFieldManagerTestCase(TestCase):
     def setUp(self):
