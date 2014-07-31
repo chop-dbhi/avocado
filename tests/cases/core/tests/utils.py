@@ -2,6 +2,7 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 from avocado.core import utils
 
+
 class EmailBasedUserTestCase(TestCase):
     email = 'email@email.com'
 

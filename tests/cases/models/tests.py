@@ -5,22 +5,22 @@ except ImportError:
     from ordereddict import OrderedDict
 from django.test import TestCase
 from django.core import management
-from django.conf import settings
 from django.test.utils import override_settings
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 from guardian.shortcuts import assign
-from avocado.models import (DataField, DataConcept, DataConceptField,
-    DataContext, DataView, DataQuery, DataCategory)
-from ...models import Employee, Project
+from avocado.models import DataField, DataConcept, DataConceptField, \
+    DataContext, DataView, DataQuery, DataCategory
+from ...models import Employee
 
 
 class ModelInstanceCacheTestCase(TestCase):
     def setUp(self):
         management.call_command('avocado', 'init', 'tests', publish=False,
-                concepts=False, quiet=True)
-        self.is_manager = DataField.objects.get_by_natural_key('tests', 'employee', 'is_manager')
+                                concepts=False, quiet=True)
+        self.is_manager = DataField.objects.get_by_natural_key(
+            'tests', 'employee', 'is_manager')
 
     def test_datafield_cache(self):
         cache.clear()
@@ -42,10 +42,13 @@ class ModelInstanceCacheTestCase(TestCase):
 class DataFieldTestCase(TestCase):
     def setUp(self):
         management.call_command('avocado', 'init', 'tests', publish=False,
-                concepts=False, quiet=True)
-        self.is_manager = DataField.objects.get_by_natural_key('tests', 'employee', 'is_manager')
-        self.salary = DataField.objects.get_by_natural_key('tests', 'title', 'salary')
-        self.first_name = DataField.objects.get_by_natural_key('tests', 'employee', 'first_name')
+                                concepts=False, quiet=True)
+        self.is_manager = DataField.objects.get_by_natural_key(
+            'tests', 'employee', 'is_manager')
+        self.salary = DataField.objects.get_by_natural_key(
+            'tests', 'title', 'salary')
+        self.first_name = DataField.objects.get_by_natural_key(
+            'tests', 'employee', 'first_name')
 
     def test_boolean(self):
         self.assertTrue(self.is_manager.model)
@@ -71,9 +74,11 @@ class DataFieldMethodsTestCase(TestCase):
 
     def setUp(self):
         management.call_command('avocado', 'init', 'tests', publish=False,
-                concepts=False, quiet=True)
-        self.budget = DataField.objects.get_by_natural_key('tests', 'project', 'budget')
-        self.due_date = DataField.objects.get_by_natural_key('tests', 'project', 'due_date')
+                                concepts=False, quiet=True)
+        self.budget = DataField.objects.get_by_natural_key(
+            'tests', 'project', 'budget')
+        self.due_date = DataField.objects.get_by_natural_key(
+            'tests', 'project', 'due_date')
 
     def test_sparsity(self):
         self.assertEqual(self.budget.sparsity(), 0.5)
@@ -91,7 +96,8 @@ class DataFieldSupplementaryTestCase(TestCase):
         self.assertEqual(list(self.f.labels())[0], 'Analyst')
         self.assertEqual(self.f.codes(), None)
 
-        self.assertEqual(list(self.f.value_labels())[0], ('Analyst', 'Analyst'))
+        self.assertEqual(list(self.f.value_labels())[0],
+                         ('Analyst', 'Analyst'))
         self.assertEqual(self.f.coded_values(), None)
         self.assertEqual(self.f.coded_labels(), None)
 
@@ -120,7 +126,8 @@ class DataFieldSupplementaryTestCase(TestCase):
         self.assertEqual(list(self.f.labels())[0], 'Programmer')
         self.assertEqual(list(self.f.codes())[0], 0)
 
-        self.assertEqual(list(self.f.value_labels())[0], ('Programmer', 'Programmer'))
+        self.assertEqual(list(self.f.value_labels())[0],
+                         ('Programmer', 'Programmer'))
         self.assertEqual(list(self.f.coded_values())[0], (0, 'Programmer'))
         self.assertEqual(list(self.f.coded_labels())[0], (0, 'Programmer'))
 
@@ -133,11 +140,13 @@ class DataFieldSupplementaryTestCase(TestCase):
         for val in random_values:
             self.assertTrue(val in values)
 
+
 class DataFieldManagerTestCase(TestCase):
     def setUp(self):
         management.call_command('avocado', 'init', 'tests', publish=False,
-                concepts=False, quiet=True)
-        self.is_manager = DataField.objects.get_by_natural_key('tests', 'employee', 'is_manager')
+                                concepts=False, quiet=True)
+        self.is_manager = DataField.objects.get_by_natural_key(
+            'tests', 'employee', 'is_manager')
 
     def test_published(self):
         # Published, not specific to any user
@@ -154,20 +163,25 @@ class DataFieldManagerTestCase(TestCase):
         assign('avocado.view_datafield', user1, self.is_manager)
 
         # Now restrict the fields that are published and are assigned to users
-        self.assertEqual([x.pk for x in DataField.objects.published(user1)], [7])
+        self.assertEqual(
+            [x.pk for x in DataField.objects.published(user1)], [7])
         # `user2` is not assigned
-        self.assertEqual([x.pk for x in DataField.objects.published(user2)], [])
+        self.assertEqual(
+            [x.pk for x in DataField.objects.published(user2)], [])
 
 
 class DataConceptTestCase(TestCase):
     def setUp(self):
         management.call_command('avocado', 'init', 'tests', publish=False,
-                concepts=False, quiet=True)
+                                concepts=False, quiet=True)
 
     def test_format(self):
-        name_field = DataField.objects.get_by_natural_key('tests', 'title', 'name')
-        salary_field = DataField.objects.get_by_natural_key('tests', 'title', 'salary')
-        boss_field = DataField.objects.get_by_natural_key('tests', 'title', 'boss')
+        name_field = DataField.objects.get_by_natural_key(
+            'tests', 'title', 'name')
+        salary_field = DataField.objects.get_by_natural_key(
+            'tests', 'title', 'salary')
+        boss_field = DataField.objects.get_by_natural_key(
+            'tests', 'title', 'boss')
 
         concept = DataConcept(name='Title')
         concept.save()
@@ -178,7 +192,8 @@ class DataConceptTestCase(TestCase):
 
         values = ['CEO', 100000, True]
 
-        self.assertEqual(concept.format(values),
+        self.assertEqual(
+            concept.format(values),
             OrderedDict([
                 (u'name', u'CEO'),
                 (u'salary', 100000),
@@ -193,25 +208,31 @@ class DataConceptTestCase(TestCase):
             def to_html(self, values, **context):
                 fvalues = self(values, preferred_formats=['string'])
                 return OrderedDict({
-                    'profile': '<span>' + '</span><span>'.join(fvalues.values()) + '</span>'
+                    'profile': '<span>' +
+                               '</span><span>'.join(fvalues.values()) +
+                               '</span>'
                 })
             to_html.process_multiple = True
 
         formatters.register(HtmlFormatter, 'HTML')
         concept.formatter_name = 'HTML'
 
-        self.assertEqual(concept.format(values, preferred_formats=['html']),
+        self.assertEqual(
+            concept.format(values, preferred_formats=['html']),
             OrderedDict([
-                ('profile', u'<span>CEO</span><span>100000</span><span>True</span>')
+                ('profile',
+                 u'<span>CEO</span><span>100000</span><span>True</span>')
             ]))
 
 
 class DataConceptManagerTestCase(TestCase):
     def setUp(self):
         management.call_command('avocado', 'init', 'tests', publish=False,
-                concepts=False, quiet=True)
-        self.is_manager = DataField.objects.get_by_natural_key('tests', 'employee', 'is_manager')
-        self.salary = DataField.objects.get_by_natural_key('tests', 'title', 'salary')
+                                concepts=False, quiet=True)
+        self.is_manager = DataField.objects.get_by_natural_key(
+            'tests', 'employee', 'is_manager')
+        self.salary = DataField.objects.get_by_natural_key(
+            'tests', 'title', 'salary')
         DataCategory(published=False).save()
         self.category = DataCategory.objects.get(pk=1)
 
@@ -245,20 +266,24 @@ class DataConceptManagerTestCase(TestCase):
         user1 = User.objects.create_user('user1', 'user1')
 
         # Nothing since user1 cannot view either datafield
-        self.assertEqual([x.pk for x in DataConcept.objects.published(user1)], [])
+        self.assertEqual(
+            [x.pk for x in DataConcept.objects.published(user1)], [])
 
         assign('avocado.view_datafield', user1, self.is_manager)
         # Still nothing since user1 has no permission for salary
-        self.assertEqual([x.pk for x in DataConcept.objects.published(user1)], [])
+        self.assertEqual(
+            [x.pk for x in DataConcept.objects.published(user1)], [])
 
         assign('avocado.view_datafield', user1, self.salary)
         # Now user1 can see the concept
-        self.assertEqual([x.pk for x in DataConcept.objects.published(user1)], [1])
+        self.assertEqual(
+            [x.pk for x in DataConcept.objects.published(user1)], [1])
 
         user2 = User.objects.create_user('user2', 'user2')
 
         # `user2` is not assigned
-        self.assertEqual([x.pk for x in DataConcept.objects.published(user2)], [])
+        self.assertEqual(
+            [x.pk for x in DataConcept.objects.published(user2)], [])
 
         # Remove the fields from the concept and it should no longer appear
         # as published.
@@ -268,7 +293,11 @@ class DataConceptManagerTestCase(TestCase):
 
 class DataContextTestCase(TestCase):
     def test_init(self):
-        json = {'field': 'tests.title.salary', 'operator': 'gt', 'value': '1000'}
+        json = {
+            'field': 'tests.title.salary',
+            'operator': 'gt',
+            'value': '1000'
+        }
         cxt = DataContext(json)
         self.assertEqual(cxt.json, json)
 
@@ -331,7 +360,11 @@ class DataQueryTestCase(TestCase):
 
     def test_init(self):
         json = {
-            'context': {'field': 'tests.title.salary', 'operator': 'gt', 'value': '1000'},
+            'context': {
+                'field': 'tests.title.salary',
+                'operator': 'gt',
+                'value': '1000'
+            },
             'view': {'columns': []}
         }
 
@@ -347,11 +380,19 @@ class DataQueryTestCase(TestCase):
 
     def test_multiple_json_values(self):
         json = {
-            'context': {'field': 'tests.title.salary', 'operator': 'gt', 'value': '1000'},
+            'context': {
+                'field': 'tests.title.salary',
+                'operator': 'gt',
+                'value': '1000'
+            },
             'view': {'columns': []}
         }
         context_json = {
-            'context_json': {'field': 'tests.title.salary', 'operator': 'gt', 'value': '1000'},
+            'context_json': {
+                'field': 'tests.title.salary',
+                'operator': 'gt',
+                'value': '1000'
+            },
         }
         view_json = {
             'view_json': {'columns': []}
@@ -397,7 +438,7 @@ class DataQueryTestCase(TestCase):
         query = DataQuery(attrs)
         node = query.parse(tree=Employee)
         self.assertEqual(str(node.datacontext_node.condition),
-                "(AND: ('title__name__exact', u'CEO'))")
+                         "(AND: ('title__name__exact', u'CEO'))")
         self.assertEqual(str(node.dataview_node.ordering), "[(1, 'desc')]")
 
     def test_apply(self):
@@ -413,11 +454,26 @@ class DataQueryTestCase(TestCase):
         }
         query = DataQuery(attrs)
 
-        self.assertEqual(unicode(query.apply(tree=Employee).query), 'SELECT DISTINCT "tests_employee"."id", "tests_office"."location", "tests_title"."name" FROM "tests_employee" INNER JOIN "tests_title" ON ("tests_employee"."title_id" = "tests_title"."id") INNER JOIN "tests_office" ON ("tests_employee"."office_id" = "tests_office"."id") WHERE "tests_title"."boss" = True ')
+        self.assertEqual(
+            unicode(query.apply(tree=Employee).query),
+            'SELECT DISTINCT "tests_employee"."id", '
+            '"tests_office"."location", "tests_title"."name" FROM '
+            '"tests_employee" INNER JOIN "tests_title" ON '
+            '("tests_employee"."title_id" = "tests_title"."id") INNER JOIN '
+            '"tests_office" ON ("tests_employee"."office_id" = '
+            '"tests_office"."id") WHERE "tests_title"."boss" = True ')
 
         query = DataQuery({'view': {'ordering': [(1, 'desc')]}})
         queryset = Employee.objects.all().distinct()
-        self.assertEqual(unicode(query.apply(queryset=queryset).query), 'SELECT DISTINCT "tests_employee"."id", "tests_office"."location", "tests_title"."name" FROM "tests_employee" INNER JOIN "tests_office" ON ("tests_employee"."office_id" = "tests_office"."id") LEFT OUTER JOIN "tests_title" ON ("tests_employee"."title_id" = "tests_title"."id") ORDER BY "tests_office"."location" DESC, "tests_title"."name" DESC')
+        self.assertEqual(
+            unicode(query.apply(queryset=queryset).query),
+            'SELECT DISTINCT "tests_employee"."id", '
+            '"tests_office"."location", "tests_title"."name" FROM '
+            '"tests_employee" INNER JOIN "tests_office" ON '
+            '("tests_employee"."office_id" = "tests_office"."id") LEFT OUTER '
+            'JOIN "tests_title" ON ("tests_employee"."title_id" = '
+            '"tests_title"."id") ORDER BY "tests_office"."location" DESC, '
+            '"tests_title"."name" DESC')
 
     def test_clean(self):
         # Save default template

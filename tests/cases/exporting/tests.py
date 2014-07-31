@@ -17,7 +17,8 @@ class ExportTestCase(TestCase):
 
     def setUp(self):
         management.call_command('avocado', 'init', 'tests', quiet=True)
-        salary_concept = DataField.objects.get(field_name='salary').concepts.all()[0]
+        salary_concept = \
+            DataField.objects.get(field_name='salary').concepts.all()[0]
 
         view = DataView(json={'ordering': [[salary_concept.pk, 'desc']]})
         self.query = view.apply(tree=models.Employee).raw()
@@ -48,35 +49,46 @@ class FileExportTestCase(TestCase):
 
     def setUp(self):
         management.call_command('avocado', 'init', 'tests', quiet=True)
-        first_name_field = DataField.objects.get_by_natural_key('tests', 'employee', 'first_name')
+        first_name_field = DataField.objects.get_by_natural_key(
+            'tests', 'employee', 'first_name')
         first_name_field.description = 'First Name'
-        last_name_field = DataField.objects.get_by_natural_key('tests', 'employee', 'last_name')
+        last_name_field = DataField.objects.get_by_natural_key(
+            'tests', 'employee', 'last_name')
         last_name_field.description = 'Last Name'
-        title_field = DataField.objects.get_by_natural_key('tests', 'title', 'name')
+        title_field = DataField.objects.get_by_natural_key(
+            'tests', 'title', 'name')
         title_field.description = 'Employee Title'
-        salary_field = DataField.objects.get_by_natural_key('tests', 'title', 'salary')
+        salary_field = DataField.objects.get_by_natural_key(
+            'tests', 'title', 'salary')
         salary_field.description = 'Salary'
-        is_manager_field = DataField.objects.get_by_natural_key('tests', 'employee', 'is_manager')
+        is_manager_field = DataField.objects.get_by_natural_key(
+            'tests', 'employee', 'is_manager')
         is_manager_field.description = 'Is a Manager?'
 
         [x.save() for x in [first_name_field, last_name_field, title_field,
-            salary_field, is_manager_field]]
+                            salary_field, is_manager_field]]
 
         employee_concept = DataConcept()
         employee_concept.name = 'Employee'
         employee_concept.description = 'A Single Employee'
         employee_concept.save()
 
-        DataConceptField(concept=employee_concept, field=first_name_field, order=1).save()
-        DataConceptField(concept=employee_concept, field=last_name_field, order=2).save()
-        DataConceptField(concept=employee_concept, field=is_manager_field, order=3).save()
-        DataConceptField(concept=employee_concept, field=title_field, order=4).save()
-        DataConceptField(concept=employee_concept, field=salary_field, order=5).save()
+        DataConceptField(
+            concept=employee_concept, field=first_name_field, order=1).save()
+        DataConceptField(
+            concept=employee_concept, field=last_name_field, order=2).save()
+        DataConceptField(
+            concept=employee_concept, field=is_manager_field, order=3).save()
+        DataConceptField(
+            concept=employee_concept, field=title_field, order=4).save()
+        DataConceptField(
+            concept=employee_concept, field=salary_field, order=5).save()
 
         self.concepts = [employee_concept]
 
-        self.query = models.Employee.objects.values_list('first_name', 'last_name',
-                'is_manager', 'title__name', 'title__salary')
+        self.query = models.Employee.objects.values_list(
+            'first_name', 'last_name', 'is_manager', 'title__name',
+            'title__salary')
 
     def test_csv(self):
         exporter = export.CSVExporter(self.concepts)

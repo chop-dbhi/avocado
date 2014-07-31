@@ -16,9 +16,12 @@ class FormatterTestCase(TestCase):
 
     def setUp(self):
         management.call_command('avocado', 'init', 'tests', quiet=True)
-        name_field = DataField.objects.get_by_natural_key('tests', 'title', 'name')
-        salary_field = DataField.objects.get_by_natural_key('tests', 'title', 'salary')
-        boss_field = DataField.objects.get_by_natural_key('tests', 'title', 'boss')
+        name_field = DataField.objects.get_by_natural_key(
+            'tests', 'title', 'name')
+        salary_field = DataField.objects.get_by_natural_key(
+            'tests', 'title', 'salary')
+        boss_field = DataField.objects.get_by_natural_key(
+            'tests', 'title', 'boss')
 
         self.concept = concept = DataConcept(name='Title')
         concept.save()
@@ -66,7 +69,8 @@ class FormatterTestCase(TestCase):
         class HtmlFormatter(Formatter):
             def to_html(self, values, **context):
                 fvalues = self(values, preferred_formats=['string'])
-                return '<span>{0}</span>'.format('</span><span>'.join(fvalues.values()))
+                return '<span>{0}</span>'.format(
+                    '</span><span>'.join(fvalues.values()))
             to_html.process_multiple = True
 
         f = HtmlFormatter(self.concept)
@@ -76,8 +80,10 @@ class FormatterTestCase(TestCase):
         }), fvalues)
 
     def test_unique_keys(self):
-        title_name = DataField.objects.get_by_natural_key('tests', 'title', 'name')
-        project_name = DataField.objects.get_by_natural_key('tests', 'project', 'name')
+        title_name = DataField.objects.get_by_natural_key(
+            'tests', 'title', 'name')
+        project_name = DataField.objects.get_by_natural_key(
+            'tests', 'project', 'name')
 
         concept = DataConcept()
         concept.save()

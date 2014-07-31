@@ -45,21 +45,24 @@ class ObjectRevisionTest(TestCase):
 
         c2 = DataContext()
         c2.save()
-        r2 = Revision.objects.create_revision(c2, fields=['name'])
+        Revision.objects.create_revision(c2, fields=['name'])
 
         # Standard, model extracted from instance
         self.assertEqual(Revision.objects.get_for_object(c1)[0], r1)
 
         # Explicity pass model
-        self.assertEqual(Revision.objects.get_for_object(c1, model=DataContext)[0], r1)
+        self.assertEqual(
+            Revision.objects.get_for_object(c1, model=DataContext)[0], r1)
 
         # Pass queryset containing target object
         queryset = DataContext.objects.filter(pk=c1.pk)
-        self.assertEqual(Revision.objects.get_for_object(c1, model=queryset)[0], r1)
+        self.assertEqual(
+            Revision.objects.get_for_object(c1, model=queryset)[0], r1)
 
         # Pass queryset *not* containing target object
         queryset = DataContext.objects.filter(pk=c2.pk)
-        self.assertEqual(list(Revision.objects.get_for_object(c1, model=queryset)), [])
+        self.assertEqual(
+            list(Revision.objects.get_for_object(c1, model=queryset)), [])
 
     def test_latest_for_object(self):
         c = DataContext()
@@ -76,8 +79,8 @@ class ObjectRevisionTest(TestCase):
         c = DataContext(name='Test', json={})
         c.save()
 
-        revision = Revision.objects.create_revision(c,
-            fields=['name', 'description', 'json'])
+        revision = Revision.objects.create_revision(
+            c, fields=['name', 'description', 'json'])
 
         self.assertEqual(revision.data, {
             'name': 'Test',
@@ -100,8 +103,8 @@ class ObjectRevisionTest(TestCase):
         c.save()
         fields = ['name', 'description', 'json']
 
-        revision = Revision.objects.create_revision(c,
-            fields=fields, deleted=True)
+        revision = Revision.objects.create_revision(
+            c, fields=fields, deleted=True)
 
         self.assertEqual(revision.data, None)
         self.assertEqual(revision.changes, None)
@@ -122,12 +125,11 @@ class ObjectRevisionTest(TestCase):
         # Cull down to the maximum size defined in the settings
         Revision.objects.cull_for_object(c)
         self.assertEqual(Revision.objects.get_for_object(c).count(),
-            settings.HISTORY_MAX_SIZE)
+                         settings.HISTORY_MAX_SIZE)
 
         # Cull down to an arbitrary size
         Revision.objects.cull_for_object(c, max_size=20)
         self.assertEqual(Revision.objects.get_for_object(c).count(), 20)
-
 
     def test_register(self):
         history.register(DataContext, fields=['name', 'description', 'json'])
@@ -167,10 +169,13 @@ class ModelRevisionTestCase(TestCase):
         self.c2 = c2
 
     def test_get_for_model(self):
-        self.assertEqual(Revision.objects.get_for_model(DataContext).count(), 2)
+        self.assertEqual(
+            Revision.objects.get_for_model(DataContext).count(), 2)
 
     def test_latest_for_model(self):
-        self.assertEqual(Revision.objects.latest_for_model(DataContext).object_id, self.c2.pk)
+        self.assertEqual(
+            Revision.objects.latest_for_model(DataContext).object_id,
+            self.c2.pk)
 
 
 class AutoRevisionTest(TestCase):

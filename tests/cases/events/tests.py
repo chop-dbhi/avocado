@@ -1,4 +1,3 @@
-import time
 import logging
 from django.test import TestCase
 from django.contrib.auth.models import User
@@ -40,14 +39,15 @@ class LogTestCase(TestCase):
 
     def test_instance(self):
         f = DataField(app_name='avocado', model_name='datafield',
-            field_name='name')
+                      field_name='name')
         f.save()
         usage.log('test', instance=f, async=False)
         self.assertEqual(Log.objects.get(pk=1).content_object, f)
 
     def test_model(self):
         usage.log('test', model=DataField, async=False)
-        self.assertEqual(Log.objects.get(pk=1).content_type.model_class(), DataField)
+        self.assertEqual(Log.objects.get(pk=1).content_type.model_class(),
+                         DataField)
 
     def test_data(self):
         usage.log('test', data={'some': 'data'}, async=False)
