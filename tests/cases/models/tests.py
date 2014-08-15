@@ -159,6 +159,162 @@ class DataFieldManagerTestCase(TestCase):
         self.assertEqual([x.pk for x in DataField.objects.published(user2)], [])
 
 
+class DataFieldQuerysetTestCase(TestCase):
+    fixtures = ['employee_data.json']
+
+    def setUp(self):
+        management.call_command('avocado', 'init', 'tests')
+
+        self.budget = DataField.objects.get_by_natural_key(
+            'tests', 'project', 'budget')
+        self.first_name = DataField.objects.get_by_natural_key(
+            'tests', 'employee', 'first_name')
+
+    def test_values_list(self):
+        values = self.first_name.values_list()
+
+        for value in values:
+            self.assertTrue(value in [u'Eric', u'Erin', u'Erick', u'Aaron',
+                                      u'Zac', u'Mel'])
+
+        queryset = self.first_name.model.objects.filter(first_name='Zac')
+        self.assertSequenceEqual(
+            self.first_name.values_list(queryset=queryset), [u'Zac'])
+
+    def test_labels_list(self):
+        labels = self.first_name.labels_list()
+
+        for label in labels:
+            self.assertTrue(label in [u'Eric', u'Erin', u'Erick', u'Aaron',
+                                      u'Zac', u'Mel'])
+
+        queryset = self.first_name.model.objects.filter(first_name='Zac')
+        self.assertSequenceEqual(
+            self.first_name.labels_list(queryset=queryset), [u'Zac'])
+
+    def test_codes_list(self):
+        self.first_name.code_field_name = 'id'
+
+        ids = self.first_name.model.objects.values_list('id', flat=True)
+        codes = self.first_name.codes_list()
+        for code in codes:
+            self.assertTrue(code in ids)
+
+        queryset = self.first_name.model.objects.filter(first_name='Zac')
+        self.assertSequenceEqual(
+            self.first_name.codes_list(queryset=queryset), [5])
+
+    def test_search(self):
+        values = self.first_name.search('Eri')
+
+        for value in values:
+            self.assertTrue(value in [u'Eric', u'Erin', u'Erick'])
+
+        queryset = self.first_name.model.objects.filter(
+            first_name__icontains='Eric')
+        self.assertSequenceEqual(
+            self.first_name.search('Eri', queryset=queryset),
+            [u'Eric', u'Erick'])
+
+    def test_size(self):
+        self.assertEqual(self.first_name.size(), 6)
+
+        queryset = self.first_name.model.objects.filter(
+            first_name__icontains='Eri')
+        self.assertEqual(self.first_name.size(queryset=queryset), 3)
+
+    def test_values(self):
+        values = self.first_name.values()
+
+        for value in values:
+            self.assertTrue(value in [u'Eric', u'Erin', u'Erick', u'Aaron',
+                                      u'Zac', u'Mel'])
+
+        queryset = self.first_name.model.objects.filter(first_name='Zac')
+        self.assertSequenceEqual(
+            self.first_name.values(queryset=queryset), [u'Zac'])
+
+    def test_labels(self):
+        labels = self.first_name.labels()
+
+        for label in labels:
+            self.assertTrue(label in [u'Eric', u'Erin', u'Erick', u'Aaron',
+                                      u'Zac', u'Mel'])
+
+        queryset = self.first_name.model.objects.filter(first_name='Zac')
+        self.assertSequenceEqual(
+            self.first_name.labels(queryset=queryset), [u'Zac'])
+
+    def test_codes(self):
+        self.first_name.code_field_name = 'id'
+
+        ids = self.first_name.model.objects.values_list('id', flat=True)
+        codes = self.first_name.codes()
+        for code in codes:
+            self.assertTrue(code in ids)
+
+        queryset = self.first_name.model.objects.filter(first_name='Zac')
+        self.assertSequenceEqual(
+            self.first_name.codes(queryset=queryset), [5])
+
+    def test_value_labels(self):
+        labels = list(self.first_name.value_labels())
+        names = self.first_name.model.objects.values_list(
+            'first_name', flat=True)
+
+        for name in names:
+            self.assertTrue((name, name) in labels)
+
+        queryset = self.first_name.model.objects.filter(first_name='Zac')
+        self.assertSequenceEqual(
+            list(self.first_name.value_labels(queryset=queryset)),
+            [(u'Zac', u'Zac')])
+
+    def test_coded_labels(self):
+        self.first_name.code_field_name = 'id'
+
+        labels = list(self.first_name.coded_labels())
+
+        for employee in self.first_name.model.objects.all():
+            self.assertTrue((employee.id, employee.first_name) in labels)
+
+        queryset = self.first_name.model.objects.filter(first_name='Zac')
+        zacs_id = self.first_name.model.objects.get(first_name='Zac').id
+        self.assertSequenceEqual(
+            list(self.first_name.coded_labels(queryset=queryset)),
+            [(zacs_id, 'Zac')])
+
+    def test_coded_values(self):
+        self.first_name.code_field_name = 'id'
+
+        values = list(self.first_name.coded_values())
+        for employee in self.first_name.model.objects.all():
+            self.assertTrue((employee.id, employee.first_name) in values)
+
+        queryset = self.first_name.model.objects.filter(first_name='Zac')
+        zacs_id = self.first_name.model.objects.get(first_name='Zac').id
+        self.assertSequenceEqual(
+            list(self.first_name.coded_values(queryset=queryset)),
+            [(zacs_id, 'Zac')])
+
+    def test_sparsity(self):
+        self.assertEqual(self.budget.sparsity(), 0.5)
+
+        # Sparsity should drop to 0.0 since we are excluding all nulls.
+        queryset = self.budget.model.objects.filter(budget__isnull=False)
+        self.assertEqual(self.budget.sparsity(queryset=queryset), 0.0)
+
+    def test_random(self):
+        self.assertEqual(len(self.budget.random(2)), 2)
+
+        # Since the queryset will limit it to one valid budget, we should get
+        # an error when asking for a 2 element sample since the population is
+        # will only have 1 element.
+        queryset = self.budget.model.objects.filter(budget__isnull=False)
+        self.assertRaises(ValueError, self.budget.random, 2, queryset=queryset)
+        self.assertEqual(len(self.budget.random(1)), 1)
+
+
 class DataConceptTestCase(TestCase):
     def setUp(self):
         management.call_command('avocado', 'init', 'tests', publish=False,
