@@ -7,7 +7,7 @@ from modeltree.utils import M
 
 
 class Aggregator(object):
-    def __init__(self, field, model=None):
+    def __init__(self, field, queryset=None, model=None):
         if not isinstance(field, models.Field):
             if not model:
                 raise TypeError('Field instance or field name and model class '
@@ -21,8 +21,8 @@ class Aggregator(object):
         self.field = field
         self.field_name = field_name
         self.model = model
+        self._queryset = queryset
 
-        self._queryset = None
         self._aggregates = {}
         self._filter = []
         self._exclude = []
@@ -104,14 +104,13 @@ class Aggregator(object):
         return queryset
 
     def _clone(self):
-        clone = self.__class__(self.field_name, self.model)
+        clone = self.__class__(self.field_name, self._queryset, self.model)
         clone._aggregates = deepcopy(self._aggregates)
         clone._filter = deepcopy(self._filter)
         clone._exclude = deepcopy(self._exclude)
         clone._having = deepcopy(self._having)
         clone._groupby = deepcopy(self._groupby)
         clone._orderby = deepcopy(self._orderby)
-        clone._queryset = self._queryset
         return clone
 
     def _aggregate(self, *groupby, **aggregates):

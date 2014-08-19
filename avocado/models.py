@@ -421,12 +421,15 @@ class DataField(BasePlural, PublishArchiveMixin):
     # Convenience Methods
     # Easier access to the underlying data for this data field
 
-    def values_list(self, order=True, distinct=True):
+    def values_list(self, order=True, distinct=True, queryset=None):
         "Returns a `ValuesListQuerySet` of values for this field."
         value_field = self.value_field.name
         order_field = self.order_field.name
 
-        queryset = self.model.objects.values_list(value_field, flat=True)
+        if queryset is None:
+            queryset = self.model.objects.all()
+
+        queryset = queryset.values_list(value_field, flat=True)
 
         if order:
             queryset = queryset.order_by(order_field)
@@ -436,12 +439,15 @@ class DataField(BasePlural, PublishArchiveMixin):
 
         return queryset
 
-    def labels_list(self, order=True, distinct=True):
+    def labels_list(self, order=True, distinct=True, queryset=None):
         "Returns a `ValuesListQuerySet` of labels for this field."
         label_field = self.label_field.name
         order_field = self.order_field.name
 
-        queryset = self.model.objects.values_list(label_field, flat=True)
+        if queryset is None:
+            queryset = self.model.objects.all()
+
+        queryset = queryset.values_list(label_field, flat=True)
 
         if order:
             queryset = queryset.order_by(order_field)
@@ -451,7 +457,7 @@ class DataField(BasePlural, PublishArchiveMixin):
 
         return queryset
 
-    def codes_list(self, order=True, distinct=True):
+    def codes_list(self, order=True, distinct=True, queryset=None):
         "Returns a `ValuesListQuerySet` of labels for this field."
         if not self.code_field:
             return
@@ -459,7 +465,10 @@ class DataField(BasePlural, PublishArchiveMixin):
         code_field = self.code_field.name
         order_field = self.order_field.name
 
-        queryset = self.model.objects.values_list(code_field, flat=True)
+        if queryset is None:
+            queryset = self.model.objects.all()
+
+        queryset = queryset.values_list(code_field, flat=True)
 
         if order:
             queryset = queryset.order_by(order_field)
@@ -469,12 +478,12 @@ class DataField(BasePlural, PublishArchiveMixin):
 
         return queryset
 
-    def search(self, query):
+    def search(self, query, queryset=None):
         "Rudimentary search for string-based values."
         if utils.get_simple_type(self.search_field) == 'string':
             field_name = self.search_field.name
             filters = {u'{0}__icontains'.format(field_name): query}
-            return self.values_list().filter(**filters)
+            return self.values_list(queryset=queryset).filter(**filters)
 
     def get_plural_unit(self):
         if self.unit_plural:
@@ -485,9 +494,9 @@ class DataField(BasePlural, PublishArchiveMixin):
             plural = self.unit
         return plural
 
-    def get_label(self, value):
+    def get_label(self, value, queryset=None):
         "Get the corresponding label to a value."
-        labels = self.value_labels()
+        labels = self.value_labels(queryset=queryset)
 
         if value in labels:
             return labels[value]
@@ -503,108 +512,125 @@ class DataField(BasePlural, PublishArchiveMixin):
     # Data-related Cached Properties
     # These may be cached until the underlying data changes
     @cached_method(version='data_version')
-    def size(self):
+    def size(self, queryset=None):
         "Returns the count of distinct values."
         if self._has_predefined_choices():
             return len(self.field.choices)
 
-        return self.values_list().count()
+        return self.values_list(queryset=queryset).count()
 
     @cached_method(version='data_version')
-    def values(self):
+    def values(self, queryset=None):
         "Returns a distinct list of values."
         if self._has_predefined_choices():
             return tuple(zip(*self.field.choices)[0])
 
-        return tuple(self.values_list())
+        return tuple(self.values_list(queryset=queryset))
 
     @cached_method(version='data_version')
-    def labels(self):
+    def labels(self, queryset=None):
         "Returns a distinct list of labels."
         if self._has_predefined_choices():
             labels = zip(*self.field.choices)[1]
             return tuple(smart_unicode(l) for l in labels)
 
-        return tuple(smart_unicode(l) for l in self.labels_list())
+        return tuple(
+            smart_unicode(l) for l in self.labels_list(queryset=queryset))
 
     @cached_method(version='data_version')
-    def codes(self):
+    def codes(self, queryset=None):
         "Returns a distinct set of coded values for this field"
         if self._has_predefined_choices():
-            return tuple(range(self.size()))
+            return tuple(range(self.size(queryset=queryset)))
 
         if self.code_field:
-            return tuple(self.codes_list())
+            return tuple(self.codes_list(queryset=queryset))
 
-    def value_labels(self):
+    def value_labels(self, queryset=None):
         "Returns a distinct set of value/label pairs for this field."
-        return ChoicesDict(zip(self.values(), self.labels()))
+        return ChoicesDict(zip(
+            self.values(queryset=queryset), self.labels(queryset=queryset)))
 
-    def coded_labels(self):
+    def coded_labels(self, queryset=None):
         "Returns a distinct set of code/label pairs for this field."
-        codes = self.codes()
+        codes = self.codes(queryset=queryset)
 
         if codes is not None:
-            return ChoicesDict(zip(codes, self.labels()))
+            return ChoicesDict(zip(codes, self.labels(queryset=queryset)))
 
-    def coded_values(self):
+    def coded_values(self, queryset=None):
         "Returns a distinct set of code/value pairs for this field."
-        codes = self.codes()
+        codes = self.codes(queryset=queryset)
 
         if codes is not None:
-            return ChoicesDict(zip(codes, self.values()))
+            return ChoicesDict(zip(codes, self.values(queryset=queryset)))
 
     # Alias since it's common parlance in Django
     choices = value_labels
     coded_choices = coded_labels
 
     # Data Aggregation Properties
-    def groupby(self, *args):
-        return Aggregator(self.field).groupby(*args)
+    def groupby(self, *args, **kwargs):
+        return Aggregator(
+            self.field, queryset=kwargs.get('queryset', None)).groupby(*args)
 
     @cached_method(version='data_version')
     def count(self, *args, **kwargs):
         "Returns an the aggregated counts."
-        return Aggregator(self.field).count(*args, **kwargs)
+        return Aggregator(
+            self.field,
+            queryset=kwargs.pop('queryset', None)).count(*args, **kwargs)
 
     @cached_method(version='data_version')
-    def max(self, *args):
+    def max(self, *args, **kwargs):
         "Returns the maximum value."
-        return Aggregator(self.field).max(*args)
+        return Aggregator(
+            self.field, queryset=kwargs.get('queryset', None)).max(*args)
 
     @cached_method(version='data_version')
-    def min(self, *args):
+    def min(self, *args, **kwargs):
         "Returns the minimum value."
-        return Aggregator(self.field).min(*args)
+        return Aggregator(
+            self.field, queryset=kwargs.get('queryset', None)).min(*args)
 
     @cached_method(version='data_version')
-    def avg(self, *args):
+    def avg(self, *args, **kwargs):
         "Returns the average value. Only applies to quantitative data."
         if self.simple_type == 'number':
-            return Aggregator(self.field).avg(*args)
+            return Aggregator(
+                self.field, queryset=kwargs.get('queryset', None)).avg(*args)
 
     @cached_method(version='data_version')
-    def sum(self, *args):
+    def sum(self, *args, **kwargs):
         "Returns the sum of values. Only applies to quantitative data."
         if self.simple_type == 'number':
-            return Aggregator(self.field).sum(*args)
+            return Aggregator(
+                self.field, queryset=kwargs.get('queryset', None)).sum(*args)
 
     @cached_method(version='data_version')
-    def stddev(self, *args):
+    def stddev(self, *args, **kwargs):
         "Returns the standard deviation. Only applies to quantitative data."
         if self.simple_type == 'number':
-            return Aggregator(self.field).stddev(*args)
+            return Aggregator(
+                self.field,
+                queryset=kwargs.get('queryset', None)).stddev(*args)
 
     @cached_method(version='data_version')
-    def variance(self, *args):
+    def variance(self, *args, **kwargs):
         "Returns the variance. Only applies to quantitative data."
         if self.simple_type == 'number':
-            return Aggregator(self.field).variance(*args)
+            return Aggregator(
+                self.field,
+                queryset=kwargs.get('queryset', None)).variance(*args)
 
     @cached_method(version='data_version')
     def sparsity(self, *args, **kwargs):
         "Returns the ratio of null values in the population."
-        queryset = self.model.objects.all()
+        if 'queryset' in kwargs:
+            queryset = kwargs.get('queryset')
+        else:
+            queryset = self.model.objects.all()
+
         count = queryset.count()
 
         # No data, 100% sparsity
@@ -634,11 +660,11 @@ class DataField(BasePlural, PublishArchiveMixin):
         trans = translators[self.translator]
         return trans.validate(self, operator, value, tree, **context)
 
-    def random(self, k):
+    def random(self, k, queryset=None):
         """
         Returns a k length list of values of this datafield's value population.
         """
-        return random.sample(self.values(), k)
+        return random.sample(self.values(queryset=queryset), k)
 
 
 class DataConcept(BasePlural, PublishArchiveMixin):
