@@ -35,7 +35,7 @@ class Command(DataFieldCommand):
         make_option('--flush', action='store_true', help='Flushes existing '
                     'cache for each cached property.'),
 
-        make_option('--method', action='append', dest='methods',
+        make_option('--methods', action='append', dest='methods',
                     default=CACHED_METHODS, help='Select which methods to '
                     'pre-cache. Choices: {0}'.format(
                         ', '.join(CACHED_METHODS))),

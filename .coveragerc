@@ -1,10 +1,11 @@
 [run]
 branch = True
 source = avocado
-omit = 
+omit =
     */admin.py
     */migrations/*
-    
+    avocado/query/parsers/__init__.py
+
 [report]
 exclude_lines =
     pragma: no cover

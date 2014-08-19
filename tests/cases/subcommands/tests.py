@@ -1,7 +1,9 @@
+import django
 import os
 import sys
 from django.test import TestCase
 from django.core import management
+from django.core.management.base import CommandError
 from avocado.models import DataField, DataConcept, DataCategory
 
 __all__ = ('CommandsTestCase',)
@@ -19,7 +21,20 @@ class CommandsTestCase(TestCase):
 
     def test_subcommands(self):
         management.call_command('avocado', 'init', 'tests')
+
         management.call_command('avocado', 'cache', 'tests')
+        management.call_command('avocado', 'cache', 'tests', flush=True)
+
+        # Old versions of Django trap the CommandError and call sys.exit(1)
+        # instead of re-raising the CommandError for it to be handled at a
+        # higher level.
+        if django.VERSION < (1, 5):
+            self.assertRaises(SystemExit, management.call_command, 'avocado',
+                              'cache', 'tests', methods=['invalid_function'])
+        else:
+            self.assertRaises(CommandError, management.call_command, 'avocado',
+                              'cache', 'tests', methods=['invalid_function'])
+
         management.call_command('avocado', 'check', output='none')
         management.call_command('avocado', 'history', cull=True)
 
