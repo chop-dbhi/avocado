@@ -21,6 +21,7 @@ class DataContextParserTestCase(TestCase):
             'id': title.pk,
             'operator': 'exact',
             'value': 'CEO',
+            'cleaned_value': {'value': 'CEO', 'label': 'CEO'},
             'language': 'Name is CEO'
         }
         self.assertEqual(
@@ -32,6 +33,7 @@ class DataContextParserTestCase(TestCase):
             'field': 'tests.title.name',
             'operator': 'exact',
             'value': 'CEO',
+            'cleaned_value': {'value': 'CEO', 'label': 'CEO'},
             'language': 'Name is CEO'
         }
         self.assertEqual(
@@ -43,6 +45,7 @@ class DataContextParserTestCase(TestCase):
             'field': ['tests', 'title', 'name'],
             'operator': 'exact',
             'value': 'CEO',
+            'cleaned_value': {'value': 'CEO', 'label': 'CEO'},
             'language': 'Name is CEO'
         }
         self.assertEqual(
@@ -54,6 +57,7 @@ class DataContextParserTestCase(TestCase):
             'field': title.pk,
             'operator': 'exact',
             'value': 'CEO',
+            'cleaned_value': {'value': 'CEO', 'label': 'CEO'},
             'language': 'Name is CEO'
         }
         self.assertEqual(
@@ -67,14 +71,17 @@ class DataContextParserTestCase(TestCase):
                 'field': 'tests.title.name',
                 'operator': 'exact',
                 'value': 'CEO',
+                'cleaned_value': {'value': 'CEO', 'label': 'CEO'},
                 'language': 'Name is CEO'
             }, {
                 'field': 'tests.employee.first_name',
                 'operator': 'exact',
                 'value': 'John',
+                'cleaned_value': {'value': 'John', 'label': 'John'},
                 'language': 'First Name is John'
             }],
         }
+
         self.assertEqual(
             parsers.datacontext.validate(deepcopy(attrs), tree=Employee),
             attrs)
@@ -95,6 +102,7 @@ class DataContextParserTestCase(TestCase):
                 'field': 'tests.title.name',
                 'operator': 'exact',
                 'value': 'CEO',
+                'cleaned_value': {'value': 'CEO', 'label': 'CEO'},
                 'language': 'Name is CEO'
             }]
         }
@@ -149,6 +157,7 @@ class DataContextParserTestCase(TestCase):
             'field': f.pk,
             'operator': 'exact',
             'value': 'CEO',
+            'cleaned_value': {'value': 'CEO', 'label': 'CEO'},
             'language': 'Name is CEO'
         }
 
@@ -372,6 +381,7 @@ class DataQueryParserTestCase(TestCase):
                 'field': 'tests.title.name',
                 'operator': 'exact',
                 'value': 'CEO',
+                'cleaned_value': {'value': 'CEO', 'label': 'CEO'},
                 'language': 'Name is CEO'
             },
             'view': [{
@@ -390,6 +400,7 @@ class DataQueryParserTestCase(TestCase):
                 'field': 'tests.title.name',
                 'operator': 'exact',
                 'value': 'CEO',
+                'cleaned_value': {'value': 'CEO', 'label': 'CEO'},
                 'language': 'Name is CEO'
             }
         }
