@@ -89,6 +89,9 @@ class QueryProcessors(object):
             self._processors[key] = klass
         return self._processors[key]
 
+    def __iter__(self):
+        return iter(self.processors)
+
     @property
     def default(self):
         return self[QUERY_PROCESSOR_DEFAULT_ALIAS]
