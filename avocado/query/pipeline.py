@@ -29,7 +29,7 @@ class QueryProcessor(object):
                                        include_pk=self.include_pk)
 
         if queryset is None:
-            queryset = trees[self.tree].get_queryset().values('pk')
+            queryset = trees[self.tree].get_queryset()
 
         return queryset
 
