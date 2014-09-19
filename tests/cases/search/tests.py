@@ -24,6 +24,37 @@ class SearchTest(TestCase):
                                 verbosity=0)
 
 
+class ExcludedIndexSearchTest(SearchTest):
+    def test_field_search(self):
+        search = DataField.objects.search
+
+        self.assertEqual(len(search('Erick')), 1)
+
+        employee = DataField.objects.get_by_natural_key(
+            'search.employee.first_name')
+        employee.indexable = False
+        employee.save()
+
+        management.call_command('rebuild_index', interactive=False,
+                                verbosity=0)
+
+        self.assertEqual(len(search('Erick')), 0)
+
+    def test_concept_search(self):
+        search = DataConcept.objects.search
+
+        self.assertEqual(len(search('Erick')), 1)
+
+        employee = DataConcept.objects.get(name='First Name')
+        employee.indexable = False
+        employee.save()
+
+        management.call_command('rebuild_index', interactive=False,
+                                verbosity=0)
+
+        self.assertEqual(len(search('Erick')), 0)
+
+
 class FieldSearchTest(SearchTest):
     def test_empty(self):
         self.assertEqual(len(DataField.objects.published()), 12)

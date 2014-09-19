@@ -135,6 +135,10 @@ class DataField(BasePlural, PublishArchiveMixin):
     # no full text data.
     enumerable = models.BooleanField(default=False)
 
+    # Set this field to False if you wish to exclude this field's data from the
+    # Haystack index.
+    indexable = models.BooleanField(default=True)
+
     type = models.CharField(max_length=100, blank=True, null=True,
                             help_text='Logical type of this field. Typically '
                                       'used downstream for defining behavior '
@@ -735,6 +739,10 @@ class DataConcept(BasePlural, PublishArchiveMixin):
     # or a very specific abstraction that does not order by what it actually
     # represents.
     sortable = models.BooleanField(default=True)
+
+    # Set this field to False if you wish to exclude DataFields associated
+    # with this concept from the Haystack index.
+    indexable = models.BooleanField(default=True)
 
     objects = managers.DataConceptManager()
 
