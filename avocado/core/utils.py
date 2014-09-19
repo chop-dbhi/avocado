@@ -70,8 +70,10 @@ def get_heuristic_flags(field):
     # For strings and booleans, set the enumerable flag by default
     # it below the enumerable threshold
     # TextFields are typically used for free text
+    enumerable = is_enumerable(field)
     return {
-        'enumerable': is_enumerable(field),
+        'enumerable': enumerable,
+        'indexable': enumerable or is_searchable(field),
     }
 
 

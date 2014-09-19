@@ -4,5 +4,5 @@
 {{ object.keywords|default:"" }}
 {{ object.model_name }}
 {% if object.category %}{% include "search/indexes/avocado/datacategory_text.txt" with object=object.category %}{% endif %}
-{% if object.enumerable or object.searchable %}{% for value in object.labels %}{{ value }}
+{% if object.indexable %}{% for value in object.labels %}{{ value }}
 {% endfor %}{% endif %}
