@@ -325,6 +325,22 @@ class DataFieldQuerysetTestCase(TestCase):
         self.assertRaises(ValueError, self.budget.random, 2, queryset=queryset)
         self.assertEqual(len(self.budget.random(1)), 1)
 
+    def test_dist(self):
+        self.assertEqual(self.first_name.dist(), (
+                        ('Aaron', 1),
+                        ('Eric', 1),
+                        ('Erick', 1),
+                        ('Erin', 1),
+                        ('Mel', 1),
+                        ('Zac', 1)))
+
+        queryset = self.first_name.model.objects\
+            .filter(first_name__startswith='E')
+        self.assertEqual(self.first_name.dist(queryset=queryset), (
+                        ('Eric', 1),
+                        ('Erick', 1),
+                        ('Erin', 1)))
+
 
 class DataConceptTestCase(TestCase):
     def setUp(self):

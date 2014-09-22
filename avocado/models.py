@@ -4,6 +4,7 @@ import random
 from warnings import warn
 from datetime import datetime
 from django.db import models
+from django.db.models import Count
 from django.contrib.sites.models import Site
 from django.contrib.auth.models import User, Group
 from django.utils.encoding import smart_unicode
@@ -576,7 +577,7 @@ class DataField(BasePlural, PublishArchiveMixin):
     # Data Aggregation Properties
     def groupby(self, *args, **kwargs):
         return Aggregator(
-            self.field, queryset=kwargs.get('queryset', None)).groupby(*args)
+            self.field, queryset=kwargs.get('queryset')).groupby(*args)
 
     @cached_method(version='data_version')
     def count(self, *args, **kwargs):
@@ -589,27 +590,27 @@ class DataField(BasePlural, PublishArchiveMixin):
     def max(self, *args, **kwargs):
         "Returns the maximum value."
         return Aggregator(
-            self.field, queryset=kwargs.get('queryset', None)).max(*args)
+            self.field, queryset=kwargs.get('queryset')).max(*args)
 
     @cached_method(version='data_version')
     def min(self, *args, **kwargs):
         "Returns the minimum value."
         return Aggregator(
-            self.field, queryset=kwargs.get('queryset', None)).min(*args)
+            self.field, queryset=kwargs.get('queryset')).min(*args)
 
     @cached_method(version='data_version')
     def avg(self, *args, **kwargs):
         "Returns the average value. Only applies to quantitative data."
         if self.simple_type == 'number':
             return Aggregator(
-                self.field, queryset=kwargs.get('queryset', None)).avg(*args)
+                self.field, queryset=kwargs.get('queryset')).avg(*args)
 
     @cached_method(version='data_version')
     def sum(self, *args, **kwargs):
         "Returns the sum of values. Only applies to quantitative data."
         if self.simple_type == 'number':
             return Aggregator(
-                self.field, queryset=kwargs.get('queryset', None)).sum(*args)
+                self.field, queryset=kwargs.get('queryset')).sum(*args)
 
     @cached_method(version='data_version')
     def stddev(self, *args, **kwargs):
@@ -617,7 +618,7 @@ class DataField(BasePlural, PublishArchiveMixin):
         if self.simple_type == 'number':
             return Aggregator(
                 self.field,
-                queryset=kwargs.get('queryset', None)).stddev(*args)
+                queryset=kwargs.get('queryset')).stddev(*args)
 
     @cached_method(version='data_version')
     def variance(self, *args, **kwargs):
@@ -625,7 +626,7 @@ class DataField(BasePlural, PublishArchiveMixin):
         if self.simple_type == 'number':
             return Aggregator(
                 self.field,
-                queryset=kwargs.get('queryset', None)).variance(*args)
+                queryset=kwargs.get('queryset')).variance(*args)
 
     @cached_method(version='data_version')
     def sparsity(self, *args, **kwargs):
@@ -645,6 +646,17 @@ class DataField(BasePlural, PublishArchiveMixin):
         nulls = queryset.filter(**{isnull: True}).count()
 
         return nulls / float(count)
+
+    @cached_method(version='data_version')
+    def dist(self, queryset=None):
+        if queryset is None:
+            queryset = self.model.objects.all()
+
+        queryset = queryset.annotate(cnt=Count(self.value_field_name))\
+            .values_list(self.value_field_name, 'cnt')\
+            .order_by(self.value_field_name)
+
+        return tuple(queryset)
 
     # Translator Convenience Methods
     @property
