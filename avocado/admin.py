@@ -91,13 +91,14 @@ class DataFieldAdmin(PublishedAdmin):
     form = DataFieldAdminForm
 
     list_display = ('name', 'published', 'archived', 'internal', 'type',
-                    'orphan_status', 'model_name', 'enumerable',
+                    'orphan_status', 'model_name', 'enumerable', 'indexable',
                     'related_dataconcepts')
 
     list_filter = ('published', 'archived', 'internal', 'model_name', 'type',
-                   'enumerable')
+                   'enumerable', 'indexable')
 
-    list_editable = ('published', 'archived', 'internal', 'enumerable', 'type')
+    list_editable = ('published', 'archived', 'internal', 'enumerable',
+                     'indexable', 'type')
 
     search_fields = ('name', 'description', 'keywords')
 
@@ -142,7 +143,7 @@ class DataFieldAdmin(PublishedAdmin):
         }),
 
         ('Modifiers', {
-            'fields': ('translator', 'enumerable', 'type')
+            'fields': ('translator', 'enumerable', 'indexable', 'type')
         }),
 
         ('Times of Interest', {
@@ -203,14 +204,15 @@ class DataConceptFieldInlineAdmin(admin.TabularInline):
 class DataConceptAdmin(PublishedAdmin):
     list_display = ('name', 'published', 'archived', 'internal', 'type',
                     'category', 'order', 'formatter_name', 'viewable',
-                    'queryable', 'sortable', 'related_datafields')
+                    'queryable', 'sortable', 'indexable', 'related_datafields')
 
     list_editable = ('published', 'archived', 'internal', 'type', 'category',
                      'order', 'formatter_name', 'viewable', 'queryable',
-                     'sortable')
+                     'sortable', 'indexable')
 
     list_filter = ('published', 'archived', 'category', 'type',
-                   'formatter_name', 'viewable', 'queryable', 'sortable')
+                   'formatter_name', 'viewable', 'queryable', 'sortable',
+                   'indexable')
 
     ordering = ('archived', '-published', 'category__parent__order',
                 'category__order', 'order', 'name')
@@ -238,7 +240,7 @@ class DataConceptAdmin(PublishedAdmin):
         }),
 
         ('Modifiers', {
-            'fields': ('formatter_name', 'viewable', 'queryable',
+            'fields': ('formatter_name', 'viewable', 'queryable', 'indexable',
                        'sortable', 'type'),
         }),
 
