@@ -279,10 +279,10 @@ def validate(attrs, **context):
                     else:
                         label = smart_unicode(value)
 
-                cleaned = {
-                    'value': value,
-                    'label': label,
-                }
+                    cleaned = {
+                        'value': value,
+                        'label': label,
+                    }
 
             if cleaned:
                 attrs['cleaned_value'] = cleaned
