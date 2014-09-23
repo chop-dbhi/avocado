@@ -12,37 +12,47 @@ class CacheProxy(object):
         self.timeout = timeout
         self.key_func = key_func
 
-    def cache_key(self, instance):
-        return self.key_func(instance, label=self.label, version=self.version)
+    def cache_key(self, instance, args=None, kwargs=None):
+        return self.key_func(instance, label=self.label, version=self.version,
+                             args=args, kwargs=kwargs)
 
     def _set(self, key, data):
         logger.debug('Compute property cache "{0}"'.format(key))
+
         if data is not None:
             cache.set(key, data, timeout=self.timeout)
             logger.debug('Set property cache "{0}"'.format(key))
 
-    def get(self, instance):
-        key = self.cache_key(instance)
+    def get(self, instance, args=None, kwargs=None):
+        key = self.cache_key(instance, args, kwargs)
         data = cache.get(key)
         logger.debug('Get property cache "{0}"'.format(key))
         return data
 
-    def get_or_set(self, instance, *args, **kwargs):
+    def get_or_set(self, instance, args=None, kwargs=None):
         # Reference to prevent the key from being changed mid-execution
-        key = self.cache_key(instance)
+        key = self.cache_key(instance, args, kwargs)
 
         data = cache.get(key)
+
         if data is None:
+            if args is None:
+                args = ()
+
+            if kwargs is None:
+                kwargs = {}
+
             data = self.func(instance, *args, **kwargs)
             self._set(key, data)
+
         return data
 
-    def flush(self, instance):
+    def flush(self, instance, args=None, kwargs=None):
         "Flushes cached data for this method."
-        key = self.cache_key(instance)
+        key = self.cache_key(instance, args, kwargs)
         cache.delete(key)
         logger.debug('Delete property cache "{0}"'.format(key))
 
-    def cached(self, instance):
+    def cached(self, instance, args=None, kwargs=None):
         "Checks if the data is in the cache."
-        return self.cache_key(instance) in cache
+        return self.cache_key(instance, args, kwargs) in cache
