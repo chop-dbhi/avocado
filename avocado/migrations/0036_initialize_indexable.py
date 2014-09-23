@@ -3,11 +3,12 @@ from south.utils import datetime_utils as datetime
 from south.db import db
 from south.v2 import DataMigration
 from django.db import models
+from avocado.models import DataField
 
 class Migration(DataMigration):
 
     def forwards(self, orm):
-        for field in orm.DataField.objects.all():
+        for field in DataField.objects.all():
             field.indexable = field.enumerable or field.searchable
             field.save()
 
