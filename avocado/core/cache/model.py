@@ -1,4 +1,7 @@
 import inspect
+import hashlib
+import cPickle as pickle
+from django.db.models.query import QuerySet
 from functools import wraps
 from avocado.conf import settings
 from .proxy import CacheProxy
@@ -7,7 +10,34 @@ NEVER_EXPIRE = 60 * 60 * 24 * 30  # 30 days
 CACHE_KEY_FUNC = lambda l: ':'.join([str(x) for x in l])
 
 
-def instance_cache_key(instance, label=None, version=None):
+def _pickling_value(v):
+    "Returns value for pickling given the value."
+    if isinstance(v, QuerySet):
+        return v.query
+
+    return v
+
+
+def _prep_pickling(args, kwargs):
+    "Prepares the positional and keyword arguments for pickling."
+    if args:
+        args = [_pickling_value(v) for v in args]
+    else:
+        args = None
+
+    if kwargs:
+        kwargs = dict([
+            (k, _pickling_value(v))
+            for k, v in kwargs.items()
+        ])
+    else:
+        kwargs = None
+
+    return args, kwargs
+
+
+def instance_cache_key(instance, label=None, version=None,
+                       args=None, kwargs=None):
     """Creates a cache key for the instance with an optional label and version.
     The instance is uniquely defined based on the app, model and primary key of
     the instance.
@@ -32,6 +62,12 @@ def instance_cache_key(instance, label=None, version=None):
     if label is not None:
         key.append(label)
 
+    args, kwargs = _prep_pickling(args, kwargs)
+
+    if args or kwargs:
+        sha1 = hashlib.sha1(pickle.dumps((args, kwargs))).hexdigest()
+        key.append(sha1)
+
     return CACHE_KEY_FUNC(key)
 
 
@@ -49,15 +85,23 @@ def cached_method(func=None, version=None, timeout=NEVER_EXPIRE,
             # This check is here to be ensure transparency of the augmented
             # methods below. The agumented methods will be a no-op since the
             # `func_self` will never be set as long as this condition is true.
-            if not settings.DATA_CACHE_ENABLED or args or kwargs:
+            if not settings.DATA_CACHE_ENABLED:
                 return func(self, *args, **kwargs)
-            return cache_proxy.get_or_set(self, *args, **kwargs)
 
-        # Augment method with a few methods. These are wrapped in a lambda
-        # to prevent mucking the cache_proxy instance directly..
-        inner.flush = lambda i: cache_proxy.flush(i)
-        inner.cached = lambda i: cache_proxy.cached(i)
-        inner.cache_key = lambda i: cache_proxy.cache_key(i)
+            return cache_proxy.get_or_set(self, args=args, kwargs=kwargs)
+
+        def flush(instance, args=None, kwargs=None):
+            return cache_proxy.flush(instance, args, kwargs)
+
+        def cached(instance, args=None, kwargs=None):
+            return cache_proxy.cached(instance, args, kwargs)
+
+        def cache_key(instance, args=None, kwargs=None):
+            return cache_proxy.cache_key(instance, args, kwargs)
+
+        inner.flush = flush
+        inner.cached = cached
+        inner.cache_key = cache_key
 
         return inner
 

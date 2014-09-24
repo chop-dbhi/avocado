@@ -13,7 +13,7 @@ class ComplexNumber(models.Model):
     def get_version(self, label=None):
         return 1
 
-    def as_string(self, *args):
+    def as_string(self, *args, **kwargs):
         return '2+3i'
 
 
@@ -46,6 +46,34 @@ class CacheProxyTestCase(TestCase):
         # Make sure the value expired
         self.assertIsNone(self.cp.get(c))
         self.assertFalse(self.cp.cached(c))
+
+    @override_settings(AVOCADO_DATA_CACHE_ENABLED=True)
+    def test_arguments(self):
+        c = ComplexNumber()
+
+        # Ensure this is flushed prior to testing
+        args = [5]
+        kwargs = {'foo': Foo.objects.all()}
+
+        # Reset planned tests
+        self.cp.flush(c, args, kwargs)
+
+        # Should not be cached available or cached initialization
+        self.assertIsNone(self.cp.get(c, args, kwargs))
+        self.assertFalse(self.cp.cached(c, args, kwargs))
+
+        # Fixed value
+        self.assertEqual(self.cp.get_or_set(c, args, kwargs), '2+3i')
+
+        # Should be cached now
+        self.assertTrue(self.cp.cached(c, args, kwargs))
+        self.assertEqual(self.cp.get(c, args, kwargs), '2+3i')
+
+        time.sleep(2)
+
+        # Make sure the value expired
+        self.assertIsNone(self.cp.get(c, args, kwargs))
+        self.assertFalse(self.cp.cached(c, args, kwargs))
 
 
 class CacheManagerTestCase(TestCase):
