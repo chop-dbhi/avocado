@@ -25,11 +25,14 @@ def _prep_pickling(args, kwargs):
     else:
         args = None
 
+    _kwargs = {}
+
     if kwargs:
-        kwargs = dict([
-            (k, _pickling_value(v))
-            for k, v in kwargs.items()
-        ])
+        for k, v in kwargs.items():
+            if v is not None:
+                _kwargs[k] = _pickling_value(v)
+
+        kwargs = _kwargs or None
     else:
         kwargs = None
 

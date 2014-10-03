@@ -1,7 +1,7 @@
 from copy import deepcopy
 from django.db import models
 from django.db.models import Q, Count, Sum, Avg, Max, Min, StdDev, Variance
-from django.db.models.query import REPR_OUTPUT_SIZE
+from django.db.models.query import REPR_OUTPUT_SIZE, QuerySet
 from modeltree.compat import LOOKUP_SEP
 from modeltree.utils import M
 
@@ -35,6 +35,26 @@ class Aggregator(object):
 
     def __deepcopy__(self):
         return self._clone()
+
+    def __getstate__(self):
+        state = self.__dict__.copy()
+
+        # Store only the internal query
+        if self._queryset is not None:
+            state['_queryset'] = {
+                'query': self._queryset.query,
+                'using': self._queryset._db,
+                'model': self._queryset.query.model
+            }
+
+        return state
+
+    def __setstate__(self, state):
+        if state['_queryset']:
+            params = state['_queryset']
+            state['_queryset'] = QuerySet(**params)
+
+        self.__dict__.update(state)
 
     def __len__(self):
         # If the result cache is filled, use the length otherwise
