@@ -642,7 +642,7 @@ class DataField(BasePlural, PublishArchiveMixin):
         if count == 0:
             return 1.0
 
-        isnull = '{0}__isnull'.format(self.value_field_name)
+        isnull = '{0}__isnull'.format(self.value_field.name)
         nulls = queryset.filter(**{isnull: True}).count()
 
         return nulls / float(count)
@@ -652,9 +652,9 @@ class DataField(BasePlural, PublishArchiveMixin):
         if queryset is None:
             queryset = self.model.objects.all()
 
-        queryset = queryset.annotate(cnt=Count(self.value_field_name))\
-            .values_list(self.value_field_name, 'cnt')\
-            .order_by(self.value_field_name)
+        queryset = queryset.annotate(cnt=Count(self.value_field.name))\
+            .values_list(self.value_field.name, 'cnt')\
+            .order_by(self.value_field.name)
 
         return tuple(queryset)
 
