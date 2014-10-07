@@ -652,7 +652,8 @@ class DataField(BasePlural, PublishArchiveMixin):
         if queryset is None:
             queryset = self.model.objects.all()
 
-        queryset = queryset.annotate(cnt=Count(self.value_field.name))\
+        queryset = queryset.values(self.value_field.name)\
+            .annotate(cnt=Count(self.value_field.name))\
             .values_list(self.value_field.name, 'cnt')\
             .order_by(self.value_field.name)
 
