@@ -46,3 +46,9 @@ class LexiconTestCase(TestCase):
             'SELECT "tests_month"."id" FROM "tests_month" WHERE '
             '"tests_month"."label" LIKE J% ESCAPE \'\\\'  ORDER BY '
             '"tests_month"."order" ASC')
+
+    def test_dist(self):
+        f = DataField(app_name='tests', model_name='date', field_name='month')
+        # Months of the year
+        result = tuple([(i, 1) for i in range(1, 13)])
+        self.assertEqual(f.dist(), result)
