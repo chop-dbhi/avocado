@@ -16,7 +16,7 @@ class ExcelExporter(BaseExporter):
     file_extension = 'xlsx'
     content_type = 'application/vnd.ms-excel'
 
-    preferred_formats = ('excel', 'boolean', 'number', 'string')
+    preferred_formats = ('excel', 'string')
 
     def write(self, iterable, buff=None, *args, **kwargs):
         buff = self.get_file_obj(buff)
@@ -27,33 +27,49 @@ class ExcelExporter(BaseExporter):
         ws_data.title = 'Data'
 
         header = []
+
         # Create the data worksheet
         for i, row_gen in enumerate(self.read(iterable, *args, **kwargs)):
             row = []
+
             for data in row_gen:
                 if i == 0:
                     # Build up header row
                     header.extend(data.keys())
+
                 # Add formatted section to the row
                 row.extend(data.values())
+
             # Write headers on first iteration
             if i == 0:
                 ws_data.append(header)
+
             ws_data.append(row)
 
         ws_dict = wb.create_sheet()
         ws_dict.title = 'Data Dictionary'
 
         # Create the Data Dictionary Worksheet
-        ws_dict.append(('Field Name', 'Data Type', 'Description',
-                        'Concept Name', 'Concept Discription'))
+        ws_dict.append((
+            'Field Name',
+            'Data Type',
+            'Description',
+            'Concept Name',
+            'Concept Description',
+        ))
 
         for c in self.concepts:
             cfields = c.concept_fields.select_related('field')
+
             for cfield in cfields:
                 field = cfield.field
-                ws_dict.append((field.field_name, field.simple_type,
-                                field.description, c.name, c.description))
+                ws_dict.append((
+                    field.field_name,
+                    field.simple_type,
+                    field.description,
+                    c.name,
+                    c.description,
+                ))
 
         # This hacked up implementation is due to `save_virtual_workbook`
         # not behaving correctly. This function should handle the work
@@ -66,4 +82,5 @@ class ExcelExporter(BaseExporter):
             _buff.close()
         else:
             wb.save(buff)
+
         return buff

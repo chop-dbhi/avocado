@@ -20,4 +20,5 @@ class HTMLExporter(BaseExporter):
 
         context = Context({'rows': self.read(iterable, *args, **kwargs)})
         buff.write(template.render(context))
+
         return buff

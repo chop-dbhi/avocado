@@ -33,6 +33,14 @@ class FormatterTestCase(TestCase):
         self.values = ['CEO', 100000, True]
         self.f = Formatter(concept)
 
+    def test_default(self):
+        fvalues = self.f(self.values)
+        self.assertEqual(OrderedDict([
+            ('name', 'CEO'),
+            ('salary', 100000),
+            ('boss', True),
+        ]), fvalues)
+
     def test_to_string(self):
         fvalues = self.f(self.values, preferred_formats=['string'])
         self.assertEqual(OrderedDict([
