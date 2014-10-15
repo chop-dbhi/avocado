@@ -30,7 +30,7 @@ class CSVExporter(BaseExporter):
     file_extension = 'csv'
     content_type = 'text/csv'
 
-    preferred_formats = ('csv', 'number', 'string')
+    preferred_formats = ('csv', 'string')
 
     def write(self, iterable, buff=None, *args, **kwargs):
         header = []
@@ -39,11 +39,16 @@ class CSVExporter(BaseExporter):
 
         for i, row_gen in enumerate(self.read(iterable, *args, **kwargs)):
             row = []
+
             for data in row_gen:
                 if i == 0:
                     header.extend(data.keys())
+
                 row.extend(data.values())
+
             if i == 0:
                 writer.writerow(header)
+
             writer.writerow(row)
+
         return buff

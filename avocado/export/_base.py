@@ -7,7 +7,7 @@ class BaseExporter(object):
     "Base class for all exporters"
     file_extension = 'txt'
     content_type = 'text/plain'
-    preferred_formats = []
+    preferred_formats = ()
 
     def __init__(self, concepts=None):
         if concepts is None:

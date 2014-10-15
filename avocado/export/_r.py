@@ -14,18 +14,21 @@ class RExporter(BaseExporter):
     file_extension = 'zip'
     content_type = 'application/zip'
 
-    preferred_formats = ('r', 'coded', 'number', 'string')
+    preferred_formats = ('r', 'coded')
 
     def _format_name(self, name):
         punc = punctuation.replace('_', '')
         name = str(name).translate(None, punc)
         name = name.replace(' ', '_')
         words = name.split('_')
+
         for i, w in enumerate(words):
             if i == 0:
                 name = w.lower()
                 continue
+
             name += w.capitalize()
+
         if name[0].isdigit():
             name = '_' + name
 
@@ -56,6 +59,7 @@ class RExporter(BaseExporter):
 
     def write(self, iterable, buff=None, template_name='export/script.R',
               *args, **kwargs):
+
         zip_file = ZipFile(self.get_file_obj(buff), 'w')
 
         factors = []      # field names
@@ -68,8 +72,8 @@ class RExporter(BaseExporter):
             for cfield in cfields:
                 field = cfield.field
                 name = self._format_name(field.field_name)
-                labels.append(u'attr(data${0}, "label") = "{1}"'.format(
-                    name, unicode(cfield)))
+                labels.append(u'attr(data${0}, "label") = "{1}"'
+                              .format(name, unicode(cfield)))
 
                 coded_labels = field.coded_labels()
 

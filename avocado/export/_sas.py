@@ -14,7 +14,7 @@ class SASExporter(BaseExporter):
     file_extension = 'zip'
     content_type = 'application/zip'
 
-    preferred_formats = ('sas', 'coded', 'number', 'string')
+    preferred_formats = ('sas', 'coded')
 
     num_lg_names = 0
 
