@@ -7,6 +7,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.core import management
 from django.core.management.base import BaseCommand, CommandError
 from south import migration
+from south.creator import freezer
 from avocado.conf import settings
 from avocado.core import backup
 
@@ -32,6 +33,8 @@ class Migration(DataMigration):
     def backwards(self, orm):
         "No backwards migration applicable."
         pass
+
+    models = {frozen_models}
 """
 
 log = logging.getLogger(__name__)
@@ -110,11 +113,20 @@ class Command(BaseCommand):
         # See what filename is next in line. We assume they use numbers.
         next_filename = migrations.next_filename(migration_suffix)
 
+        # Normally, South would freeze the Avocado models(since we are
+        # dependent on them) along with this app's models and store the frozen
+        # representation in the migration. Since we are building the
+        # migration ourselves, we need to freeze and write the models to the
+        # migration.
+        frozen_models = freezer.freeze_apps_to_string([
+            'avocado', settings.METADATA_MIGRATION_APP])
+
         file_contents = METADATA_MIGRATION_TEMPLATE.format(
             latest_avocado_migration=avocado_migration_name,
             fixture_name=repr(fixture_name),
             backup_path=(backup_path and repr(backup_path) or backup_path),
-            using=repr(database))
+            using=repr(database),
+            frozen_models=frozen_models)
 
         file_path = os.path.join(migrations.migrations_dir(), next_filename)
 
