@@ -9,7 +9,6 @@ class ObjectRevisionTest(TestCase):
     def test_get_model_fields(self):
         fields = sorted(history.utils.get_model_fields(DataContext))
         self.assertEqual(fields, [
-            'count',
             'default',
             'description',
             'json',
@@ -18,7 +17,6 @@ class ObjectRevisionTest(TestCase):
             'session',
             'session_key',
             'template',
-            'tree',
         ])
 
     def test_get_object_data(self):
@@ -26,7 +24,6 @@ class ObjectRevisionTest(TestCase):
         fields = history.utils.get_model_fields(DataContext)
         data = history.utils.get_object_data(c, fields=fields)
         self.assertEqual(data, {
-            'count': None,
             'default': False,
             'description': None,
             'json': {},
@@ -35,7 +32,6 @@ class ObjectRevisionTest(TestCase):
             'session': False,
             'session_key': None,
             'template': False,
-            'tree': None,
         })
 
     def test_get_for_object(self):

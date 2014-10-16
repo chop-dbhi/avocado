@@ -17,8 +17,6 @@ class AbstractDataContext(models.Model):
     """
     json = jsonfield.JSONField(null=True, blank=True, default=dict,
                                validators=[parsers.datacontext.validate])
-    count = models.IntegerField(null=True, db_column='_count')
-    tree = models.CharField(max_length=100, null=True, blank=True)
 
     def __init__(self, *args, **kwargs):
         if args and isinstance(args[0], dict):
@@ -152,12 +150,6 @@ class AbstractDataQuery(models.Model):
     view_json = jsonfield.JSONField(
         null=True, blank=True, default=dict,
         validators=[parsers.dataview.validate])
-
-    # The count when just the context is applied
-    distinct_count = models.IntegerField(null=True)
-    # The count when the context and the view is applied
-    record_count = models.IntegerField(null=True)
-    tree = models.CharField(max_length=100, null=True, blank=True)
 
     def __init__(self, *args, **kwargs):
         if args and isinstance(args[0], dict):
