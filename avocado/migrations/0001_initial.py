@@ -11,7 +11,7 @@ class Migration(SchemaMigration):
         # Adding model 'DataCategory'
         db.create_table('avocado_datacategory', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=50, null=True, blank=True)),
+            ('name', self.gf('django.db.models.fields.CharField')(max_length=200, null=True, blank=True)),
             ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
             ('keywords', self.gf('django.db.models.fields.CharField')(max_length=100, null=True, blank=True)),
             ('archived', self.gf('django.db.models.fields.BooleanField')(default=False)),
@@ -26,25 +26,24 @@ class Migration(SchemaMigration):
         # Adding model 'DataField'
         db.create_table('avocado_datafield', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=50, null=True, blank=True)),
+            ('name', self.gf('django.db.models.fields.CharField')(max_length=200, null=True, blank=True)),
             ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
             ('keywords', self.gf('django.db.models.fields.CharField')(max_length=100, null=True, blank=True)),
             ('archived', self.gf('django.db.models.fields.BooleanField')(default=False)),
             ('published', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('internal', self.gf('django.db.models.fields.BooleanField')(default=False)),
             ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
             ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
-            ('name_plural', self.gf('django.db.models.fields.CharField')(max_length=60, null=True, blank=True)),
-            ('app_name', self.gf('django.db.models.fields.CharField')(max_length=50)),
-            ('model_name', self.gf('django.db.models.fields.CharField')(max_length=50)),
-            ('field_name', self.gf('django.db.models.fields.CharField')(max_length=50)),
+            ('name_plural', self.gf('django.db.models.fields.CharField')(max_length=200, null=True, blank=True)),
+            ('app_name', self.gf('django.db.models.fields.CharField')(max_length=200)),
+            ('model_name', self.gf('django.db.models.fields.CharField')(max_length=200)),
+            ('field_name', self.gf('django.db.models.fields.CharField')(max_length=200)),
             ('unit', self.gf('django.db.models.fields.CharField')(max_length=30, null=True, blank=True)),
             ('unit_plural', self.gf('django.db.models.fields.CharField')(max_length=40, null=True, blank=True)),
             ('category', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['avocado.DataCategory'], null=True, blank=True)),
             ('enumerable', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('searchable', self.gf('django.db.models.fields.BooleanField')(default=False)),
             ('translator', self.gf('django.db.models.fields.CharField')(max_length=100, null=True, blank=True)),
             ('data_modified', self.gf('django.db.models.fields.DateTimeField')(null=True)),
-            ('data_source', self.gf('django.db.models.fields.CharField')(max_length=250, null=True, blank=True)),
             ('group', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='fields+', null=True, to=orm['auth.Group'])),
             ('order', self.gf('django.db.models.fields.FloatField')(null=True, db_column='_order', blank=True)),
         ))
@@ -64,18 +63,21 @@ class Migration(SchemaMigration):
         # Adding model 'DataConcept'
         db.create_table('avocado_dataconcept', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=50, null=True, blank=True)),
+            ('name', self.gf('django.db.models.fields.CharField')(max_length=200, null=True, blank=True)),
             ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
             ('keywords', self.gf('django.db.models.fields.CharField')(max_length=100, null=True, blank=True)),
+            ('ident', self.gf('django.db.models.fields.CharField')(max_length=100, null=True)),
             ('archived', self.gf('django.db.models.fields.BooleanField')(default=False)),
             ('published', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('internal', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('sortable', self.gf('django.db.models.fields.BooleanField')(default=True)),
             ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
             ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
-            ('name_plural', self.gf('django.db.models.fields.CharField')(max_length=60, null=True, blank=True)),
+            ('name_plural', self.gf('django.db.models.fields.CharField')(max_length=200, null=True, blank=True)),
             ('category', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['avocado.DataCategory'], null=True, blank=True)),
             ('group', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='concepts+', null=True, to=orm['auth.Group'])),
             ('order', self.gf('django.db.models.fields.FloatField')(null=True, db_column='_order', blank=True)),
-            ('formatter', self.gf('django.db.models.fields.CharField')(max_length=100, null=True, blank=True)),
+            ('formatter_name', self.gf('django.db.models.fields.CharField')(max_length=100, null=True, blank=True)),
             ('queryview', self.gf('django.db.models.fields.CharField')(max_length=100, null=True, blank=True)),
         ))
         db.send_create_signal('avocado', ['DataConcept'])
@@ -104,16 +106,17 @@ class Migration(SchemaMigration):
         # Adding model 'DataContext'
         db.create_table('avocado_datacontext', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=50, null=True, blank=True)),
+            ('name', self.gf('django.db.models.fields.CharField')(max_length=200, null=True, blank=True)),
             ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
             ('keywords', self.gf('django.db.models.fields.CharField')(max_length=100, null=True, blank=True)),
             ('archived', self.gf('django.db.models.fields.BooleanField')(default=False)),
             ('published', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('default', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('template', self.gf('django.db.models.fields.BooleanField')(default=False)),
             ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
             ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
             ('json', self.gf('jsonfield.fields.JSONField')(default={}, null=True, blank=True)),
             ('session', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('composite', self.gf('django.db.models.fields.BooleanField')(default=False)),
             ('count', self.gf('django.db.models.fields.IntegerField')(null=True, db_column='_count')),
             ('user', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='datacontext+', null=True, to=orm['auth.User'])),
             ('session_key', self.gf('django.db.models.fields.CharField')(max_length=40, null=True, blank=True)),
@@ -123,11 +126,13 @@ class Migration(SchemaMigration):
         # Adding model 'DataView'
         db.create_table('avocado_dataview', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=50, null=True, blank=True)),
+            ('name', self.gf('django.db.models.fields.CharField')(max_length=200, null=True, blank=True)),
             ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
             ('keywords', self.gf('django.db.models.fields.CharField')(max_length=100, null=True, blank=True)),
             ('archived', self.gf('django.db.models.fields.BooleanField')(default=False)),
             ('published', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('default', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('template', self.gf('django.db.models.fields.BooleanField')(default=False)),
             ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
             ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
             ('json', self.gf('jsonfield.fields.JSONField')(default={}, null=True, blank=True)),
@@ -138,6 +143,38 @@ class Migration(SchemaMigration):
         ))
         db.send_create_signal('avocado', ['DataView'])
 
+        # Adding model 'Log'
+        db.create_table('avocado_log', (
+            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('content_type', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['contenttypes.ContentType'], null=True, blank=True)),
+            ('object_id', self.gf('django.db.models.fields.PositiveIntegerField')(null=True, blank=True)),
+            ('event', self.gf('django.db.models.fields.CharField')(max_length=200)),
+            ('data', self.gf('jsonfield.fields.JSONField')(null=True, blank=True)),
+            ('user', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='+', null=True, to=orm['auth.User'])),
+            ('session_key', self.gf('django.db.models.fields.CharField')(max_length=40, null=True, blank=True)),
+            ('timestamp', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now)),
+        ))
+        db.send_create_signal('avocado', ['Log'])
+
+        # Adding model 'DataQuery'
+        db.create_table('avocado_dataquery', (
+            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('name', self.gf('django.db.models.fields.CharField')(max_length=200, null=True, blank=True)),
+            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
+            ('keywords', self.gf('django.db.models.fields.CharField')(max_length=100, null=True, blank=True)),
+            ('archived', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('published', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
+            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
+            ('context_json', self.gf('jsonfield.fields.JSONField')(default={}, null=True, blank=True)),
+            ('view_json', self.gf('jsonfield.fields.JSONField')(default={}, null=True, blank=True)),
+            ('session', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('template', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('default', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('user', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='dataquery+', null=True, to=orm['auth.User'])),
+            ('session_key', self.gf('django.db.models.fields.CharField')(max_length=40, null=True, blank=True)),
+        ))
+        db.send_create_signal('avocado', ['DataQuery'])
 
     def backwards(self, orm):
         # Removing unique constraint on 'DataField', fields ['app_name', 'model_name', 'field_name']
@@ -166,6 +203,12 @@ class Migration(SchemaMigration):
 
         # Deleting model 'DataView'
         db.delete_table('avocado_dataview')
+
+        # Deleting model 'Log'
+        db.delete_table('avocado_log')
+
+        # Deleting model 'DataQuery'
+        db.delete_table('avocado_dataquery')
 
 
     models = {
@@ -206,7 +249,7 @@ class Migration(SchemaMigration):
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'keywords': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True', 'blank': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
             'order': ('django.db.models.fields.FloatField', [], {'null': 'True', 'db_column': "'_order'", 'blank': 'True'}),
             'parent': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'children'", 'null': 'True', 'to': "orm['avocado.DataCategory']"}),
             'published': ('django.db.models.fields.BooleanField', [], {'default': 'False'})
@@ -218,17 +261,20 @@ class Migration(SchemaMigration):
             'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'fields': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'concepts'", 'symmetrical': 'False', 'through': "orm['avocado.DataConceptField']", 'to': "orm['avocado.DataField']"}),
-            'formatter': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
+            'formatter_name': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'group': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'concepts+'", 'null': 'True', 'to': "orm['auth.Group']"}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'ident': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True'}),
+            'internal': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'keywords': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True', 'blank': 'True'}),
-            'name_plural': ('django.db.models.fields.CharField', [], {'max_length': '60', 'null': 'True', 'blank': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
+            'name_plural': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
             'order': ('django.db.models.fields.FloatField', [], {'null': 'True', 'db_column': "'_order'", 'blank': 'True'}),
             'published': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'queryview': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
-            'sites': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'related_name': "'concepts+'", 'blank': 'True', 'to': "orm['sites.Site']"})
+            'sites': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'related_name': "'concepts+'", 'blank': 'True', 'to': "orm['sites.Site']"}),
+            'sortable': ('django.db.models.fields.BooleanField', [], {'default': 'True'})
         },
         'avocado.dataconceptfield': {
             'Meta': {'ordering': "('order',)", 'object_name': 'DataConceptField'},
@@ -244,61 +290,92 @@ class Migration(SchemaMigration):
         'avocado.datacontext': {
             'Meta': {'object_name': 'DataContext'},
             'archived': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'composite': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'count': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'db_column': "'_count'"}),
             'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
+            'default': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'json': ('jsonfield.fields.JSONField', [], {'default': '{}', 'null': 'True', 'blank': 'True'}),
             'keywords': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True', 'blank': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
             'published': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'session': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'session_key': ('django.db.models.fields.CharField', [], {'max_length': '40', 'null': 'True', 'blank': 'True'}),
+            'template': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'datacontext+'", 'null': 'True', 'to': "orm['auth.User']"})
         },
         'avocado.datafield': {
             'Meta': {'ordering': "('name',)", 'unique_together': "(('app_name', 'model_name', 'field_name'),)", 'object_name': 'DataField'},
-            'app_name': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
+            'app_name': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
             'archived': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'category': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['avocado.DataCategory']", 'null': 'True', 'blank': 'True'}),
             'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             'data_modified': ('django.db.models.fields.DateTimeField', [], {'null': 'True'}),
-            'data_source': ('django.db.models.fields.CharField', [], {'max_length': '250', 'null': 'True', 'blank': 'True'}),
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'enumerable': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'field_name': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
+            'field_name': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
             'group': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'fields+'", 'null': 'True', 'to': "orm['auth.Group']"}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'internal': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'keywords': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
-            'model_name': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
+            'model_name': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
             'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True', 'blank': 'True'}),
-            'name_plural': ('django.db.models.fields.CharField', [], {'max_length': '60', 'null': 'True', 'blank': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
+            'name_plural': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
             'order': ('django.db.models.fields.FloatField', [], {'null': 'True', 'db_column': "'_order'", 'blank': 'True'}),
             'published': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'searchable': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'sites': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'related_name': "'fields+'", 'blank': 'True', 'to': "orm['sites.Site']"}),
             'translator': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'unit': ('django.db.models.fields.CharField', [], {'max_length': '30', 'null': 'True', 'blank': 'True'}),
             'unit_plural': ('django.db.models.fields.CharField', [], {'max_length': '40', 'null': 'True', 'blank': 'True'})
+        },
+        'avocado.dataquery': {
+            'Meta': {'object_name': 'DataQuery'},
+            'archived': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'context_json': ('jsonfield.fields.JSONField', [], {'default': '{}', 'null': 'True', 'blank': 'True'}),
+            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
+            'default': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'keywords': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
+            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
+            'published': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'session': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'session_key': ('django.db.models.fields.CharField', [], {'max_length': '40', 'null': 'True', 'blank': 'True'}),
+            'template': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'dataquery+'", 'null': 'True', 'to': "orm['auth.User']"}),
+            'view_json': ('jsonfield.fields.JSONField', [], {'default': '{}', 'null': 'True', 'blank': 'True'})
         },
         'avocado.dataview': {
             'Meta': {'object_name': 'DataView'},
             'archived': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'count': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'db_column': "'_count'"}),
             'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
+            'default': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'json': ('jsonfield.fields.JSONField', [], {'default': '{}', 'null': 'True', 'blank': 'True'}),
             'keywords': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True', 'blank': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
             'published': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'session': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'session_key': ('django.db.models.fields.CharField', [], {'max_length': '40', 'null': 'True', 'blank': 'True'}),
+            'template': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'dataview+'", 'null': 'True', 'to': "orm['auth.User']"})
+        },
+        'avocado.log': {
+            'Meta': {'object_name': 'Log'},
+            'content_type': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['contenttypes.ContentType']", 'null': 'True', 'blank': 'True'}),
+            'data': ('jsonfield.fields.JSONField', [], {'null': 'True', 'blank': 'True'}),
+            'event': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'object_id': ('django.db.models.fields.PositiveIntegerField', [], {'null': 'True', 'blank': 'True'}),
+            'session_key': ('django.db.models.fields.CharField', [], {'max_length': '40', 'null': 'True', 'blank': 'True'}),
+            'timestamp': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'+'", 'null': 'True', 'to': "orm['auth.User']"})
         },
         'contenttypes.contenttype': {
             'Meta': {'ordering': "('name',)", 'unique_together': "(('app_label', 'model'),)", 'object_name': 'ContentType', 'db_table': "'django_content_type'"},
