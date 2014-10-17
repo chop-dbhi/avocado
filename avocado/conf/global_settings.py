@@ -107,3 +107,9 @@ DATA_CACHE_ENABLED = True
 SHARE_BY_USERNAME = True
 SHARE_BY_EMAIL = True
 SHARE_BY_USERNAME_CASE_SENSITIVE = True
+
+# Toggle whether the permissions system should be enabled.
+# If django-guardian is installed and this value is None or True, permissions
+# will be applied. If the value is True and django-guardian is not installed
+# it is an error. If set to False the permissions will not be applied.
+PERMISSIONS_ENABLED = None
