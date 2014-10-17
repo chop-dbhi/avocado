@@ -88,6 +88,12 @@ AVOCADO = {
 MODELTREES = {
     'default': {
         'model': 'tests.Employee',
+    },
+    'title': {
+        'model': 'tests.Title',
+    },
+    'office': {
+        'model': 'tests.Office',
     }
 }
 

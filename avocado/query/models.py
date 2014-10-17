@@ -1,6 +1,7 @@
 import jsonfield
 from django.db import models
 from modeltree.tree import trees
+from avocado.core.cache import cached_method
 from . import oldparsers as parsers
 
 
@@ -67,6 +68,10 @@ class AbstractDataContext(models.Model):
     def validate(cls, attrs, **context):
         "Validate `attrs` as a context."
         return parsers.datacontext.validate(attrs, **context)
+
+    @cached_method(version='modified')
+    def count(self, *args, **kwargs):
+        return self.apply(*args, **kwargs).count()
 
     def parse(self, tree=None, **context):
         "Returns a parsed node for this context."
@@ -199,6 +204,10 @@ class AbstractDataQuery(models.Model):
         "Validates `attrs` as a query."
         return parsers.dataquery.validate(attrs, **context)
 
+    @cached_method(version='modified')
+    def count(self, *args, **kwargs):
+        return self.apply(*args, **kwargs).count()
+
     def parse(self, tree=None, **context):
         "Returns a parsed node for this query."
         json = {
@@ -212,6 +221,7 @@ class AbstractDataQuery(models.Model):
         "Applies this context to a QuerySet."
         if tree is None and queryset is not None:
             tree = queryset.model
+
         return self.parse(tree=tree, **context) \
             .apply(queryset=queryset, distinct=distinct, include_pk=include_pk)
 
