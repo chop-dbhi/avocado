@@ -1,6 +1,7 @@
 import jsonfield
 from django.db import models
 from modeltree.tree import trees
+from avocado.core.cache import cached_method
 from . import oldparsers as parsers
 
 
@@ -17,8 +18,6 @@ class AbstractDataContext(models.Model):
     """
     json = jsonfield.JSONField(null=True, blank=True, default=dict,
                                validators=[parsers.datacontext.validate])
-    count = models.IntegerField(null=True, db_column='_count')
-    tree = models.CharField(max_length=100, null=True, blank=True)
 
     def __init__(self, *args, **kwargs):
         if args and isinstance(args[0], dict):
@@ -69,6 +68,10 @@ class AbstractDataContext(models.Model):
     def validate(cls, attrs, **context):
         "Validate `attrs` as a context."
         return parsers.datacontext.validate(attrs, **context)
+
+    @cached_method(version='modified')
+    def count(self, *args, **kwargs):
+        return self.apply(*args, **kwargs).count()
 
     def parse(self, tree=None, **context):
         "Returns a parsed node for this context."
@@ -153,12 +156,6 @@ class AbstractDataQuery(models.Model):
         null=True, blank=True, default=dict,
         validators=[parsers.dataview.validate])
 
-    # The count when just the context is applied
-    distinct_count = models.IntegerField(null=True)
-    # The count when the context and the view is applied
-    record_count = models.IntegerField(null=True)
-    tree = models.CharField(max_length=100, null=True, blank=True)
-
     def __init__(self, *args, **kwargs):
         if args and isinstance(args[0], dict):
             if 'context_json' in kwargs:
@@ -207,6 +204,10 @@ class AbstractDataQuery(models.Model):
         "Validates `attrs` as a query."
         return parsers.dataquery.validate(attrs, **context)
 
+    @cached_method(version='modified')
+    def count(self, *args, **kwargs):
+        return self.apply(*args, **kwargs).count()
+
     def parse(self, tree=None, **context):
         "Returns a parsed node for this query."
         json = {
@@ -220,6 +221,7 @@ class AbstractDataQuery(models.Model):
         "Applies this context to a QuerySet."
         if tree is None and queryset is not None:
             tree = queryset.model
+
         return self.parse(tree=tree, **context) \
             .apply(queryset=queryset, distinct=distinct, include_pk=include_pk)
 

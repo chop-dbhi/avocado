@@ -464,6 +464,11 @@ class DataConceptManagerTestCase(TestCase):
 
 
 class DataContextTestCase(TestCase):
+    fixtures = ['employee_data.json']
+
+    def setUp(self):
+        management.call_command('avocado', 'init', 'tests')
+
     def test_init(self):
         json = {
             'field': 'tests.title.salary',
@@ -487,6 +492,17 @@ class DataContextTestCase(TestCase):
         self.assertRaises(ValidationError, cxt2.save)
 
         cxt.save()
+
+    def test_count(self):
+        json = {
+            'field': 'tests.title.salary',
+            'operator': 'gt',
+            'value': '10000'
+        }
+        ctx = DataContext(json)
+
+        self.assertEqual(ctx.count(), 6)
+        self.assertEqual(ctx.count(tree='office'), 1)
 
 
 class DataViewTestCase(TestCase):
@@ -512,6 +528,8 @@ class DataViewTestCase(TestCase):
 
 
 class DataQueryTestCase(TestCase):
+    fixtures = ['employee_data.json']
+
     existing_email = 'existing@email.com'
     existing_username = 'user1'
     emails = [existing_email, 'new1@email.com', 'new2@email.com',
@@ -519,16 +537,7 @@ class DataQueryTestCase(TestCase):
     usernames = [existing_username, 'user3', 'user4', 'user5', 'user6']
 
     def setUp(self):
-        management.call_command('avocado', 'init', 'tests', publish=False,
-                                concepts=False, quiet=True)
-        f1 = DataField.objects.get(pk=1)
-        f2 = DataField.objects.get(pk=2)
-
-        c1 = DataConcept()
-        c1.save()
-
-        DataConceptField(concept=c1, field=f1).save()
-        DataConceptField(concept=c1, field=f2).save()
+        management.call_command('avocado', 'init', 'tests')
 
     def test_init(self):
         json = {
@@ -549,6 +558,34 @@ class DataQueryTestCase(TestCase):
         self.assertEqual(query.view.json, json['view'])
 
         self.assertEqual(query.json, json)
+
+    def test_count(self):
+        salary_field = DataField.objects.get_by_natural_key(
+            'tests', 'title', 'salary')
+
+        json = {
+            'context': {
+                'field': 'tests.title.salary',
+                'operator': 'gt',
+                'value': '1000'
+            },
+            'view': {'columns': [salary_field.id]}
+        }
+
+        query = DataQuery(json)
+
+        # Default tree is Employee so we should get 6 unique employee objects
+        # regardless of distinct setting since all are distinct.
+        self.assertEqual(query.count(), 6)
+        self.assertEqual(query.count(distinct=False), 6)
+
+        # Switching the tree should allow us to exercise the distinct keyword
+        # since there are 3 titles all with the same 15,000 unit salary. We
+        # need to eliminate the PK so that we are only getting salaries
+        # back. Including the PK causes everything to be unique.
+        self.assertEqual(query.count(tree='title', include_pk=False), 5)
+        self.assertEqual(
+            query.count(tree='title', include_pk=False, distinct=False), 7)
 
     def test_multiple_json_values(self):
         json = {
@@ -630,7 +667,7 @@ class DataQueryTestCase(TestCase):
         self.assertEqual(
             unicode(query.apply(tree=Employee).query),
             'SELECT DISTINCT "tests_employee"."id", '
-            '"tests_office"."location", "tests_title"."name" FROM '
+            '"tests_office"."location" FROM '
             '"tests_employee" INNER JOIN "tests_title" ON '
             '("tests_employee"."title_id" = "tests_title"."id") INNER JOIN '
             '"tests_office" ON ("tests_employee"."office_id" = '
@@ -641,12 +678,10 @@ class DataQueryTestCase(TestCase):
         self.assertEqual(
             unicode(query.apply(queryset=queryset).query),
             'SELECT DISTINCT "tests_employee"."id", '
-            '"tests_office"."location", "tests_title"."name" FROM '
+            '"tests_office"."location" FROM '
             '"tests_employee" INNER JOIN "tests_office" ON '
-            '("tests_employee"."office_id" = "tests_office"."id") LEFT OUTER '
-            'JOIN "tests_title" ON ("tests_employee"."title_id" = '
-            '"tests_title"."id") ORDER BY "tests_office"."location" DESC, '
-            '"tests_title"."name" DESC')
+            '("tests_employee"."office_id" = "tests_office"."id") '
+            'ORDER BY "tests_office"."location" DESC')
 
     def test_clean(self):
         # Save default template
