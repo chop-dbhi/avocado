@@ -6,7 +6,7 @@ from datetime import datetime
 from django.db import models
 from django.db.models import Count
 from django.contrib.sites.models import Site
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import User
 from django.utils.encoding import smart_unicode
 from django.utils.translation import ugettext_lazy as _
 from django.db.models import Q
@@ -155,9 +155,6 @@ class DataField(BasePlural, PublishArchiveMixin):
                                        'version of the underlying data for '
                                        'this field as of the last '
                                        'modification/update.')
-
-    group = models.ForeignKey(Group, null=True, blank=True,
-                              related_name='fields+')
 
     # Certain fields may not be relevant or appropriate for all
     # sites being deployed. This is primarily for preventing exposure of
@@ -716,9 +713,6 @@ class DataConcept(BasePlural, PublishArchiveMixin):
     # associated with multiple concepts, thus the M2M
     fields = models.ManyToManyField(DataField, through='DataConceptField',
                                     related_name='concepts')
-
-    group = models.ForeignKey(Group, null=True, blank=True,
-                              related_name='concepts+')
 
     # Certain concepts may not be relevant or appropriate for all
     # sites being deployed. This is primarily for preventing exposure of

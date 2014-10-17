@@ -104,7 +104,6 @@ class Command(BaseCommand):
             f.description = lf.description
             f.keywords = lf.keywords
             f.translator = lf.translator
-            f.group_id = lf.group_id
 
             print u'Migrated "{0}"'.format(qualified_name)
 
