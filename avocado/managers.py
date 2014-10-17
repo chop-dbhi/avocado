@@ -2,10 +2,10 @@ import logging
 from django.db import models
 from django.db.models import Q
 from django.db import transaction
-from django.conf import settings
-from django.db.models.manager import ManagerDescriptor
+from django.conf import settings as djsettings
 from django.core.exceptions import ImproperlyConfigured
-from avocado.conf import OPTIONAL_DEPS, requires_dep
+from django.db.models.manager import ManagerDescriptor
+from avocado.conf import OPTIONAL_DEPS, requires_dep, settings
 from avocado.core.managers import PublishedManager, PublishedQuerySet
 
 
@@ -57,15 +57,18 @@ class DataFieldQuerySet(PublishedQuerySet):
 
         # All published concepts associated with the current site
         # (or no site)
-        sites = Q(sites=None) | Q(sites__id=settings.SITE_ID)
+        sites = Q(sites=None) | Q(sites__id=djsettings.SITE_ID)
         published = published.filter(sites)
 
-        if user:
-            if not OPTIONAL_DEPS['guardian']:
-                raise ImproperlyConfigured('django-guardian must installed '
-                                           'for object-level permissions.')
-            from guardian.shortcuts import get_objects_for_user
-            published = get_objects_for_user(user, perm, published)
+        if user and settings.PERMISSIONS_ENABLED is not False:
+            if OPTIONAL_DEPS['guardian']:
+                from guardian.shortcuts import get_objects_for_user
+
+                published = get_objects_for_user(user, perm, published)
+            elif settings.PERMISSIONS_ENABLED is True:
+                raise ImproperlyConfigured('django-guardian must be installed '
+                                           'to use the permissions system')
+
         return published.distinct()
 
 
@@ -84,7 +87,7 @@ class DataConceptQuerySet(PublishedQuerySet):
 
         # All published concepts associated with the current site
         # (or no site)
-        sites = Q(sites=None) | Q(sites__id=settings.SITE_ID)
+        sites = Q(sites=None) | Q(sites__id=djsettings.SITE_ID)
         published = published.filter(sites)
 
         # All published concepts with a non-empty category must have the
@@ -95,22 +98,28 @@ class DataConceptQuerySet(PublishedQuerySet):
         # Concepts that contain at least one unpublished or archived datafield
         # are removed from the set to prevent exposing unprepared data
         from avocado.models import DataField
+
         fields_q = Q(archived=True) | Q(published=False)
-        if user:
-            if not OPTIONAL_DEPS['guardian']:
-                raise ImproperlyConfigured('django-guardian must installed '
-                                           'for object-level permissions.')
-            from guardian.shortcuts import get_objects_for_user
-            # If a user is specified, they must also have a permission for
-            # accessing the data fields. All data fields that the user does
-            # NOT have access to must also be removed from the set.
-            restricted_fields = DataField.objects\
-                .exclude(pk__in=get_objects_for_user(user, perm))
-            fields_q = fields_q | Q(pk__in=restricted_fields)
+
+        if user and settings.PERMISSIONS_ENABLED is not False:
+            if OPTIONAL_DEPS['guardian']:
+                from guardian.shortcuts import get_objects_for_user
+
+                # If a user is specified, they must also have a permission for
+                # accessing the data fields. All data fields that the user does
+                # NOT have access to must also be removed from the set.
+                restricted_fields = DataField.objects\
+                    .exclude(pk__in=get_objects_for_user(user, perm))
+                fields_q = fields_q | Q(pk__in=restricted_fields)
+            elif settings.PERMISSIONS_ENABLED is True:
+                raise ImproperlyConfigured('django-guardian must be installed '
+                                           'to use the permissions system')
 
         shadowed = DataField.objects.filter(fields_q)
+
         concepts = published.exclude(fields__in=shadowed) \
             .exclude(fields=None).distinct()
+
         return concepts
 
 
