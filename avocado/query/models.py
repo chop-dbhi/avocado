@@ -1,6 +1,5 @@
 import jsonfield
 from django.db import models
-from modeltree.tree import trees
 from avocado.core.cache import cached_method
 from . import oldparsers as parsers
 
@@ -56,13 +55,6 @@ class AbstractDataContext(models.Model):
 
     def __or__(self, other):
         return self._combine(other, 'or')
-
-    @property
-    def model(self):
-        "The model this context represents with respect to the count."
-        if self.tree in trees:
-            return trees[self.tree].root_model
-        return trees.default.root_model
 
     @classmethod
     def validate(cls, attrs, **context):
@@ -191,13 +183,6 @@ class AbstractDataQuery(models.Model):
             'context': self.context_json,
             'view': self.view_json
         }
-
-    @property
-    def model(self):
-        "The model this query represents with respect to the counts."
-        if self.tree in trees:
-            return trees[self.tree].root_model
-        return trees.default.root_model
 
     @classmethod
     def validate(cls, attrs, **context):
