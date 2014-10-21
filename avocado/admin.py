@@ -318,7 +318,7 @@ class DataViewAdmin(admin.ModelAdmin):
 
 
 class DataContextAdmin(admin.ModelAdmin):
-    readonly_fields = ('session_key', 'count', 'sql')
+    readonly_fields = ('session_key', 'sql')
 
     fieldsets = (
         (None, {
@@ -335,10 +335,6 @@ class DataContextAdmin(admin.ModelAdmin):
 
         ('Template', {
             'fields': ('template', 'default')
-        }),
-
-        ('Stats', {
-            'fields': ('count',)
         }),
 
         ('JSON', {
@@ -365,7 +361,7 @@ class DataContextAdmin(admin.ModelAdmin):
 
 
 class DataQueryAdmin(admin.ModelAdmin):
-    readonly_fields = ('distinct_count', 'record_count', 'session_key', 'sql')
+    readonly_fields = ('session_key', 'sql')
 
     fieldsets = (
         (None, {
@@ -383,10 +379,6 @@ class DataQueryAdmin(admin.ModelAdmin):
 
         ('Template', {
             'fields': ('template', 'default')
-        }),
-
-        ('Stats', {
-            'fields': ('distinct_count', 'record_count')
         }),
 
         ('JSON', {
