@@ -203,15 +203,15 @@ class DataConceptFieldInlineAdmin(admin.TabularInline):
 
 class DataConceptAdmin(PublishedAdmin):
     list_display = ('name', 'published', 'archived', 'internal', 'type',
-                    'category', 'order', 'formatter_name', 'viewable',
+                    'category', 'order', 'formatter', 'viewable',
                     'queryable', 'sortable', 'indexable', 'related_datafields')
 
     list_editable = ('published', 'archived', 'internal', 'type', 'category',
-                     'order', 'formatter_name', 'viewable', 'queryable',
+                     'order', 'formatter', 'viewable', 'queryable',
                      'sortable', 'indexable')
 
     list_filter = ('published', 'archived', 'category', 'type',
-                   'formatter_name', 'viewable', 'queryable', 'sortable',
+                   'formatter', 'viewable', 'queryable', 'sortable',
                    'indexable')
 
     ordering = ('archived', '-published', 'category__parent__order',
@@ -240,7 +240,7 @@ class DataConceptAdmin(PublishedAdmin):
         }),
 
         ('Modifiers', {
-            'fields': ('formatter_name', 'viewable', 'queryable', 'indexable',
+            'fields': ('formatter', 'viewable', 'queryable', 'indexable',
                        'sortable', 'type'),
         }),
 
