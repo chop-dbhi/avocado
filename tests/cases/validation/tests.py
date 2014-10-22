@@ -21,7 +21,7 @@ class FieldValidatorTestCase(ValidatorTestCase):
     def setUp(self):
         super(FieldValidatorTestCase, self).setUp()
         self.field = DataField.objects.get_by_natural_key('tests.title.salary')
-        self.concept = DataConcept(name='Salary', ident='salary')
+        self.concept = DataConcept(name='Salary')
         self.concept.save()
         DataConceptField(concept=self.concept, field=self.field).save()
 
@@ -84,10 +84,10 @@ class FieldValidatorTestCase(ValidatorTestCase):
 
         v = FieldValidator(data)
 
-        self.assertTrue(v.is_valid())
-        self.assertEqual(v.data, data)
-        self.assertEqual(v.cleaned_data['field'], self.field)
-        self.assertEqual(v.cleaned_data['concept'], self.concept)
+        self.assertFalse(v.is_valid())
+        self.assertTrue('errors' in v.data)
+        self.assertEqual(v.errors[0], 'concept_wrong_format')
+        self.assertFalse(v.data['enabled'])
 
     def test_valid_concept_short_field(self):
         "Field short name with concept"
@@ -118,7 +118,7 @@ class FieldValidatorTestCase(ValidatorTestCase):
         "Concept does not exist"
         v = FieldValidator({
             'field': self.field.pk,
-            'concept': 'does_not_exist',
+            'concept': -1,
         })
 
         self.assertFalse(v.is_valid())
