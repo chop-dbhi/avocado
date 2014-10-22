@@ -90,14 +90,14 @@ class DataFieldAdminForm(forms.ModelForm):
 class DataFieldAdmin(PublishedAdmin):
     form = DataFieldAdminForm
 
-    list_display = ('name', 'published', 'archived', 'internal', 'type',
+    list_display = ('name', 'published', 'archived', 'type',
                     'orphan_status', 'model_name', 'enumerable', 'indexable',
                     'related_dataconcepts')
 
-    list_filter = ('published', 'archived', 'internal', 'model_name', 'type',
+    list_filter = ('published', 'archived', 'model_name', 'type',
                    'enumerable', 'indexable')
 
-    list_editable = ('published', 'archived', 'internal', 'enumerable',
+    list_editable = ('published', 'archived', 'enumerable',
                      'indexable', 'type')
 
     search_fields = ('name', 'description', 'keywords')
@@ -134,12 +134,6 @@ class DataFieldAdmin(PublishedAdmin):
                        'code_field_name', 'order_field_name'),
             'description': 'Fields that can be defined to alter the behavior '
                            'of the DataField API.',
-        }),
-
-        ('Internal Use', {
-            'fields': ('internal',),
-            'description': 'Flag as internal if this concept is is intended '
-                           'for programmatic access only.',
         }),
 
         ('Modifiers', {
@@ -202,11 +196,11 @@ class DataConceptFieldInlineAdmin(admin.TabularInline):
 
 
 class DataConceptAdmin(PublishedAdmin):
-    list_display = ('name', 'published', 'archived', 'internal', 'type',
+    list_display = ('name', 'published', 'archived', 'type',
                     'category', 'order', 'formatter', 'viewable',
                     'queryable', 'sortable', 'indexable', 'related_datafields')
 
-    list_editable = ('published', 'archived', 'internal', 'type', 'category',
+    list_editable = ('published', 'archived', 'type', 'category',
                      'order', 'formatter', 'viewable', 'queryable',
                      'sortable', 'indexable')
 
@@ -231,12 +225,6 @@ class DataConceptAdmin(PublishedAdmin):
                 'published',
                 'archived',
             ),
-        }),
-
-        ('Internal Use', {
-            'fields': ('internal', 'ident'),
-            'description': 'Flag as internal if this concept is is intended '
-                           'for programmatic access only.',
         }),
 
         ('Modifiers', {

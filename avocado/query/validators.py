@@ -134,6 +134,7 @@ class FieldValidator(Validator):
         'ambiguous_field_for_concept': 'the field lookup for the specified is '
                                        'ambiguous',
         'concept_does_not_exist': 'the concept does not exist',
+        'concept_wrong_format': 'the concept lookup is not an id'
     }
 
     error_messages.update(Validator.error_messages)
@@ -146,11 +147,11 @@ class FieldValidator(Validator):
         if not concept:
             return
 
-        # Use the `ident` field if the concept is defined as a string
-        if isinstance(concept, basestring):
-            kwargs = {'ident': concept}
-        else:
-            kwargs = {'pk': concept}
+        # Ignore any concept that is not an explicit ID.
+        try:
+            kwargs = {'pk': int(concept)}
+        except ValueError:
+            self.error('concept_wrong_format')
 
         if 'user' in self.context:
             queryset = DataConcept.objects.published(user=self.context['user'])

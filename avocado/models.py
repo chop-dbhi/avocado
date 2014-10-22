@@ -1,4 +1,3 @@
-import re
 import logging
 import random
 from warnings import warn
@@ -8,11 +7,9 @@ from django.db.models import Count
 from django.contrib.sites.models import Site
 from django.contrib.auth.models import User
 from django.utils.encoding import smart_unicode
-from django.utils.translation import ugettext_lazy as _
 from django.db.models import Q
 from django.db.models.fields import FieldDoesNotExist
 from django.db.models.signals import post_save, pre_delete
-from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
 from avocado.core import utils
 from avocado.core.structures import ChoicesDict
@@ -34,12 +31,6 @@ __all__ = ('DataCategory', 'DataConcept', 'DataField',
            'DataContext', 'DataView', 'DataQuery')
 
 log = logging.getLogger(__name__)
-
-
-ident_re = re.compile(r'^[a-zA-Z][a-zA-Z0-9_]*$')
-validate_ident = RegexValidator(ident_re, _("Enter an 'identifier' that is a "
-                                "valid Python variable name."),
-                                'invalid')
 
 
 def is_lexicon(f):
@@ -167,10 +158,6 @@ class DataField(BasePlural, PublishArchiveMixin):
 
     # The order of this datafield with respect to the category (if defined).
     order = models.FloatField(null=True, blank=True, db_column='_order')
-
-    internal = models.BooleanField(default=False, help_text='Flag for '
-                                   'internal use and does not abide by the '
-                                   'published and archived rules.')
 
     objects = managers.DataFieldManager()
 
@@ -690,16 +677,6 @@ class DataConcept(BasePlural, PublishArchiveMixin):
 
         -- Willard Van Orman Quine
     """
-
-    ident = models.CharField(max_length=100, null=True, blank=True,
-                             validators=[validate_ident], help_text='Unique '
-                             'identifier that can be used for programmatic '
-                             'access')
-
-    internal = models.BooleanField(default=False, help_text='Flag for '
-                                   'internal use and does not abide by '
-                                   'the published and archived rules.')
-
     type = models.CharField(max_length=100, blank=True, null=True)
 
     # Although a category does not technically need to be defined, this more
