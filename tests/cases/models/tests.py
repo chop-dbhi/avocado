@@ -387,7 +387,7 @@ class DataConceptTestCase(TestCase):
             to_html.process_multiple = True
 
         formatters.register(HtmlFormatter, 'HTML')
-        concept.formatter_name = 'HTML'
+        concept.formatter = 'HTML'
 
         self.assertEqual(
             concept.format(values, preferred_formats=['html']),

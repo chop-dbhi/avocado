@@ -259,7 +259,7 @@ class Command(BaseCommand):
     def _migrate_columns(self, **options):
         def func(c, lc):
             c.viewable = True
-            c.formatter_name = lc.html_fmtr
+            c.formatter = lc.html_fmtr
         self._migrate_concept(legacy.Column, func, **options)
 
     def handle(self, **options):

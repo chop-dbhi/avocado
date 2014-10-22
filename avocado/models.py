@@ -727,9 +727,9 @@ class DataConcept(BasePlural, PublishArchiveMixin):
 
     # An optional formatter which provides custom formatting for this
     # concept relative to the associated fields.
-    formatter_name = models.CharField('formatter', max_length=100, blank=True,
-                                      null=True,
-                                      choices=formatters.registry.choices)
+    formatter = models.CharField('formatter', max_length=100, blank=True,
+                                 null=True,
+                                 choices=formatters.registry.choices)
 
     # A flag that denotes this concept is viewable, that is, this the concept
     # is appropriate to be used as a viewable interface. Non-viewable concepts
@@ -759,7 +759,7 @@ class DataConcept(BasePlural, PublishArchiveMixin):
         a tight loop) the formatter instance is cached until the formatter
         name changes.
         """
-        name = self.formatter_name
+        name = self.formatter
         cache = getattr(self, '_formatter_cache', None)
         if not cache or name != cache[0]:
             formatter = formatters.registry.get(name)(self)
