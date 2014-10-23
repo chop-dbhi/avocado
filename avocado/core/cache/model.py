@@ -1,5 +1,6 @@
 import inspect
 import hashlib
+import logging
 import cPickle as pickle
 from django.db.models.query import QuerySet
 from functools import wraps
@@ -10,10 +11,18 @@ NEVER_EXPIRE = 60 * 60 * 24 * 30  # 30 days
 CACHE_KEY_FUNC = lambda l: ':'.join([str(x) for x in l])
 
 
+logger = logging.getLogger(__name__)
+
+
 def _pickling_value(v):
     "Returns value for pickling given the value."
     if isinstance(v, QuerySet):
         return v.query
+    elif inspect.isclass(v) and not hasattr(v, '__getstate__'):
+        # As with the QuerySet instance above, this could result in loading
+        # a lot of data into memory.
+        logger.warn('type "{0}" does not implement __getstate__'
+                    .format(type(v)))
 
     return v
 
@@ -39,31 +48,22 @@ def _prep_pickling(args, kwargs):
     return args, kwargs
 
 
-def instance_cache_key(instance, label=None, version=None,
-                       args=None, kwargs=None):
-    """Creates a cache key for the instance with an optional label and version.
-    The instance is uniquely defined based on the app, model and primary key of
-    the instance.
+def cache_key(label, version=None, args=None, kwargs=None):
+    """Creates a cache key given label and optional version.
 
-    A `label` is used to differentiate cache for an instance.
-
-    The `version` can be a scalar (i.e. a string or int), a function, instance
-    property or method.
+    In addition, arbitrary arguments and keyword arguments may be passed that
+    will be pickled prior to being included in the cache key. This is useful
+    for caching return values from functions that take arguments.
     """
+    if not label:
+        raise ValueError('cache label cannot be empty')
+
     if version is None:
         version = '-'
     elif callable(version):
-        version = version(instance, label=label)
-    elif hasattr(instance, version):
-        version = getattr(instance, version)
-        if callable(version):
-            version = version()
+        version = version()
 
-    opts = instance._meta
-    key = [opts.app_label, opts.module_name, instance.pk, version]
-
-    if label is not None:
-        key.append(label)
+    key = [label, version]
 
     args, kwargs = _prep_pickling(args, kwargs)
 
@@ -74,9 +74,41 @@ def instance_cache_key(instance, label=None, version=None,
     return CACHE_KEY_FUNC(key)
 
 
+def instance_cache_key(instance, label=None, version=None, args=None,
+                       kwargs=None):
+    """Extends the base `cache_key` function to include model instance metadata
+    such as the type and primary key. In addition the `version` can be a
+    property or method name on the instance which will be evaluated.
+    """
+    if not instance or not instance.pk:
+        raise ValueError('model instances must have a primary key')
+
+    # The version may be an attribute on the instance
+    if isinstance(version, basestring) and hasattr(instance, version):
+        version = getattr(instance, version)
+
+        # Bound method
+        if callable(version):
+            version = version()
+
+    # Plain function takes the instance
+    elif callable(version):
+        version = version(instance)
+
+    opts = instance._meta
+    key = [opts.app_label, opts.module_name, instance.pk]
+
+    if label is not None:
+        key.append(label)
+
+    label = CACHE_KEY_FUNC(key)
+
+    return cache_key(label=label, version=version, args=args, kwargs=kwargs)
+
+
 def cached_method(func=None, version=None, timeout=NEVER_EXPIRE,
                   key_func=instance_cache_key):
-    "Wraps a method and caches the output indefinitely."
+    "Wraps a model instance method and caches the output indefinitely."
 
     def decorator(func):
         # Single cache proxy shared across all instances. All methods require
