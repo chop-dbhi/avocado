@@ -1035,7 +1035,7 @@ class DataQuery(AbstractDataQuery, Base):
         try:
             user = User.objects.get(q)
         except User.DoesNotExist:
-            log.warning('Cannot find user with '.format(username_or_email))
+            log.warning('Cannot find user "{0}".'.format(username_or_email))
 
         if not user and create_user:
             try:
