@@ -153,6 +153,9 @@ class AbstractDataQuery(models.Model):
 
     def __init__(self, *args, **kwargs):
         if args and isinstance(args[0], dict):
+            data = args[0]
+            args = args[1:]
+
             if 'context_json' in kwargs:
                 raise TypeError("{0}.__init__() got multiple values for "
                                 "keyword argument 'context_json'"
@@ -163,8 +166,8 @@ class AbstractDataQuery(models.Model):
                                 "keyword argument 'view_json'"
                                 .format(self.__class__.__name__))
 
-            kwargs['context_json'] = args[0].get('context', None)
-            kwargs['view_json'] = args[0].get('view', None)
+            kwargs['context_json'] = data.get('context')
+            kwargs['view_json'] = data.get('view')
 
         super(AbstractDataQuery, self).__init__(*args, **kwargs)
 
