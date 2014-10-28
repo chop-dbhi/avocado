@@ -141,6 +141,9 @@ class AbstractDataQuery(models.Model):
     corresponds to all the statements of the SQL query to dictate what info
     to retrieve, how to filter it, and the order to display it in.
     """
+    context_model = None
+    view_model = None
+
     context_json = jsonfield.JSONField(
         null=True, blank=True, default=dict,
         validators=[parsers.datacontext.validate])
@@ -171,11 +174,17 @@ class AbstractDataQuery(models.Model):
 
     @property
     def context(self):
-        return AbstractDataContext(json=self.context_json)
+        # An inverse pk is used to prevent colliding with saved instances.
+        # A pk is necessary for proper cache key formation.
+        pk = -self.pk if self.pk else None
+        return self.context_model(pk=pk, json=self.context_json)
 
     @property
     def view(self):
-        return AbstractDataView(json=self.view_json)
+        # An inverse pk is used to prevent colliding with saved instances.
+        # A pk is necessary for proper cache key formation.
+        pk = -self.pk if self.pk else None
+        return self.view_model(pk=pk, json=self.view_json)
 
     @property
     def json(self):
