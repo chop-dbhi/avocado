@@ -63,7 +63,7 @@ class AbstractDataContext(models.Model):
 
     @cached_method(version='modified')
     def count(self, *args, **kwargs):
-        return self.apply(*args, **kwargs).count()
+        return self.apply(*args, **kwargs).values('pk').count()
 
     def parse(self, tree=None, **context):
         "Returns a parsed node for this context."
