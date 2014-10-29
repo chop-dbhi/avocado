@@ -141,6 +141,9 @@ class AbstractDataQuery(models.Model):
     corresponds to all the statements of the SQL query to dictate what info
     to retrieve, how to filter it, and the order to display it in.
     """
+    context_model = None
+    view_model = None
+
     context_json = jsonfield.JSONField(
         null=True, blank=True, default=dict,
         validators=[parsers.datacontext.validate])
@@ -150,6 +153,9 @@ class AbstractDataQuery(models.Model):
 
     def __init__(self, *args, **kwargs):
         if args and isinstance(args[0], dict):
+            data = args[0]
+            args = args[1:]
+
             if 'context_json' in kwargs:
                 raise TypeError("{0}.__init__() got multiple values for "
                                 "keyword argument 'context_json'"
@@ -160,8 +166,8 @@ class AbstractDataQuery(models.Model):
                                 "keyword argument 'view_json'"
                                 .format(self.__class__.__name__))
 
-            kwargs['context_json'] = args[0].get('context', None)
-            kwargs['view_json'] = args[0].get('view', None)
+            kwargs['context_json'] = data.get('context')
+            kwargs['view_json'] = data.get('view')
 
         super(AbstractDataQuery, self).__init__(*args, **kwargs)
 
@@ -171,11 +177,17 @@ class AbstractDataQuery(models.Model):
 
     @property
     def context(self):
-        return AbstractDataContext(json=self.context_json)
+        # An inverse pk is used to prevent colliding with saved instances.
+        # A pk is necessary for proper cache key formation.
+        pk = -self.pk if self.pk else None
+        return self.context_model(pk=pk, json=self.context_json)
 
     @property
     def view(self):
-        return AbstractDataView(json=self.view_json)
+        # An inverse pk is used to prevent colliding with saved instances.
+        # A pk is necessary for proper cache key formation.
+        pk = -self.pk if self.pk else None
+        return self.view_model(pk=pk, json=self.view_json)
 
     @property
     def json(self):

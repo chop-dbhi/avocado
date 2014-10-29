@@ -924,6 +924,9 @@ class DataQuery(AbstractDataQuery, Base):
     corresponds to all the statements of the SQL query to dictate what info
     to retrieve, how to filter it, and the order to display it in.
     """
+    context_model = DataContext
+    view_model = DataView
+
     session = models.BooleanField(default=False)
     template = models.BooleanField(default=False)
     default = models.BooleanField(default=False)
