@@ -109,7 +109,7 @@ class Node(object):
         model_fields = []
 
         for f in fields:
-            model_fields.append(f.label_field)
+            model_fields.append((f.model, f.label_field))
 
         return model_fields
 
