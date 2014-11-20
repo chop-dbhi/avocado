@@ -2,6 +2,7 @@ from django.test import TestCase
 from django.core import management
 from haystack.query import RelatedSearchQuerySet
 from avocado.models import DataField, DataConcept, DataCategory
+from avocado.conf import OPTIONAL_DEPS
 
 
 class SearchTest(TestCase):
@@ -22,6 +23,56 @@ class SearchTest(TestCase):
 
         management.call_command('rebuild_index', interactive=False,
                                 verbosity=0)
+
+
+class NoHaystackSearchTest(TestCase):
+    fixtures = ['search.json']
+
+    def setUp(self):
+        management.call_command('avocado', 'init', 'search', quiet=True)
+
+        # Create categories for test purposes.
+        category = DataCategory(name='Avocado', published=True)
+        category.save()
+
+        DataField.objects.update(category=category)
+        DataConcept.objects.update(category=category)
+
+        self._haystack = OPTIONAL_DEPS['haystack']
+        OPTIONAL_DEPS['haystack'] = None
+
+    def test_field_search(self):
+        # This basic search doesn't really hit the data itself, just the
+        # metadata for the field so this normally successful search term
+        # should return 0 results.
+        self.assertEqual(len(DataField.objects.search('Erick')), 0)
+
+        # Now search using terms that appear in the metadata and we should
+        # get results back now. This covers both field and field.category
+        # metadata.
+        self.assertEqual(len(DataField.objects.search('avoc')), 12)
+        self.assertEqual(len(DataField.objects.search('employee')), 3)
+
+    def test_concept_search(self):
+        # This basic search doesn't really hit the data itself, just the
+        # metadata for the concept so this normally successful search term
+        # should return 0 results.
+        self.assertEqual(len(DataField.objects.search('Erick')), 0)
+
+        # Now search using terms that appear in the metadata and we should
+        # get results back now. This covers both concept and concept.field
+        # metadata.
+        self.assertEqual(len(DataConcept.objects.search('Boss')), 1)
+        self.assertEqual(len(DataConcept.objects.search('address')), 0)
+
+        # Add a description to the location field to make sure that concept
+        # search hits the field level.
+        location = DataField.objects\
+            .get_by_natural_key('search.office.location')
+        location.description = 'Address'
+
+    def tearDown(self):
+        OPTIONAL_DEPS['haystack'] = self._haystack
 
 
 class ExcludedIndexSearchTest(SearchTest):
