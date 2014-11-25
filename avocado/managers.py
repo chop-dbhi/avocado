@@ -5,7 +5,7 @@ from django.db import transaction
 from django.conf import settings as djsettings
 from django.core.exceptions import ImproperlyConfigured
 from django.db.models.manager import ManagerDescriptor
-from avocado.conf import OPTIONAL_DEPS, requires_dep, settings
+from avocado.conf import OPTIONAL_DEPS, dep_supported, settings
 from avocado.core.managers import PublishedManager, PublishedQuerySet
 
 
@@ -13,9 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class DataSearchMixin(models.Manager):
-    @requires_dep('haystack')
-    def search(self, content, queryset=None, max_results=None, partial=False,
-               using=None):
+    def _haystack_search(self, content, queryset, max_results, partial, using):
         from haystack.query import RelatedSearchQuerySet
         from haystack.inputs import AutoQuery
         # Limit to the model bound to this manager, e.g. DataConcept.
@@ -29,11 +27,11 @@ class DataSearchMixin(models.Manager):
             sqs = sqs.using(using)
 
         if partial:
-            # Autocomplete only works with N-gram fields
+            # Autocomplete only works with N-gram fields.
             sqs = sqs.autocomplete(text_auto=content)
         else:
-            # Automatically handles advanced search syntax for negations and
-            # quoted strings
+            # Automatically handles advanced search syntax for negations
+            # and quoted strings.
             sqs = sqs.filter(text=AutoQuery(content))
 
         if queryset is not None:
@@ -43,6 +41,57 @@ class DataSearchMixin(models.Manager):
             return sqs[:max_results]
 
         return sqs
+
+    def _basic_search(self, content, queryset):
+        """Provides the most basic search possible for the Data* models.
+
+        Individual managers must override this method to actually implement
+        the basic search across the pertinent fields for the specific Data*
+        model.
+        """
+        raise NotImplemented('Subclasses must define this method.')
+
+    def search(self, content, queryset=None, max_results=None, partial=False,
+               using=None):
+        if dep_supported('haystack'):
+            return self._haystack_search(
+                content, queryset, max_results, partial, using)
+
+        return self._basic_search(content, queryset)
+
+
+class DataFieldSearchMixin(DataSearchMixin):
+    def _basic_search(self, content, queryset):
+        if queryset is None:
+            queryset = self.model.objects.all()
+
+        q = Q(name__icontains=content) | \
+            Q(description__icontains=content) | \
+            Q(keywords__icontains=content) | \
+            Q(model_name__icontains=content) | \
+            Q(category__name__icontains=content) | \
+            Q(category__description__icontains=content) | \
+            Q(category__keywords__icontains=content)
+
+        return queryset.filter(q)
+
+
+class DataConceptSearchMixin(DataSearchMixin):
+    def _basic_search(self, content, queryset):
+        if queryset is None:
+            queryset = self.model.objects.all()
+
+        q = Q(name__icontains=content) | \
+            Q(description__icontains=content) | \
+            Q(keywords__icontains=content) | \
+            Q(fields__name__icontains=content) | \
+            Q(fields__description__icontains=content) | \
+            Q(fields__keywords__icontains=content) | \
+            Q(category__name__icontains=content) | \
+            Q(category__description__icontains=content) | \
+            Q(category__keywords__icontains=content)
+
+        return queryset.filter(q)
 
 
 class DataFieldQuerySet(PublishedQuerySet):
@@ -130,7 +179,7 @@ class DataFieldManagerDescriptor(ManagerDescriptor):
         return super(DataFieldManagerDescriptor, self).__get__(instance, type)
 
 
-class DataFieldManager(PublishedManager, DataSearchMixin):
+class DataFieldManager(PublishedManager, DataFieldSearchMixin):
     "Manager for the `DataField` model."
 
     def contribute_to_class(self, model, name):
@@ -165,7 +214,7 @@ class DataFieldManager(PublishedManager, DataSearchMixin):
         return queryset.get(**dict(zip(keys, values)))
 
 
-class DataConceptManager(PublishedManager, DataSearchMixin):
+class DataConceptManager(PublishedManager, DataConceptSearchMixin):
     "Manager for the `DataConcept` model."
     def get_query_set(self):
         return DataConceptQuerySet(self.model, using=self._db)
