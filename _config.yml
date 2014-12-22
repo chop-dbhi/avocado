@@ -9,7 +9,7 @@ subtitle: 'Metadata APIs for Django'
 navigation: 2
 
 # URL to source code, used in _includes/footer.html
-codeurl: 'https://github.com/cbmi/avocado'
+codeurl: 'https://github.com/chop-dbhi/avocado'
 
 # Default categories (in order) to appear in the navigation
 sections: [
@@ -30,7 +30,7 @@ baseurl: ''
 permalink: none
 
 # Syntax highlighting
-pygments: true
+highlighter: 'pygments'
 
 # Since these are pages, it doesn't really matter
 future: true
