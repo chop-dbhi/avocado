@@ -43,9 +43,11 @@ Install by doing `pip install django-guardian` and adding `guardian` to `INSTALL
 
 #### [django-haystack](http://haystacksearch.org)
 
+_Changed in Avocado 2.3_
+
 What's having all this great descriptive data if no one can find it? Haystack provides search engine facilities for the metadata.
 
-Install by doing `pip install django-haystack` and installing one of the supported search engine backends. The easiest to setup is [Whoosh](http://pypi.python.org/pypi/Whoosh) which is implemented in pure Python. Install it by doing `pip install whoosh`, then update your settings file with the following:
+Install by doing `pip install django-haystack==2.0.0` and installing one of the supported search engine backends. The easiest to setup is [Whoosh](http://pypi.python.org/pypi/Whoosh) which is implemented in pure Python. Install it by doing `pip install whoosh==2.4.1`, then update your settings file with the following:
 
 ```python
 # Add haystack
@@ -54,18 +56,20 @@ INSTALLED_APPS = (
     'haystack',
 )
 
-# Specify Haystack's siteconf module. This is generally project-specific,
-# but Avocado provides one to get started.
-HAYSTACK_SITECONF = 'avocado.search_sites'
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
+        'PATH': '/path/to/whoosh.index',
+    }
+}
 
-# Specify the engine
-HAYSTACK_SEARCH_ENGINE = 'whoosh'
-
-# Add engine-specific config. Whoosh uses a binary file to store it's data.
-# Specify the path where the whoosh index should live. This should generally
-# be ignored by version control
-HAYSTACK_WHOOSH_PATH = '/path/to/whoosh.index'
+# For real-time updates of the search indexes. If real-time is too process
+# heavy, check out a queue-based version:
+# http://django-haystack.readthedocs.org/en/latest/best_practices.html#use-of-a-queue-for-a-better-user-experience
+HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
 ```
+
+For migrations from 1.x to 2.x, view the [Haystack migration guide](http://django-haystack.readthedocs.org/en/latest/migration_from_1_to_2.html).
 
 #### [openpyxl](http://packages.python.org/openpyxl/)
 
