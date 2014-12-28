@@ -7,11 +7,11 @@ python:
 sudo: false
 
 env:
-    - DJANGO=1.4.10
-    - DJANGO=1.5.5
+    - DJANGO=1.4.16
+    - DJANGO=1.5.11
 
 services:
-    - memcache
+    - memcached
 
 before_install:
     - bash bin/check_signoff.sh
