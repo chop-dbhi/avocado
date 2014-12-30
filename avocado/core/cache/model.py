@@ -8,7 +8,7 @@ from avocado.conf import settings
 from .proxy import CacheProxy
 
 NEVER_EXPIRE = 60 * 60 * 24 * 30  # 30 days
-CACHE_KEY_FUNC = lambda l: ':'.join([str(x) for x in l])
+CACHE_KEY_FUNC = lambda l: hashlib.sha256(':'.join([str(x) for x in l])).hexdigest()
 
 
 logger = logging.getLogger(__name__)
@@ -68,8 +68,7 @@ def cache_key(label, version=None, args=None, kwargs=None):
     args, kwargs = _prep_pickling(args, kwargs)
 
     if args or kwargs:
-        sha1 = hashlib.sha1(pickle.dumps((args, kwargs))).hexdigest()
-        key.append(sha1)
+        key.append(pickle.dumps((args, kwargs)))
 
     return CACHE_KEY_FUNC(key)
 
