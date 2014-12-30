@@ -1,6 +1,6 @@
 from django.core.cache import cache
 from django.db.models.query import QuerySet
-from .model import CACHE_KEY_FUNC
+from .model import cache_key_func
 
 PK_LOOKUPS = ('pk', 'pk__exact')
 
@@ -24,8 +24,9 @@ class CacheQuerySet(QuerySet):
                 break
 
         if pk is not None:
-            key = CACHE_KEY_FUNC([opts.app_label, opts.module_name, pk])
+            key = cache_key_func([opts.app_label, opts.module_name, pk])
             obj = cache.get(key)
+
             if obj is not None:
                 clone._result_cache = [obj]
 
