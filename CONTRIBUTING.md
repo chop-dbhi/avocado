@@ -33,9 +33,14 @@ This DCO simply certifies that the code you are submitting abides by the clauses
 
 ## Logistics
 
-- If you do not have write access to the repo (i.e. not a core contributor), create a fork of Avocado
-- Branches are used to isolate development and ensure clear and concise intent of the code. Always do your work in a branch off the `master` branch. This will be a mirror of the work-in-progres (WIP) branch for the current major version, e.g. `2.x`. Name the branch after the issue and number, e.g. `issue-123`. If there is no issue number, [please create one first](https://github.com/cbmi/avocado/issues/) before starting your work.
-- If working on existing files, ensure the coding style is kept consistent with the code around it. If creating new files or you are unsure of a pattern or preference please consult the [style guides](https://github.com/cbmi/style-guides/) for the applicable language.
+- If you do not have write access to the repo (i.e. not a core contributor), create a fork
+- Branches are used to isolate development and ensure clear and concise intent of the code.
+- Always do your work in a branch off the `master` branch.
+- Leave a comment on the issue you want to work on to get a conversation started.
+- Issues marked with [status:help-wanted](https://github.com/chop-dbhi/avocado/labels/status%3Ahelp-wanted) are isolated issues that are good for new contributors.
+- Or, [create a new issue](https://github.com/chop-dbhi/avocado/issues/) if you have a question or idea.
+- Name the branch after the issue number you are working on, e.g. `issue-123`.
+- Ensure the coding style matches the code in the repository. Consult our [style guides](https://github.com/chop-dbhi/style-guides/) if you are unsure.
 
 ## Testing
 
