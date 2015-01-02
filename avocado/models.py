@@ -91,6 +91,11 @@ class DataField(BasePlural, PublishArchiveMixin):
     model_name = models.CharField(max_length=200)
     field_name = models.CharField(max_length=200)
 
+    engine = models.CharField(max_length=200,
+                              default='avocado.engines._django',
+                              help_text='The engine this field is supported '
+                                        'by.')
+
     # Supplementary fields that respresent alternate representations
     # of the base field
     label_field_name = models.CharField(max_length=200, null=True, blank=True,

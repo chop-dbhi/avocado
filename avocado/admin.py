@@ -123,7 +123,7 @@ class DataFieldAdmin(PublishedAdmin):
         }),
 
         ('Reference Field', {
-            'fields': ('app_name', 'model_name', 'field_name'),
+            'fields': ('engine', 'app_name', 'model_name', 'field_name'),
             'description': 'The reference field of this DataField. See the '
                            'available supplementary to alter the behavior in '
                            'API.',
