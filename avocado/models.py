@@ -721,8 +721,7 @@ class DataContext(Base):
 
     This corresponds to the `WHERE` statements in a SQL query.
     """
-    json = jsonfield.JSONField(null=True, blank=True, default=dict,
-                               validators=[parsers.datacontext.validate])
+    json = jsonfield.JSONField(null=True, blank=True, default=dict)
 
     session = models.BooleanField(default=False)
     template = models.BooleanField(default=False)
@@ -851,8 +850,7 @@ class DataView(Base):
 
     This corresponds to the `SELECT` and `ORDER BY` statements in a SQL query.
     """
-    json = jsonfield.JSONField(null=True, blank=True, default=dict,
-                               validators=[parsers.dataview.validate])
+    json = jsonfield.JSONField(null=True, blank=True, default=dict)
 
     session = models.BooleanField(default=False)
     template = models.BooleanField(default=False)
@@ -927,7 +925,6 @@ class DataView(Base):
             .apply(queryset=queryset, include_pk=include_pk)
 
     def clean(self):
-        from django.core.exceptions import ValidationError
         if self.template and self.default:
             queryset = self.__class__.objects.filter(template=True,
                                                      default=True)
@@ -976,12 +973,10 @@ class DataQuery(Base):
     public = models.BooleanField(default=False)
 
     context_json = jsonfield.JSONField(
-        null=True, blank=True, default=dict,
-        validators=[parsers.datacontext.validate])
+        null=True, blank=True, default=dict)
 
     view_json = jsonfield.JSONField(
-        null=True, blank=True, default=dict,
-        validators=[parsers.dataview.validate])
+        null=True, blank=True, default=dict)
 
     class Meta(object):
         verbose_name_plural = 'data queries'
@@ -1081,7 +1076,6 @@ class DataQuery(Base):
             .apply(queryset=queryset, distinct=distinct, include_pk=include_pk)
 
     def clean(self):
-        from django.core.exceptions import ValidationError
         if self.template and self.default:
             queryset = self.__class__.objects.filter(template=True,
                                                      default=True)
