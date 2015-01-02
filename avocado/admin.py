@@ -293,14 +293,20 @@ class DataViewAdmin(admin.ModelAdmin):
         }),
     )
 
+    # XXX: pending removal..
     def sql(self, obj):
-        sql = obj.sql()
+        from avocado.engines._django.utils import sql_string
+
+        sql = sql_string(obj.apply())
+
         try:
             import sqlparse
             sql = sqlparse.format(sql, reindent=True, keyword_case='upper')
         except ImportError:
             pass
+
         return u'<pre>{0}</pre>'.format(sql)
+
     sql.short_description = 'SQL'
     sql.allow_tags = True
 
@@ -336,14 +342,20 @@ class DataContextAdmin(admin.ModelAdmin):
         }),
     )
 
+    # XXX: pending removal..
     def sql(self, obj):
-        sql = obj.sql()
+        from avocado.engines._django.utils import sql_string
+
+        sql = sql_string(obj.apply())
+
         try:
             import sqlparse
             sql = sqlparse.format(sql, reindent=True, keyword_case='upper')
         except ImportError:
             pass
+
         return u'<pre>{0}</pre>'.format(sql)
+
     sql.short_description = 'SQL'
     sql.allow_tags = True
 
@@ -380,14 +392,20 @@ class DataQueryAdmin(admin.ModelAdmin):
         }),
     )
 
+    # XXX: pending removal..
     def sql(self, obj):
-        sql = obj.sql()
+        from avocado.engines._django.utils import sql_string
+
+        sql = sql_string(obj.apply())
+
         try:
             import sqlparse
             sql = sqlparse.format(sql, reindent=True, keyword_case='upper')
         except ImportError:
             pass
+
         return u'<pre>{0}</pre>'.format(sql)
+
     sql.short_description = 'SQL'
     sql.allow_tags = True
 
