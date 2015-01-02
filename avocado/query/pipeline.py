@@ -19,10 +19,9 @@ class QueryProcessor(object):
         self.include_pk = include_pk
 
     def get_queryset(self, queryset=None, **kwargs):
-        "Returns a queryset based on the context and view."
+        "Returns a queryset with the context and view and view applied."
         if self.context:
-            queryset = \
-                self.context.apply(queryset=queryset, tree=self.tree)
+            queryset = self.context.apply(queryset=queryset, tree=self.tree)
 
         if self.view:
             queryset = self.view.apply(queryset=queryset, tree=self.tree,
@@ -34,12 +33,17 @@ class QueryProcessor(object):
         return queryset
 
     def get_exporter(self, klass, **kwargs):
-        "Returns an exporter prepared for the queryset."
+        """Prepares and returns an exporter for the bound view.
+
+        If include_pk is true, a raw formatter is prepended to handle the
+        primary key value.
+        """
         exporter = klass(self.view)
 
         if self.include_pk:
             pk_name = trees[self.tree].root_model._meta.pk.name
-            exporter.add_formatter(RawFormatter(keys=[pk_name]), index=0)
+            formatter = RawFormatter(keys=[pk_name])
+            exporter.add_formatter(formatter, index=0)
 
         return exporter
 
@@ -47,22 +51,17 @@ class QueryProcessor(object):
         "Returns an iterable that can be used by an exporter."
         queryset = self.get_queryset(**kwargs)
 
-        if offset is not None and limit is not None:
+        if offset and limit:
             queryset = queryset[offset:offset + limit]
-        elif offset is not None:
+        elif offset:
             queryset = queryset[offset:]
-        elif limit is not None:
+        elif limit:
             queryset = queryset[:limit]
 
-        # ModelTreeQuerySet has a raw method defined, but fallback
-        # to the creating a results iter if not present.
-        if hasattr(queryset, 'raw'):
-            iterable = queryset.raw()
-        else:
-            compiler = queryset.query.get_compiler(queryset.db)
-            iterable = compiler.results_iter()
+        # Get the query compiler and return the raw results iterator.
+        compiler = queryset.query.get_compiler(queryset.db)
 
-        return iterable
+        return compiler.results_iter()
 
 
 class QueryProcessors(object):
