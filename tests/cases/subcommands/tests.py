@@ -11,7 +11,7 @@ __all__ = ('CommandsTestCase',)
 
 
 class CommandsTestCase(TestCase):
-    fixtures = ['employee_data.json', 'legacy.json']
+    fixtures = ['employee_data.json']
 
     def setUp(self):
         self.stdout = sys.stdout
@@ -84,21 +84,3 @@ class CommandsTestCase(TestCase):
         fields = DataField.objects.filter(published=False)
         self.assertEqual(fields.count(), 18)
         self.assertEqual(DataConcept.objects.count(), 0)
-
-    def test_legacy(self):
-        from avocado.models import DataField
-        management.call_command('avocado', 'legacy', no_input=True)
-        fields = DataField.objects.all()
-
-        # 2/3 have been migrated
-        self.assertEqual(len(fields), 2)
-
-        f1 = DataField.objects.get_by_natural_key('tests', 'title', 'name')
-        # Turned on the enumerable flag
-        self.assertTrue(f1.enumerable)
-        self.assertFalse(f1.published)
-
-        f1 = DataField.objects.get_by_natural_key('tests', 'title', 'salary')
-        # Turned off the enumerable flag
-        self.assertFalse(f1.enumerable)
-        self.assertFalse(f1.enumerable)
