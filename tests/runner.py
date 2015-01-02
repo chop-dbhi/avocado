@@ -1,5 +1,4 @@
 import sys
-import pstats
 import cProfile
 import unittest
 from django.test.simple import DjangoTestSuiteRunner
@@ -22,9 +21,7 @@ class ProfilingTestRunner(DjangoTestSuiteRunner):
             'run_tests': runner,
             'suite': suite,
         }, locals())
-        profile.create_stats()
-        stats = pstats.Stats(profile, stream=stream)
 
-        stats.sort_stats('time')
-        stats.print_stats()
+        profile.dump_stats('profiled_tests.txt')
+
         return locals()['result']
