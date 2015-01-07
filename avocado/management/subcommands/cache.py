@@ -2,6 +2,7 @@ import sys
 import time
 import logging
 from optparse import make_option
+from django.db import DatabaseError
 from django.core.management.base import BaseCommand, CommandError
 from avocado.models import DataField
 from avocado.management.base import DataFieldCommand
@@ -61,11 +62,22 @@ class Command(DataFieldCommand):
         for f in fields:
             for method in methods:
                 func = getattr(f, method)
+
                 if flush:
                     func.flush(f)
-                func()
+
+                # By default, the settings run on sqlite3 DB so a
+                # DatabaseError will be triggered when the standard deviation
+                # or variance functions are used.
+                try:
+                    func()
+                except DatabaseError:
+                    pass
+
             count += 1
+
             self._progress()
+
             log.debug('{0} cache set took {1} seconds'.format(
                 f, time.time() - t0))
 

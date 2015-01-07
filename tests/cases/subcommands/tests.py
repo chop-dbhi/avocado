@@ -1,10 +1,10 @@
-import django
 import os
 import sys
+import django
 from django.test import TestCase
 from django.core import management
 from django.core.management.base import CommandError
-from django.db import DatabaseError
+from django.test.utils import override_settings
 from avocado.models import DataField, DataConcept, DataCategory
 
 __all__ = ('CommandsTestCase',)
@@ -22,25 +22,6 @@ class CommandsTestCase(TestCase):
 
     def test_subcommands(self):
         management.call_command('avocado', 'init', 'tests')
-
-        # By default, the settings run on sqlite3 DB so a DatabaseError will
-        # be triggered when the standard deviation or variance functions
-        # are used.
-        try:
-            management.call_command('avocado', 'cache', 'tests')
-            management.call_command('avocado', 'cache', 'tests', flush=True)
-        except DatabaseError:
-            pass
-
-        # Old versions of Django trap the CommandError and call sys.exit(1)
-        # instead of re-raising the CommandError for it to be handled at a
-        # higher level.
-        if django.VERSION < (1, 5):
-            self.assertRaises(SystemExit, management.call_command, 'avocado',
-                              'cache', 'tests', methods=['invalid_function'])
-        else:
-            self.assertRaises(CommandError, management.call_command, 'avocado',
-                              'cache', 'tests', methods=['invalid_function'])
 
         management.call_command('avocado', 'check', output='none')
         management.call_command('avocado', 'history', cull=True)
@@ -60,6 +41,23 @@ class CommandsTestCase(TestCase):
         # incr_version argument does not cause the data_version field
         # to get incremented.
         self.assertEqual(DataField.objects.filter()[:1].get().data_version, 2)
+
+    @override_settings(AVOCADO_DATA_CACHE_ENABLED=True)
+    def test_cache(self):
+        management.call_command('avocado', 'init', 'tests')
+
+        management.call_command('avocado', 'cache', 'tests')
+        management.call_command('avocado', 'cache', 'tests', flush=True)
+
+        # Old versions of Django trap the CommandError and call sys.exit(1)
+        # instead of re-raising the CommandError for it to be handled at a
+        # higher level.
+        if django.VERSION < (1, 5):
+            self.assertRaises(SystemExit, management.call_command, 'avocado',
+                              'cache', 'tests', methods=['invalid_function'])
+        else:
+            self.assertRaises(CommandError, management.call_command, 'avocado',
+                              'cache', 'tests', methods=['invalid_function'])
 
     def test_init(self):
         management.call_command('avocado', 'init', 'tests')
