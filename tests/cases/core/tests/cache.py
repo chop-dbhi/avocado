@@ -1,9 +1,11 @@
 import time
 from django.db import models
 from django.test import TestCase
+from django.core import management
 from django.test.utils import override_settings
 from avocado.core.cache import CacheProxy, instance_cache_key
-from ..models import Foo
+from avocado.models import DataField
+from ..models import Foo, Recurse
 
 
 class ComplexNumber(models.Model):
@@ -165,3 +167,26 @@ class TestIssue136(TestCase):
 
         self.assertTrue(self.f1.default_versioned.cached(self.f1))
         self.assertTrue(self.f2.default_versioned.cached(self.f2))
+
+
+class TestIssue278(TestCase):
+    @override_settings(AVOCADO_DATA_CACHE_ENABLED=True)
+    def test(self):
+        f = DataField(app_name='core',
+                      model_name='recurse',
+                      field_name='parent')
+
+        f.save()
+
+        r = Recurse()
+        r.save()
+
+        c = Recurse(parent=r)
+        c.save()
+
+        f.values.flush(f)
+
+        management.call_command('avocado', 'cache', 'core.recurse.parent')
+
+        self.assertTrue(f.values.cached(f))
+        self.assertEqual(f.values(), (None, r.pk))

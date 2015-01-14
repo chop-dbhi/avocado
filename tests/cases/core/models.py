@@ -25,3 +25,7 @@ class Foo(models.Model):
     @cached_method
     def default_versioned(self):
         return [self.value]
+
+
+class Recurse(models.Model):
+    parent = models.ForeignKey('self', null=True, related_name='children')
