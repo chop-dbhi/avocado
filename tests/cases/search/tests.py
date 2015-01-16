@@ -77,9 +77,9 @@ class NoHaystackSearchTest(TestCase):
 
 class ExcludedIndexSearchTest(SearchTest):
     def test_field_search(self):
-        search = DataField.objects.search
+        results = list(DataField.objects.search('Erick'))
 
-        self.assertEqual(len(search('Erick')), 1)
+        self.assertEqual(len(results), 1)
 
         employee = DataField.objects.get_by_natural_key(
             'search.employee.first_name')
@@ -89,12 +89,13 @@ class ExcludedIndexSearchTest(SearchTest):
         management.call_command('rebuild_index', interactive=False,
                                 verbosity=0)
 
-        self.assertEqual(len(search('Erick')), 0)
+        results = list(DataField.objects.search('Erick'))
+        self.assertEqual(len(results), 0)
 
     def test_concept_search(self):
-        search = DataConcept.objects.search
+        results = list(DataConcept.objects.search('Erick'))
 
-        self.assertEqual(len(search('Erick')), 1)
+        self.assertEqual(len(results), 1)
 
         employee = DataConcept.objects.get(name='First Name')
         employee.indexable = False
@@ -102,8 +103,9 @@ class ExcludedIndexSearchTest(SearchTest):
 
         management.call_command('rebuild_index', interactive=False,
                                 verbosity=0)
+        results = list(DataConcept.objects.search('Erick'))
 
-        self.assertEqual(len(search('Erick')), 0)
+        self.assertEqual(len(results), 0)
 
 
 class FieldSearchTest(SearchTest):
@@ -150,10 +152,10 @@ class FieldSearchTest(SearchTest):
     def test_category(self):
         count = DataField.objects.count()
 
-        search = DataField.objects.search('avocado')
+        search = list(DataField.objects.search('avocado'))
         self.assertEqual(len(search), count)
 
-        search = DataField.objects.search('harvest')
+        search = list(DataField.objects.search('harvest'))
         self.assertEqual(len(search), count)
 
     def test_data(self):
@@ -170,7 +172,8 @@ class FieldSearchTest(SearchTest):
             self.assertEqual(ids, sorted([r.object.pk for r in results]))
 
     def test_partial(self):
-        self.assertEqual(len(DataField.objects.search('Eri', partial=True)), 1)
+        results = list(DataField.objects.search('Eri', partial=True))
+        self.assertEqual(len(results), 1)
 
 
 class ConceptSearchTest(SearchTest):
@@ -218,10 +221,10 @@ class ConceptSearchTest(SearchTest):
     def test_category(self):
         count = DataConcept.objects.count()
 
-        search = DataConcept.objects.search('avocado')
+        search = list(DataConcept.objects.search('avocado'))
         self.assertEqual(len(search), count)
 
-        search = DataConcept.objects.search('harvest')
+        search = list(DataConcept.objects.search('harvest'))
         self.assertEqual(len(search), count)
 
     def test_data(self):
@@ -239,5 +242,5 @@ class ConceptSearchTest(SearchTest):
             self.assertEqual(ids, sorted([r.object.pk for r in results]))
 
     def test_partial(self):
-        results = DataConcept.objects.search('Eri', partial=True)
+        results = list(DataConcept.objects.search('Eri', partial=True))
         self.assertEqual(len(results), 1)
