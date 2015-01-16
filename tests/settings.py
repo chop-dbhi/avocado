@@ -16,7 +16,6 @@ INSTALLED_APPS = (
     'south',
 
     'avocado',
-    'avocado.legacy',
 
     'tests',
     'tests.cases.core',

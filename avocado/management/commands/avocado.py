@@ -13,7 +13,6 @@ class Command(BaseCommand):
         'check': 'check',
         'data': 'data',
         'cache': 'cache',
-        'legacy': 'legacy',
         'history': 'history',
         'migration': 'migration',
     }
