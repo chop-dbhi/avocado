@@ -174,7 +174,7 @@ class DataFieldQuerysetTestCase(TestCase):
     fixtures = ['employee_data.json']
 
     def setUp(self):
-        management.call_command('avocado', 'init', 'tests')
+        management.call_command('avocado', 'init', 'tests', quiet=True)
 
         self.budget = DataField.objects.get_by_natural_key(
             'tests', 'project', 'budget')
@@ -467,7 +467,7 @@ class DataContextTestCase(TestCase):
     fixtures = ['employee_data.json']
 
     def setUp(self):
-        management.call_command('avocado', 'init', 'tests')
+        management.call_command('avocado', 'init', 'tests', quiet=True)
 
     def test_init(self):
         json = {
@@ -537,7 +537,7 @@ class DataQueryTestCase(TestCase):
     usernames = [existing_username, 'user3', 'user4', 'user5', 'user6']
 
     def setUp(self):
-        management.call_command('avocado', 'init', 'tests')
+        management.call_command('avocado', 'init', 'tests', quiet=True)
 
     def test_init(self):
         json = {

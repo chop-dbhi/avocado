@@ -1,5 +1,4 @@
 from django.db import models
-from avocado.lexicon.models import Lexicon
 from objectset.models import ObjectSet, SetObject
 
 
@@ -34,17 +33,6 @@ class Project(models.Model):
     manager = models.ForeignKey(Employee, related_name='managed_projects')
     due_date = models.DateField(null=True)
     budget = models.DecimalField(max_digits=7, decimal_places=2, null=True)
-
-
-class Month(Lexicon):
-    label = models.CharField(max_length=20)
-    value = models.CharField(max_length=20)
-
-
-class Date(models.Model):
-    day = models.SmallIntegerField()
-    month = models.ForeignKey(Month)
-    year = models.SmallIntegerField()
 
 
 class Record(models.Model):

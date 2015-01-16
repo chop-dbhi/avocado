@@ -99,8 +99,8 @@ class Haystack(Dependency):
     # and returns the error for downstream use.
     def _test(self):
         try:
-            import haystack     # noqa
-        except (ImportError, ImproperlyConfigured), e:
+            import haystack  # noqa
+        except (ImportError, ImproperlyConfigured) as e:
             return e
 
     def test_install(self):

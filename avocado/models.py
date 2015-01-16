@@ -22,7 +22,6 @@ from avocado.query.models import AbstractDataView, AbstractDataContext, \
     AbstractDataQuery
 from avocado.query.translators import registry as translators
 from avocado.query.operators import registry as operators
-from avocado.lexicon.models import Lexicon
 from avocado.stats.agg import Aggregator
 from avocado import formatters
 
@@ -31,18 +30,6 @@ __all__ = ('DataCategory', 'DataConcept', 'DataField',
            'DataContext', 'DataView', 'DataQuery')
 
 log = logging.getLogger(__name__)
-
-
-def is_lexicon(f):
-    """Returns true if the model is a subclass of Lexicon and this
-    is the pk field. All other fields on the class are treated as
-    normal datafields.
-    """
-    warn('Lexicon detection in the DataField API is deprecated and '
-         'will be removed in 2.4. Set the alternate fields explicitly '
-         'on the field instance', DeprecationWarning)
-    return f.model and issubclass(f.model, Lexicon) \
-        and f.field == f.model._meta.pk
 
 
 def is_objectset(f):
@@ -257,11 +244,6 @@ class DataField(BasePlural, PublishArchiveMixin):
     @property
     def model(self):
         "Returns the model class this datafield represents."
-        real_field = self.real_field
-        # Handle foreign key fields to a Lexicon model
-        if real_field and isinstance(real_field, models.ForeignKey) \
-                and issubclass(real_field.rel.to, Lexicon):
-            return real_field.rel.to
         return self.real_model
 
     @property
@@ -270,9 +252,6 @@ class DataField(BasePlural, PublishArchiveMixin):
         model = self.model
 
         if model:
-            if issubclass(model, Lexicon):
-                return model._meta.pk
-
             if dep_supported('objectset'):
                 from objectset.models import ObjectSet
 
@@ -280,10 +259,6 @@ class DataField(BasePlural, PublishArchiveMixin):
                     return model._meta.pk
 
         return self.real_field
-
-    @property
-    def lexicon(self):
-        return is_lexicon(self)
 
     @property
     def objectset(self):
@@ -309,8 +284,6 @@ class DataField(BasePlural, PublishArchiveMixin):
 
             if self.label_field_name:
                 field_name = self.label_field_name
-            elif is_lexicon(self):
-                field_name = 'label'
             elif is_objectset(self):
                 if hasattr(self.model, 'label_field'):
                     field_name = self.model.label_field
@@ -348,8 +321,6 @@ class DataField(BasePlural, PublishArchiveMixin):
 
             if self.order_field_name:
                 field_name = self.order_field_name
-            elif is_lexicon(self):
-                field_name = 'order'
 
             if field_name:
                 try:
@@ -369,8 +340,6 @@ class DataField(BasePlural, PublishArchiveMixin):
 
             if self.code_field_name:
                 field_name = self.code_field_name
-            elif is_lexicon(self):
-                field_name = 'code'
 
             if field_name:
                 try:

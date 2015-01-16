@@ -21,7 +21,7 @@ class CommandsTestCase(TestCase):
         sys.stdout = self.stdout
 
     def test_subcommands(self):
-        management.call_command('avocado', 'init', 'tests')
+        management.call_command('avocado', 'init', 'tests', quiet=True)
 
         management.call_command('avocado', 'check', output='none')
         management.call_command('avocado', 'history', cull=True)
@@ -44,7 +44,7 @@ class CommandsTestCase(TestCase):
 
     @override_settings(AVOCADO_DATA_CACHE_ENABLED=True)
     def test_cache(self):
-        management.call_command('avocado', 'init', 'tests')
+        management.call_command('avocado', 'init', 'tests', quiet=True)
 
         management.call_command('avocado', 'cache', 'tests')
         management.call_command('avocado', 'cache', 'tests', flush=True)
@@ -60,27 +60,27 @@ class CommandsTestCase(TestCase):
                               'cache', 'tests', methods=['invalid_function'])
 
     def test_init(self):
-        management.call_command('avocado', 'init', 'tests')
+        management.call_command('avocado', 'init', 'tests', quiet=True)
 
         fields = DataField.objects.filter(published=True)
         concepts = DataConcept.objects.filter(published=True)
 
-        self.assertEqual(fields.count(), 18)
-        self.assertEqual(concepts.count(), 18)
+        self.assertEqual(fields.count(), 15)
+        self.assertEqual(concepts.count(), 15)
 
     def test_init_categories(self):
         management.call_command('avocado', 'init', 'tests.employee',
-                                categories=True)
+                                categories=True, quiet=True)
 
         self.assertTrue(DataCategory.objects.filter(name='Employee',
                                                     published=True).exists())
 
     def test_init_previous(self):
         management.call_command('avocado', 'init', 'tests', publish=False,
-                                concepts=False)
+                                concepts=False, quiet=True)
 
         fields = DataField.objects.filter(published=False)
-        self.assertEqual(fields.count(), 18)
+        self.assertEqual(fields.count(), 15)
         self.assertEqual(DataConcept.objects.count(), 0)
 
     def test_legacy(self):

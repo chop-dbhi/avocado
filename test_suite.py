@@ -12,7 +12,6 @@ if not apps:
         'core',
         'exporting',
         'formatters',
-        'lexicon',
         'events',
         'history',
         'models',
