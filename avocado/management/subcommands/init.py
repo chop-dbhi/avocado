@@ -6,7 +6,6 @@ from django.db.models import get_model, get_models, get_app, AutoField, \
 from django.core.management.base import BaseCommand
 from avocado.conf import dep_supported
 from avocado.models import DataField, DataConcept, DataCategory
-from avocado.lexicon.models import Lexicon
 from avocado.core import utils
 
 
@@ -61,8 +60,6 @@ class Command(BaseCommand):
         ForeignKey,
         OneToOneField,
     )
-
-    ignored_lexicon_fields = ('value', 'order', 'label', 'code')
 
     def handle(self, *args, **options):
         "Handles app_label or app_label.model_label formats."
@@ -132,17 +129,15 @@ class Command(BaseCommand):
                 pending_models.extend(get_models(app))
 
             for model in pending_models:
-                lexicon = issubclass(model, Lexicon)
-
                 if dep_supported('objectset'):
                     from objectset.models import ObjectSet
-                    objectset = issubclass(model, ObjectSet)
+                    is_objectset = issubclass(model, ObjectSet)
                 else:
-                    objectset = False
+                    is_objectset = False
 
                 model_name = model._meta.object_name.lower()
 
-                if lexicon or objectset:
+                if is_objectset:
                     pk = model._meta.pk
                     pk.verbose_name = model._meta.verbose_name
                     pending_fields.append((pk, model_name, app_name))
@@ -188,15 +183,12 @@ class Command(BaseCommand):
 
         if dep_supported('objectset'):
             from objectset.models import ObjectSet
-            objectset = issubclass(field.model, ObjectSet)
+            is_objectset = issubclass(field.model, ObjectSet)
         else:
-            objectset = False
+            is_objectset = False
 
-        lexicon = issubclass(field.model, Lexicon)
-
-        # Lexicons and ObjectSets are represented via their primary key, so
-        # these may pass
-        if not objectset and not lexicon:
+        # ObjectSets are represented by their primary key, so these may pass
+        if not is_objectset:
             # Check for primary key, and foreign key fields
             if isinstance(field, self.key_field_types) and not include_keys:
                 print(u'({0}) {1}.{2} is a primary or foreign key. Skipping...'
@@ -226,13 +218,7 @@ class Command(BaseCommand):
             'field_name': field.name,
         }
 
-        if lexicon:
-            kwargs.update({
-                'label_field_name': 'label',
-                'order_field_name': 'order',
-                'code_field_name': 'code',
-            })
-        elif objectset and hasattr(field.model, 'label_field'):
+        if is_objectset and hasattr(field.model, 'label_field'):
             kwargs.update({
                 'label_field_name': field.model.label_field
             })

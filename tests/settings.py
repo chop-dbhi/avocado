@@ -20,7 +20,6 @@ INSTALLED_APPS = (
 
     'tests',
     'tests.cases.core',
-    'tests.cases.lexicon',
     'tests.cases.exporting',
     'tests.cases.formatters',
     'tests.cases.events',

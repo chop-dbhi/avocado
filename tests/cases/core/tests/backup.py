@@ -26,7 +26,7 @@ class BackupTestCase(TransactionTestCase):
         from avocado.models import DataField
 
         management.call_command('avocado', 'init', 'tests', quiet=True)
-        self.assertEqual(DataField.objects.count(), 18)
+        self.assertEqual(DataField.objects.count(), 15)
 
         backup_path = backup.safe_load('0001_avocado_metadata')
 
@@ -39,7 +39,7 @@ class BackupTestCase(TransactionTestCase):
         from avocado.models import DataField
 
         management.call_command('avocado', 'init', 'tests', quiet=True)
-        self.assertEqual(DataField.objects.count(), 18)
+        self.assertEqual(DataField.objects.count(), 15)
 
         backup_path = backup.safe_load('0001_avocado_metadata',
                                        backup_path='backup.json')
