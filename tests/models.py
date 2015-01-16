@@ -1,5 +1,4 @@
 from django.db import models
-from objectset.models import ObjectSet, SetObject
 
 
 class Office(models.Model):
@@ -33,20 +32,3 @@ class Project(models.Model):
     manager = models.ForeignKey(Employee, related_name='managed_projects')
     due_date = models.DateField(null=True)
     budget = models.DecimalField(max_digits=7, decimal_places=2, null=True)
-
-
-class Record(models.Model):
-    pass
-
-
-class RecordSet(ObjectSet):
-    set_object_rel = 'records'
-    label_field = 'name'
-
-    name = models.CharField(max_length=20)
-    records = models.ManyToManyField(Record, through='RecordSetObject')
-
-
-class RecordSetObject(SetObject):
-    object_set = models.ForeignKey(RecordSet)
-    set_object = models.ForeignKey(Record)

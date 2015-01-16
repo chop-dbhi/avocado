@@ -65,8 +65,8 @@ class CommandsTestCase(TestCase):
         fields = DataField.objects.filter(published=True)
         concepts = DataConcept.objects.filter(published=True)
 
-        self.assertEqual(fields.count(), 15)
-        self.assertEqual(concepts.count(), 15)
+        self.assertEqual(fields.count(), 12)
+        self.assertEqual(concepts.count(), 12)
 
     def test_init_categories(self):
         management.call_command('avocado', 'init', 'tests.employee',
@@ -80,7 +80,7 @@ class CommandsTestCase(TestCase):
                                 concepts=False, quiet=True)
 
         fields = DataField.objects.filter(published=False)
-        self.assertEqual(fields.count(), 15)
+        self.assertEqual(fields.count(), 12)
         self.assertEqual(DataConcept.objects.count(), 0)
 
     def test_legacy(self):
