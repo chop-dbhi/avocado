@@ -16,7 +16,6 @@ if not apps:
         'history',
         'models',
         'query',
-        'sets',
         'stats',
         'search',
         'subcommands',

@@ -26,7 +26,6 @@ INSTALLED_APPS = (
     'tests.cases.history',
     'tests.cases.models',
     'tests.cases.query',
-    'tests.cases.sets',
     'tests.cases.search',
     'tests.cases.stats',
     'tests.cases.subcommands',

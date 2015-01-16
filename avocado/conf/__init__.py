@@ -149,30 +149,12 @@ class Guardian(Dependency):
             return False
 
 
-class Objectset(Dependency):
-    """django-objectset provides a set-like abstract model for Django and
-    makes it trivial to creates sets of objects using common set operations.
-
-    Install by doing `pip install django-objectset`. Define models that
-    subclass `objectset.models.ObjectSet`.
-    """
-
-    name = 'objectset'
-
-    def test_install(self):
-        try:
-            import objectset  # noqa
-        except ImportError:
-            return False
-
-
 # Keep track of the officially supported apps and libraries used for various
 # features.
 OPTIONAL_DEPS = {
     'haystack': Haystack(),
     'openpyxl': Openpyxl(),
     'guardian': Guardian(),
-    'objectset': Objectset(),
 }
 
 

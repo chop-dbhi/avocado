@@ -4,7 +4,6 @@ from optparse import make_option
 from django.db.models import get_model, get_models, get_app, AutoField, \
     ForeignKey, OneToOneField, ManyToManyField, FieldDoesNotExist
 from django.core.management.base import BaseCommand
-from avocado.conf import dep_supported
 from avocado.models import DataField, DataConcept, DataCategory
 from avocado.core import utils
 
@@ -129,21 +128,10 @@ class Command(BaseCommand):
                 pending_models.extend(get_models(app))
 
             for model in pending_models:
-                if dep_supported('objectset'):
-                    from objectset.models import ObjectSet
-                    is_objectset = issubclass(model, ObjectSet)
-                else:
-                    is_objectset = False
-
                 model_name = model._meta.object_name.lower()
 
-                if is_objectset:
-                    pk = model._meta.pk
-                    pk.verbose_name = model._meta.verbose_name
-                    pending_fields.append((pk, model_name, app_name))
-                else:
-                    for field in model._meta.fields:
-                        pending_fields.append((field, model_name, app_name))
+                for field in model._meta.fields:
+                    pending_fields.append((field, model_name, app_name))
 
             added = 0
             updated = 0
@@ -181,26 +169,18 @@ class Command(BaseCommand):
         if isinstance(field, ManyToManyField):
             return
 
-        if dep_supported('objectset'):
-            from objectset.models import ObjectSet
-            is_objectset = issubclass(field.model, ObjectSet)
-        else:
-            is_objectset = False
+        # Check for primary key, and foreign key fields
+        if isinstance(field, self.key_field_types) and not include_keys:
+            print(u'({0}) {1}.{2} is a primary or foreign key. Skipping...'
+                  .format(app_name, model_name, field.name))
+            return
 
-        # ObjectSets are represented by their primary key, so these may pass
-        if not is_objectset:
-            # Check for primary key, and foreign key fields
-            if isinstance(field, self.key_field_types) and not include_keys:
-                print(u'({0}) {1}.{2} is a primary or foreign key. Skipping...'
-                      .format(app_name, model_name, field.name))
-                return
-
-            # Ignore non-editable fields since in most cases they are for
-            # managment purposes
-            if not field.editable and not include_non_editable:
-                print(u'({0}) {1}.{2} is not editable. Skipping...'
-                      .format(app_name, model_name, field.name))
-                return
+        # Ignore non-editable fields since in most cases they are for
+        # managment purposes
+        if not field.editable and not include_non_editable:
+            print(u'({0}) {1}.{2} is not editable. Skipping...'
+                  .format(app_name, model_name, field.name))
+            return
 
         # All but the field name is case-insensitive, do initial lookup
         # to see if it already exists, skip if it does
@@ -217,11 +197,6 @@ class Command(BaseCommand):
             'model_name': model_name.lower(),
             'field_name': field.name,
         }
-
-        if is_objectset and hasattr(field.model, 'label_field'):
-            kwargs.update({
-                'label_field_name': field.model.label_field
-            })
 
         try:
             f = DataField.objects.get(**lookup)

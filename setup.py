@@ -31,7 +31,6 @@ kwargs = {
         'whoosh==2.4.1',
         'openpyxl>=1.6,<1.7',
         'python-memcached>=1.48',
-        'django-objectset>=0.2.2',
     ],
 
     # Optional dependencies

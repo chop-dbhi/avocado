@@ -1,6 +1,5 @@
 import logging
 import random
-from warnings import warn
 from datetime import datetime
 from django.db import models
 from django.db.models import Count
@@ -16,7 +15,7 @@ from avocado.core.structures import ChoicesDict
 from avocado.core.models import Base, BasePlural, PublishArchiveMixin
 from avocado.core.cache import post_save_cache, pre_delete_uncache, \
     cached_method
-from avocado.conf import settings, dep_supported
+from avocado.conf import settings
 from avocado import managers, history
 from avocado.query.models import AbstractDataView, AbstractDataContext, \
     AbstractDataQuery
@@ -30,24 +29,6 @@ __all__ = ('DataCategory', 'DataConcept', 'DataField',
            'DataContext', 'DataView', 'DataQuery')
 
 log = logging.getLogger(__name__)
-
-
-def is_objectset(f):
-    """Returns true if the model is a subclass of ObjectSet and this
-    is the pk field. All other fields on the class are treated as
-    normal datafields.
-    """
-    warn('ObjectSet detection in the DataField API is deprecated and '
-         'will be removed in 2.4. Set the alternate fields explicitly '
-         'on the field instance', DeprecationWarning)
-
-    if dep_supported('objectset'):
-        from objectset.models import ObjectSet
-
-        return f.model and issubclass(f.model, ObjectSet) \
-            and f.field == f.model._meta.pk
-
-    return False
 
 
 class DataCategory(Base, PublishArchiveMixin):
@@ -249,20 +230,7 @@ class DataField(BasePlural, PublishArchiveMixin):
     @property
     def field(self):
         "Returns the field object this datafield represents."
-        model = self.model
-
-        if model:
-            if dep_supported('objectset'):
-                from objectset.models import ObjectSet
-
-                if issubclass(model, ObjectSet):
-                    return model._meta.pk
-
         return self.real_field
-
-    @property
-    def objectset(self):
-        return is_objectset(self)
 
     @property
     def value_field_name(self):
@@ -284,11 +252,6 @@ class DataField(BasePlural, PublishArchiveMixin):
 
             if self.label_field_name:
                 field_name = self.label_field_name
-            elif is_objectset(self):
-                if hasattr(self.model, 'label_field'):
-                    field_name = self.model.label_field
-                else:
-                    field_name = 'pk'
 
             if field_name:
                 try:
