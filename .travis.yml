@@ -7,7 +7,6 @@ python:
 sudo: false
 
 env:
-    - DJANGO=1.4.16
     - DJANGO=1.5.11
 
 services:
