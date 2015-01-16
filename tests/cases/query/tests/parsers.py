@@ -198,21 +198,29 @@ class DataContextParserTestCase(TestCase):
                          "(AND: ('title__name__exact', u'CEO'))")
 
     def test_apply(self):
+        f = DataField.objects.get_by_natural_key('tests',
+                                                 'title',
+                                                 'boss')
+        f1 = DataField.objects.get_by_natural_key('tests',
+                                                  'employee',
+                                                  'first_name')
         node = parsers.datacontext.parse({
             'field': 'tests.title.boss',
             'operator': 'exact',
             'value': True
         }, tree=Employee)
 
-        self.assertEqual(unicode(node.apply().values('id').query),
-                         'SELECT DISTINCT "tests_employee"."id" FROM '
-                         '"tests_employee" INNER JOIN "tests_title" ON '
-                         '("tests_employee"."title_id" = "tests_title"."id") '
-                         'WHERE "tests_title"."boss" = True ')
+        self.assertEqual(
+            unicode(node.apply().values('id').query).replace(' ', ''),
+            'SELECT DISTINCT "tests_employee"."id" FROM "tests_employee" '
+            'INNER JOIN "tests_title" ON ("tests_employee"."title_id" = '
+            '"tests_title"."id") WHERE "tests_title"."boss" = True '
+            .replace(' ', ''))
+
         self.assertEqual(node.language, {
             'operator': 'exact',
             'language': u'Boss is True',
-            'field': 4,
+            'field': f.pk,
             'value': True
         })
 
@@ -230,22 +238,22 @@ class DataContextParserTestCase(TestCase):
             }]
         }, tree=Employee)
 
-        self.assertEqual(unicode(node.apply().values('id').query),
-                         'SELECT DISTINCT "tests_employee"."id" FROM '
-                         '"tests_employee" INNER JOIN "tests_title" ON '
-                         '("tests_employee"."title_id" = "tests_title"."id") '
-                         'WHERE ("tests_employee"."first_name" = John  AND '
-                         '"tests_title"."boss" = True )')
+        self.assertEqual(
+            unicode(node.apply().values('id').query).replace(' ', ''),
+            'SELECT DISTINCT "tests_employee"."id" FROM "tests_employee" '
+            'INNER JOIN "tests_title" ON ("tests_employee"."title_id" = '
+            '"tests_title"."id") WHERE ("tests_employee"."first_name" = John '
+            'AND "tests_title"."boss" = True )'.replace(' ', ''))
 
         self.assertEqual(node.language, {
             'type': 'and',
             'children': [{
-                'field': 4,
+                'field': f.pk,
                 'operator': 'exact',
                 'value': True,
                 'language': 'Boss is True',
             }, {
-                'field': 5,
+                'field': f1.pk,
                 'operator': 'exact',
                 'value': 'John',
                 'language': 'First Name is John',
@@ -254,41 +262,56 @@ class DataContextParserTestCase(TestCase):
 
 
 class DataViewParserTestCase(TestCase):
-    fixtures = ['employee_data.json']
+    fixtures = ['tests/fixtures/employee_data.json']
 
     def setUp(self):
         management.call_command('avocado', 'init', 'tests', publish=False,
                                 concepts=False, quiet=True)
-        f1 = DataField.objects.get(pk=1)
-        f2 = DataField.objects.get(pk=2)
+        f1 = DataField.objects.get_by_natural_key('tests',
+                                                  'employee',
+                                                  'first_name')
+        f2 = DataField.objects.get_by_natural_key('tests',
+                                                  'employee',
+                                                  'last_name')
 
-        c1 = DataConcept()
-        c1.save()
+        self.c = DataConcept()
+        self.c.save()
 
-        DataConceptField(concept=c1, field=f1).save()
-        DataConceptField(concept=c1, field=f2).save()
+        DataConceptField(concept=self.c, field=f1).save()
+        DataConceptField(concept=self.c, field=f2).save()
 
     def test_valid(self):
         # Single by id
-        self.assertEqual(parsers.dataview.validate([
-            {'concept': 1}
-        ], tree=Employee), [{'concept': 1}])
+        self.assertEqual(parsers.dataview.validate([{
+            'concept': self.c.pk
+        }], tree=Employee), [{
+            'concept': self.c.pk,
+        }])
 
-        self.assertEqual(parsers.dataview.validate([
-            {'concept': 1, 'sort': 'desc'}
-        ], tree=Employee), [{'concept': 1, 'sort': 'desc'}])
+        self.assertEqual(parsers.dataview.validate([{
+            'concept': self.c.pk,
+            'sort': 'desc',
+        }], tree=Employee), [{
+            'concept': self.c.pk,
+            'sort': 'desc',
+        }])
 
     def test_valid_legacy(self):
         # Single by id
         self.assertEqual(parsers.dataview.validate({
-            'columns': [1],
-        }, tree=Employee), [{'concept': 1}])
+            'columns': [self.c.pk],
+        }, tree=Employee), [{
+            'concept': self.c.pk,
+            'visible': True,
+            'sort': None,
+            'sort_index': None,
+        }])
 
         self.assertEqual(parsers.dataview.validate({
-            'ordering': [(1, 'desc')],
+            'ordering': [(self.c.pk, 'desc')],
         }, tree=Employee), [{
+            'concept': self.c.pk,
             'visible': False,
-            'concept': 1,
             'sort': 'desc',
             'sort_index': 0,
         }])
@@ -300,62 +323,82 @@ class DataViewParserTestCase(TestCase):
         self.assertTrue(facets[0]['errors'])
 
         # Invalid ordering
-        facets = parsers.dataview.validate({
-            'ordering': [[1, 'foo']],
-        })
+        facets = parsers.dataview.validate([{
+            'concept': self.c.pk,
+            'sort': 'foo',
+        }])
         self.assertTrue(facets[0]['warnings'])
 
     def test_apply(self):
-        node = parsers.dataview.parse({
-            'columns': [1],
-        }, tree=Employee)
-        self.assertEqual(
-            unicode(node.apply().query),
-            'SELECT "tests_employee"."id", "tests_office"."location", '
-            '"tests_title"."name" FROM "tests_employee" INNER JOIN '
-            '"tests_office" ON ("tests_employee"."office_id" = '
-            '"tests_office"."id") LEFT OUTER JOIN "tests_title" ON '
-            '("tests_employee"."title_id" = "tests_title"."id")')
+        node = parsers.dataview.parse([{
+            'concept': self.c.pk,
+        }], tree=Employee)
 
-        node = parsers.dataview.parse({
-            'ordering': [(1, 'desc')],
-        }, tree=Employee)
         self.assertEqual(
-            unicode(node.apply().query),
-            'SELECT "tests_employee"."id" FROM "tests_employee" INNER JOIN '
-            '"tests_office" ON ("tests_employee"."office_id" = '
-            '"tests_office"."id") LEFT OUTER JOIN "tests_title" ON '
-            '("tests_employee"."title_id" = "tests_title"."id") ORDER BY '
-            '"tests_office"."location" DESC, "tests_title"."name" DESC')
+            unicode(node.apply().query).replace(' ', ''),
+            'SELECT "tests_employee"."id", "tests_employee"."first_name", '
+            '"tests_employee"."last_name" FROM "tests_employee"'
+            .replace(' ', ''))
+
+        node = parsers.dataview.parse([{
+            'concept': self.c.pk,
+            'sort': 'desc',
+            'visible': False,
+        }], tree=Employee)
+
+        self.assertEqual(
+            unicode(node.apply().query).replace(' ', ''),
+            'SELECT "tests_employee"."id" FROM "tests_employee" '
+            'ORDER BY "tests_employee"."first_name" DESC, '
+            '"tests_employee"."last_name" DESC'
+            .replace(' ', ''))
 
     def test_apply_distinct(self):
-        node = parsers.dataview.parse({
-            'columns': [1],
-        }, tree=Employee)
+        node = parsers.dataview.parse([{
+            'concept': self.c.pk,
+        }], tree=Employee)
+
         self.assertEqual(
-            unicode(node.apply(Employee.objects.distinct()).query),
+            unicode(node.apply(Employee.objects.distinct()).query)
+            .replace(' ', ''),
             'SELECT DISTINCT "tests_employee"."id", '
-            '"tests_office"."location", "tests_title"."name" FROM '
-            '"tests_employee" INNER JOIN "tests_office" ON '
-            '("tests_employee"."office_id" = "tests_office"."id") LEFT OUTER '
-            'JOIN "tests_title" ON ("tests_employee"."title_id" = '
-            '"tests_title"."id")')
+            '"tests_employee"."first_name", '
+            '"tests_employee"."last_name" FROM "tests_employee"'
+            .replace(' ', ''))
+
+    def test_implicit_apply_distinct(self):
+        f1 = DataField.objects.get_by_natural_key('tests',
+                                                  'office',
+                                                  'location')
+        f2 = DataField.objects.get_by_natural_key('tests',
+                                                  'title',
+                                                  'name')
+        c = DataConcept()
+        c.save()
+
+        DataConceptField(concept=c, field=f1).save()
+        DataConceptField(concept=c, field=f2).save()
 
         # Due to the use of distinct, the concept fields appear in the SELECT
         # statement at this point. This is not a bug, but a requirement of SQL.
         # These columns are stripped downstream by the exporter.
-        node = parsers.dataview.parse({
-            'ordering': [(1, 'desc')],
-        }, tree=Employee)
+        node = parsers.dataview.parse([{
+            'concept': c.pk,
+            'sort': 'desc',
+            'visible': False,
+        }], tree=Employee)
+
         self.assertEqual(
-            unicode(node.apply(Employee.objects.distinct()).query),
+            unicode(node.apply(Employee.objects.distinct()).query)
+            .replace(' ', ''),
             'SELECT DISTINCT "tests_employee"."id", '
             '"tests_office"."location", "tests_title"."name" FROM '
             '"tests_employee" INNER JOIN "tests_office" ON '
             '("tests_employee"."office_id" = "tests_office"."id") LEFT OUTER '
             'JOIN "tests_title" ON ("tests_employee"."title_id" = '
             '"tests_title"."id") ORDER BY "tests_office"."location" DESC, '
-            '"tests_title"."name" DESC')
+            '"tests_title"."name" DESC'
+            .replace(' ', ''))
 
 
 class DataQueryParserTestCase(TestCase):
@@ -364,14 +407,18 @@ class DataQueryParserTestCase(TestCase):
     def setUp(self):
         management.call_command('avocado', 'init', 'tests', publish=False,
                                 concepts=False, quiet=True)
-        f1 = DataField.objects.get(pk=1)
-        f2 = DataField.objects.get(pk=2)
+        f1 = DataField.objects.get_by_natural_key('tests',
+                                                  'employee',
+                                                  'first_name')
+        f2 = DataField.objects.get_by_natural_key('tests',
+                                                  'employee',
+                                                  'last_name')
 
-        c1 = DataConcept()
-        c1.save()
+        self.c = DataConcept()
+        self.c.save()
 
-        DataConceptField(concept=c1, field=f1).save()
-        DataConceptField(concept=c1, field=f2).save()
+        DataConceptField(concept=self.c, field=f1).save()
+        DataConceptField(concept=self.c, field=f2).save()
 
     def test_valid(self):
         self.assertEqual(parsers.dataquery.validate({}, tree=Employee), None)
@@ -385,7 +432,7 @@ class DataQueryParserTestCase(TestCase):
                 'language': 'Name is CEO'
             },
             'view': [{
-                'concept': 1,
+                'concept': self.c.pk,
             }],
         }
 
@@ -400,7 +447,10 @@ class DataQueryParserTestCase(TestCase):
                 'field': 'tests.title.name',
                 'operator': 'exact',
                 'value': 'CEO',
-                'cleaned_value': {'value': 'CEO', 'label': 'CEO'},
+                'cleaned_value': {
+                    'value': 'CEO',
+                    'label': 'CEO',
+                },
                 'language': 'Name is CEO'
             }
         }
@@ -413,18 +463,19 @@ class DataQueryParserTestCase(TestCase):
 
         # Only the view
         attrs = {
-            'view': {
-                'ordering': [(1, 'desc')],
-            }
+            'view': [{
+                'concept': self.c.pk,
+                'visible': False,
+                'sort': 'desc',
+            }]
         }
 
         exp_attrs = {
             'context': None,
             'view': [{
                 'visible': False,
-                'concept': 1,
+                'concept': self.c.pk,
                 'sort': 'desc',
-                'sort_index': 0
             }],
         }
         self.assertEqual(parsers.dataquery.validate(attrs, tree=Employee),
@@ -468,35 +519,35 @@ class DataQueryParserTestCase(TestCase):
                 'operator': 'exact',
                 'value': True
             },
-            'view': {
-                'columns': [1],
-            }
+            'view': [{
+                'concept': self.c.pk,
+            }],
         }, tree=Employee)
 
         self.assertEqual(
-            unicode(node.apply().query),
+            unicode(node.apply().query).replace(' ', ''),
             'SELECT DISTINCT "tests_employee"."id", '
-            '"tests_office"."location", "tests_title"."name" FROM '
+            '"tests_employee"."first_name", "tests_employee"."last_name" FROM '
             '"tests_employee" INNER JOIN "tests_title" ON '
-            '("tests_employee"."title_id" = "tests_title"."id") INNER JOIN '
-            '"tests_office" ON ("tests_employee"."office_id" = '
-            '"tests_office"."id") WHERE "tests_title"."boss" = True ')
+            '("tests_employee"."title_id" = "tests_title"."id") '
+            'WHERE "tests_title"."boss" = True '
+            .replace(' ', ''))
 
         # Just the view
         node = parsers.dataquery.parse({
-            'view': {
-                'ordering': [(1, 'desc')],
-            }
+            'view': [{
+                'concept': self.c.pk,
+                'sort': 'desc',
+            }]
         }, tree=Employee)
+
         self.assertEqual(
-            unicode(node.apply().query),
+            unicode(node.apply().query).replace(' ', ''),
             'SELECT DISTINCT "tests_employee"."id", '
-            '"tests_office"."location", "tests_title"."name" FROM '
-            '"tests_employee" INNER JOIN "tests_office" ON '
-            '("tests_employee"."office_id" = "tests_office"."id") LEFT OUTER '
-            'JOIN "tests_title" ON ("tests_employee"."title_id" = '
-            '"tests_title"."id") ORDER BY "tests_office"."location" DESC, '
-            '"tests_title"."name" DESC')
+            '"tests_employee"."first_name", '
+            '"tests_employee"."last_name" FROM "tests_employee" '
+            'ORDER BY "tests_employee"."first_name" DESC, '
+            '"tests_employee"."last_name" DESC'.replace(' ', ''))
 
         # Just the context
         node = parsers.dataquery.parse({
@@ -508,13 +559,16 @@ class DataQueryParserTestCase(TestCase):
         }, tree=Employee)
 
         self.assertEqual(
-            unicode(node.apply().values('id').query),
+            unicode(node.apply().values('id').query).replace(' ', ''),
             'SELECT DISTINCT "tests_employee"."id" FROM "tests_employee" '
             'INNER JOIN "tests_title" ON ("tests_employee"."title_id" = '
-            '"tests_title"."id") WHERE "tests_title"."boss" = True ')
+            '"tests_title"."id") WHERE "tests_title"."boss" = True '
+            .replace(' ', ''))
+
+        f = DataField.objects.get_by_natural_key('tests', 'title', 'boss')
         self.assertEqual(node.datacontext_node.language, {
             'operator': 'exact',
             'language': u'Boss is True',
-            'field': 4,
+            'field': f.pk,
             'value': True
         })

@@ -1,5 +1,5 @@
 import logging
-from django.test import TestCase
+from django.test import TransactionTestCase
 from django.contrib.auth.models import User
 from django.contrib.sessions.backends.cache import SessionStore
 from django.http import HttpRequest
@@ -32,30 +32,34 @@ mock_handler = MockHandler()
 logger.addHandler(mock_handler)
 
 
-class LogTestCase(TestCase):
+class LogTestCase(TransactionTestCase):
     def test_event(self):
         usage.log('test', async=False)
         self.assertEqual(Log.objects.count(), 1)
 
     def test_instance(self):
-        f = DataField(app_name='avocado', model_name='datafield',
+        f = DataField(app_name='avocado',
+                      model_name='datafield',
                       field_name='name')
         f.save()
+
         usage.log('test', instance=f, async=False)
-        self.assertEqual(Log.objects.get(pk=1).content_object, f)
+        event = Log.objects.all()[0]
+        self.assertEqual(event.content_object, f)
 
     def test_model(self):
         usage.log('test', model=DataField, async=False)
-        self.assertEqual(Log.objects.get(pk=1).content_type.model_class(),
-                         DataField)
+        event = Log.objects.all()[0]
+        self.assertEqual(event.content_type.model_class(), DataField)
 
     def test_data(self):
         usage.log('test', data={'some': 'data'}, async=False)
-        self.assertEqual(Log.objects.get(pk=1).data, {'some': 'data'})
+        event = Log.objects.all()[0]
+        self.assertEqual(event.data, {'some': 'data'})
 
     def test_error(self):
         # Pass non-JSON serializable data
-        usage.log('test', data={'some': TestCase}, async=False)
+        usage.log('test', data={'some': TransactionTestCase}, async=False)
         self.assertEqual(Log.objects.count(), 0)
         self.assertEqual(len(mock_handler.messages['error']), 1)
 
@@ -69,6 +73,6 @@ class LogTestCase(TestCase):
         request.session = session
 
         usage.log('test', request=request, async=False)
-        message = Log.objects.get(pk=1)
-        self.assertEqual(message.user, user)
-        self.assertEqual(message.session_key, request.session.session_key)
+        event = Log.objects.all()[0]
+        self.assertEqual(event.user, user)
+        self.assertEqual(event.session_key, request.session.session_key)

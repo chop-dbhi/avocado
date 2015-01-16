@@ -8,7 +8,7 @@ from avocado.models import DataField
 
 
 class AggregatorTestCase(TestCase):
-    fixtures = ['employee_data.json']
+    fixtures = ['tests/fixtures/employee_data.json']
 
     def setUp(self):
         management.call_command('avocado', 'init', 'tests', quiet=True)

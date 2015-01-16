@@ -11,7 +11,7 @@ __all__ = ('CommandsTestCase',)
 
 
 class CommandsTestCase(TestCase):
-    fixtures = ['employee_data.json']
+    fixtures = ['tests/fixtures/employee_data.json']
 
     def setUp(self):
         self.stdout = sys.stdout
