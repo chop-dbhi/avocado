@@ -12,10 +12,9 @@ __all__ = ['FormatterTestCase']
 
 
 class FormatterTestCase(TestCase):
-    fixtures = ['formatters.json']
-
     def setUp(self):
         management.call_command('avocado', 'init', 'tests', quiet=True)
+
         name_field = DataField.objects.get_by_natural_key(
             'tests', 'title', 'name')
         salary_field = DataField.objects.get_by_natural_key(
@@ -77,12 +76,15 @@ class FormatterTestCase(TestCase):
         class HtmlFormatter(Formatter):
             def to_html(self, values, **context):
                 fvalues = self(values, preferred_formats=['string'])
+
                 return '<span>{0}</span>'.format(
                     '</span><span>'.join(fvalues.values()))
+
             to_html.process_multiple = True
 
         f = HtmlFormatter(self.concept)
         fvalues = f(self.values, preferred_formats=['html'])
+
         self.assertEqual(OrderedDict({
             'Title': u'<span>CEO</span><span>100000</span><span>True</span>'
         }), fvalues)
@@ -90,6 +92,7 @@ class FormatterTestCase(TestCase):
     def test_unique_keys(self):
         title_name = DataField.objects.get_by_natural_key(
             'tests', 'title', 'name')
+
         project_name = DataField.objects.get_by_natural_key(
             'tests', 'project', 'name')
 
