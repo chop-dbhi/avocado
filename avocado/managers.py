@@ -12,10 +12,34 @@ from avocado.core.managers import PublishedManager, PublishedQuerySet
 logger = logging.getLogger(__name__)
 
 
+# [2014-11-05] HACK to resolve this issue:
+# https://github.com/toastdriven/django-haystack/issues/1009
+if OPTIONAL_DEPS['haystack']:
+    from haystack.query import SearchQuerySet
+
+    def __len__(self):
+        if not self._result_count:
+            self._result_count = self.query.get_count()
+
+            # Some backends give weird, false-y values here. Convert to zero.
+            if not self._result_count:
+                self._result_count = 0
+
+        # This needs to return the actual number of hits, not what's in the
+        # cache.
+        return max(0, self._result_count - self._ignored_result_count)
+
+    SearchQuerySet.__len__ = __len__
+
+
 class DataSearchMixin(models.Manager):
     def _haystack_search(self, content, queryset, max_results, partial, using):
         from haystack.query import RelatedSearchQuerySet
         from haystack.inputs import AutoQuery
+
+        if content.strip() == '':
+            return RelatedSearchQuerySet().none()
+
         # Limit to the model bound to this manager, e.g. DataConcept.
         # `load_all` ensures a single database hit when loading the objects
         # that match
@@ -54,8 +78,11 @@ class DataSearchMixin(models.Manager):
     def search(self, content, queryset=None, max_results=None, partial=False,
                using=None):
         if dep_supported('haystack'):
-            return self._haystack_search(
-                content, queryset, max_results, partial, using)
+            return self._haystack_search(content=content,
+                                         queryset=queryset,
+                                         max_results=max_results,
+                                         partial=partial,
+                                         using=using)
 
         return self._basic_search(content, queryset)
 
@@ -64,6 +91,9 @@ class DataFieldSearchMixin(DataSearchMixin):
     def _basic_search(self, content, queryset):
         if queryset is None:
             queryset = self.model.objects.all()
+
+        if content.strip() == '':
+            return queryset.none()
 
         q = Q(name__icontains=content) | \
             Q(description__icontains=content) | \

@@ -3,10 +3,10 @@ from setuptools import setup, find_packages
 
 
 install_requires = [
-    'django>=1.4,<1.6',
+    'django>=1.5,<1.6',
     'modeltree>=1.1.9',
-    'South==0.8.1',
-    'jsonfield==0.9.4',
+    'South==1.0.2',
+    'jsonfield==1.0.0',
 ]
 
 if sys.version_info < (2, 7):
@@ -24,23 +24,14 @@ kwargs = {
 
     'test_suite': 'test_suite',
 
-    # Test dependencies
-    'tests_require': [
-        'django-guardian==1.0.4',
-        'django-haystack==2.0.0',
-        'whoosh==2.4.1',
-        'openpyxl>=1.6,<1.7',
-        'python-memcached>=1.48',
-    ],
-
     # Optional dependencies
     'extras_require': {
         # Granular permission
-        'permissions': ['django-guardian==1.0.4'],
+        'permissions': ['django-guardian>=1.1.0'],
         # Search
-        'search': ['django-haystack==2.0.0'],
+        'search': ['django-haystack>=2.1.0,<2.4'],
         # Includes extra exporter dependencies
-        'extras': ['openpyxl>=1.6,<1.7'],
+        'extras': ['openpyxl>=1.7,<2.2'],
         # Pretty printing of SQL in the admin and for debugging
         'sql': ['sqlparse'],
     },
