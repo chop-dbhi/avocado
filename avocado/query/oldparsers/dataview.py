@@ -19,12 +19,16 @@ class Node(object):
     @property
     def concept_ids(self):
         ids = []
+
         for facet in self.facets:
             if facet.get('enabled') is False:
                 continue
+
             if facet.get('visible') is False:
                 continue
+
             ids.append(facet['concept'])
+
         return ids
 
     @property
@@ -184,11 +188,17 @@ def convert_legacy(attrs):
 
     # Map to position
     _ordering = {}
+
     for i, (concept, direction) in enumerate(ordering):
         _ordering[concept] = i
 
     for pk in columns:
-        facet = {'concept': pk}
+        facet = {
+            'concept': pk,
+            'sort': None,
+            'sort_index': None,
+            'visible': True,
+        }
 
         if pk in _ordering:
             index = _ordering.pop(pk)
@@ -200,6 +210,7 @@ def convert_legacy(attrs):
     # Append the sort only concepts
     for pk in _ordering:
         index = _ordering[pk]
+
         facets.append({
             'visible': False,
             'concept': pk,
@@ -242,7 +253,7 @@ def validate(facets, **context):
                 enabled = False
                 errors.append('Concept does not exist')
 
-        if 'sort' in attrs and attrs['sort'] not in SORT_DIRECTIONS:
+        if attrs.get('sort') and attrs['sort'] not in SORT_DIRECTIONS:
             warnings.append('Invalid sort direction. Must be "asc" or "desc"')
 
         if concept and not concept.sortable:

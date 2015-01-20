@@ -41,7 +41,8 @@ class CacheProxyTestCase(TestCase):
         self.assertTrue(self.cp.cached(c))
         self.assertEqual(self.cp.get(c), '2+3i')
 
-        time.sleep(2)
+        # Wait until the cache times out
+        time.sleep(2.1)
 
         # Make sure the value expired
         self.assertIsNone(self.cp.get(c))

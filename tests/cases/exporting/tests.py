@@ -8,20 +8,24 @@ from avocado.formatters import RawFormatter
 from avocado.models import DataField, DataConcept, DataConceptField, DataView
 from ... import models
 
-__all__ = ['FileExportTestCase', 'ResponseExportTestCase',
-           'ForceDistinctRegressionTestCase']
-
 
 class ExportTestCase(TestCase):
-    fixtures = ['employee_data.json']
+    fixtures = ['tests/fixtures/employee_data.json']
 
     def setUp(self):
         management.call_command('avocado', 'init', 'tests', quiet=True)
+
         salary_concept = \
             DataField.objects.get(field_name='salary').concepts.all()[0]
 
-        view = DataView(json={'ordering': [[salary_concept.pk, 'desc']]})
+        view = DataView(json=[{
+            'concept': salary_concept.pk,
+            'visible': False,
+            'sort': 'desc',
+        }])
+
         self.query = view.apply(tree=models.Employee).raw()
+
         # Ick..
         self.exporter = export.BaseExporter(view)
         self.exporter.params.insert(0, (RawFormatter(keys=['pk']), 1))
@@ -45,28 +49,35 @@ class ExportTestCase(TestCase):
 
 
 class FileExportTestCase(TestCase):
-    fixtures = ['employee_data.json']
+    fixtures = ['tests/fixtures/employee_data.json']
 
     def setUp(self):
         management.call_command('avocado', 'init', 'tests', quiet=True)
+
         first_name_field = DataField.objects.get_by_natural_key(
             'tests', 'employee', 'first_name')
         first_name_field.description = 'First Name'
+        first_name_field.save()
+
         last_name_field = DataField.objects.get_by_natural_key(
             'tests', 'employee', 'last_name')
         last_name_field.description = 'Last Name'
+        last_name_field.save()
+
         title_field = DataField.objects.get_by_natural_key(
             'tests', 'title', 'name')
         title_field.description = 'Employee Title'
+        title_field.save()
+
         salary_field = DataField.objects.get_by_natural_key(
             'tests', 'title', 'salary')
         salary_field.description = 'Salary'
+        salary_field.save()
+
         is_manager_field = DataField.objects.get_by_natural_key(
             'tests', 'employee', 'is_manager')
         is_manager_field.description = 'Is a Manager?'
-
-        [x.save() for x in [first_name_field, last_name_field, title_field,
-                            salary_field, is_manager_field]]
+        is_manager_field.save()
 
         employee_concept = DataConcept()
         employee_concept.name = 'Employee'
@@ -194,7 +205,7 @@ class ResponseExportTestCase(FileExportTestCase):
 
 
 class ForceDistinctRegressionTestCase(TestCase):
-    fixtures = ['employee_data.json']
+    fixtures = ['tests/fixtures/employee_data.json']
 
     def setUp(self):
         management.call_command('avocado', 'init', 'tests', quiet=True)

@@ -6,7 +6,7 @@ from avocado.conf import OPTIONAL_DEPS
 
 
 class SearchTest(TestCase):
-    fixtures = ['search.json']
+    fixtures = ['tests/cases/search/fixtures/search.json']
 
     def setUp(self):
         management.call_command('avocado', 'init', 'search', quiet=True)
@@ -26,7 +26,7 @@ class SearchTest(TestCase):
 
 
 class NoHaystackSearchTest(TestCase):
-    fixtures = ['search.json']
+    fixtures = ['tests/cases/search/fixtures/search.json']
 
     def setUp(self):
         management.call_command('avocado', 'init', 'search', quiet=True)
