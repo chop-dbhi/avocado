@@ -9,3 +9,5 @@ openpyxl==2.1.4
 python-memcached==1.53
 ordereddict
 sqlparse
+mysql-python
+psycopg2

@@ -7,11 +7,14 @@ python:
 sudo: false
 
 env:
-    - DJANGO=1.5.12
-    - DJANGO=1.6.10
+    - DJANGO=1.5.12 POSTGRES_TEST_USER=postgres POSTGRES_TEST_NAME=avocado MYSQL_TEST_USER=root MYSQL_TEST_NAME=avocado
+    - DJANGO=1.6.10 POSTGRES_TEST_USER=postgres POSTGRES_TEST_NAME=avocado MYSQL_TEST_USER=root MYSQL_TEST_NAME=avocado
 
 services:
     - memcached
+
+addons:
+    - postgres
 
 before_install:
     - bash bin/check_signoff.sh
@@ -21,6 +24,10 @@ before_install:
 install:
     - pip install -q coverage Django==$DJANGO
     - pip install -q -r requirements.txt
+
+before_script:
+    - psql -U postgres -c 'CREATE DATABASE avocado;'
+    - mysql -u root -e 'CREATE DATABASE IF NOT EXISTS avocado;'
 
 script:
     - coverage run test_suite.py

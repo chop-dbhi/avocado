@@ -1,10 +1,38 @@
 import os
+import getpass
+
+POSTGRES_TEST_NAME = os.environ.get('POSTGRES_TEST_NAME', 'avocado')
+POSTGRES_TEST_USER = os.environ.get('POSTGRES_TEST_USER', getpass.getuser())
+POSTGRES_TEST_PASSWORD = os.environ.get('POSTGRES_TEST_PASSWORD')
+
+MYSQL_TEST_NAME = os.environ.get('MYSQL_TEST_NAME', 'avocado')
+MYSQL_TEST_USER = os.environ.get('MYSQL_TEST_USER', getpass.getuser())
+MYSQL_TEST_PASSWORD = os.environ.get('MYSQL_TEST_PASSWORD')
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': ':memory:',
-    }
+    },
+    'sqlite': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(os.path.dirname(__file__), 'tests.db'),
+        # Explicitly set the test name otherwise Django will use an in-memory
+        # database.
+        'TEST_NAME': os.path.join(os.path.dirname(__file__), 'tests.db'),
+    },
+    'postgres': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': POSTGRES_TEST_NAME,
+        'USER': POSTGRES_TEST_USER,
+        'PASSWORD': POSTGRES_TEST_PASSWORD,
+    },
+    'mysql': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': MYSQL_TEST_NAME,
+        'USER': MYSQL_TEST_USER,
+        'PASSWORD': MYSQL_TEST_PASSWORD,
+    },
 }
 
 INSTALLED_APPS = (
