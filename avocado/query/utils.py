@@ -1,4 +1,5 @@
 import logging
+import django
 from django.db import connections, DEFAULT_DB_ALIAS
 from django.core.cache import cache
 
@@ -6,6 +7,13 @@ logger = logging.getLogger(__name__)
 
 
 TEMP_DB_ALIAS_PREFIX = '_db:{0}'
+
+
+def ensure_connection(conn):
+    if django.VERSION < (1, 6):
+        conn.cursor()
+    else:
+        conn.ensure_connection()
 
 
 def named_connection(name, db=DEFAULT_DB_ALIAS):
@@ -94,7 +102,7 @@ def _get_backend_pid(conn):
 
     # Backend connections are lazily initialized, so ensure it's connected
     # before using internal method calls.
-    conn.ensure_connection()
+    ensure_connection(conn)
 
     # SQLite does not return a process id, so we use 0 as the non-None value.
     if engine == 'django.db.backends.sqlite3':
@@ -144,7 +152,7 @@ def _cancel_query(name, db, pid):
     # SQLite can use any connection since it is serverless. It has a native
     # method to perform the interrupt.
     if engine == 'django.db.backends.sqlite3':
-        conn.ensure_connection()
+        ensure_connection(conn)
         conn.connection.interrupt()
         return True
 
