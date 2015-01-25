@@ -2,42 +2,9 @@ from django.utils.importlib import import_module
 from modeltree.tree import trees
 from avocado.formatters import RawFormatter
 from avocado.conf import settings
-from . import utils
 
 
 QUERY_PROCESSOR_DEFAULT_ALIAS = 'default'
-
-
-class Query(object):
-    def __init__(self, queryset, name=None):
-        self.queryset = queryset
-        self.name = name
-
-    def __iter__(self):
-        # Create a new named connection. The QuerySet is cloned so the custom
-        # database alias is isolated in this block.
-        if self.name:
-            queryset = self.queryset._clone()
-            conn = utils.named_connection(self.name, queryset.db)
-
-            # Set to new database alias
-            queryset._db = conn.alias
-            queryset.query.using = conn.alias
-        else:
-            queryset = self.queryset
-
-        compiler = queryset.query.get_compiler(queryset.db)
-
-        try:
-            for result in compiler.results_iter():
-                yield result
-        finally:
-            if self.name:
-                utils.close_connection(self.name)
-
-    def cancel(self):
-        if self.name:
-            return utils.cancel_query(self.name)
 
 
 class QueryProcessor(object):
@@ -81,7 +48,7 @@ class QueryProcessor(object):
 
         return exporter
 
-    def get_iterable(self, offset=None, limit=None, name=None, **kwargs):
+    def get_iterable(self, offset=None, limit=None, **kwargs):
         "Returns an iterable that can be used by an exporter."
         queryset = self.get_queryset(**kwargs)
 
@@ -92,7 +59,9 @@ class QueryProcessor(object):
         elif limit:
             queryset = queryset[:limit]
 
-        return Query(queryset, name=name)
+        compiler = queryset.query.get_compiler(queryset.db)
+
+        return compiler.results_iter()
 
 
 class QueryProcessors(object):
