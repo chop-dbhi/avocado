@@ -11,7 +11,8 @@ class TempConnTest(TransactionTestCase):
     def _load_fixture(self, db):
         management.call_command('loaddata',
                                 'tests/fixtures/employee_data.json',
-                                database=db)
+                                database=db,
+                                verbosity=0)
 
     def run_utils_test(self, db, name):
         self._load_fixture(db)
@@ -94,13 +95,7 @@ class PostgresTempConnTest(TempConnTest):
         def runner(t, db, name):
             conn = utils.named_connection(name, db=db)
             c = conn.cursor()
-
-            try:
-                c.execute('SELECT pg_sleep(2)')
-            except OperationalError as e:
-                # Expected exception
-                if 'canceling statement' not in str(e):
-                    raise
+            t.assertRaises(OperationalError, c.execute, 'SELECT pg_sleep(2)')
 
         def stopper(t, db, name):
             canceled = utils.cancel_query(name)
@@ -120,13 +115,7 @@ class MySQLTempConnTest(TempConnTest):
         def runner(t, db, name):
             conn = utils.named_connection(name, db=db)
             c = conn.cursor()
-
-            try:
-                c.execute('SELECT sleep(2)')
-            except OperationalError as e:
-                # Expected exception
-                if 'Lost connection to MySQL' not in str(e):
-                    raise
+            c.execute('SELECT sleep(2)')
 
         def stopper(t, db, name):
             canceled = utils.cancel_query(name)

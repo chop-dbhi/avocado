@@ -16,6 +16,21 @@ def ensure_connection(conn):
         conn.ensure_connection()
 
 
+def isolate_queryset(name, queryset):
+    """Creates a temporary named connection and binds a queryset.
+
+    All QuerySets derived from this one will be executed using this connection.
+    """
+    queryset = queryset._clone()
+    conn = named_connection(name, queryset.db)
+
+    # Set to new database alias
+    queryset._db = conn.alias
+    queryset.query.using = conn.alias
+
+    return queryset
+
+
 def named_connection(name, db=DEFAULT_DB_ALIAS):
     """Initializes a named connection to a database.
 
@@ -55,8 +70,7 @@ def named_connection(name, db=DEFAULT_DB_ALIAS):
     pid = _get_backend_pid(conn)
 
     # Put real database alias and PID in centralized cache so multiple threads
-    # and/or processes can access it. This cache tnry is left to expire and/or
-    # be overwritten.
+    # and/or processes can access it.
     cache.set(temp_db, (db, pid))
 
     return conn
@@ -65,10 +79,6 @@ def named_connection(name, db=DEFAULT_DB_ALIAS):
 def cancel_query(name):
     "Cancels a query running on a named connection."
     temp_db = TEMP_DB_ALIAS_PREFIX.format(name)
-
-    # Connection is no longer available. Assume there is nothing to do.
-    if temp_db not in connections.databases:
-        return
 
     info = cache.get(temp_db)
 
@@ -79,6 +89,9 @@ def cancel_query(name):
     else:
         canceled = None
 
+    if canceled:
+        cache.delete(temp_db)
+
     close_connection(name)
 
     return canceled
@@ -88,9 +101,10 @@ def close_connection(name):
     "Closes a temporary connection by name and removes it from the handler."
     temp_db = TEMP_DB_ALIAS_PREFIX.format(name)
 
-    # Remove connection from handler
+    # Remove connection from handler if in the same thread.
     if temp_db in connections.databases:
         conn = connections[temp_db]
+        ensure_connection(conn)
         conn.close()
 
         del connections.databases[temp_db]
@@ -133,7 +147,7 @@ def _cancel_query(name, db, pid):
 
     if engine == 'django.db.backends.postgresql_psycopg2':
         c = conn.cursor()
-        c.execute('SELECT pg_cancel_backend(%s)', (pid,))
+        c.execute('SELECT pg_terminate_backend(%s)', (pid,))
         canceled, = c.fetchone()
         return canceled
 
