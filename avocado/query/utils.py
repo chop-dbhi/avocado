@@ -89,9 +89,6 @@ def cancel_query(name):
     else:
         canceled = None
 
-    if canceled:
-        cache.delete(temp_db)
-
     close_connection(name)
 
     return canceled
@@ -100,6 +97,9 @@ def cancel_query(name):
 def close_connection(name):
     "Closes a temporary connection by name and removes it from the handler."
     temp_db = TEMP_DB_ALIAS_PREFIX.format(name)
+
+    # Remove the cache entry.
+    cache.delete(temp_db)
 
     # Remove connection from handler if in the same thread.
     if temp_db in connections.databases:
