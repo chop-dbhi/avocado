@@ -43,9 +43,10 @@ class QueryProcessor(object):
 
         return exporter
 
-    def get_iterable(self, offset=None, limit=None, **kwargs):
+    def get_iterable(self, offset=None, limit=None, queryset=None, **kwargs):
         "Returns an iterable that can be used by an exporter."
-        queryset = self.get_queryset(**kwargs)
+        if queryset is None:
+            queryset = self.get_queryset(**kwargs)
 
         if offset is not None and limit is not None:
             queryset = queryset[offset:offset + limit]
@@ -54,15 +55,8 @@ class QueryProcessor(object):
         elif limit is not None:
             queryset = queryset[:limit]
 
-        # ModelTreeQuerySet has a raw method defined, but fallback
-        # to the creating a results iter if not present.
-        if hasattr(queryset, 'raw'):
-            iterable = queryset.raw()
-        else:
-            compiler = queryset.query.get_compiler(queryset.db)
-            iterable = compiler.results_iter()
-
-        return iterable
+        compiler = queryset.query.get_compiler(queryset.db)
+        return compiler.results_iter()
 
 
 class QueryProcessors(object):
