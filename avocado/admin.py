@@ -293,17 +293,6 @@ class DataViewAdmin(admin.ModelAdmin):
         }),
     )
 
-    def sql(self, obj):
-        sql = obj.sql()
-        try:
-            import sqlparse
-            sql = sqlparse.format(sql, reindent=True, keyword_case='upper')
-        except ImportError:
-            pass
-        return u'<pre>{0}</pre>'.format(sql)
-    sql.short_description = 'SQL'
-    sql.allow_tags = True
-
 
 class DataContextAdmin(admin.ModelAdmin):
     readonly_fields = ('session_key', 'sql')
@@ -335,17 +324,6 @@ class DataContextAdmin(admin.ModelAdmin):
             'description': 'Formatted SQL representation of the context',
         }),
     )
-
-    def sql(self, obj):
-        sql = obj.sql()
-        try:
-            import sqlparse
-            sql = sqlparse.format(sql, reindent=True, keyword_case='upper')
-        except ImportError:
-            pass
-        return u'<pre>{0}</pre>'.format(sql)
-    sql.short_description = 'SQL'
-    sql.allow_tags = True
 
 
 class DataQueryAdmin(admin.ModelAdmin):
@@ -379,17 +357,6 @@ class DataQueryAdmin(admin.ModelAdmin):
             'description': 'Formatted SQL representation of the query',
         }),
     )
-
-    def sql(self, obj):
-        sql = obj.sql()
-        try:
-            import sqlparse
-            sql = sqlparse.format(sql, reindent=True, keyword_case='upper')
-        except ImportError:
-            pass
-        return u'<pre>{0}</pre>'.format(sql)
-    sql.short_description = 'SQL'
-    sql.allow_tags = True
 
 
 admin.site.register(DataField, DataFieldAdmin)

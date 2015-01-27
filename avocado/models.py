@@ -1,5 +1,6 @@
 import logging
 import random
+import jsonfield
 from datetime import datetime
 from django.db import models
 from django.db.models import Count
@@ -17,10 +18,9 @@ from avocado.core.cache import post_save_cache, pre_delete_uncache, \
     cached_method
 from avocado.conf import settings
 from avocado import managers, history
-from avocado.query.models import AbstractDataView, AbstractDataContext, \
-    AbstractDataQuery
 from avocado.query.translators import registry as translators
 from avocado.query.operators import registry as operators
+from avocado.query import oldparsers as parsers
 from avocado.stats.agg import Aggregator
 from avocado import formatters
 
@@ -715,12 +715,14 @@ class DataConceptField(models.Model):
         return self.field.get_plural_name()
 
 
-class DataContext(AbstractDataContext, Base):
+class DataContext(Base):
     """JSON object representing one or more data field conditions. The data may
     be a single condition, an array of conditions or a tree stucture.
 
     This corresponds to the `WHERE` statements in a SQL query.
     """
+    json = jsonfield.JSONField(null=True, blank=True, default=dict)
+
     session = models.BooleanField(default=False)
     template = models.BooleanField(default=False)
     default = models.BooleanField(default=False)
@@ -738,6 +740,17 @@ class DataContext(AbstractDataContext, Base):
     accessed = models.DateTimeField(default=datetime.now(), editable=False)
     objects = managers.DataContextManager()
 
+    def __init__(self, *args, **kwargs):
+        if args and isinstance(args[0], dict):
+            if 'json' in kwargs:
+                raise TypeError("{0}.__init__() got multiple values for "
+                                "keyword argument 'json'"
+                                .format(self.__class__.__name__))
+            args = list(args)
+            kwargs['json'] = args.pop(0)
+
+        super(DataContext, self).__init__(*args, **kwargs)
+
     def __unicode__(self):
         toks = []
 
@@ -766,27 +779,79 @@ class DataContext(AbstractDataContext, Base):
         return u'{0} ({1})'.format(*toks)
 
     def clean(self):
-        from django.core.exceptions import ValidationError
         if self.template and self.default:
             queryset = self.__class__.objects.filter(template=True,
                                                      default=True)
             if self.pk:
                 queryset = queryset.exclude(pk=self.pk)
+
             if queryset.exists():
                 raise ValidationError('Only one default template can be '
                                       'defined')
 
     def save(self, *args, **kwargs):
         self.clean()
-        super(self.__class__, self).save(*args, **kwargs)
+        super(DataContext, self).save(*args, **kwargs)
+
+    def _combine(self, other, operator):
+        if not isinstance(other, self.__class__):
+            raise TypeError('Other object must be a DataContext instance')
+
+        cxt = self.__class__()
+        cxt.user_id = self.user_id or other.user_id
+
+        if self.json and other.json:
+            cxt.json = {
+                'type': operator,
+                'children': [
+                    {'composite': self.pk},
+                    {'composite': other.pk}
+                ]
+            }
+        elif self.json:
+            cxt.json = {'composite': self.pk}
+        elif other.json:
+            cxt.json = {'composite': other.pk}
+
+        return cxt
+
+    def __and__(self, other):
+        return self._combine(other, 'and')
+
+    def __or__(self, other):
+        return self._combine(other, 'or')
+
+    @classmethod
+    def validate(cls, attrs, **context):
+        "Validate `attrs` as a context."
+        return parsers.datacontext.validate(attrs, **context)
+
+    @cached_method(version='modified')
+    def count(self, *args, **kwargs):
+        return self.apply(*args, **kwargs).values('pk').count()
+
+    def parse(self, tree=None, **context):
+        "Returns a parsed node for this context."
+        return parsers.datacontext.parse(self.json, tree=tree, **context)
+
+    def apply(self, queryset=None, tree=None, **context):
+        "Applies this context to a QuerySet."
+        if tree is None and queryset is not None:
+            tree = queryset.model
+        return self.parse(tree=tree, **context).apply(queryset=queryset)
+
+    def language(self, tree=None, **context):
+        return self.parse(tree=tree, **context).language
 
 
-class DataView(AbstractDataView, Base):
+class DataView(Base):
     """JSON object representing one or more data field conditions. The data may
     be a single condition, an array of conditions or a tree stucture.
 
     This corresponds to the `SELECT` and `ORDER BY` statements in a SQL query.
     """
+    json = jsonfield.JSONField(null=True, blank=True, default=dict)
+
     session = models.BooleanField(default=False)
     template = models.BooleanField(default=False)
     default = models.BooleanField(default=False)
@@ -804,6 +869,17 @@ class DataView(AbstractDataView, Base):
     accessed = models.DateTimeField(default=datetime.now(), editable=False)
     objects = managers.DataViewManager()
 
+    def __init__(self, *args, **kwargs):
+        if args and isinstance(args[0], dict):
+            if 'json' in kwargs:
+                raise TypeError("{0}.__init__() got multiple values for "
+                                "keyword argument 'json'"
+                                .format(self.__class__.__name__))
+            args = list(args)
+            kwargs['json'] = args.pop(0)
+
+        super(DataView, self).__init__(*args, **kwargs)
+
     def __unicode__(self):
         toks = []
 
@@ -831,8 +907,24 @@ class DataView(AbstractDataView, Base):
 
         return u'{0} ({1})'.format(*toks)
 
+    @classmethod
+    def validate(cls, attrs, **context):
+        "Validates `attrs` as a view."
+        return parsers.dataview.validate(attrs, **context)
+
+    def parse(self, tree=None, **context):
+        "Returns a parsed node for this view."
+        return parsers.dataview.parse(self.json, tree=tree, **context)
+
+    def apply(self, queryset=None, tree=None, include_pk=True, **context):
+        "Applies this context to a QuerySet."
+        if tree is None and queryset is not None:
+            tree = queryset.model
+
+        return self.parse(tree=tree, **context) \
+            .apply(queryset=queryset, include_pk=include_pk)
+
     def clean(self):
-        from django.core.exceptions import ValidationError
         if self.template and self.default:
             queryset = self.__class__.objects.filter(template=True,
                                                      default=True)
@@ -847,7 +939,7 @@ class DataView(AbstractDataView, Base):
         super(self.__class__, self).save(*args, **kwargs)
 
 
-class DataQuery(AbstractDataQuery, Base):
+class DataQuery(Base):
     """
     JSON object representing a complete query.
 
@@ -856,9 +948,6 @@ class DataQuery(AbstractDataQuery, Base):
     corresponds to all the statements of the SQL query to dictate what info
     to retrieve, how to filter it, and the order to display it in.
     """
-    context_model = DataContext
-    view_model = DataView
-
     session = models.BooleanField(default=False)
     template = models.BooleanField(default=False)
     default = models.BooleanField(default=False)
@@ -883,6 +972,35 @@ class DataQuery(AbstractDataQuery, Base):
     # only visible to the query owner and those in the shared_users collection.
     public = models.BooleanField(default=False)
 
+    context_json = jsonfield.JSONField(
+        null=True, blank=True, default=dict)
+
+    view_json = jsonfield.JSONField(
+        null=True, blank=True, default=dict)
+
+    class Meta(object):
+        verbose_name_plural = 'data queries'
+
+    def __init__(self, *args, **kwargs):
+        if args and isinstance(args[0], dict):
+            data = args[0]
+            args = args[1:]
+
+            if 'context_json' in kwargs:
+                raise TypeError("{0}.__init__() got multiple values for "
+                                "keyword argument 'context_json'"
+                                .format(self.__class__.__name__))
+
+            if 'view_json' in kwargs:
+                raise TypeError("{0}.__init__() got multiple values for "
+                                "keyword argument 'view_json'"
+                                .format(self.__class__.__name__))
+
+            kwargs['context_json'] = data.get('context')
+            kwargs['view_json'] = data.get('view')
+
+        super(DataQuery, self).__init__(*args, **kwargs)
+
     def __unicode__(self):
         toks = []
 
@@ -910,8 +1028,54 @@ class DataQuery(AbstractDataQuery, Base):
 
         return u'{0} ({1})'.format(*toks)
 
+    @property
+    def context(self):
+        # An inverse pk is used to prevent colliding with saved instances.
+        # A pk is necessary for proper cache key formation.
+        pk = -self.pk if self.pk else None
+        return DataContext(pk=pk, json=self.context_json)
+
+    @property
+    def view(self):
+        # An inverse pk is used to prevent colliding with saved instances.
+        # A pk is necessary for proper cache key formation.
+        pk = -self.pk if self.pk else None
+        return DataView(pk=pk, json=self.view_json)
+
+    @property
+    def json(self):
+        return {
+            'context': self.context_json,
+            'view': self.view_json
+        }
+
+    @classmethod
+    def validate(cls, attrs, **context):
+        "Validates `attrs` as a query."
+        return parsers.dataquery.validate(attrs, **context)
+
+    @cached_method(version='modified')
+    def count(self, *args, **kwargs):
+        return self.apply(*args, **kwargs).count()
+
+    def parse(self, tree=None, **context):
+        "Returns a parsed node for this query."
+        json = {
+            'context': self.context_json,
+            'view': self.view_json,
+        }
+        return parsers.dataquery.parse(json, tree=tree, **context)
+
+    def apply(self, queryset=None, tree=None, distinct=True, include_pk=True,
+              **context):
+        "Applies this context to a QuerySet."
+        if tree is None and queryset is not None:
+            tree = queryset.model
+
+        return self.parse(tree=tree, **context) \
+            .apply(queryset=queryset, distinct=distinct, include_pk=include_pk)
+
     def clean(self):
-        from django.core.exceptions import ValidationError
         if self.template and self.default:
             queryset = self.__class__.objects.filter(template=True,
                                                      default=True)
