@@ -113,3 +113,10 @@ SHARE_BY_USERNAME_CASE_SENSITIVE = True
 # will be applied. If the value is True and django-guardian is not installed
 # it is an error. If set to False the permissions will not be applied.
 PERMISSIONS_ENABLED = None
+
+# Caches are used to improve performance across various APIs. The two primary
+# ones are data and query. Data cache is used for individual data field
+# caching such as counts, values, and aggregations. Query cache is used for
+# the ad-hoc queries built from a context and view.
+DATA_CACHE = 'default'
+QUERY_CACHE = 'default'
