@@ -1,7 +1,8 @@
 import logging
 import django
 from django.db import connections, DEFAULT_DB_ALIAS
-from django.core.cache import cache
+from django.core.cache import get_cache
+from avocado.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -57,11 +58,10 @@ def named_connection(name, db=DEFAULT_DB_ALIAS):
     else:
         # Get the settings of the real database being connected to.
         connections.ensure_defaults(db)
-        settings = connections.databases[db]
 
         # Add new database entry into connections handler so when the query
         # executes the new connection will be accessible.
-        connections.databases[temp_db] = settings
+        connections.databases[temp_db] = connections.databases[db]
 
         conn = connections[temp_db]
 
@@ -71,6 +71,7 @@ def named_connection(name, db=DEFAULT_DB_ALIAS):
 
     # Put real database alias and PID in centralized cache so multiple threads
     # and/or processes can access it.
+    cache = get_cache(settings.QUERY_CACHE)
     cache.set(temp_db, (db, pid))
 
     return conn
@@ -80,6 +81,7 @@ def cancel_query(name):
     "Cancels a query running on a named connection."
     temp_db = TEMP_DB_ALIAS_PREFIX.format(name)
 
+    cache = get_cache(settings.QUERY_CACHE)
     info = cache.get(temp_db)
 
     # Cancel the query if the cache entry is present.
@@ -99,6 +101,7 @@ def close_connection(name):
     temp_db = TEMP_DB_ALIAS_PREFIX.format(name)
 
     # Remove the cache entry.
+    cache = get_cache(settings.QUERY_CACHE)
     cache.delete(temp_db)
 
     # Remove connection from handler if in the same thread.
@@ -133,6 +136,7 @@ def _get_backend_pid(conn):
 
 def _conn_info(name):
     temp_db = TEMP_DB_ALIAS_PREFIX.format(name)
+    cache = get_cache(settings.QUERY_CACHE)
     return cache.get(temp_db)
 
 
