@@ -263,7 +263,7 @@ class DataCategoryAdmin(admin.ModelAdmin):
 
 
 class DataViewAdmin(admin.ModelAdmin):
-    readonly_fields = ('session_key', 'sql')
+    readonly_fields = ('session_key',)
 
     fieldsets = (
         (None, {
@@ -286,16 +286,11 @@ class DataViewAdmin(admin.ModelAdmin):
             'fields': ('json',),
             'description': 'JSON representation of the view',
         }),
-
-        ('SQL', {
-            'fields': ('sql',),
-            'description': 'Formatted SQL representation of the view',
-        }),
     )
 
 
 class DataContextAdmin(admin.ModelAdmin):
-    readonly_fields = ('session_key', 'sql')
+    readonly_fields = ('session_key',)
 
     fieldsets = (
         (None, {
@@ -318,16 +313,11 @@ class DataContextAdmin(admin.ModelAdmin):
             'fields': ('json',),
             'description': 'JSON representation of the context',
         }),
-
-        ('SQL', {
-            'fields': ('sql',),
-            'description': 'Formatted SQL representation of the context',
-        }),
     )
 
 
 class DataQueryAdmin(admin.ModelAdmin):
-    readonly_fields = ('session_key', 'sql')
+    readonly_fields = ('session_key',)
 
     fieldsets = (
         (None, {
@@ -350,11 +340,6 @@ class DataQueryAdmin(admin.ModelAdmin):
         ('JSON', {
             'fields': ('view_json', 'context_json'),
             'description': 'JSON representation of the context and view',
-        }),
-
-        ('SQL', {
-            'fields': ('sql',),
-            'description': 'Formatted SQL representation of the query',
         }),
     )
 
