@@ -5,6 +5,7 @@ from django.template import Template
 from django.core import management
 from avocado import export
 from avocado.formatters import RawFormatter
+from avocado.query.pipeline import QueryProcessor
 from avocado.models import DataField, DataConcept, DataConceptField, DataView
 from ... import models
 
@@ -24,7 +25,8 @@ class ExportTestCase(TestCase):
             'sort': 'desc',
         }])
 
-        self.query = view.apply(tree=models.Employee).raw()
+        proc = QueryProcessor(view=view, tree=models.Employee)
+        self.results = proc.get_iterable()
 
         # Ick..
         self.exporter = export.BaseExporter(view)
@@ -32,19 +34,19 @@ class ExportTestCase(TestCase):
         self.exporter.row_length += 1
 
     def test(self):
-        rows = list(self.exporter.write(self.query))
+        rows = list(self.exporter.write(self.results))
         self.assertEqual([r[0] for r in rows], [2, 4, 6, 1, 3, 5])
 
     def test_offset(self):
-        rows = list(self.exporter.write(self.query, offset=2))
+        rows = list(self.exporter.write(self.results, offset=2))
         self.assertEqual([r[0] for r in rows], [6, 1, 3, 5])
 
     def test_limit(self):
-        rows = list(self.exporter.write(self.query, limit=2))
+        rows = list(self.exporter.write(self.results, limit=2))
         self.assertEqual([r[0] for r in rows], [2, 4])
 
     def test_limit_offset(self):
-        rows = list(self.exporter.write(self.query, offset=2, limit=2))
+        rows = list(self.exporter.write(self.results, offset=2, limit=2))
         self.assertEqual([r[0] for r in rows], [6, 1])
 
 
@@ -241,13 +243,14 @@ class ForceDistinctRegressionTestCase(TestCase):
             {'concept': self.title_name.pk, 'sort': 'desc', 'visible': False},
         ])
 
-        queryset = view.apply()
+        proc = QueryProcessor(view=view)
+        results = proc.get_iterable()
 
         exporter = export.BaseExporter(view)
         exporter.params.insert(0, (RawFormatter(keys=['pk']), 1))
         exporter.row_length += 1
 
-        self.assertEqual(list(exporter.write(queryset.raw())), [
+        self.assertEqual(list(exporter.write(results)), [
             (1, u'Eric', u'Smith'),
             (3, u'Erick', u'Smith'),
             (5, u'Zac', u'Cook'),
@@ -264,13 +267,14 @@ class ForceDistinctRegressionTestCase(TestCase):
             {'concept': self.project_name.pk, 'sort': 'asc', 'visible': False},
         ])
 
-        queryset = view.apply()
+        proc = QueryProcessor(view=view)
+        results = proc.get_iterable()
 
         exporter = export.BaseExporter(view)
         exporter.params.insert(0, (RawFormatter(keys=['pk']), 1))
         exporter.row_length += 1
 
-        self.assertEqual(list(exporter.write(queryset.raw())), [
+        self.assertEqual(list(exporter.write(results)), [
             (3, u'Erick', u'Smith'),
             (4, u'Aaron', u'Harris'),
             (5, u'Zac', u'Cook'),

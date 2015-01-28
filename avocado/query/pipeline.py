@@ -1,3 +1,4 @@
+from django.db.models.query import EmptyQuerySet
 from django.utils.importlib import import_module
 from modeltree.tree import trees
 from avocado.formatters import RawFormatter
@@ -48,9 +49,15 @@ class QueryProcessor(object):
 
         return exporter
 
-    def get_iterable(self, offset=None, limit=None, **kwargs):
+    def get_iterable(self, offset=None, limit=None, queryset=None, **kwargs):
         "Returns an iterable that can be used by an exporter."
-        queryset = self.get_queryset(**kwargs)
+        if queryset is None:
+            queryset = self.get_queryset(**kwargs)
+
+        # Empty querysets are not propagated to the internal query object in
+        # Django 1.5 and below. This ensures the result set is in fact empty.
+        if isinstance(queryset, EmptyQuerySet):
+            return iter(())
 
         if offset and limit:
             queryset = queryset[offset:offset + limit]

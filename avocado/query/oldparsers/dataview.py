@@ -4,7 +4,6 @@ try:
 except ImportError:
     from ordereddict import OrderedDict
 from modeltree.tree import trees
-from modeltree.query import ModelTreeQuerySet
 
 
 SORT_DIRECTIONS = ('asc', 'desc')
@@ -142,18 +141,19 @@ class Node(object):
     # Primary method for apply this view to a QuerySet
     def apply(self, queryset=None, include_pk=True):
         tree = trees[self.tree]
+
         if queryset is None:
             queryset = tree.get_queryset()
 
-        # Convert to a ModelTreeQuerySet for the `select()` method
-        queryset = ModelTreeQuerySet(tree, query=queryset.query)
-
-        # Set model fields for `select()` method
-        select = self._get_select(queryset.query.distinct)
-        queryset = queryset.select(*select, include_pk=include_pk)
+        # Add the fields to the queryset
+        fields = self._get_select(queryset.query.distinct)
+        queryset = tree.add_select(queryset=queryset,
+                                   include_pk=include_pk,
+                                   *fields)
 
         # Set the order by on the QuerySet
         order_by = self._get_order_by()
+
         if order_by:
             queryset = queryset.order_by(*order_by)
 
