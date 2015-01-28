@@ -33,6 +33,9 @@ class Base(models.Model):
     def __unicode__(self):
         return self.name
 
+    def __bytes__(self):
+        return self.__unicode__().encode('utf8')
+
     @property
     def descriptors(self):
         """Returns a dict of fields that represent this model's descriptors.

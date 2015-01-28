@@ -703,6 +703,9 @@ class DataConceptField(models.Model):
     def __unicode__(self):
         return self.name or unicode(self.field)
 
+    def __bytes__(self):
+        return self.__unicode__().encode('utf8')
+
     def get_plural_name(self):
         if self.name_plural:
             return self.name_plural
