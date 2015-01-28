@@ -22,8 +22,8 @@ before_install:
     - flake8
 
 install:
-    - pip install -q coverage Django==$DJANGO
-    - pip install -q -r requirements.txt
+    - pip install coverage Django==$DJANGO
+    - pip install -r requirements.txt
 
 before_script:
     - psql -U postgres -c 'CREATE DATABASE avocado;'
