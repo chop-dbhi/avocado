@@ -1,6 +1,6 @@
 import time
 from threading import Thread
-from django.db import connections, OperationalError
+from django.db import connections, DatabaseError
 from django.test import TransactionTestCase
 from django.core import management
 from tests.models import Employee
@@ -38,7 +38,7 @@ class TempConnTest(TransactionTestCase):
         utils.close_connection(name)
 
         # Cleaned up
-        self.assertFalse(conn.alias in connections._databases)
+        self.assertFalse(conn.alias in connections.databases)
 
         return conn
 
@@ -95,7 +95,7 @@ class PostgresTempConnTest(TempConnTest):
         def runner(t, db, name):
             conn = utils.named_connection(name, db=db)
             c = conn.cursor()
-            t.assertRaises(OperationalError, c.execute, 'SELECT pg_sleep(2)')
+            t.assertRaises(DatabaseError, c.execute, 'SELECT pg_sleep(2)')
 
         def stopper(t, db, name):
             canceled = utils.cancel_query(name)
