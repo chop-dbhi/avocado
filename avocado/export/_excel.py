@@ -21,55 +21,36 @@ class ExcelExporter(BaseExporter):
     def write(self, iterable, buff=None, *args, **kwargs):
         buff = self.get_file_obj(buff)
 
+        # Reference the header
+        header = self.header
+
         wb = Workbook(optimized_write=True)
 
         ws_data = wb.create_sheet()
         ws_data.title = 'Data'
 
-        header = []
-
         # Create the data worksheet
-        for i, row_gen in enumerate(self.read(iterable, *args, **kwargs)):
-            row = []
+        ws_data.append([f['name'] for f in header])
 
-            for data in row_gen:
-                if i == 0:
-                    # Build up header row
-                    header.extend(data.keys())
-
-                # Add formatted section to the row
-                row.extend(data.values())
-
-            # Write headers on first iteration
-            if i == 0:
-                ws_data.append(header)
-
+        for row in iterable:
             ws_data.append(row)
 
         ws_dict = wb.create_sheet()
         ws_dict.title = 'Data Dictionary'
 
-        # Create the Data Dictionary Worksheet
+        # Create the Data Dictionary worksheet
         ws_dict.append((
-            'Field Name',
-            'Data Type',
+            'Label',
+            'Type',
             'Description',
-            'Concept Name',
-            'Concept Description',
         ))
 
-        for c in self.concepts:
-            cfields = c.concept_fields.select_related('field')
-
-            for cfield in cfields:
-                field = cfield.field
-                ws_dict.append((
-                    field.field_name,
-                    field.simple_type,
-                    field.description,
-                    c.name,
-                    c.description,
-                ))
+        for f in header:
+            ws_dict.append((
+                f['label'],
+                f['type'],
+                f['description'],
+            ))
 
         # This hacked up implementation is due to `save_virtual_workbook`
         # not behaving correctly. This function should handle the work

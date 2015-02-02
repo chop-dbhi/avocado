@@ -34,9 +34,9 @@ class RExporter(BaseExporter):
 
         return name
 
-    def _code_values(self, name, field, coded_labels):
+    def _code_values(self, var, coded_labels):
         "If the field can be coded return the r factor and level for it."
-        data_field = u'data${0}'.format(name)
+        data_field = u'data${0}'.format(var)
 
         factor = u'{0}.factor = factor({0},levels=c('.format(data_field)
         level = u'levels({0}.factor)=c('.format(data_field)
@@ -66,31 +66,30 @@ class RExporter(BaseExporter):
         levels = []       # value dictionaries
         labels = []       # data labels
 
-        for c in self.concepts:
-            cfields = c.concept_fields.all()
+        for f in self.header:
+            name = f['name']
 
-            for cfield in cfields:
-                field = cfield.field
-                name = self._format_name(field.field_name)
-                labels.append(u'attr(data${0}, "label") = "{1}"'
-                              .format(name, unicode(cfield)))
+            labels.append(u'attr(data${0}, "label") = "{1}"'
+                          .format(name, f['label']))
 
-                coded_labels = field.coded_labels()
+            coded_labels = f['field'].coded_labels()
 
-                if coded_labels:
-                    codes = self._code_values(name, field, coded_labels)
-                    factors.append(codes[0])
-                    levels.append(codes[1])
+            if coded_labels:
+                codes = self._code_values(name, f['field'], coded_labels)
+                factors.append(codes[0])
+                levels.append(codes[1])
 
         data_filename = 'data.csv'
         script_filename = 'script.R'
 
         # File buffers
         data_buff = StringIO()
-        # Create the data file
-        data_exporter = CSVExporter(self.concepts)
-        # Overwrite preferred formats for data file
-        data_exporter.preferred_formats = self.preferred_formats
+
+        # Create the data file with this exporter's preferred formats.
+        data_exporter = CSVExporter(self.concepts,
+                                    preferred_formats=self.preferred_formats)
+
+        # Write the data file.
         data_exporter.write(iterable, data_buff, *args, **kwargs)
 
         zip_file.writestr(data_filename, data_buff.getvalue())

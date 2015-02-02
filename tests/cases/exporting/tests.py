@@ -4,10 +4,32 @@ from django.http import HttpResponse
 from django.template import Template
 from django.core import management
 from avocado import export
-from avocado.formatters import RawFormatter
-from avocado.query.pipeline import QueryProcessor
 from avocado.models import DataField, DataConcept, DataConceptField, DataView
+from avocado.query.pipeline import QueryProcessor
 from ... import models
+
+
+html_table = """
+<table>
+    <thead>
+        {% for f in header %}
+            <th>{{ f.label }}</th>
+        {% endfor %}
+    </thead>
+    <tbody>
+        {% for row in rows %}
+            <tr>
+            {% for value in row %}
+                <td>{{ value }}</td>
+            {% endfor %}
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+"""
+
+# Allowed delta in bytes for the AlmostEqual assertion.
+delta = 20
 
 
 class ExportTestCase(TestCase):
@@ -16,38 +38,67 @@ class ExportTestCase(TestCase):
     def setUp(self):
         management.call_command('avocado', 'init', 'tests', quiet=True)
 
-        salary_concept = \
-            DataField.objects.get(field_name='salary').concepts.all()[0]
+        field = DataField.objects.get(field_name='salary')
+        concept = field.concepts.all()[0]
 
         view = DataView(json=[{
-            'concept': salary_concept.pk,
+            'concept': concept.pk,
             'visible': False,
             'sort': 'desc',
         }])
 
-        proc = QueryProcessor(view=view, tree=models.Employee)
-        self.results = proc.get_iterable()
+        self.pks = list(models.Employee.objects.values_list('pk', flat=True)
+                        .order_by('-title__salary'))
 
-        # Ick..
-        self.exporter = export.BaseExporter(view)
-        self.exporter.params.insert(0, (RawFormatter(keys=['pk']), 1))
-        self.exporter.row_length += 1
+        proc = QueryProcessor(view=view)
+        queryset = proc.get_queryset()
+        self.iterable = proc.get_iterable(queryset=queryset)
+        self.exporter = proc.get_exporter(export.BaseExporter)
 
-    def test(self):
-        rows = list(self.exporter.write(self.results))
-        self.assertEqual([r[0] for r in rows], [2, 4, 6, 1, 3, 5])
+    def test_read(self):
+        it = self.exporter.read(self.iterable)
+        rows = list(it)
+        self.assertEqual([r[0] for r in rows], self.pks)
 
-    def test_offset(self):
-        rows = list(self.exporter.write(self.results, offset=2))
-        self.assertEqual([r[0] for r in rows], [6, 1, 3, 5])
+    def test_cached_read(self):
+        it = self.exporter.cached_read(self.iterable)
+        rows = list(it)
+        self.assertEqual([r[0] for r in rows], self.pks)
 
-    def test_limit(self):
-        rows = list(self.exporter.write(self.results, limit=2))
-        self.assertEqual([r[0] for r in rows], [2, 4])
+    def test_threaded_read(self):
+        it = self.exporter.threaded_read(self.iterable)
+        rows = list(it)
+        self.assertEqual([r[0] for r in rows], self.pks)
 
-    def test_limit_offset(self):
-        rows = list(self.exporter.write(self.results, offset=2, limit=2))
-        self.assertEqual([r[0] for r in rows], [6, 1])
+    def test_cached_threaded_read(self):
+        it = self.exporter.cached_threaded_read(self.iterable)
+        rows = list(it)
+        self.assertEqual([r[0] for r in rows], self.pks)
+
+    def test_manual_read(self):
+        it = self.exporter.manual_read(self.iterable)
+        rows = list(it)
+        self.assertEqual([r[0] for r in rows], self.pks)
+
+    def test_read_offset(self):
+        it = self.exporter.manual_read(self.iterable, offset=2)
+        rows = list(it)
+        self.assertEqual([r[0] for r in rows], self.pks[2:])
+
+    def test_read_limit(self):
+        it = self.exporter.manual_read(self.iterable, limit=2)
+        rows = list(it)
+        self.assertEqual([r[0] for r in rows], self.pks[:2])
+
+    def test_read_limit_offset(self):
+        it = self.exporter.manual_read(self.iterable, limit=2, offset=2)
+        rows = list(it)
+        self.assertEqual([r[0] for r in rows], self.pks[2:4])
+
+    def test_write(self):
+        it = self.exporter.read(self.iterable)
+        rows = list(self.exporter.write(it))
+        self.assertEqual([r[0] for r in rows], self.pks)
 
 
 class FileExportTestCase(TestCase):
@@ -104,106 +155,155 @@ class FileExportTestCase(TestCase):
             'title__salary')
 
     def test_csv(self):
+        name = 'export.csv'
+        exp_size = 250
+
         exporter = export.CSVExporter(self.concepts)
-        buff = exporter.write(self.query)
-        buff.seek(0)
-        self.assertEqual(len(buff.read()), 246)
+        it = exporter.read(self.query)
+
+        exporter.write(it, buff=name)
+
+        size = os.path.getsize(name)
+        self.assertAlmostEqual(size, exp_size, delta=delta)
+
+        os.remove(name)
 
     def test_excel(self):
-        fname = 'excel_export.xlsx'
+        name = 'excel_export.xlsx'
+        exp_size = 6120
+
         exporter = export.ExcelExporter(self.concepts)
-        exporter.write(self.query, fname)
-        self.assertTrue(os.path.exists(fname))
-        # Observed slight size differences..
-        l = len(open(fname).read())
-        self.assertTrue(6170 <= l <= 6250)
-        os.remove(fname)
+        it = exporter.read(self.query)
+        exporter.write(it, buff=name)
+
+        size = os.path.getsize(name)
+        self.assertAlmostEqual(size, exp_size, delta=delta)
+
+        os.remove(name)
 
     def test_sas(self):
-        fname = 'sas_export.zip'
+        name = 'sas_export.zip'
+        exp_size = 1340
+
         exporter = export.SASExporter(self.concepts)
-        exporter.write(self.query, fname)
-        self.assertTrue(os.path.exists(fname))
-        self.assertEqual(len(open(fname).read()), 1335)
-        os.remove(fname)
+        it = exporter.read(self.query)
+        exporter.write(it, buff=name)
+
+        size = os.path.getsize(name)
+        self.assertAlmostEqual(size, exp_size, delta=delta)
+
+        os.remove(name)
 
     def test_r(self):
-        fname = 'r_export.zip'
+        name = 'r_export.zip'
+        exp_size = 760
+
         exporter = export.RExporter(self.concepts)
-        exporter.write(self.query, fname)
-        self.assertTrue(os.path.exists(fname))
-        self.assertEqual(len(open(fname).read()), 754)
-        os.remove(fname)
+        it = exporter.read(self.query)
+        exporter.write(it, buff=name)
+
+        size = os.path.getsize(name)
+        self.assertAlmostEqual(size, exp_size, delta=delta)
+
+        os.remove(name)
 
     def test_json(self):
+        name = 'export.json'
+        exp_size = 630
+
         exporter = export.JSONExporter(self.concepts)
-        buff = exporter.write(self.query)
-        buff.seek(0)
-        self.assertEqual(len(buff.read()), 639)
+        it = exporter.read(self.query)
+
+        exporter.write(it, buff=name)
+
+        size = os.path.getsize(name)
+        self.assertAlmostEqual(size, exp_size, delta=delta)
+
+        os.remove(name)
 
     def test_html(self):
+        name = 'export.html'
+        exp_size = 1960
+
+        template = Template(html_table)
         exporter = export.HTMLExporter(self.concepts)
-        template = Template("""<table>
-{% for row in rows %}
-    <tr>
-    {% for item in row %}
-        <td>{{ item.values|join:" " }}</td>
-    {% endfor %}
-    </tr>
-{% endfor %}
-</table>""")
-        buff = exporter.write(self.query, template=template)
-        buff.seek(0)
-        self.assertEqual(len(buff.read()), 494)
+        it = exporter.read(self.query)
+
+        exporter.write(it, buff=name, template=template)
+
+        size = os.path.getsize(name)
+        self.assertAlmostEqual(size, exp_size, delta=delta)
+
+        os.remove(name)
 
 
 class ResponseExportTestCase(FileExportTestCase):
     def test_csv(self):
-        exporter = export.CSVExporter(self.concepts)
+        exp_size = 240
+
         response = HttpResponse()
-        exporter.write(self.query, response)
-        self.assertEqual(len(response.content), 246)
+        exporter = export.CSVExporter(self.concepts)
+
+        it = exporter.read(self.query)
+        exporter.write(it, buff=response)
+
+        self.assertAlmostEqual(len(response.content), exp_size, delta=delta)
 
     def test_excel(self):
-        exporter = export.ExcelExporter(self.concepts)
+        exp_size = 6120
+
         response = HttpResponse()
-        exporter.write(self.query, response)
-        # Observed slight size differences..
-        l = len(response.content)
-        self.assertTrue(6170 <= l <= 6250)
+        exporter = export.ExcelExporter(self.concepts)
+
+        it = exporter.read(self.query)
+        exporter.write(it, buff=response)
+
+        self.assertAlmostEqual(len(response.content), exp_size, delta=delta)
 
     def test_sas(self):
-        exporter = export.SASExporter(self.concepts)
+        exp_size = 1340
+
         response = HttpResponse()
-        exporter.write(self.query, response)
-        self.assertEqual(len(response.content), 1335)
+        exporter = export.SASExporter(self.concepts)
+
+        it = exporter.read(self.query)
+        exporter.write(it, buff=response)
+
+        self.assertAlmostEqual(len(response.content), exp_size, delta=delta)
 
     def test_r(self):
-        exporter = export.RExporter(self.concepts)
+        exp_size = 760
+
         response = HttpResponse()
-        exporter.write(self.query, response)
-        self.assertEqual(len(response.content), 754)
+        exporter = export.RExporter(self.concepts)
+
+        it = exporter.read(self.query)
+        exporter.write(it, buff=response)
+
+        self.assertAlmostEqual(len(response.content), exp_size, delta=delta)
 
     def test_json(self):
-        exporter = export.JSONExporter(self.concepts)
+        exp_size = 630
+
         response = HttpResponse()
-        exporter.write(self.query, response)
-        self.assertEqual(len(response.content), 639)
+        exporter = export.JSONExporter(self.concepts)
+
+        it = exporter.read(self.query)
+        exporter.write(it, buff=response)
+
+        self.assertAlmostEqual(len(response.content), exp_size, delta=delta)
 
     def test_html(self):
-        exporter = export.HTMLExporter(self.concepts)
+        exp_size = 1960
+
         response = HttpResponse()
-        template = Template("""<table>
-{% for row in rows %}
-    <tr>
-    {% for item in row %}
-        <td>{{ item.values|join:" " }}</td>
-    {% endfor %}
-    </tr>
-{% endfor %}
-</table>""")
-        exporter.write(self.query, template=template, buff=response)
-        self.assertEqual(len(response.content), 494)
+        exporter = export.HTMLExporter(self.concepts)
+        template = Template(html_table)
+
+        it = exporter.read(self.query)
+        exporter.write(it, buff=response, template=template)
+
+        self.assertAlmostEqual(len(response.content), exp_size, delta=delta)
 
 
 class ForceDistinctRegressionTestCase(TestCase):
@@ -244,13 +344,13 @@ class ForceDistinctRegressionTestCase(TestCase):
         ])
 
         proc = QueryProcessor(view=view)
-        results = proc.get_iterable()
+        queryset = proc.get_queryset()
+        exporter = proc.get_exporter(export.BaseExporter)
 
-        exporter = export.BaseExporter(view)
-        exporter.params.insert(0, (RawFormatter(keys=['pk']), 1))
-        exporter.row_length += 1
+        iterable = proc.get_iterable(queryset=queryset)
+        reader = exporter.manual_read(iterable)
 
-        self.assertEqual(list(exporter.write(results)), [
+        self.assertEqual(list(exporter.write(reader)), [
             (1, u'Eric', u'Smith'),
             (3, u'Erick', u'Smith'),
             (5, u'Zac', u'Cook'),
@@ -268,13 +368,13 @@ class ForceDistinctRegressionTestCase(TestCase):
         ])
 
         proc = QueryProcessor(view=view)
-        results = proc.get_iterable()
+        queryset = proc.get_queryset()
+        exporter = proc.get_exporter(export.BaseExporter)
 
-        exporter = export.BaseExporter(view)
-        exporter.params.insert(0, (RawFormatter(keys=['pk']), 1))
-        exporter.row_length += 1
+        iterable = proc.get_iterable(queryset=queryset)
+        reader = exporter.manual_read(iterable)
 
-        self.assertEqual(list(exporter.write(results)), [
+        self.assertEqual(list(exporter.write(reader)), [
             (3, u'Erick', u'Smith'),
             (4, u'Aaron', u'Harris'),
             (5, u'Zac', u'Cook'),
