@@ -1,6 +1,6 @@
 import logging
 import django
-from django.db import connections, DEFAULT_DB_ALIAS
+from django.db import connections, DEFAULT_DB_ALIAS, DatabaseError
 from django.core.cache import get_cache
 from avocado.conf import settings
 
@@ -52,9 +52,6 @@ def named_connection(name, db=DEFAULT_DB_ALIAS):
 
     if temp_db in connections.databases:
         conn = connections[temp_db]
-
-        if conn.is_dirty():
-            raise KeyError('Connection {0} is in use.'.format(name))
     else:
         # Get the settings of the real database being connected to.
         connections.ensure_defaults(db)
@@ -65,8 +62,8 @@ def named_connection(name, db=DEFAULT_DB_ALIAS):
 
         conn = connections[temp_db]
 
-    # Get the backend specific process ID for the query. This opens the
-    # connection to the database.
+    # Get the backend specific process ID for the query. This will open a
+    # connection to the database if not already open.
     pid = _get_backend_pid(conn)
 
     # Put real database alias and PID in centralized cache so multiple threads
@@ -83,15 +80,16 @@ def cancel_query(name):
 
     cache = get_cache(settings.QUERY_CACHE)
     info = cache.get(temp_db)
+    canceled = None
 
     # Cancel the query if the cache entry is present.
     if info is not None:
+        # Remove the cache entry.
+        cache = get_cache(settings.QUERY_CACHE)
+        cache.delete(temp_db)
+
         db, pid = info
         canceled = _cancel_query(name, db, pid)
-    else:
-        canceled = None
-
-    close_connection(name)
 
     return canceled
 
@@ -151,7 +149,14 @@ def _cancel_query(name, db, pid):
 
     if engine == 'django.db.backends.postgresql_psycopg2':
         c = conn.cursor()
-        c.execute('SELECT pg_terminate_backend(%s)', (pid,))
+
+        # Postgres will raise a database error if an unprivileged user
+        # attempts to cancel a query that no longer exists.
+        try:
+            c.execute('SELECT pg_terminate_backend(%s)', (pid,))
+        except DatabaseError:
+            return
+
         canceled, = c.fetchone()
         return canceled
 
