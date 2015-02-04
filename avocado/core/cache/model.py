@@ -14,10 +14,18 @@ logger = logging.getLogger(__name__)
 
 
 def _pickling_value(v):
-    "Returns value for pickling given the value."
+    "Returns an appropriate value to be pickled."
     if isinstance(v, QuerySet):
-        return v.query
-    elif inspect.isclass(v) and not hasattr(v, '__getstate__'):
+        # Compile the query and use the SQL string as the pickle value.
+        # Microbenchmarking shows this is faster than pickling and then
+        # hashing the query's internal dict. In addition, the variability
+        # in SQL queries vs. the internal structure of query across Django
+        # versions is at most the same if not less variable.
+        s, p = v.query.get_compiler(v.db).as_sql()
+
+        return s % p
+
+    if inspect.isclass(v) and not hasattr(v, '__getstate__'):
         # As with the QuerySet instance above, this could result in loading
         # a lot of data into memory.
         logger.warn('type "{0}" does not implement __getstate__'

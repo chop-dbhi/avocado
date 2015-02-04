@@ -1,4 +1,5 @@
 import time
+import cPickle as pickle
 from django.db import models
 from django.test import TestCase
 from django.test.utils import override_settings
@@ -166,3 +167,24 @@ class TestIssue136(TestCase):
 
         self.assertTrue(self.f1.default_versioned.cached(self.f1))
         self.assertTrue(self.f2.default_versioned.cached(self.f2))
+
+
+class TestIssue309(TestCase):
+    def test(self):
+        qs1 = Foo.objects.all()
+        qs2 = Foo.objects.all()
+
+        # Invoke compilation and populate internal query structure
+        str(qs2.query)
+
+        s1 = pickle.dumps(qs1.query)
+        s2 = pickle.dumps(qs2.query)
+
+        # Pickled states are not the same
+        self.assertNotEqual(s1, s2)
+
+        s1 = pickle.dumps(str(qs1.query))
+        s2 = pickle.dumps(str(qs2.query))
+
+        # However, their SQL strings are
+        self.assertEqual(s1, s2)
