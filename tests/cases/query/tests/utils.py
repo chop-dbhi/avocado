@@ -3,6 +3,7 @@ from threading import Thread
 from django.db import connections, DatabaseError
 from django.test import TransactionTestCase
 from django.core import management
+from django.conf import settings
 from tests.models import Employee
 from avocado.query import utils
 
@@ -61,64 +62,67 @@ class TempConnTest(TransactionTestCase):
         self.assertIsNone(utils.cancel_query(self.name))
 
 
-class SQLiteTempConnTest(TempConnTest):
-    db = 'sqlite'
-    name = 'test_sqlite'
+if 'sqlite' in settings.DATABASES:
+    class SQLiteTempConnTest(TempConnTest):
+        db = 'sqlite'
+        name = 'test_sqlite'
 
-    def test(self):
-        self.run_utils_test(self.db, self.name)
+        def test(self):
+            self.run_utils_test(self.db, self.name)
 
-    def test_cancel(self):
-        # Hack to cause SQLite to sleep
-        # http://stackoverflow.com/a/23758390/407954
-        def runner(t, db, name):
-            conn = utils.named_connection(name, db=db)
-            conn.connection.create_function('sleep', 1, time.sleep)
-            c = conn.cursor()
-            c.execute("SELECT sleep(2)")
+        def test_cancel(self):
+            # Hack to cause SQLite to sleep
+            # http://stackoverflow.com/a/23758390/407954
+            def runner(t, db, name):
+                conn = utils.named_connection(name, db=db)
+                conn.connection.create_function('sleep', 1, time.sleep)
+                c = conn.cursor()
+                c.execute("SELECT sleep(2)")
 
-        def stopper(t, db, name):
-            canceled = utils.cancel_query(name)
-            t.assertTrue(canceled)
+            def stopper(t, db, name):
+                canceled = utils.cancel_query(name)
+                t.assertTrue(canceled)
 
-        self.run_cancel_test(runner, stopper)
-
-
-class PostgresTempConnTest(TempConnTest):
-    db = 'postgres'
-    name = 'test_postgres'
-
-    def test(self):
-        self.run_utils_test(self.db, self.name)
-
-    def test_cancel(self):
-        def runner(t, db, name):
-            conn = utils.named_connection(name, db=db)
-            c = conn.cursor()
-            t.assertRaises(DatabaseError, c.execute, 'SELECT pg_sleep(2)')
-
-        def stopper(t, db, name):
-            canceled = utils.cancel_query(name)
-            t.assertTrue(canceled)
-
-        self.run_cancel_test(runner, stopper)
+            self.run_cancel_test(runner, stopper)
 
 
-class MySQLTempConnTest(TempConnTest):
-    db = 'mysql'
-    name = 'test_mysql'
+if 'postgres' in settings.DATABASES:
+    class PostgresTempConnTest(TempConnTest):
+        db = 'postgres'
+        name = 'test_postgres'
 
-    def test(self):
-        self.run_utils_test(self.db, self.name)
+        def test(self):
+            self.run_utils_test(self.db, self.name)
 
-    def test_cancel(self):
-        def runner(t, db, name):
-            conn = utils.named_connection(name, db=db)
-            c = conn.cursor()
-            c.execute('SELECT sleep(2)')
+        def test_cancel(self):
+            def runner(t, db, name):
+                conn = utils.named_connection(name, db=db)
+                c = conn.cursor()
+                t.assertRaises(DatabaseError, c.execute, 'SELECT pg_sleep(2)')
 
-        def stopper(t, db, name):
-            canceled = utils.cancel_query(name)
-            t.assertTrue(canceled)
+            def stopper(t, db, name):
+                canceled = utils.cancel_query(name)
+                t.assertTrue(canceled)
 
-        self.run_cancel_test(runner, stopper)
+            self.run_cancel_test(runner, stopper)
+
+
+if 'mysql' in settings.DATABASES:
+    class MySQLTempConnTest(TempConnTest):
+        db = 'mysql'
+        name = 'test_mysql'
+
+        def test(self):
+            self.run_utils_test(self.db, self.name)
+
+        def test_cancel(self):
+            def runner(t, db, name):
+                conn = utils.named_connection(name, db=db)
+                c = conn.cursor()
+                c.execute('SELECT sleep(2)')
+
+            def stopper(t, db, name):
+                canceled = utils.cancel_query(name)
+                t.assertTrue(canceled)
+
+            self.run_cancel_test(runner, stopper)
