@@ -18,7 +18,11 @@ class HTMLExporter(BaseExporter):
         if isinstance(template, basestring):
             template = get_template(template)
 
-        context = Context({'rows': self.read(iterable, *args, **kwargs)})
+        context = Context({
+            'header': self.header,
+            'rows': iterable,
+        })
+
         buff.write(template.render(context))
 
         return buff

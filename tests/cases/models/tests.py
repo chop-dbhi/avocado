@@ -1,8 +1,4 @@
 from copy import deepcopy
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
 from django.test import TestCase
 from django.core import management
 from django.test.utils import override_settings
@@ -342,61 +338,6 @@ class DataFieldQuerysetTestCase(TestCase):
                         ('Eric', 1),
                         ('Erick', 1),
                         ('Erin', 1)))
-
-
-class DataConceptTestCase(TestCase):
-    def setUp(self):
-        management.call_command('avocado', 'init', 'tests', publish=False,
-                                concepts=False, quiet=True)
-
-    def test_format(self):
-        name_field = DataField.objects.get_by_natural_key(
-            'tests', 'title', 'name')
-        salary_field = DataField.objects.get_by_natural_key(
-            'tests', 'title', 'salary')
-        boss_field = DataField.objects.get_by_natural_key(
-            'tests', 'title', 'boss')
-
-        concept = DataConcept(name='Title')
-        concept.save()
-
-        DataConceptField(concept=concept, field=name_field, order=1).save()
-        DataConceptField(concept=concept, field=salary_field, order=2).save()
-        DataConceptField(concept=concept, field=boss_field, order=3).save()
-
-        values = ['CEO', 100000, True]
-
-        self.assertEqual(
-            concept.format(values),
-            OrderedDict([
-                (u'name', u'CEO'),
-                (u'salary', 100000),
-                (u'boss', True)
-            ]))
-
-        self.assertEqual(concept._formatter_cache[0], None)
-
-        from avocado.formatters import Formatter, registry as formatters
-
-        class HtmlFormatter(Formatter):
-            def to_html(self, values, **context):
-                fvalues = self(values, preferred_formats=['string'])
-                return OrderedDict({
-                    'profile': '<span>' +
-                               '</span><span>'.join(fvalues.values()) +
-                               '</span>'
-                })
-            to_html.process_multiple = True
-
-        formatters.register(HtmlFormatter, 'HTML')
-        concept.formatter = 'HTML'
-
-        self.assertEqual(
-            concept.format(values, preferred_formats=['html']),
-            OrderedDict([
-                ('profile',
-                 u'<span>CEO</span><span>100000</span><span>True</span>')
-            ]))
 
 
 class DataConceptManagerTestCase(TestCase):

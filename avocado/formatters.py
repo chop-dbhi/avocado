@@ -1,23 +1,26 @@
 import logging
 from decimal import Decimal
-from collections import defaultdict
+from warnings import warn
 try:
     from collections import OrderedDict
 except ImportError:
     from ordereddict import OrderedDict
+from collections import defaultdict, namedtuple
 from django.utils.encoding import force_unicode
 from avocado.core import loader
 
 log = logging.getLogger(__name__)
 
 
-class FormatterException(Exception):
-    pass
+class ExpectedFormatterException(Exception):
+    """Exception that can be thrown when an formatter error is expected
+    and can be ignored.
+    """
 
 
-def _unique_keys(fields):
-    """Takes a list of fields and generated a unique list of keys based
-    based on the field's natural_key.
+def _unique_dict(fields):
+    """Takes a list of fields and returns an ordered dict with unique keys
+    based on the field's natural key.
     """
     def model_prefix(field, key):
         return u'{0}__{1}'.format(field.model_name, key)
@@ -62,7 +65,7 @@ def _unique_keys(fields):
 
         pairs.append((key, field))
 
-    return pairs
+    return OrderedDict(pairs)
 
 
 def process_multiple(func):
@@ -72,162 +75,217 @@ def process_multiple(func):
 
 
 class Formatter(object):
-    """Converts Python types into a formatted equivalent based on a list of
-    `preferred_formats`. If no formats are specified or none of the format
-    methods are successful, the default method for the field's type will be
-    attempted and finally will fallback to returning the value as is.
+    """Converts values into alternate formats, other Python types or
+    string-based formats.
 
-    A format is supported if `to_FORMAT` method is defined on the Formatter
-    class. By default, the method is assumed to take a value for a single
-    field and produce a value. The method signature is:
+    A formatter is initialized and bound to a `concept` with a series of
+    `formats` that will be tried when converting the input values. Format
+    method are denoted by the `to_` prefix, such as `to_csv`.
 
-        def to_FORMAT(value, field=field, concept=self.concept,
-                      process_multiple=False, **context)
-
-    With this approach, each field contained in the concept will be processed
-    separately.
-
-    Alternately, the method can decorated with `process_multiple` which causes
-    the concept and all field values to be passed into the method. The
-    signature looks as follows.
-
-        @process_multiple
-        def to_FORMAT(values, fields=self.fields, concept=self.concept,
-                      process_multiple=True, **context)
-
-    `values` will be an OrderedDict of values for each field. `fields` is
-    a map of `DataField` instances associated with `concept` keyed by their
-    natural key starting with `field_name` and prepending the `model_name`
-    and `app_name` to prevent key collisions.
-
-    The output of a `process_multiple` method can be a single formatted value,
-    an OrderedDict, or a sequence of key-value pairs.
+    Format methods must return a tuple of values, but may be contain more
+    or less values than the original. A `get_FORMAT_header` method must be
+    implemented if a custom set of values are being emitted by a format
+    method.
     """
-    def __init__(self, concept=None, keys=None):
+    def __init__(self, concept=None, keys=None, formats=None):
         "Passing in a concept takes precedence over `keys`."
         if not keys and not concept:
             raise ValueError('A concept or sequence of keys are required.')
 
         self.concept = concept
-        self.fields = None
 
         if concept:
-            fields = list(concept.fields.order_by('concept_fields__order'))
-            self.fields = OrderedDict(_unique_keys(fields))
-            self.keys = self.fields.keys()
+            self.concept_fields = tuple(concept.concept_fields
+                                        .select_related('field')
+                                        .order_by('order', 'name'))
+
+            self.fields = _unique_dict(cf.field
+                                       for cf in self.concept_fields)
+            self.field_names = self.fields.keys()
         else:
-            self.keys = keys
+            self.concept_fields = ()
+            self.fields = {}
+            self.field_names = keys
+
+        # Clean formats and split into single vs. multi.
+        self.single_formats = []
+        self.multi_formats = []
+
+        if formats:
+            for fmt in formats:
+                method = getattr(self, 'to_{0}'.format(fmt), None)
+
+                if not method:
+                    continue
+
+                if getattr(method, 'process_multiple', False):
+                    self.multi_formats.append(method)
+                else:
+                    self.single_formats.append(method)
 
         # Keep track of fields/concepts that cause an error to prevent
         # logging the exception twice
         self._errors = set()
 
-    def __call__(self, values, preferred_formats=None, **context):
-        if not preferred_formats:
-            preferred_formats = []
-
-        # Create a OrderedDict of the values relative to the
-        # concept fields objects the values represent. This
-        # enables key-based access to the values rather than
-        # relying on position.
-        if not isinstance(values, OrderedDict):
-            if not isinstance(values, (list, tuple)):
-                values = [values]
-
-            values = OrderedDict(zip(self.keys, values))
-
-        # Create list of formats to attempt for multi-value processing.
-        multi_formats = list(preferred_formats)
-
-        # Append concept type as a format if one is defined.
-        if self.concept and self.concept.type:
-            multi_formats.append(self.concept.type)
-
-        multi_formats.append('raw')
-
-        # Iterate over all preferred formats and attempt to process the values.
-        # Formatter methods that process all values must be tracked and
-        # attempted only once. They are removed from the list once attempted.
-        # If no multi-value methods succeed, each value is processed
-        # independently with the remaining formats.
-        for f in multi_formats:
-            method = getattr(self, 'to_{0}'.format(f), None)
-
-            # This formatter does not support this format, remove it
-            # from the available list.
-            if not method:
-                continue
-
-            if getattr(method, 'process_multiple', False):
-                try:
-                    output = method(values,
-                                    fields=self.fields,
-                                    concept=self.concept,
-                                    process_multiple=True,
-                                    **context)
-
-                    if not isinstance(output, dict):
-                        return OrderedDict([(self.concept.name, output)])
-
-                    return output
-
-                except Exception:
-                    if self.concept and self.concept not in self._errors:
-                        self._errors.add(self.concept)
-                        log.exception('Multi-value formatter error')
-
-        # The output is independent of the input. Formatters may output more
-        # or less values than what was entered.
-        output = OrderedDict()
-
-        # Process each field and corresponding value separately.
-        for i, (key, value) in enumerate(values.iteritems()):
-            field = self.fields[key] if self.fields else None
-
-            field_formats = list(preferred_formats)
-
-            # Add field type if defined
-            if field:
-                if field.type:
-                    field_formats.append(field.type)
-
-                field_formats.append(field.simple_type)
-
-            # Fallback to simple type (e.g. number) and finally 'raw'
-            field_formats.append('raw')
-
-            for f in field_formats:
-                method = getattr(self, 'to_{0}'.format(f), None)
-
-                if not method:
-                    continue
-
-                try:
-                    value = method(value,
-                                   field=field,
-                                   concept=self.concept,
-                                   process_multiple=False,
-                                   **context)
-
-                    # Add/update output and break loop
-                    if isinstance(value, dict):
-                        output.update(value)
-                    else:
-                        output[key] = value
-
-                    break
-                except Exception:
-                    if field and field not in self._errors:
-                        self._errors.add(field)
-                        log.exception('Single-value formatter error')
-
-        return output
+        # Create a bare-bones record class.
+        self._recordclass = namedtuple('record', self.field_names)
 
     def __contains__(self, choice):
         return hasattr(self, 'to_{0}'.format(choice))
 
     def __unicode__(self):
         return u'{0}'.format(self.name or self.__class__.__name__)
+
+    def __call__(self, values, kwargs=None):
+        "Takes a tuple of values and format it with this prepared formatter."
+
+        # Create a record of the values.
+        record = self._recordclass(*values)
+
+        # Process multi-value format methods first.
+        for method in self.multi_formats:
+            try:
+                output = self._process_multiple(method,
+                                                value=record,
+                                                kwargs=kwargs)
+            except ExpectedFormatterException:
+                continue
+
+            return output
+
+        # Optimization. Return raw values if no single-value formatters
+        # are being used.
+        if not self.single_formats:
+            return tuple(record)
+
+        # Process each value separately with the corresponding field.
+        output = []
+
+        for i, key in enumerate(record._fields):
+            field = self.fields.get(key)
+
+            value = record[i]
+
+            for method in self.single_formats:
+                try:
+                    value = self._process_single(method,
+                                                 value=value,
+                                                 field=field,
+                                                 kwargs=kwargs)
+                except ExpectedFormatterException:
+                    continue
+
+                output.extend(value)
+                break
+
+            # Fallback to the raw value
+            else:
+                output.append(record[i])
+
+        return tuple(output)
+
+    def _process_single(self, method, value, field, kwargs):
+        output = method(value, field=field, kwargs=kwargs)
+
+        # Backwards compat for dicts.
+        if isinstance(output, dict):
+            warn('Formatter methods should return a tuple '
+                 'of values', DeprecationWarning)
+
+            return tuple(output.values())
+
+        if not isinstance(output, (list, tuple)):
+            return (output,)
+
+        return output
+
+    def _process_multiple(self, method, value, kwargs):
+        output = method(value, fields=self.fields, kwargs=kwargs)
+
+        # Backwards compat for dicts.
+        if isinstance(output, dict):
+            warn('Formatter methods should return a tuple '
+                 'of values', DeprecationWarning)
+
+            return tuple(output.values())
+
+        if not isinstance(output, (list, tuple)):
+            return (output,)
+
+        return output
+
+    def get_default_header(self):
+        concept = self.concept
+
+        # If this uses a concept and only has one field, use the concept
+        # descriptors for the formatted output.
+        if concept:
+            if len(self.concept_fields) == 1:
+                cf = self.concept_fields[0]
+                f = cf.field
+
+                return [{
+                    'field': f,
+                    'label': str(concept),
+                    'name': self.field_names[0],
+                    'type': concept.type or f.type or f.simple_type,
+                    'description': concept.description or f.description,
+                }]
+
+            header = []
+
+            for i, cf in enumerate(self.concept_fields):
+                f = cf.field
+
+                header.append({
+                    'field': f,
+                    'label': str(cf),
+                    'name': self.field_names[i],
+                    'type': f.type or f.simple_type,
+                    'description': f.description,
+                })
+
+            return header
+
+        return [{
+            'field': None,
+            'name': name,
+            'label': name,
+            'type': None,
+            'description': None,
+        } for name in self.field_names]
+
+    def get_meta(self, exporter=None):
+        """Returns metadata associated with the formatted output.
+
+        The metadata contains references to the concept, concept fields, and a
+        header that is a list of meta data per value in the output.
+
+        The `exporter` is passed in since the output may vary depending on
+        which exporter is being targeted.
+        """
+        meta = {
+            'concept': self.concept,
+            'fields': self.fields.values(),
+        }
+
+        # Exporter specific method for building the header.
+        header = None
+
+        if exporter:
+            method_name = 'get_{0}_header'.format(exporter)
+            method = getattr(self, method_name, None)
+
+            if method:
+                header = method()
+
+        # Fallback to the default header.
+        if header is None:
+            header = self.get_default_header()
+
+        meta['header'] = header
+
+        return meta
 
     def to_string(self, value, **context):
         # Attempt to coerce non-strings to strings. Depending on the data
@@ -243,8 +301,7 @@ class Formatter(object):
         if type(value) is bool:
             return value
 
-        raise FormatterException(u'Cannot convert {0} to boolean'
-                                 .format(value))
+        raise ExpectedFormatterException('cannot be converted into a boolean')
 
     def to_number(self, value, **context):
         # Attempts to convert a number. Starting with ints and floats
@@ -264,26 +321,30 @@ class Formatter(object):
             except (ValueError, TypeError):
                 pass
 
-        raise FormatterException(u'Cannot convert {0} to number'.format(value))
+        raise ExpectedFormatterException('cannot be converted into a number')
 
     def to_coded(self, value, **context):
         # Attempts to convert value to its coded representation
         field = context.get('field')
 
         if field:
-            for key, coded in field.coded_values:
-                if key == value:
-                    return coded
+            coded_values = field.coded_values()
 
-        raise FormatterException(u'No coded value for {0}'.format(value))
+            if coded_values is not None:
+                return coded_values.get(value)
+
+        raise ExpectedFormatterException('field does not support coded values')
 
     def to_raw(self, value, **context):
         return value
 
 
 class RawFormatter(Formatter):
-    def __call__(self, values, *args, **kwargs):
-        return super(RawFormatter, self).__call__(values, ['raw'])
+    def __init__(self, *args, **kwargs):
+        kwargs.pop('formats', None)
+        kwargs['formats'] = ('raw',)
+
+        return super(RawFormatter, self).__init__(*args, **kwargs)
 
 
 registry = loader.Registry(default=Formatter, register_instance=False)

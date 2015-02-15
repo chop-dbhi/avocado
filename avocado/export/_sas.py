@@ -16,8 +16,6 @@ class SASExporter(BaseExporter):
 
     preferred_formats = ('sas', 'coded')
 
-    num_lg_names = 0
-
     # informat/format mapping for all datatypes except strings
     sas_informat_map = {
         'key': 'best32.',
@@ -54,23 +52,23 @@ class SASExporter(BaseExporter):
 
         return sas_name
 
-    def _get_formats(self, sas_name, datafield):
+    def _get_formats(self, name, field):
         """This method creates the sas format and informat lists for
         every variable.
         """
         # get the informat/format
-        if datafield.simple_type == 'string':
-            informat = s_format = u'${0}.'.format(datafield.field.max_length)
+        if field.simple_type == 'string':
+            informat = s_format = u'${0}.'.format(field.field.max_length)
         else:
-            s_format = self.sas_format_map[datafield.simple_type]
-            informat = self.sas_informat_map[datafield.simple_type]
+            s_format = self.sas_format_map[field.simple_type]
+            informat = self.sas_informat_map[field.simple_type]
 
-        sas_informat = u'{0:<10}{1:>10}'.format(sas_name, informat)
-        sas_format = u'{0:<10}{1:>10}'.format(sas_name, s_format)
+        sas_informat = u'{0:<10}{1:>10}'.format(name, informat)
+        sas_format = u'{0:<10}{1:>10}'.format(name, s_format)
 
         return sas_format, sas_informat
 
-    def _code_values(self, name, field, coded_labels):
+    def _code_values(self, name, coded_labels):
         """If field can be coded return the value dictionary
         and the format name for the dictionary
         """
@@ -88,6 +86,8 @@ class SASExporter(BaseExporter):
     def write(self, iterable, buff=None, template_name='export/script.sas',
               *args, **kwargs):
 
+        self.num_lg_names = 0
+
         zip_file = ZipFile(self.get_file_obj(buff), 'w')
 
         formats = []            # sas formats for all fields
@@ -97,45 +97,44 @@ class SASExporter(BaseExporter):
         value_formats = []      # labels for value dictionary
         labels = []             # labels the field names
 
-        for c in self.concepts:
-            cfields = c.concept_fields.select_related('datafield')
-            for cfield in cfields:
-                field = cfield.field
-                name = self._format_name(field.field_name)
+        for f in self.header:
+            name = self._format_name(f['name'])
 
-                # Setting up formats/informats
-                format, informat = self._get_formats(name, field)
-                formats.append(format)
-                informats.append(informat)
+            # Setting up formats/informats
+            fmt, infmt = self._get_formats(name, f['field'])
 
-                # Add the field names to the input statement
-                if field.simple_type == 'string':
-                    inputs.append(u'{0} $'.format(name))
-                else:
-                    inputs.append(name)
+            formats.append(fmt)
+            informats.append(infmt)
 
-                coded_labels = field.coded_labels()
+            # Add the field names to the input statement
+            if f['type'] == 'string':
+                inputs.append(u'{0} $'.format(name))
+            else:
+                inputs.append(name)
 
-                # If a field can be coded create a SAS PROC Format statement
-                # that creates a value dictionary
-                if coded_labels:
-                    value_format, value = self._code_values(name, field,
-                                                            coded_labels)
-                    value_formats.append(value_format)
-                    values.append(value)
+            coded_labels = f['field'].coded_labels()
 
-                # construct labels
-                labels.append(u'{0}="{1}"'.format(name, unicode(cfield)))
+            # If a field can be coded create a SAS PROC Format statement
+            # that creates a value dictionary
+            if coded_labels:
+                value_format, value = self._code_values(name, coded_labels)
+                value_formats.append(value_format)
+                values.append(value)
+
+            # Construct labels
+            labels.append(u'{0}="{1}"'.format(name, f['label']))
 
         data_filename = 'data.csv'
         script_filename = 'script.sas'
 
         # File buffers
         data_buff = StringIO()
-        # Create the data file
-        data_exporter = CSVExporter(self.concepts)
-        # Overwrite preferred formats for data file
-        data_exporter.preferred_formats = self.preferred_formats
+
+        # Create the data file with this exporter's preferred formats.
+        data_exporter = CSVExporter(self.concepts,
+                                    preferred_formats=self.preferred_formats)
+
+        # Write data file.
         data_exporter.write(iterable, data_buff, *args, **kwargs)
 
         zip_file.writestr(data_filename, data_buff.getvalue())
