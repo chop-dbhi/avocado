@@ -104,7 +104,8 @@ def load_fixture(name, using=DEFAULT_DB_ALIAS):
 
         with transaction.commit_manually(using):
             for obj in objects:
-                if router.allow_syncdb(using, obj.object.__class__):
+                if (hasattr(router, "allow_migrate") and router.allow_migrate(using, obj.object.__class__)) or \
+                    (hasattr(router, "allow_syncdb") and router.allow_syncdb(using, obj.object.__class__)):
                     try:
                         obj.save(using=using)
                     except (DatabaseError, IntegrityError), e:
