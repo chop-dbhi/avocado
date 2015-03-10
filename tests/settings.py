@@ -72,8 +72,13 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'haystack',
     'guardian',
-    'south',
+)
 
+import django
+if django.VERSION < (1, 7):
+    INSTALLED_APPS += ('south',)
+
+INSTALLED_APPS += (
     'avocado',
 
     'tests',
