@@ -159,4 +159,6 @@ MODELTREES = {
     }
 }
 
+MIDDLEWARE_CLASSES = ()
+
 SECRET_KEY = 'acb123'
