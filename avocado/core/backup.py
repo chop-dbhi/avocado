@@ -149,7 +149,7 @@ def safe_load(name, backup_path=None, using=DEFAULT_DB_ALIAS):
             transaction.rollback(using)
             log.error(u'Fixture load failed, reverting from backup: {0}'
                       .format(backup_path))
-            load_fixture(backup_path, using=using)
+            load_fixture(os.path.abspath(backup_path), using=using)
             raise
         transaction.commit(using)
     return backup_path
