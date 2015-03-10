@@ -80,12 +80,13 @@ if django.VERSION < (1, 7):
 
 INSTALLED_APPS += (
     'avocado',
+    'avocado.events',
 
     'tests',
     'tests.cases.core',
     'tests.cases.exporting',
     'tests.cases.formatters',
-    'tests.cases.events',
+    'tests.cases.events_test',
     'tests.cases.history',
     'tests.cases.models',
     'tests.cases.query',
