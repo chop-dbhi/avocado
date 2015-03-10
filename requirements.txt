@@ -1,4 +1,4 @@
-Django>=1.5.12,<1.7
+Django>=1.5.12,<=1.7.6
 South==1.0.2
 django-guardian==1.2.5
 django-haystack==2.3.1
