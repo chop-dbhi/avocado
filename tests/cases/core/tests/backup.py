@@ -4,6 +4,9 @@ from django.core.exceptions import ImproperlyConfigured
 from django.test import TransactionTestCase
 from django.test.utils import override_settings
 
+from unittest import skipIf
+import django
+
 TEST_APP_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 
@@ -60,6 +63,7 @@ class BackupTestCase(TransactionTestCase):
                                             backup.get_fixture_dir())
         self.assertEqual(filename, '0002_avocado_metadata')
 
+    @skipIf(django.VERSION >= (1, 7), "South isn't supported in Django 1.7")
     def test_migration_call(self):
         from avocado.core import backup
         from south import migration
@@ -76,6 +80,7 @@ class BackupTestCase(TransactionTestCase):
         # migration.Migrations.
         migration.Migrations._clear_cache()
 
+    @skipIf(django.VERSION >= (1, 7), "South isn't supported in Django 1.7")
     def test_migration_call_no_fake(self):
         # This test superficially looks like it tests the --no-fake switch,
         # but it doesn't fully succeed, because the Django managemement
