@@ -160,11 +160,17 @@ class FieldSearchTest(SearchTest):
 
     def test_data(self):
         "Test search via the data itself."
+        last_name = DataField.objects.get(model_name='employee',
+                                          field_name='last_name')
+        first_name = DataField.objects.get(model_name='employee',
+                                           field_name='first_name')
+        title_name = DataField.objects.get(model_name='title',
+                                           field_name='name')
         values = [
-            ('Jones', [6]),
-            ('Programmer', [2]),
-            ('Erick', [5]),
-            ('CEO', [2]),
+            ('Jones', [last_name.pk]),
+            ('Programmer', [title_name.pk]),
+            ('Erick', [first_name.pk]),
+            ('CEO', [title_name.pk]),
         ]
 
         for v, ids in values:
@@ -229,12 +235,17 @@ class ConceptSearchTest(SearchTest):
 
     def test_data(self):
         "Test search via the data itself."
-
+        last_name = DataConcept.objects.get(fields__model_name='employee',
+                                            fields__field_name='last_name')
+        first_name = DataConcept.objects.get(fields__model_name='employee',
+                                             fields__field_name='first_name')
+        title_name = DataConcept.objects.get(fields__model_name='title',
+                                             fields__field_name='name')
         values = [
-            ('Jones', [6]),
-            ('Programmer', [2]),
-            ('Erick', [5]),
-            ('CEO', [2]),
+            ('Jones', [last_name.pk]),
+            ('Programmer', [title_name.pk]),
+            ('Erick', [first_name.pk]),
+            ('CEO', [title_name.pk]),
         ]
 
         for v, ids in values:
