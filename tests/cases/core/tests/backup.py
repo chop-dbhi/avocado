@@ -4,7 +4,12 @@ from django.core.exceptions import ImproperlyConfigured
 from django.test import TransactionTestCase
 from django.test.utils import override_settings
 
-from unittest import skipIf
+try:
+    from unittest import skipIf
+except ImportError:
+    # Python 2.6 doesn't include skipIf, but Django 1.6 has a copy
+    from django.utils.unittest import skipIf
+
 import django
 
 TEST_APP_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
