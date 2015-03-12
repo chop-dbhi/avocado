@@ -506,8 +506,8 @@ class DataQueryTestCase(TestCase):
         self.assertEqual(query.json, json)
 
     def test_count(self):
-        salary_field = DataField.objects.get_by_natural_key(
-            'tests', 'title', 'salary')
+        c = DataConcept.objects.get(fields__model_name='title',
+                                    fields__field_name='salary')
 
         json = {
             'context': {
@@ -516,7 +516,7 @@ class DataQueryTestCase(TestCase):
                 'value': '1000'
             },
             'view': [{
-                'concept': salary_field.id,
+                'concept': c.id,
                 'visible': True,
             }]
         }
@@ -633,7 +633,7 @@ class DataQueryTestCase(TestCase):
             '"tests_office"."id") WHERE "tests_title"."boss" = True '
             .replace(' ', ''))
 
-        query = DataQuery({'view': {'ordering': [(1, 'desc')]}})
+        query = DataQuery({'view': {'ordering': [(c.pk, 'desc')]}})
         queryset = Employee.objects.all().distinct()
         self.assertEqual(
             unicode(query.apply(queryset=queryset).query).replace(' ', ''),

@@ -72,15 +72,21 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'haystack',
     'guardian',
-    'south',
+)
 
+import django
+if django.VERSION < (1, 7):
+    INSTALLED_APPS += ('south',)
+
+INSTALLED_APPS += (
     'avocado',
+    'avocado.events',
 
     'tests',
     'tests.cases.core',
     'tests.cases.exporting',
     'tests.cases.formatters',
-    'tests.cases.events',
+    'tests.cases.events_test',
     'tests.cases.history',
     'tests.cases.models',
     'tests.cases.query',
@@ -152,5 +158,7 @@ MODELTREES = {
         'model': 'tests.Office',
     }
 }
+
+MIDDLEWARE_CLASSES = ()
 
 SECRET_KEY = 'acb123'

@@ -22,7 +22,7 @@ def std_dev(values):
     mean = sum(values) / float(len(values))
 
     # Compute the square difference of all the values
-    square_differences = [(v - mean)**2 for v in values]
+    square_differences = [(v - mean) ** 2 for v in values]
 
     return math.sqrt(sum(square_differences) / float(len(square_differences)))
 

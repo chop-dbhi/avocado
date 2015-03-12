@@ -3,6 +3,10 @@ import sys
 
 os.environ['DJANGO_SETTINGS_MODULE'] = 'tests.settings'
 
+import django
+if hasattr(django, 'setup'):
+    django.setup()
+
 from django.core import management
 
 

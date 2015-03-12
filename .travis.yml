@@ -9,6 +9,7 @@ sudo: false
 env:
     - DJANGO=1.5.12 POSTGRES_TEST_USER=postgres POSTGRES_TEST_NAME=avocado MYSQL_TEST_USER=root MYSQL_TEST_NAME=avocado
     - DJANGO=1.6.10 POSTGRES_TEST_USER=postgres POSTGRES_TEST_NAME=avocado MYSQL_TEST_USER=root MYSQL_TEST_NAME=avocado
+    - DJANGO=1.7.6 POSTGRES_TEST_USER=postgres POSTGRES_TEST_NAME=avocado MYSQL_TEST_USER=root MYSQL_TEST_NAME=avocado
 
 services:
     - memcached
@@ -35,3 +36,8 @@ script:
 after_success:
     - pip install -q coveralls
     - coveralls
+
+matrix:
+    exclude:
+        - python: "2.6"
+          env: DJANGO=1.7.6 POSTGRES_TEST_USER=postgres POSTGRES_TEST_NAME=avocado MYSQL_TEST_USER=root MYSQL_TEST_NAME=avocado
