@@ -177,6 +177,8 @@ class DataFieldQuerysetTestCase(TestCase):
             'tests', 'project', 'budget')
         self.first_name = DataField.objects.get_by_natural_key(
             'tests', 'employee', 'first_name')
+        self.title_name = DataField.objects.get_by_natural_key(
+            'tests', 'title', 'name')
 
     def test_values_list(self):
         values = self.first_name.values_list()
@@ -334,10 +336,27 @@ class DataFieldQuerysetTestCase(TestCase):
 
         queryset = self.first_name.model.objects\
             .filter(first_name__startswith='E')
+
         self.assertEqual(self.first_name.dist(queryset=queryset), (
                         ('Eric', 1),
                         ('Erick', 1),
                         ('Erin', 1)))
+
+    def test_dist_related(self):
+        self.assertEqual(self.title_name.dist(), (
+                         ('Analyst', 1),
+                         ('CEO', 1),
+                         ('Guard', 1),
+                         ('IT', 1),
+                         ('Lawyer', 1),
+                         ('Programmer', 1),
+                         ('QA', 1)))
+
+        # Titles relative to employees
+        queryset = Employee.objects.all()
+        self.assertEqual(self.title_name.dist(queryset=queryset), (
+                         ('Analyst', 3),
+                         ('Programmer', 3)))
 
 
 class DataConceptManagerTestCase(TestCase):

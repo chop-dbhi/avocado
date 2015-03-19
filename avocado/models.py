@@ -11,6 +11,7 @@ from django.db.models import Q
 from django.db.models.fields import FieldDoesNotExist
 from django.db.models.signals import post_save, pre_delete
 from django.core.exceptions import ValidationError
+from modeltree.tree import trees
 from avocado.core import utils
 from avocado.core.structures import ChoicesDict
 from avocado.core.models import Base, BasePlural, PublishArchiveMixin
@@ -564,14 +565,29 @@ class DataField(BasePlural, PublishArchiveMixin):
         return nulls / float(count)
 
     @cached_method(version='data_version')
-    def dist(self, queryset=None):
+    def dist(self, queryset=None, tree=None):
         if queryset is None:
-            queryset = self.model.objects.all()
+            if tree is None:
+                queryset = self.model.objects.all()
+                tree = trees[self.model]
+            else:
+                tree = trees[tree]
+                queryset = tree.get_queryset()
+        else:
+            if tree is None:
+                tree = trees[queryset.model]
+            else:
+                # We are assuming the tree model is the same as the
+                # queryset model.
+                tree = trees[tree]
 
-        queryset = queryset.values(self.value_field.name)\
-            .annotate(cnt=Count(self.value_field.name))\
-            .values_list(self.value_field.name, 'cnt')\
-            .order_by(self.value_field.name)
+        # Get the field lookup relative to the tree.
+        field_lookup = tree.query_string_for_field(self.value_field)
+
+        queryset = queryset.values(field_lookup)\
+            .annotate(cnt=Count(field_lookup))\
+            .values_list(field_lookup, 'cnt')\
+            .order_by(field_lookup)
 
         return tuple(queryset)
 
