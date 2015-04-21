@@ -36,7 +36,7 @@ class Migration(DataMigration):
             if not is_objectset(f):
                 continue
 
-            model = models.get(f.app_name, f.model_name)
+            model = models.get_model(f.app_name, f.model_name)
 
             if not f.label_field_name and hasattr(model, 'label_field'):
                 f.label_field_name = model.label_field
