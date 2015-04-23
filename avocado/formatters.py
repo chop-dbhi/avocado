@@ -18,6 +18,10 @@ class ExpectedFormatterException(Exception):
     """
 
 
+class FormatterMismatchError(Exception):
+    "Exception raised when the header and the output length do not match."
+
+
 def _unique_dict(fields):
     """Takes a list of fields and returns an ordered dict with unique keys
     based on the field's natural key.
@@ -111,6 +115,8 @@ class Formatter(object):
         self.single_formats = []
         self.multi_formats = []
 
+        self.default_context = {}
+
         if formats:
             for fmt in formats:
                 method = getattr(self, 'to_{0}'.format(fmt), None)
@@ -133,11 +139,13 @@ class Formatter(object):
     def __contains__(self, choice):
         return hasattr(self, 'to_{0}'.format(choice))
 
-    def __unicode__(self):
-        return u'{0}'.format(self.name or self.__class__.__name__)
+    def __str__(self):
+        return self.__class__.__name__
 
-    def __call__(self, values, kwargs=None):
+    def __call__(self, values, context=None):
         "Takes a tuple of values and format it with this prepared formatter."
+        if context is None:
+            context = self.default_context
 
         # Create a record of the values.
         record = self._recordclass(*values)
@@ -147,7 +155,7 @@ class Formatter(object):
             try:
                 output = self._process_multiple(method,
                                                 value=record,
-                                                kwargs=kwargs)
+                                                context=context)
             except ExpectedFormatterException:
                 continue
 
@@ -171,7 +179,7 @@ class Formatter(object):
                     value = self._process_single(method,
                                                  value=value,
                                                  field=field,
-                                                 kwargs=kwargs)
+                                                 context=context)
                 except ExpectedFormatterException:
                     continue
 
@@ -184,8 +192,8 @@ class Formatter(object):
 
         return tuple(output)
 
-    def _process_single(self, method, value, field, kwargs):
-        output = method(value, field=field, kwargs=kwargs)
+    def _process_single(self, method, value, field, context):
+        output = method(value, field=field, context=context)
 
         # Backwards compat for dicts.
         if isinstance(output, dict):
@@ -199,8 +207,8 @@ class Formatter(object):
 
         return output
 
-    def _process_multiple(self, method, value, kwargs):
-        output = method(value, fields=self.fields, kwargs=kwargs)
+    def _process_multiple(self, method, value, context):
+        output = method(value, fields=self.fields, context=context)
 
         # Backwards compat for dicts.
         if isinstance(output, dict):
@@ -287,7 +295,7 @@ class Formatter(object):
 
         return meta
 
-    def to_string(self, value, **context):
+    def to_string(self, value, field, context):
         # Attempt to coerce non-strings to strings. Depending on the data
         # types that are being passed into this, this may not be good
         # enough for certain datatypes or complext data structures
@@ -296,14 +304,14 @@ class Formatter(object):
 
         return force_unicode(value, strings_only=False)
 
-    def to_boolean(self, value, **context):
+    def to_boolean(self, value, field, context):
         # If value is native True or False value, return it
         if type(value) is bool:
             return value
 
         raise ExpectedFormatterException('cannot be converted into a boolean')
 
-    def to_number(self, value, **context):
+    def to_number(self, value, field, context):
         # Attempts to convert a number. Starting with ints and floats
         # Eventually create to_decimal using the decimal library.
         if isinstance(value, (int, float)):
@@ -323,10 +331,8 @@ class Formatter(object):
 
         raise ExpectedFormatterException('cannot be converted into a number')
 
-    def to_coded(self, value, **context):
+    def to_coded(self, value, field, context):
         # Attempts to convert value to its coded representation
-        field = context.get('field')
-
         if field:
             coded_values = field.coded_values()
 
@@ -335,7 +341,7 @@ class Formatter(object):
 
         raise ExpectedFormatterException('field does not support coded values')
 
-    def to_raw(self, value, **context):
+    def to_raw(self, value, field, context):
         return value
 
 

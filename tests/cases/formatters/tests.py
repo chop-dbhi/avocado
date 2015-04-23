@@ -77,8 +77,12 @@ class FormatterTestCase(TestCase):
 
     def test_to_html(self):
         class HtmlFormatter(Formatter):
-            def to_html(self, values, **context):
-                fvalues = [self.to_string(v, **context) for v in values]
+            def to_html(self, values, fields, context):
+                fvalues = []
+
+                for i, k in enumerate(fields):
+                    value = self.to_string(values[i], fields[k], context)
+                    fvalues.append(value)
 
                 return '<span>{0}</span>'.format('</span><span>'.join(fvalues))
 
@@ -86,10 +90,10 @@ class FormatterTestCase(TestCase):
 
         f = HtmlFormatter(self.concept, formats=['html'])
 
-        fvalues = f(self.values)
-        expected = (u'<span>CEO</span><span>100000</span><span>True</span>',)
+        output = f(self.values)
+        expected = u'<span>CEO</span><span>100000</span><span>True</span>'
 
-        self.assertEqual(fvalues, expected)
+        self.assertEqual(output[0], expected)
 
     def test_unique_keys(self):
         title_name = DataField.objects.get_by_natural_key(
