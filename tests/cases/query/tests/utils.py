@@ -61,6 +61,15 @@ class TempConnTest(TransactionTestCase):
         # Canceling again should be a no-op....
         self.assertIsNone(utils.cancel_query(self.name))
 
+        # Ensure a new working connection can be opened under the
+        # same named.
+        conn = utils.named_connection(self.name, db=self.db)
+        c = conn.cursor()
+        c.execute('SELECT (1)')
+        val, = c.fetchone()
+
+        self.assertEqual(val, 1)
+
 
 if 'sqlite' in settings.DATABASES:
     class SQLiteTempConnTest(TempConnTest):

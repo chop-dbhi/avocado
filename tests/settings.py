@@ -14,10 +14,14 @@ DEFAULT_ENGINE = os.environ.get('DEFAULT_ENGINE')
 POSTGRES_TEST_NAME = os.environ.get('POSTGRES_TEST_NAME', 'avocado')
 POSTGRES_TEST_USER = os.environ.get('POSTGRES_TEST_USER', getpass.getuser())
 POSTGRES_TEST_PASSWORD = os.environ.get('POSTGRES_TEST_PASSWORD')
+POSTGRES_TEST_HOST = os.environ.get('POSTGRES_TEST_HOST', '127.0.0.1')
+POSTGRES_TEST_PORT = os.environ.get('POSTGRES_TEST_PORT', '5432')
 
 MYSQL_TEST_NAME = os.environ.get('MYSQL_TEST_NAME', 'avocado')
 MYSQL_TEST_USER = os.environ.get('MYSQL_TEST_USER', getpass.getuser())
 MYSQL_TEST_PASSWORD = os.environ.get('MYSQL_TEST_PASSWORD')
+MYSQL_TEST_HOST = os.environ.get('MYSQL_TEST_HOST', '127.0.0.1')
+MYSQL_TEST_PORT = os.environ.get('MYSQL_TEST_PORT', '3306')
 
 DATABASES = {}
 
@@ -37,6 +41,8 @@ if ENABLE_POSTGRES == '1':
         'NAME': POSTGRES_TEST_NAME,
         'USER': POSTGRES_TEST_USER,
         'PASSWORD': POSTGRES_TEST_PASSWORD,
+        'HOST': POSTGRES_TEST_HOST,
+        'PORT': POSTGRES_TEST_PORT,
     }
 
 if ENABLE_MYSQL == '1':
@@ -45,6 +51,8 @@ if ENABLE_MYSQL == '1':
         'NAME': MYSQL_TEST_NAME,
         'USER': MYSQL_TEST_USER,
         'PASSWORD': MYSQL_TEST_PASSWORD,
+        'HOST': MYSQL_TEST_HOST,
+        'PORT': MYSQL_TEST_PORT,
     }
 
 

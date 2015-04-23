@@ -52,6 +52,7 @@ def named_connection(name, db=DEFAULT_DB_ALIAS):
 
     if temp_db in connections.databases:
         conn = connections[temp_db]
+        logger.debug('reusing connection for %s', name)
     else:
         # Get the settings of the real database being connected to.
         connections.ensure_defaults(db)
@@ -61,6 +62,7 @@ def named_connection(name, db=DEFAULT_DB_ALIAS):
         connections.databases[temp_db] = connections.databases[db]
 
         conn = connections[temp_db]
+        logger.debug('initializing connection for %s', name)
 
     # Get the backend specific process ID for the query. This will open a
     # connection to the database if not already open.
@@ -84,12 +86,12 @@ def cancel_query(name):
 
     # Cancel the query if the cache entry is present.
     if info is not None:
-        # Remove the cache entry.
-        cache = get_cache(settings.QUERY_CACHE)
-        cache.delete(temp_db)
-
+        logger.debug('canceling query on connection %s', name)
         db, pid = info
         canceled = _cancel_query(name, db, pid)
+
+    # Clean up the connection.
+    close_connection(name)
 
     return canceled
 
@@ -104,6 +106,8 @@ def close_connection(name):
 
     # Remove connection from handler if in the same thread.
     if temp_db in connections.databases:
+        logger.debug('closing connection %s', name)
+
         conn = connections[temp_db]
         ensure_connection(conn)
         conn.close()
