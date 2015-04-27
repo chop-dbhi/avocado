@@ -1,7 +1,7 @@
 import functools
 from multiprocessing.pool import ThreadPool
 from avocado.models import DataView
-from avocado.formatters import registry as formatters
+from avocado.formatters import FormatterMismatchError, registry as formatters
 from cStringIO import StringIO
 
 
@@ -37,6 +37,7 @@ class BaseExporter(object):
         self.concepts = concepts
 
         self._header = []
+        self._header_checked = False
 
         for concept in concepts:
             formatter_class = formatters.get(concept.formatter)
@@ -72,15 +73,18 @@ class BaseExporter(object):
         header = meta['header']
 
         if index is not None:
-            self._header = (self._header[:index] +
-                            list(header) +
-                            self._header[index:])
+            self._header.insert(index, header)
         else:
-            self._header.extend(header)
+            self._header.append(header)
 
     @property
     def header(self):
-        return tuple(self._header)
+        header = []
+
+        for fields in self._header:
+            header.extend(fields)
+
+        return header
 
     def get_file_obj(self, name=None):
         if name is None:
@@ -91,17 +95,45 @@ class BaseExporter(object):
 
         return name
 
-    def _format_row(self, row, kwargs=None):
+    def _check_header(self, row, context):
+        self._header_checked = True
+
+        errors = []
+
+        # Compare the header fields with the row output.
+        for i, (formatter, length) in enumerate(self.params):
+            values, row = row[:length], row[length:]
+
+            fields = self._header[i]
+            output = formatter(values, context)
+
+            if len(fields) != len(output):
+                errors.append('Formatter "{0}" header is size {1}, '
+                              'but outputs a record of size {2} for '
+                              'concept "{3}"'
+                              .format(formatter, len(fields), len(output),
+                                      formatter.concept))
+
+        if errors:
+            raise FormatterMismatchError(errors)
+
+    def _format_row(self, row, context=None):
+        if not self._header_checked:
+            self._check_header(row, context)
+
         _row = []
 
         for formatter, length in self.params:
             values, row = row[:length], row[length:]
 
-            _row.extend(formatter(values, kwargs=kwargs))
+            _row.extend(formatter(values, context=context))
 
         return tuple(_row)
 
-    def _cache_format_row(self, row, kwargs=None):
+    def _cache_format_row(self, row, context=None):
+        if not self._header_checked:
+            self._check_header(row, context)
+
         _row = []
 
         for formatter, length in self.params:
@@ -110,7 +142,7 @@ class BaseExporter(object):
             key = (formatter, values)
 
             if key not in self._format_cache:
-                segment = formatter(values, kwargs=kwargs)
+                segment = formatter(values, context=context)
 
                 self._format_cache[key] = segment
             else:
@@ -141,8 +173,9 @@ class BaseExporter(object):
 
     def read(self, iterable, *args, **kwargs):
         "Reads an iterable and generates formatted rows."
+
         for row in iterable:
-            yield self._format_row(row, kwargs=kwargs)
+            yield self._format_row(row, context=kwargs)
 
     def cached_read(self, iterable, *args, **kwargs):
         """Reads an iterable and generates formatted rows.
@@ -157,7 +190,7 @@ class BaseExporter(object):
         self._format_cache = {}
 
         for row in iterable:
-            yield self._cache_format_row(row, kwargs=kwargs)
+            yield self._cache_format_row(row, context=kwargs)
 
     def threaded_read(self, iterable, threads=None, *args, **kwargs):
         """Reads an iterable and generates formatted rows.
@@ -168,7 +201,7 @@ class BaseExporter(object):
         pool = ThreadPool(threads)
 
         f = functools.partial(self._format_row,
-                              kwargs=kwargs)
+                              context=kwargs)
 
         for row in pool.map(f, iterable):
             yield row
@@ -184,7 +217,7 @@ class BaseExporter(object):
         pool = ThreadPool(threads)
 
         f = functools.partial(self._cache_format_row,
-                              kwargs=kwargs)
+                              context=kwargs)
 
         for row in pool.map(f, iterable):
             yield row
@@ -225,7 +258,7 @@ class BaseExporter(object):
             if offset is None or i >= offset:
                 emitted += 1
 
-                yield self._format_row(_row, kwargs=kwargs)
+                yield self._format_row(_row, context=kwargs)
 
     def write(self, iterable, *args, **kwargs):
         for row in iterable:
