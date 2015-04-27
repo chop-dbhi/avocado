@@ -12,6 +12,16 @@ class BaseExporter(object):
     content_type = 'text/plain'
     preferred_formats = ()
 
+    # List of available readers by name. Call reader(name) to return
+    # the specified reader.
+    readers = (
+        'default',
+        'manual',
+        'threaded',
+        'cached',
+        'cached_threaded',
+    )
+
     def __init__(self, concepts=None, preferred_formats=None):
         if preferred_formats is not None:
             self.preferred_formats = preferred_formats
@@ -109,6 +119,25 @@ class BaseExporter(object):
             _row.extend(segment)
 
         return tuple(_row)
+
+    def reader(self, name=None):
+        if name == 'threaded':
+            return self.threaded_read
+
+        if name == 'cached':
+            return self.cached_read
+
+        if name == 'cached_threaded':
+            return self.cached_threaded_read
+
+        if name == 'manual':
+            return self.manual_read
+
+        if not name or name == 'default':
+            return self.read
+
+        raise ValueError('No reader named {0}. Choices are {1}'
+                         .format(name, ', '.join(self.readers)))
 
     def read(self, iterable, *args, **kwargs):
         "Reads an iterable and generates formatted rows."
