@@ -223,7 +223,7 @@ class FileExportTestCase(TestCase):
 
     def test_html(self):
         name = 'export.html'
-        exp_size = 1960
+        exp_size = 892
 
         template = Template(html_table)
         exporter = export.HTMLExporter(self.concepts)
@@ -294,7 +294,7 @@ class ResponseExportTestCase(FileExportTestCase):
         self.assertAlmostEqual(len(response.content), exp_size, delta=delta)
 
     def test_html(self):
-        exp_size = 1960
+        exp_size = 892
 
         response = HttpResponse()
         exporter = export.HTMLExporter(self.concepts)

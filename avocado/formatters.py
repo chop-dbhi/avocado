@@ -7,6 +7,7 @@ except ImportError:
     from ordereddict import OrderedDict
 from collections import defaultdict, namedtuple
 from django.utils.encoding import force_unicode
+from django.template import defaultfilters as filters
 from avocado.core import loader
 
 log = logging.getLogger(__name__)
@@ -91,6 +92,12 @@ class Formatter(object):
     implemented if a custom set of values are being emitted by a format
     method.
     """
+    html_delimiter = u' '
+
+    html_map = {
+        None: '<em>n/a</em>'
+    }
+
     def __init__(self, concept=None, keys=None, formats=None):
         "Passing in a concept takes precedence over `keys`."
         if not keys and not concept:
@@ -294,6 +301,36 @@ class Formatter(object):
         meta['header'] = header
 
         return meta
+
+    # The default HTML method returns a single concatenated value
+    # so the header should only contain one field.
+    def get_html_header(self):
+        return self.get_default_header()[:1]
+
+    @process_multiple
+    def to_html(self, values, fields, context):
+        toks = []
+
+        for value in values:
+            if value is None:
+                continue
+
+            # Check the html_map first
+            if value in self.html_map:
+                tok = self.html_map[value]
+            # Prettify floats
+            elif type(value) is float:
+                tok = filters.floatformat(value)
+            else:
+                tok = unicode(value)
+
+            toks.append(tok)
+
+        # No values.
+        if not toks:
+            return self.html_map.get(None, 'N/A')
+
+        return self.html_delimiter.join(toks)
 
     def to_string(self, value, field, context):
         # Attempt to coerce non-strings to strings. Depending on the data
