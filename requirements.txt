@@ -11,3 +11,4 @@ ordereddict
 sqlparse
 mysql-python
 psycopg2
+django_rq

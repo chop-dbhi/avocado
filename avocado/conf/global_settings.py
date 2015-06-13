@@ -120,3 +120,6 @@ PERMISSIONS_ENABLED = None
 # the ad-hoc queries built from a context and view.
 DATA_CACHE = 'default'
 QUERY_CACHE = 'default'
+
+# Name of the queue to use for scheduling and working on async jobs.
+ASYNC_QUEUE = 'avocado'

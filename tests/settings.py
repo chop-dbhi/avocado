@@ -78,6 +78,7 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.auth',
     'django.contrib.contenttypes',
+    'django_rq',
     'haystack',
     'guardian',
 )
@@ -142,17 +143,26 @@ LOGGING = {
             'handlers': ['null'],
             'level': 'DEBUG',
             'propagate': True,
-        }
+        },
+        'rq.worker': {
+            'handlers': ['null'],
+            'level': 'DEBUG',
+        },
     }
 }
 
 SOUTH_TESTS_MIGRATE = False
 
+AVOCADO_QUEUE_NAME = 'avocado_test_queue'
 AVOCADO = {
     'HISTORY_ENABLED': False,
     'HISTORY_MAX_SIZE': 50,
     'METADATA_MIGRATION_APP': 'core',
     'DATA_CACHE_ENABLED': False,
+    'QUERY_PROCESSORS': {
+        'manager': 'tests.processors.ManagerQueryProcessor',
+    },
+    'ASYNC_QUEUE': AVOCADO_QUEUE_NAME,
 }
 
 MODELTREES = {
@@ -170,3 +180,11 @@ MODELTREES = {
 MIDDLEWARE_CLASSES = ()
 
 SECRET_KEY = 'acb123'
+
+RQ_QUEUES = {
+    AVOCADO_QUEUE_NAME: {
+        'HOST': 'localhost',
+        'PORT': 6379,
+        'DB': 0,
+    },
+}

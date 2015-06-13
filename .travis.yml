@@ -13,6 +13,7 @@ env:
 
 services:
     - memcached
+    - redis-server
 
 addons:
     - postgres

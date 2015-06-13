@@ -7,6 +7,7 @@ install_requires = [
     'modeltree>=1.1.9',
     'South==1.0.2',
     'jsonfield==1.0.0',
+    'django_rq',
 ]
 
 if sys.version_info < (2, 7):

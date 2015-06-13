@@ -1,11 +1,17 @@
 import time
 from threading import Thread
+
+from django.conf import settings
+from django.core import management
 from django.db import connections, DatabaseError
 from django.test import TransactionTestCase
-from django.core import management
-from django.conf import settings
-from tests.models import Employee
+from rq.job import JobStatus
+
+from avocado.async import utils as async_utils
+from avocado.models import DataContext, DataField, DataView
 from avocado.query import utils
+from tests.models import Employee
+from tests.processors import ManagerQueryProcessor
 
 
 class TempConnTest(TransactionTestCase):
@@ -135,3 +141,190 @@ if 'mysql' in settings.DATABASES:
                 t.assertTrue(canceled)
 
             self.run_cancel_test(runner, stopper)
+
+
+class AsyncResultRowTestCase(TransactionTestCase):
+    fixtures = ['tests/fixtures/employee_data.json']
+
+    def setUp(self):
+        management.call_command('avocado', 'init', 'tests', quiet=True)
+        # Don't start with any jobs in the queue.
+        async_utils.cancel_all_jobs()
+
+    def tearDown(self):
+        # Don't leave any jobs in the queue.
+        async_utils.cancel_all_jobs()
+
+    def test_create_and_cancel(self):
+        # Create 3 meaningless jobs. We're just testing job setup and
+        # cancellation here, not the execution.
+        utils.async_get_result_rows(None, None, {})
+        job_options = {
+            'name': 'Job X',
+        }
+        job_x_id = utils.async_get_result_rows(None, None, {}, job_options)
+        job_options = {
+            'name': 'Job Y',
+            'query_name': 'job_y_query',
+        }
+        job_y_id = utils.async_get_result_rows(None, None, {}, job_options)
+
+        self.assertEqual(async_utils.get_job_count(), 3)
+
+        jobs = async_utils.get_jobs()
+        self.assertEqual(len(jobs), 3)
+
+        job_x = async_utils.get_job(job_x_id)
+        self.assertTrue(job_x in jobs)
+        self.assertEqual(job_x.meta['name'], 'Job X')
+
+        self.assertEqual(async_utils.cancel_job(job_x_id), None)
+        self.assertEqual(async_utils.get_job_count(), 2)
+        async_utils.cancel_job('invalid_id')
+        self.assertEqual(async_utils.get_job_count(), 2)
+
+        self.assertTrue('canceled' in async_utils.cancel_job(job_y_id))
+        self.assertTrue(async_utils.get_job_count(), 1)
+
+        async_utils.cancel_all_jobs()
+        self.assertEqual(async_utils.get_job_count(), 0)
+
+    def test_job_result(self):
+        context = DataContext()
+        view = DataView()
+        limit = 3
+        query_options = {
+            'limit': limit,
+            'page': 1,
+        }
+
+        job_id = utils.async_get_result_rows(context, view, query_options)
+        self.assertTrue(async_utils.get_job_count(), 1)
+        async_utils.run_jobs()
+        time.sleep(1)
+        result = async_utils.get_job_result(job_id)
+        self.assertEqual(async_utils.get_job(job_id).status,
+                         JobStatus.FINISHED)
+        self.assertEqual(len(result['rows']), limit)
+        self.assertEqual(result['limit'], limit)
+
+    def test_invalid_job_result(self):
+        context = DataContext()
+        view = DataView()
+        query_options = {
+            'page': 0,
+        }
+
+        job_id = utils.async_get_result_rows(context, view, query_options)
+        self.assertTrue(async_utils.get_job_count(), 1)
+        async_utils.run_jobs()
+        time.sleep(1)
+        self.assertEqual(async_utils.get_job_result(job_id), None)
+        self.assertEqual(async_utils.get_job(job_id).status, JobStatus.FAILED)
+
+
+class ResultRowTestCase(TransactionTestCase):
+    fixtures = ['tests/fixtures/employee_data.json']
+
+    def setUp(self):
+        management.call_command('avocado', 'init', 'tests', quiet=True)
+
+    def test_invalid_options(self):
+        # Page numbers less than 1 should not be allowed.
+        query_options = {
+            'page': 0,
+        }
+        self.assertRaises(ValueError,
+                          utils.get_result_rows,
+                          None,
+                          None,
+                          query_options)
+
+        # Stop pages before start pages should not be allowed.
+        query_options = {
+            'page': 5,
+            'stop_page': 1,
+        }
+        self.assertRaises(ValueError,
+                          utils.get_result_rows,
+                          None,
+                          None,
+                          query_options)
+
+    def test_get_rows(self):
+        context = DataContext()
+        view = DataView()
+
+        # Unless we tell the function to evaluate the rows, it should return
+        # rows as a generator so we need to exclicitly evaluate it here.
+        result = utils.get_result_rows(context, view, {})
+        self.assertEqual(len(list(result['rows'])), Employee.objects.count())
+
+        # Now, have the method evaluate the rows.
+        result = utils.get_result_rows(context, view, {}, evaluate_rows=True)
+        self.assertEqual(len(result['rows']), Employee.objects.count())
+
+    def test_get_order_only(self):
+        field = DataField.objects.get(field_name='salary')
+        concept = field.concepts.all()[0]
+
+        context = DataContext()
+        view = DataView(json=[{
+            'concept': concept.pk,
+            'visible': False,
+            'sort': 'desc',
+        }])
+        result = utils.get_result_rows(context, view, {})
+        self.assertEqual(len(list(result['rows'])), Employee.objects.count())
+
+    def test_limit(self):
+        context = DataContext()
+        view = DataView()
+        limit = 2
+        query_options = {
+            'limit': limit,
+            'page': 1,
+        }
+        result = utils.get_result_rows(context, view, query_options)
+        self.assertEqual(len(list(result['rows'])), limit)
+        self.assertEqual(result['limit'], limit)
+
+    def test_processor(self):
+        context = DataContext()
+        view = DataView()
+        processor = 'manager'
+        query_options = {
+            'processor': processor,
+        }
+        result = utils.get_result_rows(context, view, query_options)
+        self.assertEqual(len(list(result['rows'])),
+                         Employee.objects.filter(is_manager=True).count())
+        self.assertTrue(isinstance(result['processor'], ManagerQueryProcessor))
+
+    def test_export_type(self):
+        context = DataContext()
+        view = DataView()
+        export_type = 'json'
+        query_options = {
+            'export_type': export_type,
+        }
+        result = utils.get_result_rows(context, view, query_options)
+        self.assertEqual(len(list(result['rows'])), Employee.objects.count())
+        self.assertEqual(result['export_type'], export_type)
+
+    def test_pages(self):
+        context = DataContext()
+        view = DataView()
+        query_options = {
+            'page': 1,
+            'stop_page': 10,
+        }
+        result = utils.get_result_rows(context, view, query_options)
+        self.assertEqual(len(list(result['rows'])), Employee.objects.count())
+
+        query_options = {
+            'page': 1,
+            'stop_page': 1,
+        }
+        result = utils.get_result_rows(context, view, query_options)
+        self.assertEqual(len(list(result['rows'])), Employee.objects.count())
