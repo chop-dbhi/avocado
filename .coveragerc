@@ -3,6 +3,7 @@ branch = True
 source = avocado
 omit =
     */admin.py
+    */south_migrations/*
     */migrations/*
     avocado/query/parsers/__init__.py
 
