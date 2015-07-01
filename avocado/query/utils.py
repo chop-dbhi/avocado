@@ -1,12 +1,18 @@
 import logging
+
 import django
-from django.db import connections, DEFAULT_DB_ALIAS, DatabaseError
 from django.core.cache import get_cache
+from django.db import connections, DEFAULT_DB_ALIAS, DatabaseError
+from django_rq import get_queue
+
 from avocado.conf import settings
+from avocado.export import HTMLExporter, registry as exporters
+from avocado.query import pipeline
+
 
 logger = logging.getLogger(__name__)
 
-
+DEFAULT_LIMIT = 20
 TEMP_DB_ALIAS_PREFIX = '_db:{0}'
 
 
@@ -184,3 +190,183 @@ def _cancel_query(name, db, pid):
         return True
 
     logger.warn('canceling queries for {0} is not supported'.format(engine))
+
+
+def get_exporter_class(export_type):
+    """
+    Returns the exporter class for the supplied export type name.
+
+    Args:
+        export_type(string): The string name of the exporter.
+
+    Returns:
+        The exporter class for the supplied exporter_type as defined in
+        the exporters registry. See avocado.export.registry for more info.
+    """
+    if export_type.lower() == 'html':
+        return HTMLExporter
+
+    return exporters[export_type]
+
+
+def async_get_result_rows(context, view, query_options, job_options=None):
+    """
+    Creates a new job to asynchronously get result rows and returns the job ID.
+
+    Args:
+        See get_result_rows argument list.
+
+    Keyword Arugments:
+        Set as properties on the returned job's meta.
+
+    Returns:
+        The ID of the created job.
+    """
+    if not job_options:
+        job_options = {}
+
+    queue = get_queue(settings.ASYNC_QUEUE)
+    job = queue.enqueue(get_result_rows,
+                        context,
+                        view,
+                        query_options,
+                        evaluate_rows=True)
+    job.meta.update(job_options)
+    job.save()
+
+    return job.id
+
+
+def get_result_rows(context, view, query_options, evaluate_rows=False):
+    """
+    Returns the result rows and options given the supplied arguments.
+
+    The options include the exporter, queryset, offset, limit, page, and
+    stop_page that were used when calculating the result rows. These can give
+    some more context to callers of this method as far as the returned row
+    set is concerned.
+
+    Args:
+        context (DataContext): Context for the query processor
+        view (DataView): View for the query processor
+        query_options (dict): Options for the query and result rows slice.
+            These options include:
+                * page: Start page of the result row slice.
+                * limit: Upper bound on number of result rows returned.
+                * stop_page: Stop page of result row slice.
+                * query_name: Query name used when isolating result row query.
+                * processor: Processor to use to generate queryset.
+                * tree: Modeltree to pass to QueryProcessor.
+                * export_type: Export type to use for result rows.
+                * reader: Reader type to use when exporting, see
+                    export._base.BaseExporter.readers for available readers.
+
+    Kwargs:
+        evaluate_rows (default=False): When this is True, the generator
+            returned from the read method of the exporter will be evaluated
+            and all results will be stored in a list. This is useful if the
+            caller of this method actually needs an evaluated result set. An
+            example of this is calling this method asynchronously which needs
+            a pickleable return value(generators can't be pickled).
+
+    Returns:
+        dict -- Result rows and relevant options used to calculate rows. These
+            options include:
+                * exporter: The exporter used.
+                * limit: The limit on the number of result rows.
+                * offset: The starting offset of the result rows.
+                * page: The starting page number of the result rows.
+                * queryset: The queryset used to gather results.
+                * rows: The result rows themselves.
+                * stop_page: The stop page of the result rows collection.
+
+    """
+    offset = None
+
+    page = query_options.get('page')
+    limit = query_options.get('limit') or 0
+    stop_page = query_options.get('stop_page')
+    query_name = query_options.get('query_name')
+    processor_name = query_options.get('processor') or 'default'
+    tree = query_options.get('tree')
+    export_type = query_options.get('export_type') or 'html'
+    reader = query_options.get('reader')
+
+    if page is not None:
+        page = int(page)
+
+        # Pages are 1-based.
+        if page < 1:
+            raise ValueError('Page must be greater than or equal to 1.')
+
+        # Change to 0-base for calculating offset.
+        offset = limit * (page - 1)
+
+        if stop_page:
+            stop_page = int(stop_page)
+
+            # Cannot have a lower index stop page than start page.
+            if stop_page < page:
+                raise ValueError(
+                    'Stop page must be greater than or equal to start page.')
+
+            # 4...5 means 4 and 5, not everything up to 5 like with
+            # list slices, so 4...4 is equivalent to just 4
+            if stop_page > page:
+                limit = limit * stop_page
+    else:
+        # When no page or range is specified, the limit does not apply.
+        limit = None
+
+    QueryProcessor = pipeline.query_processors[processor_name]
+    processor = QueryProcessor(context=context, view=view, tree=tree)
+    queryset = processor.get_queryset()
+
+    # Isolate this query to a named connection. This will cancel an
+    # outstanding queries of the same name if one is present.
+    cancel_query(query_name)
+    queryset = isolate_queryset(query_name, queryset)
+
+    # 0 limit means all for pagination, however the read method requires
+    # an explicit limit of None
+    limit = limit or None
+
+    # We use HTMLExporter in Serrano but Avocado has it disabled. Until it
+    # is enabled in Avocado, we can reference the HTMLExporter directly here.
+    exporter = processor.get_exporter(get_exporter_class(export_type))
+
+    # This is an optimization when concepts are selected for ordering
+    # only. There is no guarantee to how many rows are required to get
+    # the desired `limit` of rows, so the query is unbounded. If all
+    # ordering facets are visible, the limit and offset can be pushed
+    # down to the query.
+    order_only = lambda f: not f.get('visible', True)
+    view_node = view.parse()
+
+    if filter(order_only, view_node.facets):
+        iterable = processor.get_iterable(queryset=queryset)
+        rows = exporter.manual_read(iterable,
+                                    offset=offset,
+                                    limit=limit)
+    else:
+        iterable = processor.get_iterable(queryset=queryset,
+                                          limit=limit,
+                                          offset=offset)
+        method = exporter.reader(reader)
+        rows = method(iterable)
+
+    if evaluate_rows:
+        rows = list(rows)
+
+    return {
+        'context': context,
+        'export_type': export_type,
+        'limit': limit,
+        'offset': offset,
+        'page': page,
+        'processor': processor,
+        'queryset': queryset,
+        'rows': rows,
+        'stop_page': stop_page,
+        'view': view,
+    }
