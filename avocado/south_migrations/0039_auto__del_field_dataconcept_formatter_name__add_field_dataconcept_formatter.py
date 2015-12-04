@@ -8,22 +8,10 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Deleting field 'DataConcept.formatter_name'
-        db.delete_column(u'avocado_dataconcept', 'formatter_name')
-
-        # Adding field 'DataConcept.formatter'
-        db.add_column(u'avocado_dataconcept', 'formatter',
-                      self.gf('django.db.models.fields.CharField')(max_length=100, null=True, blank=True),
-                      keep_default=False)
+        db.rename_column(u'avocado_dataconcept', 'formatter_name', 'formatter')
 
     def backwards(self, orm):
-        # Adding field 'DataConcept.formatter_name'
-        db.add_column(u'avocado_dataconcept', 'formatter_name',
-                      self.gf('django.db.models.fields.CharField')(max_length=100, null=True, blank=True),
-                      keep_default=False)
-
-        # Deleting field 'DataConcept.formatter'
-        db.delete_column(u'avocado_dataconcept', 'formatter')
+        db.rename_column(u'avocado_dataconcept', 'formatter', 'formater_name')
 
     models = {
         u'auth.group': {
