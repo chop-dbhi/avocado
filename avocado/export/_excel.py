@@ -30,7 +30,7 @@ class ExcelExporter(BaseExporter):
         ws_data.title = 'Data'
 
         # Create the data worksheet
-        ws_data.append([f['name'] for f in header])
+        ws_data.append([f['label'] for f in header])
 
         for row in iterable:
             ws_data.append(row)
