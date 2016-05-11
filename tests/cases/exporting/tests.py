@@ -170,7 +170,7 @@ class FileExportTestCase(TestCase):
 
     def test_excel(self):
         name = 'excel_export.xlsx'
-        exp_size = 6120
+        exp_size = 6086
 
         exporter = export.ExcelExporter(self.concepts)
         it = exporter.read(self.query)
@@ -250,7 +250,7 @@ class ResponseExportTestCase(FileExportTestCase):
         self.assertAlmostEqual(len(response.content), exp_size, delta=delta)
 
     def test_excel(self):
-        exp_size = 6120
+        exp_size = 6086
 
         response = HttpResponse()
         exporter = export.ExcelExporter(self.concepts)
