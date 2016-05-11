@@ -29,7 +29,7 @@ html_table = """
 """
 
 # Allowed delta in bytes for the AlmostEqual assertion.
-delta = 20
+delta = 100
 
 
 class ExportTestCase(TestCase):
