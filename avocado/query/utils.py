@@ -260,6 +260,7 @@ def get_result_rows(context, view, query_options, evaluate_rows=False):
                 * export_type: Export type to use for result rows.
                 * reader: Reader type to use when exporting, see
                     export._base.BaseExporter.readers for available readers.
+                * user_id: The id of the requesting user if available.
 
     Kwargs:
         evaluate_rows (default=False): When this is True, the generator
@@ -291,6 +292,7 @@ def get_result_rows(context, view, query_options, evaluate_rows=False):
     tree = query_options.get('tree')
     export_type = query_options.get('export_type') or 'html'
     reader = query_options.get('reader')
+    user_id = query_options.get('user_id')
 
     if page is not None:
         page = int(page)
@@ -320,7 +322,7 @@ def get_result_rows(context, view, query_options, evaluate_rows=False):
 
     QueryProcessor = pipeline.query_processors[processor_name]
     processor = QueryProcessor(context=context, view=view, tree=tree)
-    queryset = processor.get_queryset()
+    queryset = processor.get_queryset(user_id=user_id)
 
     # Isolate this query to a named connection. This will cancel an
     # outstanding queries of the same name if one is present.
