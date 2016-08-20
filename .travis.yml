@@ -20,7 +20,7 @@ addons:
 
 before_install:
     - bash bin/check_signoff.sh
-    - pip install -q flake8 ordereddict
+    - pip install -q flake8==2.6.2
     - flake8
 
 install:
