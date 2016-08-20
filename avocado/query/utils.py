@@ -306,7 +306,7 @@ def async_get_result_rows(context, view, query_options, job_options=None):
 
 def get_and_format_rows(sql, params, processor_name, context, view, tree,
                         page, stop_page, offset, limit, export_type, reader,
-                        db, queryset, evaluate_rows):
+                        db, queryset):
 
     QueryProcessor = pipeline.query_processors[processor_name]
     processor = QueryProcessor(context=context, view=view, tree=tree)
@@ -336,8 +336,7 @@ def get_and_format_rows(sql, params, processor_name, context, view, tree,
         method = exporter.reader(reader)
         rows = method(cur)
 
-    if evaluate_rows:
-        rows = list(rows)
+    rows = list(rows)
 
     return {
         'context': context,
