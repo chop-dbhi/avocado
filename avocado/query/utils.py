@@ -224,7 +224,7 @@ def async_get_result_rows(context, view, query_options, job_options=None):
     """
     offset = None
 
-    page = query_options.get('page')
+    page = query_options.get('page') or 1
     limit = query_options.get('limit') or 0
     stop_page = query_options.get('stop_page')
     query_name = query_options.get('query_name')
