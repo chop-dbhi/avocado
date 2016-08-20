@@ -208,20 +208,6 @@ class AsyncResultRowTestCase(TransactionTestCase):
         self.assertEqual(len(result['rows']), limit)
         self.assertEqual(result['limit'], limit)
 
-    def test_invalid_job_result(self):
-        context = DataContext()
-        view = DataView()
-        query_options = {
-            'page': 0,
-        }
-
-        job_id = utils.async_get_result_rows(context, view, query_options)
-        self.assertTrue(async_utils.get_job_count(), 1)
-        async_utils.run_jobs()
-        time.sleep(1)
-        self.assertEqual(async_utils.get_job_result(job_id), None)
-        self.assertEqual(async_utils.get_job(job_id).status, JobStatus.FAILED)
-
 
 class ResultRowTestCase(TransactionTestCase):
     fixtures = ['tests/fixtures/employee_data.json']
