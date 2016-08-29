@@ -209,7 +209,8 @@ def get_exporter_class(export_type):
     return exporters[export_type]
 
 
-def async_get_result_rows(context, view, query_options, job_options=None):
+def async_get_result_rows(context, view, query_options, job_options=None,
+                          **kwargs):
     """
     Creates a new job to asynchronously get result rows and returns the job ID.
 
@@ -261,7 +262,7 @@ def async_get_result_rows(context, view, query_options, job_options=None):
 
     QueryProcessor = pipeline.query_processors[processor_name]
     processor = QueryProcessor(context=context, view=view, tree=tree)
-    queryset = processor.get_queryset()
+    queryset = processor.get_queryset(**kwargs)
 
     # Isolate this query to a named connection. This will cancel an
     # outstanding queries of the same name if one is present.
@@ -352,7 +353,8 @@ def get_and_format_rows(sql, params, processor_name, context, view, tree,
     }
 
 
-def get_result_rows(context, view, query_options, evaluate_rows=False):
+def get_result_rows(context, view, query_options, evaluate_rows=False,
+                    **kwargs):
     """
     Returns the result rows and options given the supplied arguments.
 
@@ -435,7 +437,7 @@ def get_result_rows(context, view, query_options, evaluate_rows=False):
 
     QueryProcessor = pipeline.query_processors[processor_name]
     processor = QueryProcessor(context=context, view=view, tree=tree)
-    queryset = processor.get_queryset()
+    queryset = processor.get_queryset(**kwargs)
 
     # Isolate this query to a named connection. This will cancel an
     # outstanding queries of the same name if one is present.
