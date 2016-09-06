@@ -21,7 +21,12 @@ class QueryProcessor(object):
         self.include_pk = include_pk
 
     def get_queryset(self, queryset=None, **kwargs):
-        "Returns a queryset with the context and view and view applied."
+        """Returns a queryset with the context and view and view applied.
+
+        Serrano and Avocado pass the Django request object as the `request`
+        keyword argument, so custom sub-classes of QueryProcessor can modify
+        the query based on request-related data such as the user.
+        """
         if self.context:
             queryset = self.context.apply(queryset=queryset, tree=self.tree)
 

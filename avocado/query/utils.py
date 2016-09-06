@@ -209,7 +209,8 @@ def get_exporter_class(export_type):
     return exporters[export_type]
 
 
-def async_get_result_rows(context, view, query_options, job_options=None):
+def async_get_result_rows(context, view, query_options, job_options=None,
+                          request=None):
     """
     Creates a new job to asynchronously get result rows and returns the job ID.
 
@@ -222,22 +223,138 @@ def async_get_result_rows(context, view, query_options, job_options=None):
     Returns:
         The ID of the created job.
     """
+    offset = None
+
+    page = query_options.get('page') or 1
+    limit = query_options.get('limit') or 0
+    stop_page = query_options.get('stop_page')
+    query_name = query_options.get('query_name')
+    processor_name = query_options.get('processor') or 'default'
+    tree = query_options.get('tree')
+    export_type = query_options.get('export_type') or 'html'
+    reader = query_options.get('reader')
+
+    if page is not None:
+        page = int(page)
+
+        # Pages are 1-based.
+        if page < 1:
+            raise ValueError('Page must be greater than or equal to 1.')
+
+        # Change to 0-base for calculating offset.
+        offset = limit * (page - 1)
+
+        if stop_page:
+            stop_page = int(stop_page)
+
+            # Cannot have a lower index stop page than start page.
+            if stop_page < page:
+                raise ValueError(
+                    'Stop page must be greater than or equal to start page.')
+
+            # 4...5 means 4 and 5, not everything up to 5 like with
+            # list slices, so 4...4 is equivalent to just 4
+            if stop_page > page:
+                limit = limit * stop_page
+    else:
+        # When no page or range is specified, the limit does not apply.
+        limit = None
+
+    QueryProcessor = pipeline.query_processors[processor_name]
+    processor = QueryProcessor(context=context, view=view, tree=tree)
+    queryset = processor.get_queryset(request=request)
+
+    # Isolate this query to a named connection. This will cancel an
+    # outstanding queries of the same name if one is present.
+    cancel_query(query_name)
+    queryset = isolate_queryset(query_name, queryset)
+
+    # 0 limit means all for pagination, however the read method requires
+    # an explicit limit of None
+    limit = limit or None
+
+    if limit:
+        queryset = queryset[:limit]
+
+    sql, params = queryset.query.get_compiler(queryset.db).as_sql()
+
     if not job_options:
         job_options = {}
 
     queue = get_queue(settings.ASYNC_QUEUE)
-    job = queue.enqueue(get_result_rows,
-                        context,
-                        view,
-                        query_options,
-                        evaluate_rows=True)
+
+    job = queue.enqueue(get_and_format_rows,
+                        sql=sql,
+                        params=params,
+                        processor_name=processor_name,
+                        context=context,
+                        view=view,
+                        page=page,
+                        stop_page=stop_page,
+                        tree=tree,
+                        offset=offset,
+                        limit=limit,
+                        export_type=export_type,
+                        reader=reader,
+                        queryset=queryset,
+                        db=queryset.db)
+
     job.meta.update(job_options)
     job.save()
 
     return job.id
 
 
-def get_result_rows(context, view, query_options, evaluate_rows=False):
+def get_and_format_rows(sql, params, processor_name, context, view, tree,
+                        page, stop_page, offset, limit, export_type, reader,
+                        db, queryset):
+
+    QueryProcessor = pipeline.query_processors[processor_name]
+    processor = QueryProcessor(context=context, view=view, tree=tree)
+
+    # We use HTMLExporter in Serrano but Avocado has it disabled. Until it
+    # is enabled in Avocado, we can reference the HTMLExporter directly here.
+    exporter = processor.get_exporter(get_exporter_class(export_type))
+
+    conn = connections[db]
+    cur = conn.cursor()
+    cur.execute(sql, params)
+
+    view_node = view.parse()
+
+    # This is an optimization when concepts are selected for ordering
+    # only. There is no guarantee to how many rows are required to get
+    # the desired `limit` of rows, so the query is unbounded. If all
+    # ordering facets are visible, the limit and offset can be pushed
+    # down to the query.
+    order_only = lambda f: not f.get('visible', True)
+
+    if filter(order_only, view_node.facets):
+        rows = exporter.manual_read(cur,
+                                    offset=offset,
+                                    limit=limit)
+    else:
+        method = exporter.reader(reader)
+        rows = method(cur)
+
+    rows = list(rows)
+
+    return {
+        'context': context,
+        'export_type': export_type,
+        'limit': limit,
+        'offset': offset,
+        'page': page,
+        'processor': processor,
+        'queryset': queryset,
+        'rows': rows,
+        'stop_page': stop_page,
+        'view': view,
+    }
+
+
+def get_result_rows(context, view, query_options, evaluate_rows=False,
+                    request=None):
     """
     Returns the result rows and options given the supplied arguments.
 
@@ -268,6 +385,10 @@ def get_result_rows(context, view, query_options, evaluate_rows=False):
             caller of this method actually needs an evaluated result set. An
             example of this is calling this method asynchronously which needs
             a pickleable return value(generators can't be pickled).
+        request (default=None): Django request object to be passed to the
+            QueryProcessor's get_queryset method. This allows a
+            custom query processor to modify query handling based on request
+            data such as the user.
 
     Returns:
         dict -- Result rows and relevant options used to calculate rows. These
@@ -320,7 +441,7 @@ def get_result_rows(context, view, query_options, evaluate_rows=False):
 
     QueryProcessor = pipeline.query_processors[processor_name]
     processor = QueryProcessor(context=context, view=view, tree=tree)
-    queryset = processor.get_queryset()
+    queryset = processor.get_queryset(request=request)
 
     # Isolate this query to a named connection. This will cancel an
     # outstanding queries of the same name if one is present.
