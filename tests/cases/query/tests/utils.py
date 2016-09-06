@@ -4,7 +4,7 @@ from threading import Thread
 from django.conf import settings
 from django.core import management
 from django.db import connections, DatabaseError
-from django.test import TransactionTestCase
+from django.test import TransactionTestCase, RequestFactory
 from rq.job import JobStatus
 
 from avocado.async import utils as async_utils
@@ -197,8 +197,10 @@ class AsyncResultRowTestCase(TransactionTestCase):
             'limit': limit,
             'page': 1,
         }
+        request = RequestFactory().get('/some/request')
 
-        job_id = utils.async_get_result_rows(context, view, query_options)
+        job_id = utils.async_get_result_rows(context, view, query_options,
+                                             request=request)
         self.assertTrue(async_utils.get_job_count(), 1)
         async_utils.run_jobs()
         time.sleep(1)
