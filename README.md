@@ -10,7 +10,7 @@ http://avocado.harvest.io
 
 ## Development
 
-See the [contributing](https://github.com/chop-dbhi/cilantro/blob/master/CONTRIBUTING.md) guide.
+See the [contributing](https://github.com/chop-dbhi/avocado/blob/master/CONTRIBUTING.md) guide.
 
 ## Data Model
 
