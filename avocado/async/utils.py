@@ -81,7 +81,7 @@ def cancel_job(job_id):
             'canceled': canceled
         }
 
-    job.cancel()
+    job.delete()
     return result
 
 
@@ -89,4 +89,5 @@ def cancel_all_jobs():
     """
     Cancels all jobs.
     """
-    get_queue(settings.ASYNC_QUEUE).empty()
+    for job in get_queue(settings.ASYNC_QUEUE).jobs:
+        job.delete()

@@ -6,6 +6,7 @@ from django.core import management
 from django.db import connections, DatabaseError
 from django.test import TransactionTestCase, RequestFactory
 from rq.job import JobStatus
+from rq.exceptions import NoSuchJobError
 
 from avocado.async import utils as async_utils
 from avocado.models import DataContext, DataField, DataView
@@ -158,7 +159,6 @@ class AsyncResultRowTestCase(TransactionTestCase):
     def test_create_and_cancel(self):
         # Create 3 meaningless jobs. We're just testing job setup and
         # cancellation here, not the execution.
-        utils.async_get_result_rows(None, None, {})
         job_options = {
             'name': 'Job X',
         }
@@ -168,6 +168,7 @@ class AsyncResultRowTestCase(TransactionTestCase):
             'query_name': 'job_y_query',
         }
         job_y_id = utils.async_get_result_rows(None, None, {}, job_options)
+        job_z_id = utils.async_get_result_rows(None, None, {})
 
         self.assertEqual(async_utils.get_job_count(), 3)
 
@@ -178,7 +179,14 @@ class AsyncResultRowTestCase(TransactionTestCase):
         self.assertTrue(job_x in jobs)
         self.assertEqual(job_x.meta['name'], 'Job X')
 
+        job_y = async_utils.get_job(job_y_id)
+        job_z = async_utils.get_job(job_z_id)
+
         self.assertEqual(async_utils.cancel_job(job_x_id), None)
+        # Prove job is gone from Redis
+        with self.assertRaises(NoSuchJobError):
+            job_x.refresh()
+        # Prove job is gone from queue
         self.assertEqual(async_utils.get_job_count(), 2)
         async_utils.cancel_job('invalid_id')
         self.assertEqual(async_utils.get_job_count(), 2)
@@ -187,6 +195,10 @@ class AsyncResultRowTestCase(TransactionTestCase):
         self.assertTrue(async_utils.get_job_count(), 1)
 
         async_utils.cancel_all_jobs()
+        with self.assertRaises(NoSuchJobError):
+            job_y.refresh()
+        with self.assertRaises(NoSuchJobError):
+            job_z.refresh()
         self.assertEqual(async_utils.get_job_count(), 0)
 
     def test_job_result(self):
