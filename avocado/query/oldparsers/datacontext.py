@@ -186,6 +186,11 @@ class Branch(Node):
                 else:
                     raise TypeError('The ".extra()" method only takes list of '
                                     'dicts as keyword values')
+
+        if self.type == OR:
+            if 'where' in extra and isinstance(extra['where'], (list, tuple)):
+                extra['where'] = [' OR '.join(extra['where'])]
+
         return extra
 
     @property
