@@ -108,7 +108,7 @@ def instance_cache_key(instance, label=None, version=None, args=None,
         version = version(instance)
 
     opts = instance._meta
-    key = [opts.app_label, opts.module_name, instance.pk]
+    key = [opts.app_label, opts.model_name, instance.pk]
 
     if label is not None:
         key.append(label)
