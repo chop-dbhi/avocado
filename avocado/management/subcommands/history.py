@@ -18,7 +18,7 @@ class Command(BaseCommand):
                     'HISTORY_MAX_SIZE.'),
     )
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def handle(self, *args, **options):
         cull = options.get('cull')
         max_size = options.get('max_size', settings.HISTORY_MAX_SIZE)

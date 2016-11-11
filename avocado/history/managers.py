@@ -69,7 +69,7 @@ class RevisionManager(models.Manager):
             return True
         return bool(revision.diff(obj, fields=fields))
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def create_revision(self, obj, fields, model=None, commit=True,
                         deleted=False, **kwargs):
         """Creates a revision for the object.
@@ -118,7 +118,7 @@ class RevisionManager(models.Manager):
                 revision.save()
             return revision
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def revert(self, obj, model=None, commit=True):
         "Revert object to last revision."
         revision = self.get_latest_for_object(obj, model=model)
@@ -126,7 +126,7 @@ class RevisionManager(models.Manager):
             revision.apply(obj, commit=commit)
         return obj
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def cull_for_object(self, obj, model=None, max_size=None):
         """Culls revisions for an object down to `max_size`.
 
