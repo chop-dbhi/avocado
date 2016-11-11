@@ -17,6 +17,9 @@ class Command(BaseCommand):
         'migration': 'migration',
     }
 
+    def add_arguments(self, parser):
+        parser.add_argument('subcommands', metavar='N', nargs='+')
+
     def print_subcommands(self, prog_name):
         usage = ['', 'Available subcommands:']
         for name in sorted(self.commands.keys()):
@@ -63,6 +66,7 @@ class Command(BaseCommand):
         self.execute(*args, **options.__dict__)
 
     def handle(self, *args, **options):
+        args = options['subcommands']
         if not args or args[0] not in self.commands.keys():
             return self.print_help('./manage.py', 'avocado')
         subcommand, args = args[0], args[1:]
