@@ -2,7 +2,7 @@ from copy import deepcopy
 from django.db import models
 from django.db.models import Q, Count, Sum, Avg, Max, Min, StdDev, Variance
 from django.db.models.query import REPR_OUTPUT_SIZE, QuerySet
-from modeltree.compat import LOOKUP_SEP
+from django.db.models.constants import LOOKUP_SEP
 from modeltree.utils import M
 
 
