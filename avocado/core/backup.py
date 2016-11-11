@@ -102,24 +102,22 @@ def load_fixture(name, using=DEFAULT_DB_ALIAS):
     with open(fixture_path) as fixture:
         objects = serializers.deserialize(FIXTURE_FORMAT, fixture, using=using)
 
-        with transaction.commit_manually(using):
-            for obj in objects:
-                if (
-                    hasattr(router, "allow_migrate") and
-                    router.allow_migrate(using, obj.object.__class__)
-                ) or (
-                    hasattr(router, "allow_syncdb") and
-                    router.allow_syncdb(using, obj.object.__class__)
-                ):
-                    try:
+        try:
+            with transaction.atomic(using):
+                for obj in objects:
+                    if (
+                        hasattr(router, "allow_migrate") and
+                        router.allow_migrate(using, obj.object.__class__)
+                    ) or (
+                        hasattr(router, "allow_syncdb") and
+                        router.allow_syncdb(using, obj.object.__class__)
+                    ):
                         obj.save(using=using)
-                    except (DatabaseError, IntegrityError), e:
-                        transaction.rollback(using)
-                        msg = u'Could not load {0}.{1}(pk={2}): {3}'.format(
-                            obj.object._meta.app_label,
-                            obj.object._meta.object_name, obj.object.pk, e)
-                        raise e.__class__, e.__class__(msg), sys.exc_info()[2]
-            transaction.commit(using)
+        except (DatabaseError, IntegrityError), e:
+            msg = u'Could not load {0}.{1}(pk={2}): {3}'.format(
+                obj.object._meta.app_label,
+                obj.object._meta.object_name, obj.object.pk, e)
+            raise e.__class__, e.__class__(msg), sys.exc_info()[2]
     log.info(u'Loaded data from fixture {0}'.format(name))
 
 
@@ -139,23 +137,21 @@ def safe_load(name, backup_path=None, using=DEFAULT_DB_ALIAS):
     """
     _check_app()
 
-    with transaction.commit_manually(using):
-        # Create the backup fixture
-        if backup_path:
-            create_fixture(os.path.abspath(backup_path), using=using,
-                           silent=True)
-        else:
-            backup_path = create_temp_fixture(using=using, silent=True)
-        log.info(u'Backup fixture written to {0}'.format(os.path.abspath(
-            backup_path)))
-        delete_metadata(using=using)
-        try:
+    try:
+        with transaction.atomic(using):
+            # Create the backup fixture
+            if backup_path:
+                create_fixture(os.path.abspath(backup_path), using=using,
+                               silent=True)
+            else:
+                backup_path = create_temp_fixture(using=using, silent=True)
+            log.info(u'Backup fixture written to {0}'.format(os.path.abspath(
+                backup_path)))
+            delete_metadata(using=using)
             load_fixture(name, using=using)
-        except (DatabaseError, IntegrityError):
-            transaction.rollback(using)
-            log.error(u'Fixture load failed, reverting from backup: {0}'
-                      .format(backup_path))
-            load_fixture(os.path.abspath(backup_path), using=using)
-            raise
-        transaction.commit(using)
+    except (DatabaseError, IntegrityError):
+        log.error(u'Fixture load failed, reverting from backup: {0}'
+                  .format(backup_path))
+        load_fixture(os.path.abspath(backup_path), using=using)
+        raise
     return backup_path
