@@ -33,17 +33,17 @@ for arg in sys.argv[1:]:
 
 if not apps:
     apps = [
-        'core',
-        'exporting',
-        'formatters',
-        'events',
-        'history',
-        'models',
-        'query',
-        'stats',
-        'search',
-        'subcommands',
-        'validation',
+        'tests.cases.core.tests',
+        'tests.cases.exporting.tests',
+        'tests.cases.formatters.tests',
+        'tests.cases.events_test.tests',
+        'tests.cases.history.tests',
+        'tests.cases.models.tests',
+        'tests.cases.query.tests',
+        'tests.cases.search.tests',
+        'tests.cases.stats.tests',
+        'tests.cases.subcommands.tests',
+        'tests.cases.validation.tests'
     ]
 
 management.call_command('test', *apps)

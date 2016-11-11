@@ -1,10 +1,14 @@
 import sys
 import cProfile
 import unittest
-from django.test.simple import DjangoTestSuiteRunner
+from django.test.runner import DiscoverRunner
 
 
-class ProfilingTestRunner(DjangoTestSuiteRunner):
+class ProfilingTestRunner(DiscoverRunner):
+    def __init__(self, *args, **kwargs):
+        kwargs['pattern'] = "**/*.py"
+        super(ProfilingTestRunner, self).__init__(*args, **kwargs)
+
     def run_suite(self, suite, **kwargs):
         stream = open('profiled_tests.txt', 'w')
 
