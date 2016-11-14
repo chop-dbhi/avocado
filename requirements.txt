@@ -3,7 +3,7 @@ django-guardian==1.2.5
 django-haystack==2.3.1
 Whoosh==2.6.0
 jsonfield==1.0.0
-modeltree==1.1.9
+modeltree==2.0.0
 openpyxl==2.1.4
 python-memcached==1.53
 ordereddict
