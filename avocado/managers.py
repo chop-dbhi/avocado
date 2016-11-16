@@ -249,7 +249,7 @@ class DataConceptManager(PublishedManager, DataConceptSearchMixin):
     def get_query_set(self):
         return DataConceptQuerySet(self.model, using=self._db)
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def create_from_field(self, field, save=True, **kwargs):
         """Derives a DataConcept from this DataField's descriptors. Additional
         keyword arguments can be passed in to customize the new DataConcept

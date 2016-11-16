@@ -48,7 +48,7 @@ class Command(DataFieldCommand):
                          .format(METHOD_CHOICES)),
     )
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def _handle_field_method(self, f, method, flush):
         func = getattr(f, method)
 
