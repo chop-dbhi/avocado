@@ -11,6 +11,7 @@ from django.db.models import Q
 from django.db.models.fields import FieldDoesNotExist
 from django.db.models.signals import post_save, pre_delete
 from django.core.exceptions import ValidationError
+from modeltree.tree import trees
 from avocado.core import utils
 from avocado.core.structures import ChoicesDict
 from avocado.core.models import Base, BasePlural, PublishArchiveMixin
@@ -568,10 +569,13 @@ class DataField(BasePlural, PublishArchiveMixin):
         if queryset is None:
             queryset = self.model.objects.all()
 
-        queryset = queryset.values(self.value_field.name)\
-            .annotate(cnt=Count(self.value_field.name))\
-            .values_list(self.value_field.name, 'cnt')\
-            .order_by(self.value_field.name)
+        tree = trees[queryset.model]
+        group_by = tree.query_string_for_field(self.value_field)
+
+        queryset = queryset.values(group_by)\
+            .annotate(cnt=Count('pk', distinct=True))\
+            .values_list(group_by, 'cnt')\
+            .order_by(group_by)
 
         return tuple(queryset)
 
